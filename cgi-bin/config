@@ -3,7 +3,7 @@
     "db_host"			=> "localhost:3306",
     "db_name" 			=> "ifrog_tandem",
     "db_user"			=> "root",
-    "db_password" 		=> "real2k",
+    "db_password" 		=> "",
     "db_no_disconnect" 	=> "0",
     
     "upload_maxchanksize"	=> "10000000",
