@@ -1,0 +1,8 @@
+<tr>
+  <td class=edit width="150px" valign=top>
+    <%= $lkey->{name} =%>
+  </td>
+  <td class=read>
+  	<%== LIST (name => $key, value => $value) =%>
+  </td>
+</tr>

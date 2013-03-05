@@ -1,0 +1,273 @@
+%   my $access_flag = $self->stash->{access_flag};
+%   my $index = $self->stash->{index} || '';
+
+<% if(!$self->stash->{dop_table_reload}){ %> 
+<% if($access_flag eq 'w'){ %>
+
+<div style="display:none" id="datasource_list<%= $controller_name %>">
+%   foreach my $k (@{$self->stash->{'listfield_header_dp_'.$key}}){
+%		my $lk = $self->lkey(name => $k);
+%       if($lk->{settings}->{type} =~ /list/){
+            <select id="datasource_<%= $k %>" style="display:none" <% if($lk->{settings}->{mult}){ %>multiple="<%= $lk->{settings}->{mult} %>"<% } %>>
+            <%== LIST (name => $k, type => 'select', option => 1) %>
+            </select>           
+%       } elsif($lk->{type} eq 'chb'){
+            <select id="datasource_<%= $k %>" style="display:none">
+                <option value="0"><%= $lk->{settings}->{no} %></option>
+                <option value="1"><%= $lk->{settings}->{yes} %></option>            
+            </select>
+%       }
+%   }
+
+</div>
+
+<tr>
+<% } else { %>
+<tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+<% } %>
+<% if($access_flag eq 'w'){ %>
+  <td class=edit width="150px">
+    <%= $lkey->{name} %>
+  </td>
+  <td class=edit width="10px" valign=top>
+%   if($lkey->{settings}->{help}){
+        <a href="#" onmousemove="show_help(event,'<%== $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+%   }
+  </td>
+  <td width="10px" id="_<%= $key %>"></td>
+<% } %>
+<% if($access_flag eq 'r'){ %>
+  <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} %>:</td>
+<% } %>
+  <td class=read width="*">
+    <% if($access_flag eq 'w' && $lkey->{settings}->{table_add}){ %>   
+      <img src="/admin/img/icons/menu/icon_add.gif" align="absMiddle"> <a onclick="
+        displayMessage('<%= $self->stash->{controller_url} %>?do=add&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&dop_table=<%= $lkey->{settings}->{table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>', 780, 580, 4); return false" title="" href="#">добавить</a>  
+    <% } %>
+  </td>
+</tr>
+<tr>
+  <td colspan=4>
+<div id="replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>">
+<% } %>
+
+<% if($self->stash->{dop_table_reload}){ %> 
+    <%  $key = $self->stash->{lfield} if ($access_flag eq 'r'); %>
+<% } %>
+
+<% my $page = $self->stash->{page_doptable} || 1;  %>
+<% my $total_page = $self->stash->{'total_page_'.$key} || 1; %>
+<% my $first_page = $page <= 5 ? 1 : $page - 5; %>
+<% my $end_page = $total_page; %>
+<% if($page <= 5 && $total_page > $page+10){ $end_page = $page+10; } %>
+<% if($page > 5 && $first_page+10 > $total_page){ $end_page = $total_page;} %>
+<% if($page > 5 && $first_page+10 <= $total_page){ $end_page = $first_page+10;} %>
+<% if($page > 5 && $first_page+5 >= $total_page){ $end_page = $total_page;} %>
+
+
+<% my $url_for_table_reload = $self->url_for('admin_routes', controller => 'main', action => 'body'); %>
+<table style="width:100%;">
+  <tr>
+    <td style="width:120px;">Страница: &nbsp;
+        <select name="page" onChange="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable='+jQuery(this).val() )">
+        <% foreach (1..$total_page){ %><option value="<%= $_ %>" <% if($_ == $page){ %>selected="selected"<% } %> ><%= $_ %></option><% } =%>
+        </select>
+    </td>
+    <td style="width:30px;">
+    <% if($page>1){ %><a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $page-1 %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_prev.gif" border="0"></a><% } %>
+    </td>
+    <td style="width:400px;">
+    <% if($total_page>1){ %>
+        <% if($page >= 8){ %>
+            <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=1')">1</a> ...
+        <% } %> 
+        <% foreach ($first_page..$end_page){ %>
+            <% if($_ == $page){ %><b><% } %>
+            <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $_ %>')"><%= $_ %></a>
+            <% if($_ == $page){ %></b><% } %>
+            <% if($_ < $end_page){ %>|<% } %>
+        <% } %>
+        <% if($total_page>10 and $page<$total_page-1 && $total_page != $end_page){ %>
+            <% if($end_page < $total_page-1){ %> ... <% } %><% if($end_page == $total_page-1){ %>|<% } %> <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&replaceme=<%= $self->stash->{replaceme} %>&index=<%= $index %>&page_doptable=<%= $total_page %>')"><%= $total_page %></a> 
+        <% } %>
+    <% } %>
+    </td>
+    <td style="width:30px;">
+        <% if($page<$total_page){ %>
+        <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page+1 %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_next.gif" border="0"></a>
+        <% } %>
+    </td>
+    <td style="width:40%;text-align:right;">
+    
+    <% foreach my $i (qw(25 50 75 100 200)){ %>
+        <% if($i == $pcol_doptable){ %><b><% } %>
+        <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=<%= $i %>')"><%= $i %></a>
+        <% if($i == $pcol_doptable){ %></b><% } %>
+        |
+    <% } %>
+    <% if($pcol_doptable == 1000000){ %><b><% } %>
+        <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=1000000')">Все</a>
+    <% if($pcol_doptable == 1000000){ %></b><% } %>
+    </td>
+    </tr>
+</table>
+
+<div>
+<%  my $col = 1; %>
+<% $self->stash->{colsort} = 0; %>
+    <div id="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>param" style="display:none">tableWidgetObj.setColumnSort(Array(
+    <% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){ =%>
+    	<% 
+    		my $lk = $self->lkey(name => $_); 
+    		$lk->{settings}->{table_sortfield} ||= ''; 
+    		$self->stash->{'total_col_list_dp_'.$key} ||= 0;  
+    	%>
+        <% if($lk->{settings}->{type} eq 'd' or $_ eq 'ID'){ =%>'N'<% } else { =%>'S'<% } =%>
+        <% if($col - 1 != $self->stash->{'total_col_list_dp_'.$key}){ %>,<% } =%>
+        <% if($_ eq $lk->{settings}->{table_sortfield}){ $self->stash->{colsort} = $col - 1; } =%>
+        <% $col++; =%>
+    <% } =%>
+    <% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){ =%>,false<% } %>
+    ));</div>
+
+	<% $lkey->{settings}->{table_sortfield_asc} = ''; %>
+  	<table class=doptable  
+  	<% if($lkey->{settings}->{table_sortfield_asc} eq 'asc'){ %>ascending="ascending"<% } %>
+  	<% if($lkey->{settings}->{table_sortfield_asc} eq 'desc'){ %>ascending="descending"<% } %> 
+  	<% if($lkey->{settings}->{table_width}){ %>width="<%= $lkey->{settings}->{table_width} %>"<% } %> 
+  	<% if($lkey->{settings}->{table_height}){ %>height="<%= $lkey->{settings}->{table_height} %>"<% } %>
+  	id="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" name="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" align="center"
+  	script_link="<%= $self->stash->{controller_url} %>" script_replaceme="<%= $self->stash->{replaceme} %>"
+  	script_param="&list_table=<%= $lkey->{settings}->{table} %>" > 
+    <thead>
+      <tr class=header>
+    <% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){ =%>
+        <% if($_ ne 'folder'){ %>
+        <% my $lk = $self->lkey(name => $_); %>
+        <td>
+            <% if($lk && $_ ne 'type_file' && $_ ne 'size'){ %><%= $lk->{name} %><% } %>
+            <% if($lk && $_ eq 'type_file'){ %> <% } %>
+            <% if($lk && $_ eq 'size'){ %>Размер<% } %>
+            <% if(!$lk){ %><%= $_ %><% } %>
+        </td>
+        <% } %>
+    <% } %>
+    <% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){ =%><td style="width:16px;"> </td><% } %>   
+    </tr>
+    </thead>
+    <tbody>
+
+<% my $table_info_link = $lkey->{settings}->{table_info_link} || '';
+<% foreach my $item (@{$self->stash->{'items_dp_'.$key}}){ =%>
+<tr>
+    <% my $subitem_id = $item->{ID} || 0; %>
+    <% foreach my $header (@{$self->stash->{'listfield_header_dp_'.$key}}){ =%>
+        <% if($header eq 'type_file'){ %>
+            <td width="48px">
+                <% if($item->{type_file}){ %><img width="48" src="/admin/img/icons/file/<%= $item->{type_file} %>.png" alt="<%= $item->{type_file} %>"><% } %>
+            </td>
+        <% } elsif($header eq 'size'){ %>
+            <td width="60px">
+                <%= file_nice_size($item->{size}) %>
+            </td>            
+        <% } elsif($header ne 'folder'){ %>
+            <td<% if($table_info_link){ %> onClick="openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','edit','edit')"<% } %> >
+            <% my $settings = $self->lkey(name => $header )->{settings}; %>
+            <% my $t_type = $settings->{type}; %>
+            
+            
+            <% if($item->{$header}){ %>
+                <% if($t_type eq 'chb'){ %>
+                    <% my $value = $item->{$header} ? $settings->{yes} : $settings->{no}; %>
+                    <% if($settings->{qedit} && $subitem_id){ %>
+                        <label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+                        <div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $value %></div>
+
+%   init_items({
+%       type        => 'eval',
+%       value       => "if (!listModel['$header']) {
+%                           listModel['$header'] = new DHTMLSuite.listModel();
+%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
+%   });
+
+                    <% } else { %>
+                        <%= $value %>
+                    <% } %>                                         
+
+                <% } elsif($t_type =~ /list/){ %>
+                    <% my $value = $self->VALUES(name => $header, value => $item->{$header}); %>
+                    <% if($settings->{qedit} && $subitem_id){ %>
+                        <label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+                        <div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $value %></div>
+%   init_items({
+%       type        => 'eval',
+%       value       => "if (!listModel['$header']) {
+%                           listModel['$header'] = new DHTMLSuite.listModel();
+%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
+%   });
+                    <% } else { %>
+                        <%= $value %>
+                    <% } %> 
+                    
+                <% } elsif($t_type eq 'pict'){ %>
+                    <img width="100" src="<%= lfield_folder( lfield => $header ) =%><%= $item->{$header} %>">
+
+                <% } else { %>
+                    <% if($settings->{qedit} && $subitem_id){ %>
+                        <label id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+                        <div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $item->{$header} %></div>
+                    <% } else { %>
+                        <%= $item->{$header} %>
+                    <% } %>
+                    
+                <% } %>
+            <% } else { %>
+                <% if($t_type eq 'pict'){ %><img border="0" src="/admin/img/no_img.png" alt="Нет картинки" /><% } else { %>-<% } %>
+            <% } %>
+        <% } %> 
+    <% } =%>
+    <% foreach my $button (@{$self->stash->{'buttons_key_dp_'.$key}}){ =%>
+    <td style="width: 16px;">
+        <div class="button16">
+            <% $button = 'delete' if ($button =~ /delete_select/);
+            <% if($button ne 'upload' and $button ne 'delete' and $button ne 'info'){ %>
+                <a onclick="<% if($self->stash->{'confirm_'.$button}){ %>if(confirm('<%= $self->stash->{'confirm_'.$button} %>'))<% } %> 
+                displayMessage('<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&do=<%= $button %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&dop_table=<%= $lkey->{settings}->{table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>', 780, 580, 4); return false" title="" href="javascript:void(0);">
+                <img border="0" src="/admin/img/icons/menu/button.<%= $button %>.gif"/></a>
+            
+            <% } elsif($button eq 'upload'){ %>
+                <a href="<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&do=<%= $button %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&dop_table=<%= $lkey->{settings}->{table} %>">
+                <img border="0" src="/admin/img/icons/menu/button.<%= $button %>.gif"/></a>
+            
+            <% } elsif($button eq 'delete'){ %>
+                <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&do=<%= $button %>&dop_table=<%= $lkey->{settings}->{table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>')">
+                <img border="0" src="/admin/img/icons/menu/button.delete.gif"/>
+                </a>            
+            
+            <% } elsif($button eq 'info'){ %>
+                <a href="#" onClick="openPage('center', '<%= $lkey->{settings}->{table_info_replaceme} %>', 'openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>', 'Инфо', 'Инфо')">
+                <img border="0" src="/admin/img/icons/menu/button.info.gif"/></a>           
+            <% } %>
+        </div>
+    </td>   
+    <% } %>
+</tr>
+<% } %>
+</tbody>
+</table>
+</div>
+<br><br>
+<% if(!$self->stash->{dop_table_reload}){ %>
+</div> 
+</td>
+</tr>
+<% } else { %>
+
+<% } %>
+
+<% my $str_init = "loading_layout_show('tableWidget'); setTimeout(function(){init_tableWidget(); init_qedit_doptable('${replaceme}${lkey}$index'); loading_layout_hide('tableWidget'); }, 1000);"; %>
+%   init_items({
+%       type        => 'eval',
+%       value       => $str_init
+%   });
+

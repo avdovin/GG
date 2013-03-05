@@ -1,0 +1,12 @@
+<div id='<%= $replaceme %>' style="padding:10px">
+<table width="90%">
+  <tr>
+    <td align=right width="48px"><img src='<%== $self->app->program->{pict} %>' align='absMiddle' hspace=7></td>
+    <td valign=top width="*">
+      <h1><%= $controller_name %></h1>
+      <h2><% if ($self->stash->{ page_name }){ %><%= $self->stash->{ page_name } %><% }else{ %>Информация<% } %></h2>
+    </td>
+  </tr>
+</table>
+<hr>
+<h3><%== admin_msg %></h3>

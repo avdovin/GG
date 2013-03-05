@@ -1,0 +1,36 @@
+<div id="replaceme_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>">
+      <h1><%= $self->app->program->{name} %></h1>
+      <h2>Настройка печати</h2>
+    <p style="text-align:right;margin-right:10px">
+        <img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="#" onClick="closethiswin();">закрыть</a>
+    <h3></h3>
+<hr>
+<form name="form_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" id="form_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" method="post" enctype="multipart/form-data">
+    <% if($self->stash->{index}){ %><input type=hidden name=index value="<%= $self->stash->{index} %>"><% } %>
+    <input type="hidden" name="do" value="print">
+    <input type="hidden" name="group" value="2">
+%	my $default_keys = $self->stash->{param_default_keys} || {};
+%	foreach (keys %$default_keys){
+		<input type="hidden" name="<%= $_ %>" value="<%= $default_keys->{$_} %>">
+%	}
+<div id="formResponsewin">
+    <table id="anketka_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" width="95%" align="center" style="border:solid 1px #ccc"><tr><td>
+    <p align=center>Выберите вариант предоставления информации для дальнейшей печати:<br><br>
+    <select name="lfield">
+<% if($self->stash->{pdf_flag}){ %><option value="pdf">PDF</option><% } %>
+        <option value="html">HTML</option>
+    </select></p><p><b>Внимание!</b> Если вы пользуетесь Internet Explorer, то нажмите клавишу Ctrl, и удерживая ее нажмите на <b>OK</b></p></td></tr>
+    </table>
+</div>
+<table width=95% align=center>
+<tr>
+  <td align=center><br /><input id="submit_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>', '<%= $self->stash->{controller_url} %>', 1); return false;" value="ОК" class="submit_save" style="width:90%"></td>
+</tr>
+</table>
+</form>
+<script>
+function closethiswin() {
+  closeMessage(3);
+}
+</script>
+</div>

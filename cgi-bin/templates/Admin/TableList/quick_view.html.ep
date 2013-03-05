@@ -1,0 +1,23 @@
+<table class=tablelist border=0 width="1005" align=center style="border:solid 1px #ccc;background:white">
+%	my $class = 'even';
+%	my $lkeys = $self->lkey;
+%	foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+%		if(exists ($item->{$k}) ){
+%			my $lkey = $self->lkey(name => $k);
+%			$class = $class eq 'even' ? 'odd' : 'even';
+			<tr class="<%= $class %>">
+			<td valign=top width="100px"><%= $lkey->{name} =%></td>
+			<td><div style="overflow:auto">
+			<% my $type = $lkey->{settings}->{type}; %>
+            <% if($type eq 'pict'){ %>
+                <% my $folder = $self->lfield_folder( lfield => $k ); %>
+                <img style="border:0;" src="<% if($item->{$k}){ %><%= $folder =%><%= $item->{$k} =%><% } else { %>/admin/img/no_img.png<% } %>" width="100" />
+            <% } else { %>
+                <% if($lkey->{settings}->{type} eq 'code'){ %><pre><% } =%>
+				    <%== VALUES( name => $k, value => $$item{$k}) =%>
+                <% if($lkey->{settings}->{type} eq 'code'){ %></pre><% } =%>
+            <% } %>
+		</div></td>
+%		}
+%	}
+</table>

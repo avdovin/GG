@@ -1,0 +1,154 @@
+<div id="filter" style="padding:5px">
+<table cellpadding=3 width=100%>
+  <tr>
+    <td><h1>Импорт ZIP архива</h1>
+    	<div id="loading-progress">
+    		<span id="loading-progress-msg"></span>
+    		<span id="loading-progress-percent"></span>
+    		<span id="loading-progress-stats">(<b id="zipimport_current">0</b> из <b id="zipimport_total">0</b>)</span>
+    	</div>
+    </td>
+    <td width=100 align=right rowspan=2 height=30><br>
+      <p style="text-align:right;margin-right:10px">
+        <img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="#" onClick="closeMessage(3);">закрыть</a>
+      </p>
+    </td>
+  </tr>
+</table>
+<hr>
+<form name="zipimport_form" id="zipimport_form" method="post">
+%	foreach (keys %$param_default_keys){
+		<input type="hidden" name="<%= $_ %>" value="<%= $param_default_keys->{$_} %>">
+%	}
+
+	<div style="overflow:scroll;width:670px;height:565px;" id="zipimport_fields">
+    	<table width="95%" cellpadding=2 align=center>
+        	<tr>
+          		<td width="150px" height="20px" style="width:20%"> </td>
+          		<td height="20px"> </td>
+        	</tr>
+%        	my $class = 'even';
+%			if(scalar(@$listfield)){ $self->stash->{anketa_ok} = 'ok'; }
+%			foreach (@{$listfield}){
+%				if( my $lk = $self->lkey(name => $_) ){
+%					$class = $class eq 'odd' ? 'even' : 'odd';
+					<%== include $lk->{settings}->{template_dir_w}.$lk->{settings}->{template_w}, key => $_, class => $class, lkey => $lk,  value => ''  =%>
+%				}
+%			}
+
+			<% if($self->stash->{anketa_ok} ne 'ok'){ %><tr><td colspan=2><h3>В данной группе полей нет</h3></td></tr><% } =%>
+      </table>
+    </div>
+    <div style="overflow:scroll;width:670px;height:565px;display:none;" id="zipimport_progress">
+    	<h2>Статистика загрузки</h2>
+    	<div id="zipimport_progress_items">
+    	</div>
+    </div>
+    <table id="anketa_filter" width="95%" align=center style="padding-top:10px;">
+    <tr>
+      <td width=200 style="height:30px;"><a href="javascript:void(0);" id="zipimport_progress_change_btn" onClick="toogle_zipimport_progress();return false;">Статистика загрузки</a></td>
+      <td align=right style="height:30px;">
+        <input type=submit id="zipimport_run_btn" onClick="run_zipimport(); return false;" value="Начать загрузку" class=submit_save>
+      </td>
+    </tr>
+    </table>
+  </form>
+
+<script>
+	function toogle_zipimport_progress(on_import){
+		if(jQuery("#zipimport_progress").is(':hidden') || typeof (on_import) != 'undefined'){
+			jQuery("#zipimport_fields").hide();
+			jQuery("#zipimport_progress").show();
+			jQuery("#zipimport_progress_change_btn").html('Форма загрузки');
+		} else {
+			jQuery("#zipimport_fields").show();
+			jQuery("#zipimport_progress").hide();
+			jQuery("#zipimport_progress_change_btn").html('Статистика загрузки');
+		}
+		return false;
+	}
+	
+	var import_current = 0;
+	var import_total = 0;
+	function run_zipimport(){
+		
+		var loading_text = 'Обработка изображений';
+		var loading_node = jQuery("#loading-progress-msg");
+		var params = jQuery("#zipimport_form").serialize();
+		jQuery("#zipimport_progress_items").html('');
+		jQuery("#zipimport_current").html('0');
+		jQuery("#zipimport_total").html('0');
+		jQuery("#zipimport_run_btn").fadeOut('slow');
+		
+		jQuery.ajax({
+			url: "<%= $self->stash->{controller_url} %>?do=zipimport_save",
+  			beforeSend: function(){
+  				jQuery("#loading-progress").show().removeClass('loaded');
+  				loading_node.html( loading_text );
+  				import_current = 0;
+  				import_total = 0;
+  				
+  				toogle_zipimport_progress(1);
+			},
+   			success: function(data){
+   				import_total = data.count;
+				jQuery("#zipimport_total").html(data.count);
+				jQuery("#zipimport_progress_items").html(data.html);
+				
+				run_zipimport_nodes(params);	
+   			},
+   			error: function(data){
+   				alert('Ошибка загрузки арихива, повторите попытку позже ...');
+   				jQuery("#zipimport_run_btn").fadeIn('slow');
+   			},
+   			complete: function(){
+   				
+   			},
+   			data: params
+		});	
+		
+	}
+	
+	function run_zipimport_nodes(){
+		jQuery("#zipimport_progress_items div.loading:first").each(function(){
+			var _this = this;
+			var params = jQuery("#zipimport_form").serialize();
+			params += '&filename='+jQuery(_this).attr('filename')
+
+			jQuery.ajax({
+				url: "<%= $self->stash->{controller_url} %>?do=zipimport_save_pict",
+	  			beforeSend: function(){
+				},
+	   			success: function(data){
+	   				import_current++;
+					jQuery("#zipimport_current").html(import_current);	
+					jQuery(_this).removeClass('loading');
+					jQuery("div.pic", _this).append("<img src='"+data.src+"'/>");
+					jQuery("#loading-progress-percent").html( Math.ceil(import_current / import_total * 100 ) +' % ' );
+	   			},
+	   			error: function(data){
+	   			},
+	   			complete: function(){
+	   				if(jQuery("#zipimport_progress_items div.loading").length){
+	   					run_zipimport_nodes();
+	   				} else {
+
+	   					jQuery("#loading-progress").addClass('loaded');
+	   					jQuery("#loading-progress-msg").html('Обработка завершена');
+	   					jQuery("#zipimport_run_btn").fadeIn('slow');
+	   				}
+	   			},
+	   			data: params
+			});				
+		});
+	}
+	
+% 	if($self->stash->{flag_select_dir}){
+
+		load_script('/admin/js/select_dir.js');
+		setTimeout(function(){ init_select_dir('<%== $self->stash->{flag_select_dir} %>');}, 1000);
+%	}
+
+</script>
+
+</div>

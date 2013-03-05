@@ -1,0 +1,20 @@
+<div class="block-wrapper">
+
+    <div id="centerCol">
+        <div id="breadcrumbs">
+            <a href="<%= url_for('main') %>">Главная</a> → Новости
+        </div>
+        
+        <%== news_dir_menu %>
+        
+        <div class="news-entry news-entry-current">
+            <span><%= date_format( date => $item->{tdate}, format => 'dd month yyyy') %> г.</span>
+            <h3><%= $item->{name} =%></h3>
+        </div>
+        <div class="content">
+            <%== $item->{text} =%>
+        </div>
+    </div>
+
+    <div style="clear: both"></div>
+</div>

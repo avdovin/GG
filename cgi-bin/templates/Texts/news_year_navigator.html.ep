@@ -1,0 +1,3 @@
+%	my $year = $self->param('year') || "";
+<a href="<%= url_for('news_list') %>" class="archive <% unless($year){ %>current<% } %>">Все</a> <% foreach (@$items){ %><a href="<%= url_for('news_list') %>?year=<%= $_->{year} %>" class="archive <% if($year == $_->{year}){ %>current<% } %>"><%= $_->{year} %></a><% } %>
+

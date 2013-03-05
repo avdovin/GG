@@ -1,0 +1,237 @@
+/*******************************************************************************
+  RESET
+*******************************************************************************/
+
+html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    abbr, acronym, address, big, cite, code,
+    del, dfn, em, font, ins, kbd, q, s, samp,
+    small, strike, strong, tt, var,
+    b, u, i, center, dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+}
+body {
+    line-height: 1;
+}
+blockquote, q {
+    quotes: none;
+}
+:focus {
+    outline: 0;
+} /* remember to define focus styles! */
+ins {
+    text-decoration: none;
+} /* remember to highlight inserts somehow! */
+del {
+    text-decoration: line-through;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+} /* tables still need 'cellspacing="0"' in the markup */
+img {
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    background: transparent;
+}
+a {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+}
+
+/*******************************************************************************
+  TEMPLATES
+*******************************************************************************/
+
+.fleft {
+    float: left;
+}
+.fright {
+    float: right;
+}
+.left {
+    text-align: left;
+}
+.center {
+    text-align: center;
+}
+.right {
+    text-align: right;
+}
+.w100 {
+    width: 100%;
+}
+.w50 {
+    width: 50%;
+}
+
+/* CLEARFIX */
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+.clearfix {
+    display: inline-table;
+}
+/* Hides from IE-mac \*/
+* html .clearfix {
+    height: 1%;
+}
+.clearfix {
+    display: block;
+}
+/* End hide from IE-mac */
+/* END OF CLEARFIX */
+
+
+
+/*******************************************************************************
+  MAIN
+*******************************************************************************/
+
+html, body {
+    height: 100%;
+    cursor: default;
+}
+body {
+    font: normal 100% Arial, sans-serif;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+/*******************************************************************************
+  STRUCTURE:BASE
+*******************************************************************************/
+
+
+
+/*******************************************************************************
+  LAYOUT
+*******************************************************************************/
+
+#kvitanciya {
+    width: 650px;
+    margin: 20px;
+    font-size: 14px;
+    border: 1px solid #000;
+}
+    #kvitanciya td {
+        padding: 0 10px;
+        vertical-align: top;
+    }
+    #kvitanciya h1 {
+        font-size: 16px;            
+    }
+    #kvitanciya h2 {
+        font-size: 14px;
+        text-decoration: underline;
+    }
+    #kvitanciya p {
+        margin: 5px 0;
+    }
+    #kvitanciya td.sometext p {
+        font-size: 10px;
+        line-height: 11px;
+    }
+    #kvitanciya-top {
+        width: 100%;
+        margin: 10px 0 0;
+    }
+        #kvitanciya-top td {
+            padding: 0;
+        }
+            #kvitanciya-top td.c1 {
+                width: 100px;
+                padding-right: 20px;
+            }
+            #kvitanciya-top td.c2 {
+                width: 140px;
+                white-space: nowrap;
+            }
+            #kvitanciya-top td.c3 {
+                text-align: center;
+                white-space: nowrap;
+            }
+            #kvitanciya-top td.c4 {
+                text-align: center;
+                white-space: nowrap;
+            }
+            #kvitanciya-top td.c5 {
+                text-align: center;
+                white-space: nowrap;
+            }
+                #kvitanciya-top b {
+                    font-size: 16px;
+                }
+            #kvitanciya-top tr.bot td {
+                padding-top: 20px !important;
+            }
+    #info {
+        margin: 5px 0;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+    }
+        #info td {
+            padding: 3px 0;
+            font-size: 12px;
+            line-height: 12px;
+        }
+            #info td.c1 {
+                width: 180px;
+            }
+
+    .podpis {
+        width: 100%;
+        margin: 10px 0;
+    }
+        .podpis td {
+            padding: 0 !important;
+            font-size: 12px;
+        }
+            .podpis td b {
+                font-size: 14px;
+            }
+            .podpis td.c1 {
+                width: 260px;
+            }
+            .podpis td.c2 {
+                width: 90px;
+            }
+       .podpis tr.top td.c1 {
+           padding-bottom: 30px !important;
+       }
+       .podpis tr.top td.c3 {
+           padding-bottom: 30px !important;
+       }
+       .podpis tr.bot td.c1 {
+           text-align: center;
+           border-top: 1px solid #000;
+       }
+        .podpis tr.bot td.c3 {
+           text-align: center;
+           border-top: 1px solid #000;
+       }
+
+
+    .hr td {
+        border-top: 5px double #000;
+    }
+
+/*******************************************************************************
+  STYLES
+*******************************************************************************/

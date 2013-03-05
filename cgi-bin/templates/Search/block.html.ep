@@ -1,0 +1,6 @@
+<div id="search">
+<form id="search-form" method="post" action="<%= url_for('search', page => 1) %>">
+	<div id="search-input"><input type="text" name="qsearch" value="поиск..." onclick="if(this.value=='поиск...')this.value='';" onblur="if(this.value=='')this.value='поиск...';"/></div>
+    <input type="image" src="/img/icon_zoom.jpg" onClick="document.getElementById('search-form').submit();" />
+</form>
+</div>

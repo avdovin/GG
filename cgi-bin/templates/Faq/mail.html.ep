@@ -1,0 +1,12 @@
+<h2>Получен новый вопрос с сайта <%= get_var 'site_name'%></h2><br />
+
+
+Имя: <b><%= $form->{author_name}->{value} %></b><br />
+E-mail: <b><%= $form->{email}->{value} %></b><br />
+Вопрос:<br />
+<%= $form->{name}->{value} %>
+
+
+
+
+

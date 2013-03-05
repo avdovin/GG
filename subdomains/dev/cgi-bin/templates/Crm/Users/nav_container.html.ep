@@ -1,0 +1,18 @@
+<% if($end_page>1){ %>
+
+% my $prev_page = $page>1 ? $page-1 : 1;
+% my $next_page = $page < $end_page ? $page+1 : $end_page;
+<table id="pageNav">
+    <td class="c1"><a href="javascript:void(0);" onClick="<%= $jsfunction %>(get_services_filter({page:<%= $prev_page %>}));" title="Предыдущая">Предыдущая</a></td>
+    <td class="c2">
+    <% if($page >= 6){ %><a href="javascript:void(0);" onClick="<%= $jsfunction %>(get_services_filter({page:1}));">1</a> ... <% } %>
+%	foreach my $i ($first_page..$end_page){
+	<% if($page==$i){ %><span><%= $i %></span><% } else { %>  <a href="javascript:void(0);" onClick="<%= $jsfunction %>(get_services_filter({page:<%= $i %>}));" <% if($i == $page){ %>class="current" <% } %>><%= $i %></a> <% } %>
+%	}
+	<% if($total_page > $end_page && $page != $total_page){ %> ... <a href="javascript:void(0);" onClick="<%= $jsfunction %>(get_services_filter({page:<%= $total_page %>}));"><%= $total_page %></a><% } %>
+	    </td>
+    <td class="c3"><a href="javascript:void(0);" onClick="<%= $jsfunction %>(get_services_filter({page:<%= $next_page %>}));" title="Следующая">Следующая</a></td>
+</table>
+
+<% } %>
+

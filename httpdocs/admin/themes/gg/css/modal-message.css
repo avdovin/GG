@@ -1,0 +1,24 @@
+.DHTMLSuite_modalDialog_transparentDivs{	
+	filter:alpha(opacity=40);	/* Transparency */
+	opacity:0.4;	/* Transparency */
+	-moz-opacity:0.4;	/* Transparency */
+	background-color:#666;
+	z-index:1;
+	position:absolute; /* Always needed	*/
+	z-index:100000;
+}
+.DHTMLSuite_modalDialog_contentDiv{
+	border:1px solid #999;	
+	padding:5px;
+	z-index:100002;/* Always needed	*/
+	position:absolute;	/* Always needed	*/
+	background-color:#Fff;	/* White background color for the message */
+}
+.DHTMLSuite_modalDialog_contentDiv_shadow{
+	z-index:100001;/* Always needed	- to make it appear below the message */
+	position:absolute;	/* Always needed	*/
+	background-color:#555;
+	filter:alpha(opacity=30);	/* Transparency */
+	opacity:0.3;	/* Transparency */	
+	-moz-opacity:0.3;/* Transparency */
+}

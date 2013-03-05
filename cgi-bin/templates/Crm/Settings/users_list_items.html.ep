@@ -1,0 +1,19 @@
+%	foreach my $item (@$items){
+<div class="zakaz-entry zakaz-entry-gray" style="z-index: 20;"  id="user-<%= $item->{ID} %>">
+    <table>
+        <tr>
+            <td class="c1"></td>
+
+            <td class="c2"><%== $item->{name} %></td>
+            <td class="c3" style="width: 250px;"><%== $item->{position} %></td>
+            <td class="c9"><a onClick="if(!confirm('Вы уверены что хотите удалить пользователя <%== $item->{name} %>'))return false;" href="<%= url_for ('crm_routes', controller => 'settings', action => 'users_edit') %>?index=<%= $item->{ID} %>&delete=1"><img src="/imgcrm/delete2.png" width="16" height="16" alt="Удалить"/></a></td>
+            <td class="c8"><a href="<%= url_for ('crm_routes', controller => 'settings', action => 'users_edit') %>?index=<%= $item->{ID} %>"><img src="/imgcrm/edit.png" width="16" height="16" alt="Редактировать"/></a></td>
+        </tr>
+    </table>
+</div>
+%	}
+
+
+<%= page_navigator url_for => 'crm_routes', jsfunction => 'get_settings_users_list', template => 'Crm/Services/nav_container' =%>
+
+

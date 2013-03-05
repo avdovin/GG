@@ -1,0 +1,7 @@
+% layout 'default';
+
+<h2><%= $info->{title} %></h2>
+
+<p><%== $info->{text} %></p>
+
+

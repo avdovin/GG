@@ -1,0 +1,6 @@
+<div id="replaceme">
+OK
+<script type="text/javascript">
+  ld_content("replaceme", "/admin/main/mainpage");
+</script>
+</div>

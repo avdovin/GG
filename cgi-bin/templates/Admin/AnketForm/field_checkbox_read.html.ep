@@ -1,0 +1,6 @@
+<tr id="tr<%= $lkey %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+  <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
+  <td class=read valign=top>
+		<%== $value ? $lkey->{settings}->{yes} : $lkey->{settings}->{no} %>
+  </td>
+</tr>

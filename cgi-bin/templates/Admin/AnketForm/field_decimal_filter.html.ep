@@ -1,0 +1,11 @@
+<tr>
+  <td class=edit width="150px">
+     <%= $lkey->{name} =%>:
+  </td>
+  <td class=read>
+    <input class="menu" type="text" name="<%= $key %>" id="<%= $key %>" value="<%= $value %>" style="width:130px;margin-right:10px">
+    <input type=radio name="<%= $key %>pref" value="=" <% if(!$self->sysuser->settings->{$replaceme."_filter_".$key."pref"} or $self->sysuser->settings->{$replaceme."_filter_".$key."pref"} eq '='){ %>checked="checked"<% } %> > строго
+    <input type=radio name="<%= $key %>pref" value=">" <% if($self->sysuser->settings->{$replaceme."_filter_".$key."pref"} eq '>'){ %>checked="checked"<% } %>> больше
+    <input type=radio name="<%= $key %>pref" value="<" <% if($self->sysuser->settings->{$replaceme."_filter_".$key."pref"} eq '<'){ %>checked="checked"<% } %>> меньше
+  </td>
+</tr>

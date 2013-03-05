@@ -1,0 +1,15 @@
+<% $value ||= '0000-00-00 00:00:00'; %>
+<tr>
+  <td class=edit width="150px">
+    <%= $lkey->{name} %>
+  </td>
+	<td class="edit" width="10px" valign=top>
+% 	if($lkey->{settings}->{help}){
+		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+%	}
+  </td>
+  <td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
+  <td><input class="menu <% if($lkey->{settings}->{required}){%>required<% } %>" type="text" name='<%= $key %>' id='<%= $self->stash->{replaceme} %>_<%= $key %>' value='<% if( (!$value or $value =~ /0000-00-00[\s\S]+/) and $lkey->{settings}->{default}){ %><%= $lkey->{settings}->{default} %><% } elsif($value !~ /0000-00-00[\s\S]+/) { %><%= date_format( date => $value, format=> 'yyyy-mm-dd') %> <%= date_format( date => $value, format=> 'hh:min') %><% } %>' 
+  style="width:130px;margin-right:10px"> <button class=submit_save id="button_<%= $self->stash->{replaceme} %>_<%= $key %>" onclick="displayCalendar(event, this.form.<%= $key %>,'yyyy-mm-dd hh:ii',this,true); return false;" 
+  style="border:0px;background-color:white"><img border=0 src="/admin/img/icons/calendar.gif"></button></td>
+</tr>

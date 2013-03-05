@@ -1,0 +1,5 @@
+<div class="<%== $$button{classdiv} %>">
+  <a href="#" title="<%== $$button{title} %>" class="<%== $$button{classhref} %>" onClick="<%== $$button{script} %>"><img border=0 width="48" src="<%== $$button{imageicon} %>" class="<%== $$button{classimg} %>">
+    <br /><%== $$button{title} %>
+  </a>
+</div>

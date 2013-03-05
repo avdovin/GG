@@ -1,0 +1,76 @@
+<h1>Пользователи <div id="filter-zakazi" style="top: 13px;">отображать по <a href="javascript:void(0);" class="current">25</a> <a href="javascript:void(0);">50</a> <a href="javascript:void(0);">75</a> <a href="javascript:void(0);">100</a> <a href="javascript:void(0);">Все</a></div></h1>
+
+<%== crm_msg  =%>
+
+<div id="zakazi-search">
+    <input type="text" class="text" name="qsearch" id="qsearch"/> <input onClick="get_items_list(get_users_filter());" type="image" class="button" src="/imgcrm/searchall.gif"/>
+</div>
+
+
+%	my $order = $self->crmuserdata->{users}->{order};
+%	my $order_type = $self->crmuserdata->{users}->{order_type};
+<div id="zakaz-sorting">
+    <table>
+        <tr>
+            <td class="c2" style="width: 107px;" order="lname"><div><a href="javascript:void(0);" onClick="set_order({order: 'lname', order_type: 'asc'});return false;" class="az"></a><a href="javascript:void(0);" class="za" onClick="set_order({order: 'contract', order_type: 'desc'});return false;"></a><a onClick="set_order({order: 'lname', order_type: 'desc'});return false;" href="javascript:void(0);" class="sort">Фамилия</a></div></td>
+            <td class="c1" style="width: auto;" order="name"><div><a href="javascript:void(0);" onClick="set_order({order: 'name', order_type: 'asc'});return false;" class="az"></a><a href="javascript:void(0);" class="za" onClick="set_order({order: 'username', order_type: 'desc'});return false;"></a><a onClick="set_order({order: 'name', order_type: 'desc'});return false;" href="javascript:void(0);" class="sort">Имя</a></div></td>
+            <td class="c3" style="width: 108px;" order="phone"><div><a href="javascript:void(0);" onClick="set_order({order: 'phone', order_type: 'asc'});return false;" class="az"></a><a href="javascript:void(0);" class="za" onClick="set_order({order: 'statusname', order_type: 'desc'});return false;"></a><a onClick="set_order({order: 'phone', order_type: 'desc'});return false;" href="javascript:void(0);" class="sort">Мобильный телефон</a></div></td>
+        </tr>
+    </table>
+</div>
+
+<div id="list-items"></div>
+
+<script type="text/javascript">
+var order = '<%= $order %>';
+var order_type = '<%= $order_type %>';
+
+
+$('#qsearch').bind('keyup', function(e){
+    if(qsearch_timer) clearTimeout(qsearch_timer);
+    qsearch_timer = setTimeout(function(){
+        get_items_list(get_users_filter());
+    }, 500);
+});
+
+
+var PAGE = 1;
+var CONTROLLER = 'users';
+
+% 	if($self->crmuserdata->{limit}){
+		LIMIT= <%= $self->crmuserdata->{limit} %>;
+%	}
+
+function set_order(extradata){
+	var data = jQuery.extend({
+		order: order, 
+		order_type: order_type,
+	}, extradata);
+	
+	order = data.order;
+	order_type = data.order_type;
+	$("#zakaz-sorting a").removeClass('za-current').removeClass('az-current');
+	var order_type_class = order_type == 'desc' ? 'za' : 'az';
+	$("#zakaz-sorting td[order="+order+"] a."+order_type_class).addClass(order_type_class+'-current');
+	get_items_list( get_users_filter());
+}
+
+
+function get_users_filter(add_filter){
+	var filter = {};
+	filter['container_items'] = 'list-items';
+	return jQuery.extend(filter, add_filter);
+}
+
+$(document).ready( function () {
+    $("#filter-zakazi a").click(function(){
+    	$("#filter-zakazi a").removeClass('current');
+    	$(this).addClass('current');
+    	
+    	get_items_list( get_users_filter() );
+    })
+    
+	get_items_list( get_users_filter() );
+});
+
+</script>

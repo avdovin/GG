@@ -1,0 +1,59 @@
+% layout 'default';
+<div id="body" class="clearfix main">
+    <div style="float: left; width: 100%; margin: -18px 0 7px; padding: 18px 0 0; background: url(img/vertline.gif) 656px 0 repeat-y;">
+        <div class="body-block" id="body-block-faq">
+
+            <div class="content">
+                <h2>Отвечаем на ваши вопросы</h2>
+            </div>
+            <script type="text/javascript">
+                $(document).ready( function () {
+                    $("#body-block-faq li a.slidedown").click(function(){
+                        if (!$(this).closest("li").is(".opened")) {
+                            $(this).closest("li").addClass("opened").find("p").slideDown(500);
+                        } else {
+                            $(this).closest("li").removeClass("opened").find("p").slideUp(500);
+                        }
+
+                        return false;
+                    });
+                });
+            </script>
+            <ul>
+            	<% foreach (@$items){ %>
+                <li>
+                    <a class="slidedown" href="javascript:void(0);" name="<%= $_->{ID} %>"><%== $_->{name} %></a>
+                    <%== $_->{answer} %>
+                </li>
+                <% } %>
+            </ul>
+        </div>
+        <div class="body-block" id="body-block-news">
+            <div class="content">
+                <h2>Задать вопрос</h2>
+            </div>
+            <div id="faq-right">
+			    <% if($self->stash->{success}){ %><h3>Спасибо, Ваш вопрос отправлен</h3><% } else { %>
+			        <form id="faq-form" method="post">
+			            <span><label for="author_name">Имя*</label></span>
+			            <input type="text" class="text" name="author_name" id="author_name" value="<%= $self->stash->{author_name} %>"/>
+			            <% if($form->{author_name}->{error}) { %><span style="color:red;"><%= $form->{author_name}->{error} %></span><% } %>
+			            <span><label for="email">E-mail</label></span>
+			            <input type="text" class="text" name="email" id="email" value="<%= $self->stash->{email} %>"/>
+			            <% if($form->{email}->{error}) { %><span style="color:red;"><%= $form->{email}->{error} %></span><% } %>
+			            <br/><br/>
+			            <span><label for="name">Ваш вопрос*</label></span>
+			            <textarea  name="name" id="name"><%= $self->stash->{name} %></textarea>
+			            <% if($form->{name}->{error}) { %><span style="color:red;"><%= $form->{name}->{error} %></span><% } %>
+			        </form>
+			        
+			        <p class="right"><input type="image" src="/img/feedback_send.png" onClick="document.getElementById('faq-form').submit();" /></p>
+			        
+				<% } %>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="clear: both"></div>
+</div>

@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<title>SWFUpload</title>
+<script type="text/javascript" src="/admin/js/swfobject.js"></script>
+<script type="text/javascript">
+function uploadedHandler(link){
+	parent.document.getElementById("filename<%= $lfield %>").value = link;
+	if (link) {
+		parent.document.getElementById("div<%= $lfield %><%= $index %>").innerHTML = link + " <span style='background-color:red;color:white;padding:3px;margin-left:15px'>Нажмите «Сохранить данные»</span>";
+			
+	}
+}//uploadedHandler
+
+		window.onload = function() {
+			var flashvars =	{};
+			flashvars.userlogin = "<%= $self->sysuser->userinfo->{login} %>";
+			flashvars.cck = "<%= $self->sysuser->userinfo->{cck} %>";
+			flashvars.upload_url = "<%= $self->stash->{controller_url} %>?do=file_upload_tmp;lfield=<%= $lfield %>;index=<%= $index %>;";
+			var params = {wmode:"opaque"};
+			var attributes = {};
+<%	if($self->lkey(name => $lfield)->{settings}->{template_w} eq 'field_pict'){ %>
+			swfobject.embedSWF("/admin/flash/ggimageuploader.swf", "uploader", "320", "200", "10.0.0", "/admin/flash/expressInstall.swf", flashvars, params, attributes);
+<% } else { %>
+			swfobject.embedSWF("/admin/flash/ggfileuploader.swf", "uploader", "320", "200", "10.0.0", "/admin/flash/expressInstall.swf", flashvars, params, attributes);
+<% } %>
+			}
+	</script>
+</head>
+<body>
+<br />
+<div id="content">
+		<div id="uploader">
+			<a href="http://www.adobe.com/go/getflashplayer">
+				<img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" />
+			</a>
+		</div>
+</div>
+</body>
+</html>

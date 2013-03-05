@@ -1,0 +1,37 @@
+% layout 'default';
+
+<div class="block block-top clearfix">
+
+    <div class="col col-right">
+        <div class="content">
+            <h1>Результаты поиска</h1>
+
+          	<p><b>Вы искали: <%= $qsearch %></b><br />
+          	<b>Найдено страниц: <%= $count %></b></p>
+         	 <br /><br />
+          
+			<% if(scalar(@$items)<1) { %>
+				<h2>По Вашему запросу ничего не найдено</h2>
+			<% } else { %>
+				<table cellspacing="0" cellpadding="4">
+				<% foreach my $item (@$items){ %>
+					<tr>
+	 					<td width=20><b><%= $item->{index} %></b></td>
+	 					<td><a href="<%= $item->{link} %>"><%= $item->{name} %></a></td>
+					</tr>
+					<tr>
+	 					<td> </td>
+	 					<td style="font-size:12px;"><%== $item->{text} %></td>
+					</tr>
+				<% } %>
+				</table>
+
+			<% } %>
+
+			<%= page_navigator url_for => 'catalog_list_by_category_and_page', params => { key_razdel => 'news'}, template => 'Catalog/nav_container' %>
+	
+        </div>
+    </div>
+
+    <div class="col col-left-bg"></div>
+</div>

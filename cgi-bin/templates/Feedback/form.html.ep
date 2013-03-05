@@ -1,0 +1,68 @@
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#contacts .address").click(function(){
+                $("#contacts .address").removeClass("current");
+                $(this).addClass("current");    
+            });
+        });
+    </script>
+
+   <h1>Контакты</h1>
+    <div id="contacts">
+
+        <div id="contacts-worktime">
+            пн-пт с 10:00 до 19:00, сб с 12:00 до 16:00
+        </div>
+
+        <div id="contacts-left">
+
+        </div>
+        <div id="contacts-right">
+
+            <div class="address current">
+                <span class="m-red">Пл. Восстания</span>
+                <p>Лиговский пр., д. 43/45<br/>Бизнес Центр «Ретро», офис 301</p>
+                <p class="line phone">(812) 710-31-70, 578-14-94</p>
+                <p class="line phone2">(812) 710-29-68 </p>
+                <p class="line email">tandspb@yandex.ru</p>
+                <p class="line icq">393-111-868</p>
+                <ins></ins>
+            </div>
+
+        </div>
+
+        <div style="clear: both;"></div>
+    </div>
+
+    <div id="contacts-form">
+        <h2>Свяжитесь с нами</h2>
+
+<% if($self->stash->{success}) { %>
+	<h2>Ваше сообщение отправлено ... </h2>
+<% 	} else { %>
+	<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">
+	
+        <table id="contact-form">
+            <tr>
+                <td class="c1">
+	            <span>Имя</span><input type="text" name="name" id="name" value="<%= $self->stash->{name} %>"/>
+	            <% if($errors->{name}) { %><span style="color:red;"><%= $errors->{name} %></span><% } %>
+	            <span>Контактный телефон</span><input type="text" name="phone" id="phone" value="<%= $self->stash->{phone} %>"/>
+	            <% if($errors->{phone}) { %><span style="color:red;"><%= $errors->{phone} %></span><% } %>
+	            <span>E-mail</span><input type="text" name="email" id="email" value="<%= $self->stash->{email} %>"/>
+	            <% if($errors->{email}) { %><span style="color:red;"><%= $errors->{email} %></span><% } %>
+                </td>
+                <td class="c2">
+                    <span>Ваш вопрос</span>
+                    <textarea name="ftext" id="ftext"><%= $self->stash->{ftext} %></textarea>
+	            	<% if($errors->{ftext}) { %><span style="color:red;"><%= $errors->{ftext} %></span><% } %>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="text-align: right;"><a  href="javascript:document.getElementById('form-common').submit();" class="btn2">Отправить вопрос</a></td>
+            </tr>
+        </table>
+	</form>
+<% } %>
+    </div>

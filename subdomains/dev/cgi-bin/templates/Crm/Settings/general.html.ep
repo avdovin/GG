@@ -1,0 +1,36 @@
+<h1>&nbsp;</h1>
+    <form name="order-form" id="order-form" method="post" action="<%= url_for ('crm_routes', controller => 'settings', action => 'general') %>">
+    <div id="leftCol">
+
+        <h1>Настройка SMS сообщений</h1>
+        <div id="settings">
+            <span id="settings-form" >
+                <label for="sms-bron">Смена статуса услуги на готов</label>
+                <input id="sms-bron" <% if($sms->{1}->{status}){ %>checked="checked"<% } %> value="1" name="crm_setting_sms_1_status" type="checkbox" class="checkbox"  />
+                <input name="crm_setting_sms_1" id="sms-bron-text" <% if(!$sms->{1}->{status}){ %>readonly="readonly"<% } %> type="text" class="text" value="<%= $sms->{1}->{text} %>" />
+            </span>
+
+            <div style="clear: both"></div>
+
+            <ul>
+                <li>Слово <b>%username%</b> будет замено на имя клиента</li>
+                <li>Слово <b>%serviceName%</b> будет замено на название услуги</li>
+                <li>Длинна SMS сообщения не может превышать 70 символов</li>
+                <li>Будут отправленны только сообщения отмеченные галочкой</li>
+            </ul>
+
+        </div>
+    </div>
+    <div class="rightCol">
+        <a href="javascript:document.getElementById('order-form').submit();" class="rightBut" id="right-save">Сохранить</a>
+	</div>
+	</form>
+	
+<script type="text/javascript" language="javascript" charset="utf-8">
+// <![CDATA[
+$("input[type=checkbox]").click(function(){
+	$(this).next().attr('readonly', $(this).attr('checked') ? false : true );
+})
+
+// ]]>
+</script>

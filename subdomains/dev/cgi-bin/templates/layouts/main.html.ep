@@ -1,0 +1,61 @@
+%# Last Modified 2012-09-27 13:30:41 by root 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+<head>
+<%= metaHeader %>
+
+<%== uncache( '/css/style.css' ) %>
+<%== uncache( '/js/script.js' ) %>
+
+</head>
+<body>
+
+    <div id="blackbox"></div>
+
+    <table id="subscribe-popup">
+        <tr>
+            <td>
+                <div>
+                    <a href="#" class="close"></a>
+                    <h2>Подписка</h2>
+                    <p>Спасибо за доверие!</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- body -->
+    <div id="top">
+        <!-- topmenu -->
+            <%== menu_track( template => 'top' ) =%>
+        <!-- end of topmenu -->
+    
+        <!-- header -->
+            <%== include 'Texts/head' =%>
+        <!-- end of header -->
+        
+        <!-- content -->
+        <div id="body" class="clearfix main">
+        
+            <div id="leftCol">
+                <h2>Страны</h2>
+            </div>
+
+            <div id="rightCol">
+				<div class="content">
+                	<%== text_by_alias('main') =%>
+                
+                	<%== soffers_anons =%>
+                </div>
+            </div>
+            <div style="clear: both"></div>
+        </div>
+        <!-- end of content -->
+
+        <div id="bottom">
+			<%== include 'Texts/footer' =%>
+        </div>
+    </div>
+<%== js_files %>
+</body>
+</html>

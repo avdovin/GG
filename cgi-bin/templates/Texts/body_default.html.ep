@@ -1,0 +1,11 @@
+<div class="block-wrapper">
+	
+	<div class="content">
+	    <h1><%= $info->{name} %></h1>
+	
+	    <%== $info->{text} =%>
+	    
+	</div>
+
+    <div style="clear: both"></div>
+</div>

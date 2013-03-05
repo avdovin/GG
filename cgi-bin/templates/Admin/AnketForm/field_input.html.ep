@@ -1,0 +1,23 @@
+<% if($lkey eq 'alias' && !$value  && $self->stash->{anketa}->{name}){ $value = $self->transliteration($self->stash->{anketa}->{name}); } %>
+<tr>
+	<td class="edit" width="150px">
+    	<%= $lkey ? $lkey->{name} : $key %>
+	</td>
+	<td class="edit" width="10px" valign=top>
+% 	if($lkey->{settings}->{help}){
+		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+%	}
+	</td>
+	<td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
+	<td class="edit">
+		<% if($lkey->{type} eq 'email' and !$lkey->{settings}->{mask}){ $lkey->{settings}->{mask} = 'email'; } %>
+		<% if($lkey->{settings}->{type} eq 'd' and !$lkey->{settings}->{mask}){ $lkey->{settings}->{mask} = 'numeric'; } %>
+		<input <% if($key eq 'name'){ %>onKeyUp="build_alias(this);"<% } %> id="<%= $self->stash->{replaceme} %>_<%= $key %>" onmouseup="this.focus();" onmousedown="this.focus();" class=menu <% if($lkey->{settings}->{required}){%>required<% } %> <% if($lkey->{settings}->{mask}){%>mask="<%== $lkey->{settings}->{mask} %>" <% } %> type="text" name='<%= $key %>' value='<% if($value){ %><%== $value =%><% }else{ %><%== $lkey->{settings}->{default} ? $lkey->{settings}->{default} : '' %> <% } =%>'>
+	</td>
+</tr>
+<% if($key eq 'alias'){ %>
+%	init_items({
+%		type		=> 'eval',
+%		value		=> "uniqueAlias('${replaceme}_name');"
+%	});
+<% } %>

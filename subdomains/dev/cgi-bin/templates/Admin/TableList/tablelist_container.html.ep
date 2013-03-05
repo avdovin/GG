@@ -1,0 +1,206 @@
+<div id='<%= $replaceme %>' style="padding:5px;position:absolute;top:0px;left:0px;width:96%;display:block">
+<div style="display:none" id="<%= $replaceme %>_QS"><%== $self->stash->{param_default} =%></div>
+<div style="display:none" id="datasource_list<%= $controller_name %>">
+
+% if($self->sysuser->settings->{$controller.'_qedit'}){
+%	 	foreach my $k (@$listfield_header){
+%			my $lkey = $self->lkey(name => $k);
+%			if($lkey->{settings}->{type} =~ /list/){
+				<select id="datasource_<%= $k %>" style="display:none" <% if($lkey->{settings}->{mult}){ %>multiple="<%= $lkey->{settings}->{mult} %>"<% } %>>
+				<%== LIST (name => $k, type => 'select', option => 1) %>
+				</select>			
+%			} elsif($lkey->{type} eq 'chb'){
+				<select id="datasource_<%= $k %>" style="display:none">
+					<option value="0"><%= $lkey->{settings}->{no} %></option>
+					<option value="1"><%= $lkey->{settings}->{yes} %></option>			
+				</select>
+%			}
+%		}
+%	}
+
+	<div id="datasource_script<%= $replaceme %>">
+		<% foreach my $k (@$listfield_header){ %><%= $k %>,<% } %>
+ 	</div>
+</div>
+	<table width="90%" border=0>
+      <tr>
+        <td align=right width="48px"><img src='<%=  $self->app->program->{pict} %>' align='absMiddle' hspace=7></td>
+        <td valign=top width="*">
+          <h1><%= $controller_name %></h1>
+          <h2><% if ( $self->stash->{ win_name } ){ %><%= $self->stash->{win_name} %><% }else{ %>Список<% } %></h2>
+        </td>
+        <td valign=middle width="250px" align=right>
+            <% if ( $self->stash->{ context_menu } ){ %><%== $self->stash->{context_menu} %><% } %>
+        </td>
+      </tr>
+    </table>
+    <h3><%== admin_msg %></h3>
+    <hr>
+    <table width="95%" align=center>
+      <tr>
+        <td align=left>
+Всего записей: <b><%= $self->stash->{total} %></b><br />
+%	if($self->stash->{total} ne $self->stash->{total_with_filter}){
+%		if(scalar(@$current_filter)>0){
+			Записей соответствует фильтру: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span> <a href="#" style="margin-left:5px" class="pseudolink" onClick="swich_visible('cur_filter<%= $replaceme %>')">текущие фильтры</a> <div id="cur_filter<%= $replaceme %>" style="display:none;padding:10px;border:solid 1px #ccc;margin-top:5px"><%== include 'Admin/TableList/current_filter'%></div>
+%		} else {
+			Найдено записей быстрым поиском: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span></IF>
+%		}
+%	}
+        </td>
+        <td align=right>Кол-во записей на страницу:
+%	foreach (qw(25 50 75 100)){
+	<% if($_==$pcol){ %><b><% } =%>
+	<a href="javascript:void(0);" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&pcol=<%= $_ %>')"><%= $_ =%></a>
+	<% if($_==$pcol){ %></b><% } =%> |
+%	}
+	<% if(10000000==$pcol){ %><b><% } =%>
+	<a href="javascript:void(0);" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&pcol=10000000')">Все</a>
+	<% if(10000000==$pcol){ %></b><% } =%> |
+	
+        <img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif"/> <a href="javascript:void(0);" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= stash->{param_default} %>')">Обновить</a>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2>
+        </td>
+      </tr>
+        <tr>
+        <td colspan=2>
+          <table>
+            <tr>
+%	if($self->app->program->{settings}->{razdels}) {
+	<td>
+		<form name="change_<%= $controller %>" id="change_<%= $controller %>" method="POST">
+		Раздел: <%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel} ) %>
+        <input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel'); return false;" value="Сменить" style="width:100px;" class=submit_save>
+        </form>
+    </td>		
+%	}
+            <td width="25px"> </td>
+%	if($self->app->program->{settings}->{change_lang}) {
+			<td>
+              <form name="formchlang" method="POST" style="margin-right:5px">
+                Язык: <%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang} ) %>
+                <input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang'); return false;" value="Сменить" style="width:100px;" class=submit_save>
+              </form>
+            </td>
+%	}
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+
+%#	быстрый поиск
+%	if($self->app->program->{settings}->{qsearch}) {
+        <form name="qsearch_<%= $controller %>" id="qsearch_<%= $controller %>" method="POST" onSubmit="return false;">
+        <table width="95%" align=center>
+        <tr>
+          <td width="160px" align=right valign=top>
+            Быстрый поиск:<br>
+            <a href="#" class="pseudolink" onClick="ld_content('<%= $replaceme %>filter_take', '/admin/<%= $controller %>/body?do=filter_take&<%= $self->stash->{param_default} %>', '', 1);"><span id="<%= $replaceme %>filter_take"><%= $self->stash->{'filter_take_text'} %></span></a>
+          </td>
+          <td width=50% align=left>
+            <input type=text name="qsearch" class="menu" value="<%= $self->stash->{'qsearch'} %>">
+            <input type=hidden name="do" value="list_container">
+          </td>
+          <td width="30px" valign="middle">
+            <input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?<%= $self->stash->{param_default} %>'); return false;" value="Искать" style="width:100px;" class="submit_save">
+          </td>
+          <td align="left" valign="top">
+            <p style="text-align:left;margin-left:10px"><a href="#" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&qsearch=')">Очистить</a></p>
+          </td>
+        </tr>
+      </table>
+      </form>
+%	}
+
+<table width="96%" align=center><tr><td>
+	<%= page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container' %>
+</td>
+      <td width="*" align=right>
+%	if($self->app->program->{settings}->{qedit}) {
+        <a href="#" class="pseudolink" title="Включить/выключить быстрое редактирование" onclick="ld_content('qedit_type', '<%= $self->stash->{controller_url} %>?do=set_qedit&<%= $self->stash->{param_default} %>', '', 1)">
+            <span id="qedit_type"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить QEdit<% } else { %>Выключить QEdit<% } %></span>
+        </a>
+%	}
+%	if($self->app->program->{settings}->{defcol}) {
+		<% if($self->app->program->{settings}->{qedit}){ %>|<% } %>
+		<a href="javascript:void(0);" title="Настроить отображение колонок" onclick="displayMessage('<%= url_for('admin_routes', controller => 'main', action => 'body') %>?do=def_col&<%= $self->stash->{param_default} %>&list_table=<%= $list_table %>&key_program=<%= $self->stash->{controller} %>', 690, 510, 4)">Настроить колонки</a> | <a href="javascript:void(0);" title="Установить отображение колонок по умолчанию" onclick="ld_content('<%= $replaceme %>', '<%= url_for('admin_routes', controller => 'main', action => 'body') %>?do=def_col&clear=1&<%= $self->stash->{param_default} %>&list_table=<%= $list_table %>&key_program=<%= $self->stash->{controller} %>')">Сбросить</a>
+%	}
+
+%	if($self->app->program->{settings}->{excel}) {
+		|
+		<a href="javascript:void(0);" title="Экспортировать записи в Excel" onclick="displayMessage('<%= url_for('admin_routes', controller => 'main', action => 'body') %>?do=excel&<%= $self->stash->{param_default} %>&list_table=<%= $list_table %>&key_program=<%= $self->stash->{controller} %>', 690, 550, 4)">Экспорт в Excel</a>
+%	}
+
+      </td>
+</tr></table>
+<div id="div_quickEdit<%= $replaceme %>" style="width:100%">
+	<table class=tablelist width="96%" align=center id="quickEdit<%= $replaceme %>" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="&list_table=<%= $self->stash->{list_table} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit'} %>">
+    <tr class=header>
+    	<td style="width: 10px;"><input id="listallchb" type="checkbox" onclick="selectAllcheckbox();"/></td>
+%	if($self->app->program->{settings}->{qview}) {
+    	<td style="width: 16px;"></td>
+%	}
+
+%	foreach (@$listfield_header){
+%		my $lkey = $self->lkey( name => $_);
+		<td style="<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %><% if($_ eq 'ID'){ %>width: 60px;<% } elsif($lkey->{settings}->{table_list_width}){ %>width:<%= $lkey->{settings}->{table_list_width} %>px;<% } else { %>width:auto;<% } %>">
+%		unless($lkey->{settings}->{table_list_nosort}){
+			<div style="padding:0px;margin:0px;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>">
+            	<div style="width:9px;height:16px;margin-right:5px;margin-bottom:5px;float:left;padding:0px;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>" valign=top>
+            		<a style="text-decoration:none;margin:0px" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=asc')" href="#">
+%					if($self->stash->{asc} eq 'asc' and $_ eq $self->stash->{sfield}){
+        	   			<img src="/admin/img/arrow-up-sel.gif" vspace=0 border=0 style="margin-bottom:0px">
+%					} else {
+						<img src="/admin/img/arrow-up.gif" vspace=0 border=0 style="margin-bottom:0px">
+%					}
+					</a>
+            		<a style="text-decoration:none;margin:0px" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=desc')" href="#">            		
+%					if($self->stash->{asc} eq 'desc' and $_ eq $self->stash->{sfield}){
+            			<img src="/admin/img/arrow-down-sel.gif" vspace=0 border=0 style="margin-top:0px">
+%					} else {
+						<img src="/admin/img/arrow-down.gif" vspace=0 border=0 style="margin-top:0px">
+%					}
+					</a><br>
+				</div>
+	        	<div<% if($_ eq $self->stash->{sfield}){ %> style="background-color: rgb(204, 228, 208);"<% } %>>
+	          		<% if($lkey->{settings}->{table_list_name}){ %><%= $lkey->{settings}->{table_list_name}%><% } else { %><%= $lkey->{name}%><% } %>
+    	      	</div>
+        	</div>
+%		}		
+		</td>
+%	}
+
+	<% foreach(@$listfield_buttons){ %><td style="width:16px;"> </td><% } =%>
+    </tr>
+    <tr class=header>
+      <td style="width: 10px;"> </td>
+      <td colspan="<%= $total_col_list %>">отмеченные:
+%	foreach( keys %$listfield_groups_buttons){ 
+       	<img border="0" src="/admin/img/icons/menu/button.<%= $_ %>.gif"/ align="absMiddle" hspace=3> <a href="#" onClick="sendAllchecked('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&<%= $_ %>=1', '<%= $_ %>');"><%= $listfield_groups_buttons->{$_} %></a> |
+%	}
+        <img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif" hspace=3/> <a href="#" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>')">обновить</a>
+      </td>
+    </tr>
+  </table>
+  <table class=tablelist width="98%" align=center>
+    <tr>
+      <td align=right>
+      </td>
+    </tr>
+  </table>
+</div>
+<br />
+<div id="table<%= $replaceme %>"></div>
+<br />
+<table width="95%" align=center><tr><td>
+
+	<%= page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container' %>
+
+</td></tr></table>
+    <br /><br />
+</div>

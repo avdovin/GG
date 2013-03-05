@@ -1,0 +1,52 @@
+	<% if(scalar(@$keys)==0){ %><h2>Справочник не доступен для редактирования!</h2><% } else { %>
+	
+    <div id="listings-controls">
+        <input type="text" name="qsearch" value="<%= $self->stash->{qsearch} %>" /> <a href="javascript:void(0);" id="search_btn" onClick="get_manual_items('<%= $manual_id %>');return false;" class="search"></a> <a href="javascript:void(0);" onClick="add_manual_item_node();return false;" class="add">Добавить</a>
+
+    </div>
+    <% my $lkeys = $self->lkeys; %>
+    <table manual_id="<%= $manual_id %>">
+    	
+    	<%# Шаблон новой строчки %>
+        <tr item_id="0" style="display:none;"> 
+        	<% foreach my $i (0..$#{$keys}) { %>
+        		<% my $k = $keys->[$i]; %>
+        		<% my $type = $lkeys->{ $keys->[$i] }->{settings}->{type}; %>
+            	<td class="c1" style="width: auto;">
+            		<% if($type eq 's' or $type eq 'd'){ %>
+	                	<input type="text" value="" name="<%= $k %>" />
+	                <% } elsif($type =~ /list/) { %>
+	                	<%== LIST name => $k, value => '' %>
+	                <% } %>
+    	        </td>
+            <% } %>
+            <td class="c3 del"><img src="/imgcrm/tr.gif" style="width: 25px;" alt=""/></td>
+        </tr>
+        
+        <tr class="header">
+        	<% foreach my $i (0..$#{$keys}) { %>
+            <td class="c1 <% if($sort eq $keys->[$i]){ %>sort<% } %>"  style="width: auto;">
+                <a href="javascript:void(0);" lkey="<%= $keys->[$i] %>" class="<%= $sort_order %>" ><%= $lkeys->{ $keys->[$i] }->{settings}->{manuals_name} || $lkeys->{ $keys->[$i] }->{name} %></a>
+            </td>
+            <% } %>
+        </tr>
+        
+        <% foreach my $item (@$items){ %>
+        <tr item_id="<%= $item->{ID} %>"> 
+        	<% foreach my $i (0..$#{$keys}) { %>
+        		<% my $k = $keys->[$i]; %>
+        		<% my $type = $lkeys->{ $keys->[$i] }->{settings}->{type}; %>
+            	<td class="c1" style="width: auto;">
+            		<% if($type eq 's' or $type eq 'd'){ %>
+	                	<input type="text" value="<%= $item->{$k} %>" name="<%= $k %>" />
+	                <% } elsif($type =~ /list/) { %>
+	                	<%== LIST name => $k, value => $item->{$k} %>
+	                <% } %>
+    	        </td>
+            <% } %>
+
+            <td class="c3 del"><img src="/imgcrm/tr.gif" style="width: 25px;" alt=""/></td>
+        </tr>
+        <% } %>
+    </table>
+    <% } %>

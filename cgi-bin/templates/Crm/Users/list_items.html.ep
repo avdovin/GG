@@ -1,0 +1,33 @@
+<% if(scalar(@{$items}) > 0){ %>
+% 	my $z_index = $limit + 1;
+%	foreach my $item (@$items){
+	<div class="zakaz-entry" style="background-color: #<%= $item->{colorcode} || 'f8d133' %>;z-index:<%= $z_index-- %>;">
+	    <table>
+	        <tr>
+	            <td class="c2" onClick="javascript:document.location.href='/crm/users/edit?ID=<%= $item->{ID} %>'" style="width: 100px;"><%= $item->{name} %></td>
+	            <td class="c1" onClick="javascript:document.location.href='/crm/users/edit?ID=<%= $item->{ID} %>'" ><%= $item->{name} %></td>
+	            <td class="c3" onClick="javascript:document.location.href='/crm/users/edit?ID=<%= $item->{ID} %>'" style="width: 85px;"><%= $item->{phone} %></td>
+	            <td class="c8"><a href="/crm/users/edit?ID=<%= $item->{ID} %>"><img src="/imgcrm/edit.png" width="16" height="16" alt="Редактировать"/></a></td>
+	        </tr>
+	    </table>
+	    <!-- 
+	    <div class="zakaz-entry-menu">
+	        <ul>
+	            <li><a href="/crm/services/edit?ID=<%= $item->{id_crm_user} %>">Изменить</a></li>
+	            <li><a href="/crm/services/delete?ID=<%= $item->{ID} %>">Удалить</a></li>
+	        </ul>
+	        <div class="zakaz-entry-menu-bottom"></div>
+	    </div>
+	     -->
+	</div>
+<% } %>
+
+<div id="zakaz-legend">
+    <p>Всего <b><%= numberformat($total_count) %></b> <%= declension($total_count, [qw(клиент клиенты клиентов)] ) %></p>
+</div>
+
+<% } %>
+
+<% if(scalar(@{$items})==0){ %><div id="catalog-list-items-empty"><p>Не найдено ни одного заказа</div><% } %>
+
+<%= page_navigator url_for => 'crm_routes', jsfunction => 'get_items_list', template => 'Crm/Users/nav_container' =%>

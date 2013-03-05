@@ -1,0 +1,11 @@
+<% foreach (@$files){ %>
+<div class="zipimport_progress_items loading" filename="<%= $_->{filename} %>">
+	<div class="pic"></div>
+	<div class="info">
+		<!-- <p><span>Оригинальное имя файла:</span> <%= $_->{oldfilename} %></p> -->
+		<p class="filename"><span>Имя файла:</span> <%= $_->{filename} %></p>
+		<p class="size"><%= file_nice_size($_->{size}) %></p>
+		<p class="dimension"><%= $_->{width} %>x<%= $_->{height} %> px</p>
+	</div>
+</div>	
+<% } %>

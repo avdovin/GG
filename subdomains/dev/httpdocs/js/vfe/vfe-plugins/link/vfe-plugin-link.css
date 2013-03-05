@@ -1,0 +1,16 @@
+#vfe-float-link {
+    display: none;
+    background: url(panel_buttons.png) 0 0 no-repeat;
+}
+    #vfe-float-link.disabled {
+        opacity: 0.25 !important;
+        cursor: default;
+    }
+#vfe-float-unlink {
+    display: none;
+    background: url(panel_buttons.png) -16px 0 no-repeat;
+}
+    #vfe-float-unlink.disabled {
+        opacity: 0.25 !important;
+        cursor: default;
+    }

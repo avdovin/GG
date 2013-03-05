@@ -1,0 +1,55 @@
+<h1><%== $index ? "Редактирование карточки подписчика &nbsp; &nbsp; ".$item->{name} : "Добавление подписчика" =%></h1>
+<div id="leftCol">
+    <div class="block">
+    	<%== crm_msg  =%>
+    	<form name="user-form" id="user-form" method="post" action="" >
+	        <table class="anketa">
+	            <tr>
+	                <td>
+	                    <span>Имя</span>
+	                    <input type="text" class="text" name="name" value="<%= $item->{name} %>" />
+	                </td>
+	                <td class="sep"></td>
+	                <td>
+	                    <span>Мобильный телефон</span>
+	                    <input type="text" class="text" name="phone" value="<%= $item->{phone} %>" />
+	                </td>
+	                <td class="sep"></td>
+	                <td class="c3">
+	                    <span>Номер дома</span>
+	                    <input type="text" class="text" name="house" value="<%= $item->{house} %>" />
+	                </td>
+	            </tr>
+	            <tr>
+	                <td>
+	                    <span>Фамилия</span>
+	                    <input type="text" class="text" name="lname" value="<%= $item->{lname} %>" />
+	                </td>
+	                <td class="sep"></td>
+	                <td>
+	                    <span>Название улицы</span>
+	                    <input type="text" class="text" name="street" value="<%= $item->{street} %>" />
+	                </td>
+	                <td class="sep"></td>
+	                <td class="c3">
+	                    <span>Корпус</span>
+	                    <input type="text" class="text" name="corpus" value="<%= $item->{corpus} %>" />
+	                </td>
+	            </tr>
+	        </table>
+	        <div class="rightCol">
+	            <% if($index){ %><a href="<%= url_for('crm_routes', controller => 'users', action => 'delete').'?ID='.$index %>" class="rightBut" id="right-delete">Удалить</a><% } %>
+	            <a href="javascript:void(0);" onClick="document.getElementById('user-form').submit();return false;" class="rightBut" id="right-save">Сохранить</a>
+	        </div>
+        </form>
+    </div>
+</div>
+
+%	js_files('/js/jquery.maskedinput-1.3.min.js');
+<script type="text/javascript">
+jQuery(function($){
+   $("input[name=phone]").mask("+7(999)9999999");
+});
+</script>
+
+

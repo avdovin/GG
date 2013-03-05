@@ -1,0 +1,40 @@
+%	$self->stash->{flag_select_dir} = $self->stash->{replaceme}.$key;
+<tr>
+  <td class=edit width="150px" valign=top>
+   		<%= $lkey->{name} %>
+    <br />
+    <br />
+    <span id="multisearchblock_on<%= $self->stash->{replaceme} %><%= $key %>" style="display:block"><img src="/admin/img/icons/menu/icon_search.gif" align="absMiddle"> <a href="javascript:multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>')">выбрать</a></span>
+    <span id="multisearchblock_off<%= $self->stash->{replaceme} %><%= $key %>" style="display:none"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="javascript:multiblock_off('<%= $self->stash->{replaceme} %><%= $key %>')">скрыть поиск</a></span>
+  </td>
+  <td class=edit width="10px" valign=top>
+% 	if($lkey->{settings}->{help}){
+		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+%	}
+  </td>
+  <td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
+  <td class=read>
+    <input type=hidden name="<%= $key %>" id="<%= $key %>" value="<%= $value %>">
+    <p style="color:red"><b><span id="name_<%= $self->stash->{replaceme} %><%= $key %>"><%= VALUES name => $key, param => "name", value => $value %></span></b></p>
+    <div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
+      <div id="pane_tree_<%= $self->stash->{replaceme} %><%= $key %>" style="margin:10px;padding:5px;border:solid 1px #ccc">
+<ul id="tree_<%= $self->stash->{replaceme} %><%= $key %>" class="dhtmlgoodies_tree">
+  <li id="node_<%= $self->stash->{replaceme} %><%= $key %>0" noDrag="true" noSiblings="true" noDelete="true" noRename="true"><a href='#' onClick="set_folder('name_<%= $self->stash->{replaceme} %><%= $key %>', '', 0, '<%= $key %>')"><%= $key %></a>
+    <ul>
+%	my $items = $self->field_select_dir( parent_id => 0, items => 1, lfield => $key, index => $index);
+
+%	foreach my $item (@$items){
+%		my $rand = rand();
+%		my $node_dir = $self->stash->{replaceme}.$rand;
+%		my $n_dir = $self->stash->{replaceme}.$rand;
+%		my $p_def = $self->stash->{param_default}.$item->{param_default};
+
+		<li id='node_dir<%= $node_dir %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $self->stash->{controller_url} %>?do=sel_treeblock&index=<%= $item->{ID} %>&<%= $p_def %>" onClick="click_node('n_dir<%= $n_dir %>', '<%= $self->stash->{controller_url} %>?do=sel_treeblock&index=<%= $item->{ID} %>&<%= $p_def %>', '<%= $self->stash->{replaceme} %><%= $key %>');"><a href='#' onClick="set_folder('name_<%= $self->stash->{replaceme} %><%= $key %>', '<%= $item->{name} %>', <%= $item->{ID} %>, '<%= $key %>')"><%= $item->{name} %></a><div id='n_dir<%= $n_dir %>' style="margin:0px"><ul style="margin:0px;"></ul></div></li>
+%	}
+    </ul>
+  </li>
+</ul>
+      </div>
+    </div>
+  </td>
+</tr>

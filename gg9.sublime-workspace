@@ -1,0 +1,315 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"a",
+				"app"
+			],
+			[
+				"goal",
+				"global"
+			],
+			[
+				"le",
+				"lkey"
+			],
+			[
+				"jQuery",
+				"jQuery.when	jQuery.when"
+			],
+			[
+				"browser",
+				"jQuery.browser	jQuery.browser"
+			],
+			[
+				"level",
+				"loglevel"
+			],
+			[
+				"mojo",
+				"Mojolicious"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "Packages/User/Perl.sublime-build",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: Rmo",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"File:",
+				"File: New View into File"
+			],
+			[
+				"snippet:c",
+				"Snippet: DOCTYPE HTML"
+			],
+			[
+				"Snippet:jQuery",
+				"Snippet: jQuery.browser"
+			],
+			[
+				"File",
+				"File: Close All"
+			],
+			[
+				"Snippet: jQ",
+				"Snippet: jQuery.extend"
+			],
+			[
+				"",
+				"Package Control: Create Package File"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: instal",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 139.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/www/gg9.local/cgi-bin/lib/GG.pm",
+		"/home/aleksey/n",
+		"/www/vb.local/cgi-bin/lib/GG.pm",
+		"/tmp/fz3temp-1/GG.pm",
+		"/www/gg9.local/cgi-bin/extlib/Mojolicious.pm",
+		"/www/gg9.local/gg9.sublime-project",
+		"/home/aleksey/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Plugins/AnketForm.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Search.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Plugins/Admin.pm",
+		"/www/gg9.local/cgi-bin/templates/Admin/Main/user_block.html.ep",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Vars.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Texts.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/CLS/Users.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Access.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Plugins/TableList.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/AdminController.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Plugins/Keys.pm",
+		"/www/gg9.local/cgi-bin/templates/Admin/AnketForm/field_list_read.html.ep",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Texts.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Plugins/File.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Admin/Images.pm",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
+		"/www/gg9.local/cgi-bin/lib/GG/Controller.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Catalog.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Auth.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Import.pm",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Controller.pm.tdy",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Catalog.pm.tdy",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Search.pm.tdy",
+		"/home/aleksey/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/www/gg9.local/cgi-bin/templates/Crm/Settings/general.html.ep",
+		"/home/aleksey/.config/sublime-text-2/Packages/SublimeCodeIntel/Base File.sublime-settings",
+		"/home/aleksey/.config/sublime-text-2/Packages/SublimeLinter/SublimeLinter.sublime-settings",
+		"/www/gg9.local/httpdocs/admin/js/form-send.js",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/SublimeLinter.sublime-settings",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/Base File.sublime-settings",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Faq.pm",
+		"/home/aleksey/.config/sublime-text-2/Packages/SublimeLinter/README.md",
+		"/www/gg9.local/httpdocs/css/style.css",
+		"/home/aleksey/.config/sublime-text-2/Packages/SublimeLinter/Default (Linux).sublime-keymap",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/Perl.sublime-settings",
+		"/home/aleksey/.config/sublime-text-2/Packages/User/Perl.sublime-build",
+		"/www/gg9.local/httpdocs/js/script.js",
+		"/www/gg9.local/cgi-bin/templates/Crm/Settings/users_edit.html.ep",
+		"/www/gg9.local/cgi-bin/import/import.cgi",
+		"/www/gg9.local/cgi-bin/config",
+		"/www/gg9.local/httpdocs/css/style.min.css",
+		"/www/gg9.local/cgi-bin/lib/GG/Content/Controller.pm",
+		"/www/gg9.local/httpdocs/test.html",
+		"/www/gg9.local/httpdocs/admin/js/form-send.min.js",
+		"/www/gg9.local/httpdocs/userfiles/apa4.jpg",
+		"/www/gg9.local/httpdocs/admin/js/select_dir.js",
+		"/www/gg9.local/httpdocs/admin/js/image-crop.js",
+		"/www/gg9.local/httpdocs/css/style_crm.css",
+		"/www/gg9.local/httpdocs/js/jquery.min.js",
+		"/www/gg9.local/httpdocs/admin/filemanager/elfinder.html",
+		"/www/gg9.local/cgi-bin/extlib/JSON.pm"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"access_where",
+			"->sys",
+			"sys",
+			"is_auth",
+			"		=>",
+			"document",
+			"		",
+			"perl",
+			"self",
+			"catalog_basket",
+			"};\n",
+			"whenLoading"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 112.0
+	},
+	"output.sftp":
+	{
+		"height": 0.0
+	},
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"style.css",
+				"httpdocs/css/style.css"
+			],
+			[
+				"gg.",
+				"cgi-bin/lib/GG.pm"
+			],
+			[
+				"script.js",
+				"httpdocs/js/script.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"",
+				"/www/hatber.local/hatber.sublime-project"
+			],
+			[
+				"art",
+				"/www/artway.local/artway.sublime-project"
+			],
+			[
+				"gg9",
+				"/www/gg9.local/gg9.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 298.0,
+	"status_bar_visible": true
+}

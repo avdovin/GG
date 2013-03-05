@@ -1,0 +1,31 @@
+/*
+	SPINBOX.JS 2.1 WEMAKESITES SKIN
+	download at: http://acidmartin.wemakesites.net/?pageId=SpinBoxJs
+	created by: Martin Ivanov
+	email: acid_martin@yahoo.com, martin@acidmartin.com
+	personal website: http://acidmartin.wemakesites.net/
+	portfolio: http://wemakesites.net
+*/
+
+.spinboxjs.SpinBoxJs_WeMakeSites,
+.spinboxjs.SpinBoxJs_WeMakeSites a,
+.spinboxjs.SpinBoxJs_WeMakeSites input
+{
+	color: navy;
+}
+
+.spinboxjs.SpinBoxJs_WeMakeSites input
+{
+	border-color: navy;
+}
+
+.spinboxjs.SpinBoxJs_WeMakeSites span
+{
+	background-image: url('/admin/js/SpinBoxJs/Skins/WeMakeSites/Arrows.gif');
+	background-color: #dae1ea;
+}
+
+.spinboxjs.SpinBoxJs_WeMakeSites a:hover span
+{
+	background-color: #dae1ea;
+}
