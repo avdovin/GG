@@ -22,6 +22,7 @@ sub startup{
         file      => 'config',
         default   => {}
     });
+    1
 
 	# DBI OO api
 	$self->plugin('dbi', $config );
