@@ -4,7 +4,6 @@ use utf8;
 
 use base 'GG::Controller';
 
-# This action will render a template
 sub images_list{
     my $self = shift;
 
@@ -13,7 +12,7 @@ sub images_list{
     my $template 	= $keyRazdel."_list";
     my $subID 		= $self->stash->{sub_ID} || 0;
 
-	return $self->render_not_found unless my $gallery = $self->dbi->query("SELECT * FROM `$table` WHERE `ID`='$subID' AND `dir`='1' AND `viewimg`='1' ")->hash;
+	return $self->render_not_found unless my $gallery = $self->dbi->query("SELECT * FROM `$dbTable` WHERE `ID`='$subID' AND `dir`='1' AND `viewimg`='1' ")->hash;
 
 	my	$where = 	" `dir`='0' ";
 		$where .= 	" AND `image_$keyRazdel`='$subID' " if $subID;
@@ -21,16 +20,15 @@ sub images_list{
 	
 	my @items = $self->dbi->query(qq/
 		SELECT *
-		FROM `$table`
+		FROM `$dbTable`
 		WHERE $where ORDER BY `rating`,`name`
 	/)->hashes;
 	
     $self->render(	subid		=> $subID,
     				gallery 	=> $gallery,
      				items		=> \@items,
-    				template	=> $template);	
+    				template	=> 'Images/'.$template);	
 }
-
 
 sub images_item{
 	my $self = shift;
