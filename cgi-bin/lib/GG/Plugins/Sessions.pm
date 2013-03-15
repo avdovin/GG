@@ -94,7 +94,8 @@ sub register {
 
 			my %vars = (	'host'	=> $ENV{'REMOTE_HOST'} || 'empty',
 							'ip'	=> $self->tx->remote_address || 'empty',
-							'cck'	=> $params{cck}
+							'cck'	=> $params{cck},
+							'user_id' => $params{user_id} || 0,
 			);
 			return \%vars;
 		}
@@ -103,7 +104,12 @@ sub register {
 	$app->helper(
 		sessions_check => sub {
 			my $self   	= shift;
-			my $cck		= shift;
+			my %params  = (
+				cck 	=> '',
+				user_id => 0,
+				@_
+			);
+			my $cck		= delete $params{cck};
 			my $vars 	= $self->sessions_vars( cck => $cck);
 
 			return 1 if $self->app->user->{check};
@@ -122,14 +128,16 @@ sub register {
 				
 			}
 			
-#			if(my $user = $self->dbi->query(qq/
-#				SELECT * FROM `sys_users_common` 
-#				WHERE `cck`='$$vars{cck}' AND `active`='1' 
-#				/)->hash){
-#				$user->{auth} = 1;
-#				
-#				$self->app->user($user);
-#			}
+			if(my $user_id = delete $params{user_id}){
+				if(my $user = $self->dbi->query(qq/
+					SELECT * FROM `data_users` 
+					WHERE `ID`='$user_id' AND `cck`='$$vars{cck}' AND `active`='1' 
+					/)->hash){
+					$user->{auth} = 1;
+					$self->app->user($user);
+				}				
+			}
+
 			
 			my $session = $self->app->dbi->query("SELECT * FROM `anonymous_session` 
 			WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' LIMIT 0,1")->hash;

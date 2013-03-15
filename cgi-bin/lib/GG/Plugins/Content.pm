@@ -12,18 +12,50 @@ sub register {
 	$app->log->debug("register GG::Plugin::Content");
 
 	$app->helper(
-		soffers_anons => sub {
-			my $self   = shift;
-			my %params = @_;
+		callbackSend => sub {
+		    my $self = shift;
 			
-			my $items = $self->app->dbi->query("SELECT * FROM `texts_soffers_ru` WHERE `viewtext`='1' ORDER BY `tdate` DESC LIMIT 0,3")->hashes;
-
-			return $self->render_partial( 
-							items	=> $items, 
-							template => 'Texts/soffers_main');			
-
+			my $vals = {
+				error	=> '',
+			};
+			my $data = {};
+	
+			my %fields = (
+				callback_name	=> 'Имя',
+				callback_phone	=> 'Телефон',
+			); 
+			foreach (keys %fields){
+				if($self->param($_)){
+					$data->{$_} = $self->param($_);
+				} else {
+						
+					$vals->{error} = 'Не заполенно обязательное поле - '.$fields{$_};
+					$vals->{error_field} = $_;
+		
+					return $self->render_json( $vals );			
+				}
+			}
+						
+		    if(!$vals->{error}){
+	
+				my $email_body = 	$self->render_mail( 
+					vals => $data,	
+					template	=> "Texts/callback"
+				);
+			
+				$self->mail(
+			    	to      => $self->get_var(name => 'email_admin', controller => 'global'),
+			    	subject => 'Заказ обратного звонка с сайта '.$self->get_var(name => 'site_name', controller => 'global'),
+			    	data    => $email_body,
+			  	);	
+		    }
+		    $vals->{html} = $self->render_partial( template => 'Texts/callback_message_success');
+		    
+		    $self->render_json( $vals );
 		}
 	);	
+	
+
 	
 	$app->helper(
 		news_anons => sub {
@@ -39,33 +71,5 @@ sub register {
 		}
 	);		
 
-	$app->helper(
-		faq_anons => sub {
-			my $self   = shift;
-			my %params = @_;
-			
-			my $items = $self->app->dbi->query("SELECT * FROM `data_faq` WHERE `active`='1' ORDER BY `rdate` DESC LIMIT 0,10")->hashes;
-
-			return $self->render_partial( 
-							items	=> $items, 
-							template => 'Faq/main_anons');			
-
-		}
-	);
-	
-	$app->helper(
-		tours_anons => sub {
-			my $self   = shift;
-			my %params = @_;
-			
-			my $items = $self->app->dbi->query("SELECT * FROM `data_catalog_tours` ORDER BY RAND() LIMIT 0,3")->hashes;
-            
-			return $self->render_partial( 
-							items	=> $items, 
-							template => 'Catalog/main_tours');			
-
-		}
-	);
-	
 }
 1;
