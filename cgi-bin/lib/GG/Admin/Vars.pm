@@ -130,11 +130,11 @@ sub tree_block{
 	
 	$items = $self->getHashSQL(	select	=> "`ID`,`name`",
 								from 	=> $table, 
-								where 	=> "`id_group_user`='$index' ",
+								where 	=> "`id_program`='$index' ",
 								sys		=> 1) || [];
 		
 	foreach my $i (0..$#$items){
-		$items->[$i]->{icon} = 'user';
+		$items->[$i]->{icon} = 'vars';
 		$items->[$i]->{replaceme} = $controller.'_'.$table.$items->[$i]->{ID};
 		$items->[$i]->{param_default} = "&replaceme=".$items->[$i]->{replaceme}; 
 	}	

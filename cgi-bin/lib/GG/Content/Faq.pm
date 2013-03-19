@@ -6,8 +6,22 @@ use Mojo::Base 'GG::Content::Controller';
 
 sub list{
 	my $self = shift;
+	my %params = (
+		limit 	=> $self->get_var(name => 'faq_limit', controller => 'faq') || 5,
+		page	=> $self->param('page') || 1,
+		@_
+	);
 	
-	my $items = $self->dbi->query("SELECT * FROM `data_faq` WHERE `active`='1' ORDER BY `rdate`")->hashes;
+	my $where = " `active`='1' ORDER BY `rdate` DESC ";
+	
+	if($params{limit}){
+		my $count = $self->dbi->getCountCol(from => 'data_faq', where => $where);
+		$self->def_text_interval( total_vals => $count, cur_page => $params{page}, col_per_page => $params{limit} );
+		$params{npage} = $params{limit} * ($params{page} - 1);
+		$where .= " LIMIT $params{npage},$params{limit} "; 
+	}
+	
+	my $items = $self->dbi->query("SELECT * FROM `data_faq` WHERE $where")->hashes;
 	
 	my %FORM = ();
 
@@ -16,7 +30,7 @@ sub list{
 		$self->get_keys( type => ['lkey'], key_program => 'faq');
 
 		my $send_params = $self->app->send_params;
-		my $lkeys = $self->app->lkeys;
+		my $lkeys = $self->app->lkeys->{'faq'};
 		
 		delete @{$self->stash}{ qw(form_error) };
 
@@ -44,21 +58,13 @@ sub list{
 	    	$self->save_info(table => 'data_faq');
 	    	$self->stash->{success} = 1;
 
-			my $email_body = 	$self->render_partial(	form		=> \%FORM,
-		   												template	=> "Faq/mail" );
-		
-			$self->app->plugin(mail => {
-			    from     => 'no-reply@'.$self->req->url->{base}->{host},
-			    encoding => 'base64',
-		    	how      => 'sendmail',
-		    	howargs  => [ '/usr/sbin/sendmail -t' ],
-		    	type	 => 'text/html;charset=utf-8',
-		  	});	
+			my $email_body = 	$self->render_mail(	form		=> \%FORM,
+		   											template	=> "Faq/user" );
 		  	
 		  	eval{										
 				$self->mail(
-			    	to      => $self->app->vars->{email_admin}->value,
-		    		subject => 'Получен новый вопрос с сайта '.$self->app->vars->{site_name}->value,
+			    	to      => $self->get_var(name => 'email_admin', controller => 'global', raw => 1),,
+		    		subject => 'Получен новый вопрос с сайта '.$self->get_var(name => 'site_name', controller => 'global', raw => 1),,
 		    		data    => $email_body,
 		  		);
 		  	};	

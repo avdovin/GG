@@ -132,6 +132,8 @@ sub startup{
 	$routes->any('/news/:group_alias/:list_item_alias')->to( "Texts#text_list_item", alias => 'news', key_razdel => "news" )->name('news_item_by_group');
 	$routes->any('/news/:list_item_alias')->to( "Texts#text_list_item", alias => 'news', key_razdel => "news" )->name('news_item');
 	
+	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
+		
 	$routes->any("/:alias")->to("Texts#text_main_item" )->name('text');
 	
 	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );
