@@ -14,7 +14,7 @@
 %		my @layouts = grep(!/\.\.?$/, readdir LAYOUT);
 %		closedir(LAYOUT);
 
-%		my $layoutsLabel = $self->dbi->query("SELECT `layout`,`name` FROM `lst_layouts` WHERE 1 ORDER BY `name`")->map();
+%		my $layoutsLabel = $self->dbi->query("SELECT `layout`,`name` FROM `lst_layouts` WHERE 1")->map();
 			
 		<select name="<%= $key %>"/>
 %		$value ||= 'default';
