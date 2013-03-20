@@ -13,7 +13,14 @@
   </td>
   <td width="10px" id="_<%= $key %>"></td>
   <td class=read>
-  	<% if($value){ %><p style="color: red;"><b><% } %><%== VALUES (name => $key, value => $value ) %><% if($value){ %></b></p><% } %> 
+  	<% if($value){ %>
+  		<p style="color: green;">
+  			<b><%== VALUES (name => $key, value => $value ) %>
+		</b>
+	</p>
+	<% } else { %>
+		<p style="color: red;">Для выбора значений используйте кнопку <a class="pseudolink" href="javascript:void(0);" onClick="multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>');return false;">выбрать</a></p>
+	<% } %> 
     <div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
     <table style="width:95%;padding:3px">
       <tr>

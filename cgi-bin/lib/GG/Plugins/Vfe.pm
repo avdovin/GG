@@ -121,13 +121,12 @@ sub register {
 			my $e = Mojo::Loader->load('GG::Admin::AdminController');
 			if(!ref $e and !$e){
 				$self->app->dbi->update_hash(
-                    $self->app,
                     'texts_main_ru',
                     {
-					   text => $content
-				    },
+                    text => $content
+                    },
                     "`ID`='$id'"
-				);	
+                );
 			} else {
                 return $self->render_text("Ошибка при сохранении: ".$e);
             }

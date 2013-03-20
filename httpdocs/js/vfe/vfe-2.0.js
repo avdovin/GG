@@ -136,7 +136,7 @@ var vfe = (function() {
     	}
 
     	// Убираем редактирование стилей если не root
-    	if ($.user.name != 'root') $.buttons.css.remove();
+    	//if ($.user.name != 'root') $.buttons.css.remove();
 
     	// Кнопка логаута
     	$.buttons.logout = jQuery("<div/>", {id: "vfe-panel-logout"}).appendTo(jQuery($.Panel)).html('Вы зашли под <b>'+$.user.name+'</b> <a href="#" title="Выход"></a>');
@@ -152,11 +152,12 @@ var vfe = (function() {
 
     	// Генерируем редактируемые блоки
 	    $.Dummies.each(function(){
-	        if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").data("vfe-template", jQuery(this).data("vfe-template")).data("vfe-revisions", jQuery(this).data("vfe-revisions")).data("vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).end().remove();
+	        if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").attr("data-vfe-template", jQuery(this).data("vfe-template")).attr("data-vfe-revisions", jQuery(this).data("vfe-revisions")).attr("data-vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).end().remove();
+	        if (jQuery(this).data("vfe-textid")) jQuery(this).parent().addClass("ck").attr("data-vfe-textid", jQuery(this).data("vfe-textid")).end().remove();
 	    });
 
-	    $.editableBlocks	= jQuery(".vfe");
-
+	    $.editableBlocks		= jQuery(".vfe");
+	    $.contentEditableBlocks	= jQuery(".ck");
 
     	// Плавающая панель
     	$.Float = jQuery("<div/>", {id: $.Float}).appendTo("body");
@@ -224,10 +225,54 @@ var vfe = (function() {
 	        if (!jQuery(this).is(".current")) {
 	            $.editOn();
 	            $.editableBlocks.attr("contenteditable", "true");
+	            $.contentEditableBlocks.attr("contenteditable", "true");
+	            if (typeof CKEDITOR != 'undefined') {
+	            	CKEDITOR.inline( document.getElementById( 'editablecontent' ), {
+			            on: {
+			                blur: function(event) {
+
+			                    if (confirm("Сохранить изменения?")) {
+
+									var request = jQuery.ajax({
+										url: "/admin/vfe-text-save",
+										type: "POST",
+										data: {
+											content : event.editor.getData(),
+											id : jQuery("#editablecontent").data("vfe-textid")
+										},
+										dataType: "html"
+									});
+
+									request.done(function(msg) {
+										var json;
+										if (msg.substr(0,1) == '{') {
+											json = jQuery.parseJSON(msg);
+											if (json.error) vfe.showMessage("Ошибка", json.error, true);
+										} else {
+											vfe.showMessage("Сохранение", msg);	
+										}
+									});
+
+									request.error(function(jqXHR, textStatus) {
+										vfe.showMessage("Ошибка", textStatus, true);
+									});
+
+								}
+			                }
+			            }
+			        });
+	            }
 	            if (getCookie("vfe-panel-editable") != 1) setCookie("vfe-panel-editable",1,365);
 	        } else {
 	            $.editOff();
 	            $.editableBlocks.removeAttr("contenteditable");
+	            $.contentEditableBlocks.removeAttr("contenteditable");
+	            if (typeof CKEDITOR != 'undefined') {
+	            	for(k in CKEDITOR.instances){
+			            var instance = CKEDITOR.instances[k];
+		            	instance.destroy();
+		        	}
+		        }
 	            if (typeof $.Content_source != "undefined") $.Content_source.html($.Content);
 	            $.Float.fadeOut();
 	            setCookie("vfe-panel-editable",-1,365);
@@ -240,7 +285,7 @@ var vfe = (function() {
 	        $.buttons.vfe.trigger("click");        
 	    }
 
-	    $.Css = jQuery("<div/>", {id: "vfe-css"}).appendTo("body").html('<pre id="vfe-css-container" contenteditable="true"></pre>');
+	    //$.Css = jQuery("<div/>", {id: "vfe-css"}).appendTo("body").html('<pre id="vfe-css-container" contenteditable="true"></pre>');
 
 	    // Редактирование стилей
 	    /*$.buttons.css.click(function(){

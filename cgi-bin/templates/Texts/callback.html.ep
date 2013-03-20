@@ -1,33 +1,29 @@
-<!-- callback -->
-<table id="popup-callback" style="display:none;">
-    <tr>
-        <td>
-            <form id="callback-form">
-                <div id="popup-callback-container">
-                    <a href="javascript:void(0);" onClick="callbackWindow();return false;" class="close"></a>
-                    <h2>Заказ обратного звонка</h2>
-                    <div>
-                        <span id="errors-msg-callback" style="color:red;"></span>
-                        <table>
-                            <tr>
-                                <td class="c1">
-                                    <span>Имя</span>
-                                    <input type="text" name="callback_name" />
-                                </td>
-                                <td class="c2">
-                                    <span>Телефон</span>
-                                    <input type="text" name="callback_phone"/>
-                                </td>
-                            </tr>
-                        </table>
-                        <p class="right"><a href="javascript:void(0);" class="button button-blue">Заказать звонок</a></p>
-                    </div>
-                </div>
-            </form>
-        </td>
-    </tr>
+<table class="popup" id="popup-callback">
+	<tr>
+		 <td>
+		     <div class="popup-container callback">
+		         <a href="#" class="popup-close"></a>
+		         <h2>Заказ обратного звонка</h2>
+		         <div>
+		         	<span class="message" style="color:red;"></span>
+			         <table>
+			             <tr>
+			                 <td>
+			                     <span>Имя</span>
+			                     <input type="text" name="callback_name"/>
+			                 </td>
+			                 <td>
+			                     <span>Телефон</span>
+			                     <input type="text" name="callback_phone"/>
+			                 </td>
+			             </tr>
+			         </table>
+			         <p class="right"><a href="#" class="send-button">Заказать звонок</a></p>
+		         </div>
+		     </div>
+		 </td>
+	</tr>
 </table>
-<!-- end of zakaz -->
 
 <script type="text/javascript">
 $(document).ready(function(){
@@ -39,6 +35,10 @@ $(document).ready(function(){
 	$("#popup-callback a.button-blue").click(function(){
 		callbackSend()
 		return false;
+	})
+	
+	$("#popup-callback .popup-close").click(function(){
+		callbackWindow();
 	})
 });
 
@@ -53,13 +53,13 @@ function callbackWindow() {
 
 function callbackSend() {
     var data = $("#callback-form").serialize();
+    var $container = $("#popup-callback");
     
     $.ajax({
         url: "/callback",
         type: 'POST',
         beforeSend: function(){
-                $("#errors-msg-callback").hide().html('');
-                $('#popup-callback').css('cursor', 'progress');
+        		$container.css('cursor', 'progress').find(".message").hide().html('');
         },
         success: function(data){
                     if(data.error){
@@ -67,18 +67,18 @@ function callbackSend() {
                         if(data.error_field && $("#"+data.error_field).length){
                             $("#"+data.error_field).addClass("error").next().html("не заполненно поле");
                         } else {
-                            $("#errors-msg-callback").html(data.error).show();;
+                            $container.find(".message").html(data.error).show();;
                         }
                          
                     } else{
-                        $('#popup-callback-container div').html(data.html);
+                        $container.find('div').html(data.html);
                     }
                     
         },
         error: function(data){
         },
         complete: function(){
-                $('#popup-callback').css('cursor', 'default');
+                $container.css('cursor', 'default');
         },
         data: data
     });

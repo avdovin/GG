@@ -1,7 +1,5 @@
 package GG;
 
-# Author: Vdovin Aleksey
-
 use Mojo::Base 'Mojolicious';
 
 use utf8;
@@ -126,16 +124,25 @@ sub startup{
 		$self->stash->{lang} ||= 'ru';
         return 1;
     });
+ 
+    $routes->post("callback")->to( cb => sub {
+        shift->callbackSend;
+    });
     
+    my $routesCatalog = $routes->bridge('/catalog')->to(layout => 'default', cb => sub {
+    	
+    	$self->stash->{catalog} = 1;
+    	return 1;
+    });
+    $routesCatalog->any('/brands')->to('Catalog#brands', alias => 'catalog_brands', admin_name => 'Каталог. Бренды')->name('catalog_brands');
+       
     $routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args )->name('main');
 
 	$routes->any('/news/list')->to( "Texts#texts_list", alias => 'news', key_razdel => "news", admin_name => 'Новости' )->name('news_list');
-	$routes->any('/news/:group_alias/list')->to( "Texts#texts_list", alias => 'news', key_razdel => "news" )->name('news_list_by_group');
-	$routes->any('/news/:group_alias/:list_item_alias')->to( "Texts#text_list_item", alias => 'news', key_razdel => "news" )->name('news_item_by_group');
 	$routes->any('/news/:list_item_alias')->to( "Texts#text_list_item", alias => 'news', key_razdel => "news" )->name('news_item');
 	
 	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
-		
+	
 	$routes->any("/:alias")->to("Texts#text_main_item" )->name('text');
 	
 	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );

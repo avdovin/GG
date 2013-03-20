@@ -45,10 +45,20 @@ CKEDITOR.editorConfig = function( config ) {
 	    { name: 'about' }
 	];
 
+	config.toolbar = 'Basic';
+	config.toolbar_Basic =
+		[
+		['Source','Preview','-'],
+	       ['Cut','Copy','Paste','PasteText','PasteFromWord','-'],
+		['Undo','Redo','-','Replace','-','SelectAll','RemoveFormat'],
+		['Bold', 'Italic', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink','-','Maximize']
+	];
+
 	config.toolbar = 'Full';
 	config.toolbar_Full =
 	[
-		{ name: 'document', items : [ 'Source','NewPage','DocProps','Preview','Print','Templates' ] },
+		//{ name: 'document', items : [ 'Source','NewPage','DocProps','Preview','Print','Templates' ] },
+		{ name: 'document', items : [ 'Source','Preview','Print' ] },
 		{ name: 'clipboard', items : [ 'Cut','Copy','Paste','PasteText','PasteFromWord','Undo','Redo' ] },
 		{ name: 'editing', items : [ 'Find','Replace','SelectAll' ] },
 		{ name: 'basicstyles', items : [ 'Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat','NumberedList','BulletedList'] },
@@ -66,16 +76,9 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'About', items : [ 'About' ] }
 	];
 
-	config.toolbar = 'Basic';
-	config.toolbar_Basic =
-		[
-		['Source','Preview','-'],
-	       ['Cut','Copy','Paste','PasteText','PasteFromWord','-'],
-		['Undo','Redo','-','Replace','-','SelectAll','RemoveFormat'],
-		['Bold', 'Italic', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink','-','Maximize']
-	];
+	
 		
 	// Remove some buttons, provided by the standard plugins, which we don't
 	// need to have in the Standard(s) toolbar.
-	config.removeButtons = 'Underline,Subscript,Superscript';
+	//config.removeButtons = 'Underline,Subscript,Superscript';
 };

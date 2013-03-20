@@ -16,7 +16,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        display: none;
+        /*display: none;*/
         width: 46px;
         height: 28px;
         background: url(images/freddy.png) 50% 0 no-repeat;
