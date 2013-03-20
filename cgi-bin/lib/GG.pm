@@ -1,5 +1,7 @@
 package GG;
 
+# Author: Vdovin Aleksey
+
 use Mojo::Base 'Mojolicious';
 
 use utf8;

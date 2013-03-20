@@ -39,10 +39,10 @@ var cp = {
 
 var DEBUG_MODE = true;
 var log = function(message) {
-		if(DEBUG_MODE && window.console && window.console.log) {
-			window.console.log('DEBUG:', message);
-		}
+	if(DEBUG_MODE && window.console && window.console.log) {
+		window.console.log('DEBUG:', message);
 	}
+}
 
 
 tooltipObj = new DHTMLSuite.dynamicTooltip(); // Create ONE tooltip object.
@@ -136,7 +136,8 @@ var Content_scripts = new Array();
 
 function get_content_scripts(_source) {
 	var source = _source;
-
+	if(typeof source == 'undefined') return '';
+	
 	// Strip out tags
 	while(source.indexOf("<script") > -1 || source.indexOf("</script") > -1) {
 		var s = source.indexOf("<script");
