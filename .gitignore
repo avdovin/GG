@@ -9,3 +9,7 @@
 
 # Ignore all logfiles and tempfiles.
 /cgi-bin/log/*.log
+
+/.externalToolBuilders
+/subdomains
+
