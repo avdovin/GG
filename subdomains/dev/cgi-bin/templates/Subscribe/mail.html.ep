@@ -1,8 +1,0 @@
-<%== $letter->{text} %>
-
-<% if($letter->{soffers}){ %>
-<br /><%== $offers_text %><br />
-<% } %>
-
-<br />
-<p>Если вы больше не хотите получать информационные письма от компании "Тандем", пожалуйста, нажмите на <a href="http://<%= $ENV{HTTP_HOST} %>/subscribe/unsubscribe?cck=<%= $letter->{cck} %>&user_id=<%= $letter->{user_id} %>">отписаться от рассылки</a></p>

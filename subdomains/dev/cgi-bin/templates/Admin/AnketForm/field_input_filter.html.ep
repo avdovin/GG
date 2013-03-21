@@ -1,8 +1,0 @@
-<tr>
-  <td class=edit width="150px">
-     <%= $lkey->{name} =%>:
-  </td>
-  <td class=read>
-    <input class="menu" type="text" name="<%= $key %>" value="<%= $value %>">
-  </td>
-</tr>

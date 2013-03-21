@@ -1,7 +1,0 @@
-#dragableElementsParentBox{padding:10px;}
-.sortable{border:1px solid #000;margin-right:10px;margin-bottom:5px;height:15px;padding:4px;}
-.clear{clear:both;}
-#rectangle{float:left;display:none;border:1px dotted red;background-color:#FFF;}
-#insertionMarker{width:6px;position:absolute;display:none;}
-#insertionMarker img{float:left;}
-#dragDropMoveLayer{position:absolute;border:1px solid #000;filter:alpha(opacity=50);opacity:0.5px;}
