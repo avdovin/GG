@@ -1,7 +1,5 @@
 package GG::Plugins::Search;
 
-use strict;
-use warnings;
 use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
@@ -12,15 +10,13 @@ sub register {
 	my ($self, $app, $conf) = @_;
 	
 	
-	$app->routes->route("search/result")->to( cb => sub{
+	$app->routes->route("search/result")->to( controller => 'search', action => 'result', lang => 'ru', basket => 0, cb => sub{
 		my $self   = shift;
 		my %params = @_;
-		
+
+                		
 		$params{page} = $self->stash('page') || 1;
 		
-#        $self->app->sessions_check( $self->session('cck') );
-#        $self->session( cck => $self->app->user->{cck});
-						
 		my $ksearch = $self->param('qsearch');
 		
 		$params{qsearch} = $ksearch;
@@ -34,11 +30,17 @@ sub register {
 		$ksearch =~ s/["']+//g;
 		
 		foreach my $table (keys %hash_table) {
+			$hash_table{$table}{keyField} ||= [qw(ID)];
+			
 			my $search_str  = "MATCH($hash_table{$table}{fields}) AGAINST('\"$ksearch\"' IN BOOLEAN MODE)";
 			
-			for my $row  ($self->app->dbi->query("SELECT `ID` FROM `$table` WHERE $search_str")->hashes){
-				$result_search{$table}{ $row->{ID} } = 1;
-				$result_search_index[$sch] = $sch."|".$table."|".$hash_table{$table}{links}."|".$hash_table{$table}{names}."|".$row->{ID}."|".$hash_table{$table}{linktpl};
+			my ($keyFieldSelect) = _buildKeyFieldsSelect($hash_table{$table}{keyField});
+
+			for my $row  ($self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE $search_str $hash_table{$table}{where}")->hashes){
+				my $keyFieldValue = _buildKeyFieldsValue($hash_table{$table}{keyField}, $row);
+
+				$result_search{$table}{ $keyFieldValue } = 1;
+				$result_search_index[$sch] = $sch."|".$table."|".$hash_table{$table}{links}."|".$hash_table{$table}{names}."|".$keyFieldValue."|".$hash_table{$table}{linktpl}."|".join('_', @{$hash_table{$table}{keyField}});
 				$sch++;
 			}
 			
@@ -46,12 +48,13 @@ sub register {
 	   		   $search =~ s/,/ /g;
 	   		  
 	   		my (@search_str) = ();
-	   		my $lkeys = $self->app->lkeys;
+	   		my $lkeys = $self->app->lkeys->{$hash_table{$table}{controller}};
 	   		my $dbi = $self->app->dbi;
+	   		
 			foreach my $k (split(/ /, $search)) {
 				foreach my $f (split(/,/, $hash_table{$table}{fields})) {
 					next unless (length($k) > 1);
-					my $lkey = $lkeys->{$f}->{settings}->{type};
+					my $lkey = $lkeys->{$f}->{settings}->{type} || 's';
 					
 					if($lkey eq 'tlist'){
 						my $table = $lkeys->{$f}->{settings}->{list};
@@ -68,10 +71,12 @@ sub register {
 			$search_str = join(" OR ", @search_str);
 			
 			if($search_str){
-				for my $row  ($self->app->dbi->query("SELECT `ID` FROM `$table` WHERE $search_str")->hashes){
-					if (!$result_search{$table}{ $row->{ID} }) {
-						$result_search{$table}{ $row->{ID} } = 1;
-						$result_search_index[$sch] = $sch."|".$table."|".$hash_table{$table}{links}."|".$hash_table{$table}{names}."|".$row->{ID}."|".$hash_table{$table}{linktpl};
+				for my $row  ($self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE ($search_str) $hash_table{$table}{where}")->hashes){
+					my $keyFieldVal = _buildKeyFieldsValue($hash_table{$table}{keyField}, $row);
+
+					if (!$result_search{$table}{$keyFieldVal }) {
+						$result_search{$table}{ $keyFieldVal } = 1;
+						$result_search_index[$sch] = $sch."|".$table."|".$hash_table{$table}{links}."|".$hash_table{$table}{names}."|".$keyFieldVal."|".$hash_table{$table}{linktpl}."|".join('_', @{$hash_table{$table}{keyField}});
 						$sch++;
 					}
 				}
@@ -79,7 +84,7 @@ sub register {
 		}
 		
 		my $result_search_index = join("\n", @result_search_index);
-		
+
 		$params{count} = 0;
 		$params{total_pages} = 0;
 		
@@ -96,6 +101,28 @@ sub register {
 			
 	})->name('search');
 		
+}
+
+sub _buildKeyFieldsSelect{
+	my $keyField = shift || [qw(ID)];
+	
+	my $keyFieldSelect = join(",", map{ "`$_`" } @$keyField );
+	return $keyFieldSelect;
+}
+
+sub _buildKeyFieldsKey{
+	my $keyField = shift || [qw(ID)];
+	
+	return join('_', @$keyField );
+	
+}
+
+sub _buildKeyFieldsValue{
+	my $keyField = shift || [qw(ID)];
+	my $row = shift;
+	
+	return join('_', @$row{ @$keyField } );
+	
 }
 
 sub print_search_result{
@@ -117,9 +144,18 @@ sub print_search_result{
 			my $npage = $params{limit} * ($params{page} - 1);
 			
 			foreach my $res (@result_search_index) {
-				my ($i, $table, $links, $name, $indx, $linktpl) = split(/\|/, $res);
+				my ($i, $table, $links, $name, $indx, $linktpl, $keyFields) = split(/\|/, $res);
 				#if ($i >= $npage and $i < $npage + $params{limit}) {
-					if (my $find_node = $self->app->dbi->query("SELECT * FROM `$table` WHERE `ID`='$indx'")->hash) {
+					# build index
+					my @keysF = split('_', $keyFields);
+					my $whereIndex = '';
+					$i = 0;
+					foreach (split('_', $indx)){
+						$whereIndex .= " AND `$keysF[$i]`='$_' ";
+						$i++;
+					}
+
+					if (my $find_node = $self->app->dbi->query("SELECT * FROM `$table` WHERE 1 $whereIndex")->hash) {
 						
 	
 						$find_node->{text} =~ s/<.*?>//gi;
@@ -127,6 +163,7 @@ sub print_search_result{
 	#					$$self{text} = "...$1<span style='font-weight: bold;color:black;'>$2</span>$3...";
 						$sch++;
 						my $vals = {
+							%$find_node,
 							name	=> $find_node->{name},
 							index	=> $sch,
 							text	=> $find_node->{text} || $find_node->{name}
@@ -146,13 +183,13 @@ sub print_search_result{
 									$find_node->{$val} = $self->VALUES( name => $val, value => $find_node->{$val}) || '';
 								}
 								
-							
 								if($find_node->{$val}) {$val = $find_node->{$val}} else {$val = ""};
 								$linktpl =~ s/\%([\d\w~]+)\%/$val/;
 							}
 
 							$vals->{'link'} = $linktpl;
 						}
+
 						push @result, $vals;
 					}
 				#}
@@ -171,11 +208,18 @@ sub def_search_tables {
 
 	my %hash_table;
 	foreach my $t ($self->app->dbi->getTablesSQL()) {
-		if ($t =~ m/^texts_/  && $t !~ /manual/) {
+		if ($t =~ m/^texts_/ and 
+			$t ne 'texts_mskmsopt_ru' and 
+			$t ne 'texts_dakupirecall_ru' and
+			$t ne 'texts_dakupi_news_ru' and 
+			$t ne 'texts_dakupi_ru' and 
+			$t ne 'texts_msknews_ru' ) {
+				
 			my @keys_search = ();
 			my @keys_total = $self->app->dbi->getKeysSQL(from => $t);
 			my @searchkeys = ();
 			
+			$hash_table{$t}{controller} = 'texts';
 			foreach my $k (@keys_total) {
 				if ($k eq "name") {
 					$hash_table{$t}{names} = "name";
@@ -192,17 +236,18 @@ sub def_search_tables {
 			$hash_table{$t}{fields} = join(",", @keys_search);
 			$hash_table{$t}{keys}   = join(",", @keys_total);
 
-		} elsif($t =~ m/^data_/  && $t !~ /manual/){
+		} elsif($t eq 'data_catalog_items'){
 			my @keys_search = ();
 			my @keys_total = $self->app->dbi->getKeysSQL(from => $t);
 			my @searchkeys = ();
 			
-			$self->get_keys( type => ['lkey','list'], key_program => 'catalog');
+			$self->get_keys( type => ['lkey'], controller => 'catalog');
 			
 			if($t eq 'data_catalog_items'){
-				@searchkeys = qw(name gosnomer seats text price);
-				$hash_table{$t}{linktpl} = '/catalog/%s~groups%/%s~alias%';
-			
+				@searchkeys = qw(name);
+				$hash_table{$t}{linktpl} = '/catalog/iteminfo/%s~ID%';
+				$hash_table{$t}{controller} = 'catalog';
+				$hash_table{$t}{where} = " AND `active`='1' ";
 			} else{
 				next;
 			}

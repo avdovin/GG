@@ -87,21 +87,6 @@ sub register {
 	);
 			
 	$app->helper(
-		sessions_vars => sub {
-			my $self   = shift;
-			my %params = @_;
-			$params{cck} ||= $self->defCCK;
-
-			my %vars = (	'host'	=> $ENV{'REMOTE_HOST'} || 'empty',
-							'ip'	=> $self->tx->remote_address || 'empty',
-							'cck'	=> $params{cck},
-							'user_id' => $params{user_id} || 0,
-			);
-			return \%vars;
-		}
-	);
-
-	$app->helper(
 		sessions_check => sub {
 			my $self   	= shift;
 			my %params  = (
@@ -110,18 +95,24 @@ sub register {
 				@_
 			);
 			my $cck		= delete $params{cck};
-			my $vars 	= $self->sessions_vars( cck => $cck);
+			my $vars 	= _session_vars( $self,  $cck);
 
 			return 1 if $self->app->user->{check};
 			
 			
 			if($self->app->dbh->do(qq/
-				SELECT * FROM `anonymous_session` 
-				WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' 
+				SELECT 
+					* 
+				FROM `anonymous_session` 
+				WHERE 
+					`cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' 
 				/) eq '0E0'){
 
-				$self->app->dbh->do("REPLACE INTO `anonymous_session` (`cck`, `time`, `host`, `ip`) 
-									VALUES ('$$vars{cck}', NOW(), '$$vars{host}', '$$vars{ip}')");
+				$self->app->dbh->do(qq/
+				REPLACE INTO `anonymous_session` (`cck`, `time`, `host`, `ip`) 
+				VALUES ('$$vars{cck}', NOW(), '$$vars{host}', '$$vars{ip}')/);
+				
+				$self->session( cck => $$vars{cck});
 													
 			} else{
 				$self->app->dbh->do("UPDATE `anonymous_session` SET `time`=NOW() WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' ");
@@ -160,6 +151,18 @@ sub register {
 			return 1;
 		}
 	);
+}
+
+sub _session_vars{
+	my $self = shift;
+	my $cck  = shift || $self->defCCK();
+	
+	return {
+		ip 		=> 'empty',
+		host  	=> 'empty',
+		cck 	=> $cck,
+		user_id => 0,
+	};
 }
 
 1;
