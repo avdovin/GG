@@ -44,6 +44,7 @@ sub startup{
 	#$self->plugin('feedback');
 	#$self->plugin('captcha') ;
 	
+	$self->plugin('file');
 	$self->plugin('feedback');
 	#$self->plugin('crm');
 	

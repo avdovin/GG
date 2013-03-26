@@ -1,4 +1,4 @@
-package GG::Admin::Plugins::File;
+package GG::Plugins::File;
 
 use utf8;
 

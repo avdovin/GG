@@ -26,7 +26,6 @@ sub register {
 	$app->plugin('anket_form');
 	$app->plugin('init_json' );
 	$app->plugin('fields' );
-	$app->plugin('file' );
 	$app->plugin('image' );
 
     my %defaults = (
