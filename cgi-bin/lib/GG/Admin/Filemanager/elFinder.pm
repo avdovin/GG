@@ -371,11 +371,11 @@ sub _parents{
 		pop @parts; 
 		my $parent_path = join($DIRECTORY_SEPARATOR, @parts);
 		while($parent_path && $parent_path ne $self->{CONF}->{root}){
-			@$tree = (@$tree, @{ $self->_tree($parent_path, 1) } );
+			@$tree = (@$tree, @{ $self->__tree($parent_path, 1) } );
 			pop @parts;
 			$parent_path = join($DIRECTORY_SEPARATOR, @parts);
 		}
-		@$tree = (@$tree, @{ $self->_tree($parent_path, 1) } );
+		@$tree = (@$tree, @{ $self->__tree($parent_path, 1) } );
 		
 		$self->{RES}->{'tree'} = $tree;
 	} else {
@@ -385,7 +385,13 @@ sub _parents{
 	$self->{RES}->{'tree'} = $tree;
 }
 
-sub _tree
+sub _tree{
+	my $self = shift;
+	$self->{RES}->{'tree'} = $self->__tree(@_);
+	
+}
+
+sub __tree
 {
 	my ($self, $path, $depth) = @_;
 	
@@ -404,7 +410,7 @@ sub _tree
 		next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
 		
 		push @$dirs, { $self->_info("$path/$subdir") };
-		@$dirs = (@$dirs, @{ $self->_tree("$path/$subdir", $depth-1) } ) if $depth > 1;
+		@$dirs = (@$dirs, @{ $self->__tree("$path/$subdir", $depth-1) } ) if $depth > 1;
 	}
 	return $dirs;
 	
@@ -483,8 +489,8 @@ sub _files
 	#Если аргумент tree == true, то добавляются папки из дерева директорий на заданную глубину. Порядок файлов роли не играет
 	if($self->{REQUEST}->{'tree'}){
 		
-		#my @files = (@{ $self->{RES}->{'files'} }, @{ $self->_tree($path, $self->{REQUEST}->{'tree'}) } );
-		my @files = (@{ $self->{RES}->{'files'} }, @{ $self->_tree(undef, $self->{REQUEST}->{'tree'}) } );
+		#my @files = (@{ $self->{RES}->{'files'} }, @{ $self->__tree($path, $self->{REQUEST}->{'tree'}) } );
+		my @files = (@{ $self->{RES}->{'files'} }, @{ $self->__tree(undef, $self->{REQUEST}->{'tree'}) } );
 		
 		my $hashes = {};
 		foreach (0..$#files ){
@@ -498,7 +504,7 @@ sub _files
 		} 
 		$self->{RES}->{'files'} = \@files; 
 		
-		#foreach ($self->_tree($path, $self->{REQUEST}->{'tree'})){
+		#foreach ($self->__tree($path, $self->{REQUEST}->{'tree'})){
 		#	push @{$self->{RES}->{'files'}}, $_;	
 		#}
 	 
