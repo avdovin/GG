@@ -144,3 +144,14 @@ table.tablelist tr.select td,table.tablelist tr.selectmarked td{background-color
                     0%   {color: #fff}
                     100% {color: #aaa}
                 }
+
+dt {
+    float: left;
+    clear: left;
+    width: 8em;
+    font-weight: bold;
+}
+dd {
+	margin: 0 0 0 11em;
+	padding: 0 0 0.5em 0;
+}                

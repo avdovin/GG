@@ -258,9 +258,9 @@ sub register {
 				}
 				
 				if($dir){
-					$self->sysuser->access->{lkey}->{$k}->{w} = 0 if !$lkey->{settings}->{dirview};
+					$self->sysuser->access->{lkey}->{$k}->{w} = 0 unless $lkey->{settings}->{dirview};
 				} else {
-					$self->sysuser->access->{lkey}->{$k}->{w} = 0 if !$lkey->{settings}->{fileview};
+					$self->sysuser->access->{lkey}->{$k}->{w} = 0 unless $lkey->{settings}->{fileview};
 				}
 
 				$lkey->{settings}->{group} ||= 1;
