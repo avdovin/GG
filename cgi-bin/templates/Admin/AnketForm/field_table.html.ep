@@ -246,7 +246,7 @@
                 <img border="0" src="/admin/img/icons/menu/button.<%= $button %>.gif"/></a>
             
             <% } elsif($button eq 'delete'){ %>
-                <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&do=<%= $button %>&dop_table=<%= $lkey->{settings}->{table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>')">
+                <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&do=<%= $button %>&dop_table=<%= $lkey->{settings}->{table} %>&list_table=<%= $self->stash->{list_table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>')">
                 <img border="0" src="/admin/img/icons/menu/button.delete.gif"/>
                 </a>            
             

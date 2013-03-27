@@ -14,6 +14,8 @@ use File::Spec ();
 use File::stat;
 
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+
+my $MAX_IMAGE_SIZE = 1000; # Максимальный размер картинки по большей стороне, px
 		
 sub register {
 	my ( $self, $app, $opts ) = @_;
@@ -84,7 +86,7 @@ sub register {
 			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
 						file	=> $pict_path,
-						fsize 	=> 1000,
+						fsize 	=> $MAX_IMAGE_SIZE,
 			);
 									
 			#unlink($ENV{'DOCUMENT_ROOT'}.$params{folder}.$pict_saved);
