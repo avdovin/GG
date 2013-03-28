@@ -249,8 +249,13 @@ sub register {
 			
 			#use Data::Dumper;
 			#die Dumper $lkeys;
-
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} || 0 <=> $$lkeys{$b}{settings}{rating} || 0} keys %$lkeys) {
+			
+			foreach my $k (sort {
+					isnan( $$lkeys{$a}{settings}{rating} ) ? 0 : $$lkeys{$a}{settings}{rating}
+						<=>
+					isnan( $$lkeys{$b}{settings}{rating} ) ? 0 : $$lkeys{$b}{settings}{rating}
+				} keys %$lkeys) {
+					
 				my $lkey = $self->lkey(name => $k);
 				# set file and dir views
 				if(!$lkey->{settings}->{fileview} && !$lkey->{settings}->{dirview}){
@@ -258,9 +263,9 @@ sub register {
 				}
 				
 				if($dir){
-					$self->sysuser->access->{lkey}->{$k}->{w} = 0 unless $lkey->{settings}->{dirview};
+					$self->sysuser->access->{lkey}->{$k}->{w} = 0 if !$lkey->{settings}->{dirview};
 				} else {
-					$self->sysuser->access->{lkey}->{$k}->{w} = 0 unless $lkey->{settings}->{fileview};
+					$self->sysuser->access->{lkey}->{$k}->{w} = 0 if !$lkey->{settings}->{fileview};
 				}
 
 				$lkey->{settings}->{group} ||= 1;
@@ -273,7 +278,12 @@ sub register {
 				}
 			}
 			
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+			foreach my $k (sort {
+					isnan( $$lkeys{$a}{settings}{rating} ) ? 0 : $$lkeys{$a}{settings}{rating}
+						<=>
+					isnan( $$lkeys{$b}{settings}{rating} ) ? 0 : $$lkeys{$b}{settings}{rating}
+				} keys %$lkeys) {
+
 				my $lkey = $self->lkey(name => $k);
 				
 				$lkey->{settings}->{group} = 1 if $params{content};
@@ -439,7 +449,12 @@ sub register {
 			my $sys_user = $self->sysuser->sys;
 			my $access = $self->sysuser->access->{lkey};
 			
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} || 0 <=> $$lkeys{$b}{settings}{rating} || 0}  keys %$lkeys) {
+			foreach my $k (sort {
+					isnan( $$lkeys{$a}{settings}{rating} ) ? 0 : $$lkeys{$a}{settings}{rating}
+						<=>
+					isnan( $$lkeys{$b}{settings}{rating} ) ? 0 : $$lkeys{$b}{settings}{rating}
+				} keys %$lkeys) {
+					
 				my $lkey = $self->lkey(name => $k);
 				$lkey->{settings}->{group} ||= 1;
 				if ((!$params{keys_hashref} && $self->dbi->exists_keys(from => $params{table}, lkey => $k) or ($params{keys_hashref} && exists($params{keys_hashref}->{$k})))
@@ -475,7 +490,11 @@ sub register {
 			
 			my @anketa_keys  = ();
 			
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} || 0 <=> $$lkeys{$b}{settings}{rating} || 0 } keys %$lkeys) {
+			foreach my $k (sort {
+					isnan( $$lkeys{$a}{settings}{rating} ) ? 0 : $$lkeys{$a}{settings}{rating}
+						<=>
+					isnan( $$lkeys{$b}{settings}{rating} ) ? 0 : $$lkeys{$b}{settings}{rating}
+				} keys %$lkeys) {
 				my $lkey = $self->lkey(name => $k);
 				
 				if ($self->dbi->exists_keys(from => $params{table}, lkey => $k)
@@ -506,7 +525,11 @@ sub register {
 			no strict "refs";
 			no warnings;
 			
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} || 0 <=> $$lkeys{$b}{settings}{rating} || 0} keys %$lkeys) {
+			foreach my $k (sort {
+					isnan( $$lkeys{$a}{settings}{rating} ) ? 0 : $$lkeys{$a}{settings}{rating}
+						<=>
+					isnan( $$lkeys{$b}{settings}{rating} ) ? 0 : $$lkeys{$b}{settings}{rating}
+				} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $params{table}, lkey => $k)){
 					push(@anketa_keys, $k);
 				
@@ -573,5 +596,8 @@ sub register {
 		}
 	);		
 }
+
+sub isnan { ! defined( $_[0] <=> 9**9**9 ) }
+
 
 1;
