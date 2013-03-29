@@ -7,7 +7,11 @@ use File::stat;
 
 sub register {
 	my ( $self, $app ) = @_;
-	
+
+	$app->helper( host => sub {
+		return shift->req->headers->host() || '';	
+	});
+		
 	$app->helper( cl => sub {
 		return shift->caselang(@_)	
 	});

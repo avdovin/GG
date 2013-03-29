@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /userfiles/
+Disallow: /docfiles/
+Crawl-delay: 30
+
+Sitemap: /sitemap.xml
