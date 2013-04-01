@@ -398,7 +398,7 @@ sub register {
 
 			my $tr = new Lingua::Translit("GOST 7.79 RUS");
 			$name = lc($name);
-			return $name if $name = $tr->translit($name);
+			$name = $tr->translit($name) if $tr->translit($name);
 
 			my $dec = new decoder;
 			my $name_tr;
