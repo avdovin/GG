@@ -83,14 +83,14 @@ sub register {
 				@_
 			);
 			my $table = delete $params{from};
-			my $parent_field = delete $params{parent_field};
+			my $parent_field = delete $params{parent_field} || $params{lfield};
 			my $parent_id = delete $params{parent_id};
 			
 			my $dir = $self->dbi->exists_keys(from => $table, lkey => 'dir') ? " `dir`='1' AND " : "";
 			my $order = $self->dbi->exists_keys(from => $table, lkey => 'rating') ? 'rating' : 'ID';
 			
 			my $dop_where = '';
-			$dop_where .= " AND `ID`!='$params{index}'" if ($params{index});
+			$dop_where .= " AND `ID`!='$params{index}'" if ($params{'index'});
 
 			my $items = $self->getHashSQL(	select	=> "`ID`,`name`".($dir ? ",`dir`" : ""),
 											from 	=> $table, 
