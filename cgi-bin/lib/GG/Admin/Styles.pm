@@ -104,7 +104,7 @@ sub save{
 	my %params = @_;
 	
 	
-	my $path =  $self->stash->{document_root}."css/".$self->stash->{dir};
+	my $path =  $ENV{DOCUMENT_ROOT}."css/".$self->stash->{dir};
 	
 	
 	my $code = $self->stash->{code};
@@ -141,7 +141,7 @@ sub edit{
 	
 	my $anketa = {};
 	
-	my $rel_dir = $self->stash->{document_root}."css/$dir";
+	my $rel_dir = $ENV{DOCUMENT_ROOT}."css/$dir";
 
 	#my $rel_dir = $self->app->home->rel_dir("../css/$dir");
 
@@ -209,7 +209,7 @@ sub mainpage{
 	my $body = "";
 	my $dir = $self->stash->{dir} || '';
 
-	my $rel_dir = $self->stash->{document_root}."css/$dir"; 
+	my $rel_dir = $ENV{DOCUMENT_ROOT}."css/$dir"; 
 	my $controller_url = $self->stash->{controller_url};
 
 	$self->stash->{win_name} = $dir;

@@ -10,7 +10,7 @@ sub register {
 	my ($self, $app, $conf) = @_;
 	
 	
-	$app->routes->route("feedback")->to(admin_name => 'Контакты', lang => 'ru', alias =>  'contacts', cb => sub{
+	$app->routes->route("feedback")->to(admin_name => 'Контакты', lang => 'ru',layout => 'default', alias =>  'contacts', cb => sub{
 		my $self   = shift;
 		my %params = @_;
 		

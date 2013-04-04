@@ -74,7 +74,6 @@ sub register {
 		field_select_dir => sub {
 			my $self = shift;
 			my %params = (
-				from			=> $self->stash->{list_table},
 				parent_field	=> $self->stash->{dir_field},
 				parent_id		=> $self->stash->{index},
 				lfield			=> $self->send_params->{lfield},
@@ -82,7 +81,7 @@ sub register {
 				index			=> 0,
 				@_
 			);
-			my $table = delete $params{from};
+			my $table = $params{from} || $self->lkey( name => $params{lfield})->{settings}->{list};
 			my $parent_field = delete $params{parent_field} || $params{lfield};
 			my $parent_id = delete $params{parent_id};
 			
@@ -90,7 +89,7 @@ sub register {
 			my $order = $self->dbi->exists_keys(from => $table, lkey => 'rating') ? 'rating' : 'ID';
 			
 			my $dop_where = '';
-			$dop_where .= " AND `ID`!='$params{index}'" if ($params{'index'});
+			$dop_where .= " AND `ID`!='$params{index}'" if ($params{'index'} && $self->stash->{list_table} eq $table);
 
 			my $items = $self->getHashSQL(	select	=> "`ID`,`name`".($dir ? ",`dir`" : ""),
 											from 	=> $table, 

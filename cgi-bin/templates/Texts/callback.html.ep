@@ -5,20 +5,22 @@
 		         <a href="#" class="popup-close"></a>
 		         <h2>Заказ обратного звонка</h2>
 		         <div>
-		         	<span class="message" style="color:red;"></span>
-			         <table>
-			             <tr>
-			                 <td>
-			                     <span>Имя</span>
-			                     <input type="text" name="callback_name"/>
-			                 </td>
-			                 <td>
-			                     <span>Телефон</span>
-			                     <input type="text" name="callback_phone"/>
-			                 </td>
-			             </tr>
-			         </table>
-			         <p class="right"><a href="#" class="send-button">Заказать звонок</a></p>
+					 <form name="callback-form" id="callback-form">
+			         	 <span class="message" style="color:red;"></span>
+				         <table>
+				             <tr>
+				                 <td>
+				                     <span>Имя</span>
+				                     <input type="text" name="callback_name"/>
+				                 </td>
+				                 <td>
+				                     <span>Телефон</span>
+				                     <input type="text" name="callback_phone"/>
+				                 </td>
+				             </tr>
+				         </table>
+				         <p class="right"><a href="#" class="button button-yellow button-right">Заказать звонок</a></p>
+			         </form>
 		         </div>
 		     </div>
 		 </td>
@@ -32,7 +34,7 @@ $(document).ready(function(){
 		return false;
 	})
 	
-	$("#popup-callback a.button-blue").click(function(){
+	$("#popup-callback a.button").click(function(){
 		callbackSend()
 		return false;
 	})
@@ -71,7 +73,7 @@ function callbackSend() {
                         }
                          
                     } else{
-                        $container.find('div').html(data.html);
+                        $container.find('div:last').html(data.html);
                     }
                     
         },
