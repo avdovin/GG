@@ -44,10 +44,7 @@ sub register {
 				
 			}
 			
-			if($banner->{'link'}){
-				$banner->{'link'} = "http://".$banner->{'link'} if ($$banner{'link'} !~ m{^http://});
-				$redirect = $banner->{'link'};
-			}
+			$redirect = $banner->{'link'} if $banner->{'link'};
 		}
 		$self->redirect_to($redirect);
 		

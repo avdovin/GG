@@ -1,6 +1,6 @@
 if(!window.DHTMLSuite)var DHTMLSuite=new Object();DHTMLSuite.menuItem=function(){var layoutCSS;var divElement;var expandElement;var cssPrefix;var modelItemRef;this.layoutCSS='menu-item.css';this.cssPrefix='DHTMLSuite_';try{if(!standardObjectsCreated)DHTMLSuite.createStandardObjects()}catch(e){alert('Include the dhtmlSuite-common.js file')}
 var objectIndex;this.objectIndex=DHTMLSuite.variableStorage.arrayDSObjects.length}
-DHTMLSuite.menuItem.prototype=
+DHTMLSuite.menuItem.prototype =
 {createItem:function(menuModelItemObj){DHTMLSuite.commonObj.loadCSS(this.layoutCSS);DHTMLSuite.variableStorage.arrayDSObjects[this.objectIndex]=this;this.modelItemRef=menuModelItemObj;this.divElement='DHTMLSuite_menuItem'+menuModelItemObj.id;var div=document.createElement('DIV');document.body.appendChild(div);div.id=this.divElement;div.className=this.cssPrefix+'menuItem_'+menuModelItemObj.type+'_regular';div.onselectstart=function(){return false};if(menuModelItemObj.helpText){div.title=menuModelItemObj.helpText}
 if(menuModelItemObj.type=='top'){this.__createMenuElementsOfTypeTop(div)}
 if(menuModelItemObj.type=='sub'){this.__createMenuElementsOfTypeSub(div)}

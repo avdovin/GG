@@ -81,7 +81,12 @@ sub _init{
 	$self->stash->{lkey} .= '_'. $self->send_params->{list_table} if $self->send_params->{list_table};
 	$self->stash->{script_link} = '/admin/'.$self->stash->{controller}.'/body';
 	
-	$self->stash->{dir_field} = 'image_'.$self->stash->{key_razdel};
+	
+	if($self->dbi->exists_keys( table => $self->stash->{list_table}, lkey => 'image_'.$self->stash->{key_razdel})){
+		$self->stash->{dir_field} = 'image_'.$self->stash->{key_razdel};	
+	} else {
+		$self->stash->{dir_field} = '';	
+	}
 	
 	#Groupname
 	my $kr = $self->stash->{key_razdel};
@@ -474,16 +479,19 @@ sub tree_block{
 	my $self = shift;
 	
 	my $items = [];
-	my $index = $self->stash->{index};
-	my $controller = $self->stash->{controller};
-	my $table = $self->stash->{list_table};
+	my $index = $self->stash->{'index'} || 0;
+	my $controller = $self->stash->{'controller'};
+	my $table = $self->stash->{'list_table'};
 	
 	$self->param_default('replaceme' => '');
 	
 	if($self->sysuser->access->{table}->{$table}->{r}){
-		$items = $self->getHashSQL(	select	=> "`ID`,`name`,`dir`,`type_file`",
+		my 	$select = "`ID`,`name`,`type_file`";
+			$select .= " " if $self->dbi->exists_keys( table => $self->stash->{list_table}, lkey => "dir");
+		
+		$items = $self->getHashSQL(	select	=> $select,
 									from 	=> $table, 
-									where 	=> "`".$self->stash->{dir_field}."`='$index' "
+									where 	=> $self->stash->{dir_field} ? "`".$self->stash->{dir_field}."`='$index' " : " `ID`>0 "
 									) || [];
 			
 		foreach my $i (0..$#$items){
@@ -493,13 +501,13 @@ sub tree_block{
 			} elsif($item->{type_file}){
 				$items->[$i]->{icon} = $items->[$i]->{type_file};
 			} else {
-				$items->[$i]->{type_file} = 'image';
+				$items->[$i]->{icon} = 'image';
 			}
 
 			$items->[$i]->{key_element} 	= $table;
 			$items->[$i]->{tabname} 	  	= $table.$item->{ID};
-			$items->[$i]->{replaceme} = $controller.'_'.$table.$items->[$i]->{ID};
-			$items->[$i]->{param_default} = "&list_table=$table&replaceme=".$items->[$i]->{replaceme}; 
+			$items->[$i]->{replaceme} 		= $controller.'_'.$table.$items->[$i]->{ID};
+			$items->[$i]->{param_default} 	= "&list_table=$table&replaceme=".$items->[$i]->{replaceme}; 
 		}	
 	}
 	
