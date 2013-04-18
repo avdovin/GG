@@ -432,7 +432,7 @@ sub register {
 			my $self = shift;
 			my %params = (
 				path	=> '',
-				ext		=> [qw(jpg jpeg gif png)],
+				ext		=> [qw(jpg jpeg gif png JPG JPEG GIF PNG)],
 				@_
 			);
 
