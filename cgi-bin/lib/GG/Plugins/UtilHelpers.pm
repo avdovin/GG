@@ -528,8 +528,10 @@ sub register {
 	$app->helper(
 		numberformat => sub {
 			my $self = shift;
-			my $d    = shift || return;
+			my $d    = shift;
 			my $sep  = shift || ' ';
+			
+			return unless defined $d;
 			
 			$d =~ s/(\d)(?=((\d{3})+)(\D|$))/$1$sep/g;
 			return $d;	

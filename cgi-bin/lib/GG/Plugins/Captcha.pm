@@ -33,7 +33,12 @@ sub register {
 		my @letter = (0..9, 'a'..'z');
 
 		my $code = join '', @letter[ map { int rand @letter } 1..5 ]; 
-		$CAPTCHA->{lc $code} = 1;
+		
+		#$CAPTCHA->{lc $code} = 1;
+		$self->dbi->dbh->do(qq~
+			REPLACE INTO `captcha` (`code`)
+			VALUES (?)~, undef, lc $code);
+		
 		$self->render_data($self->captcha($code) );	
 			
 	})->name('captcha_code');
@@ -43,7 +48,17 @@ sub register {
 			my $self = shift;
 			my $code = shift;
 
-			return delete $CAPTCHA->{lc $code}; 
+			#return delete $CAPTCHA->{lc $code};
+			
+			$self->dbi->dbh->do("DELETE FROM `captcha` WHERE TO_DAYS(NOW())-TO_DAYS(`time`)>1");
+			
+			if(my $row = $self->dbi->query("SELECT * FROM `captcha` WHERE `code`='$code'")->hash){
+				if($row->{code}){
+					$self->dbi->dbh->do(qq~DELETE FROM `captcha` WHERE `code`=?~, undef, $code);
+					return $row->{code};
+				}
+			} 
+			return;
 		}
 	);
 					
