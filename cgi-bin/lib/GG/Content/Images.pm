@@ -10,23 +10,31 @@ sub images_list{
     my $keyRazdel 	= $self->stash->{key_razdel} || 'gallery';
     my $dbTable  	= "images_$keyRazdel";
     my $template 	= $keyRazdel."_list";
-    my $subID 		= $self->stash->{sub_ID} || 0;
 
-	return $self->render_not_found unless my $gallery = $self->dbi->query("SELECT * FROM `$dbTable` WHERE `ID`='$subID' AND `dir`='1' AND `viewimg`='1' ")->hash;
-
-	my	$where = 	" `dir`='0' ";
-		$where .= 	" AND `image_$keyRazdel`='$subID' " if $subID;
-
+	#return $self->render_not_found unless my $gallery = $self->dbi->query("SELECT * FROM `$dbTable` WHERE `ID`='$subID' AND `dir`='1' AND `viewimg`='1' ")->hash;
+	my	$where = 	" `viewimg`='1' ";
 	
-	my @items = $self->dbi->query(qq/
+	my $gallery = {};
+	if(my $dirAlias = $self->stash->{dir_alias}){
+		
+		return $self->render_not_found unless $gallery = $self->dbi->query("SELECT * FROM `$dbTable` WHERE `alias`='$dirAlias' AND `dir`='1' AND `viewimg`='1' ")->hash;
+		
+		$where .= 	" AND `image_$keyRazdel`='$$gallery{ID}' AND `dir`='0' ";
+		
+	} else {
+		$where .= 	" AND `dir`='1' ";
+		
+		$template = $keyRazdel."_dir_list";
+	}
+	
+	my $items = $self->dbi->query(qq/
 		SELECT *
 		FROM `$dbTable`
 		WHERE $where ORDER BY `rating`,`name`
 	/)->hashes;
 	
-    $self->render(	subid		=> $subID,
-    				gallery 	=> $gallery,
-     				items		=> \@items,
+    $self->render(	gallery 	=> $gallery,
+     				items		=> $items,
     				template	=> 'Images/'.$template);	
 }
 

@@ -9,6 +9,6 @@
   </td>
   <td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
   <td><input class="menu <% if($lkey->{required}){ %>required<% } %>" type="date" name='<%= $key %>' id='<%= $self->stash->{replaceme} %>_<%= $key %>' value='<% if( (!$value or $value eq '0000-00-00') and $lkey->{settings}->{default}){ %><%= $lkey->{settings}->{default} %><% } elsif($value && $value ne '0000-00-00') { %><%= $value %><% } %>' 
-  style="width:75px;margin-right:10px"> <button class=submit_save id="button_<%= $self->stash->{replaceme} %>_<%= $key %>" onclick="displayCalendar(event, this.form.<%= $key %>,'yyyy-mm-dd',this,false); return false;" 
+  style="width:90px;margin-right:10px"> <button class=submit_save id="button_<%= $self->stash->{replaceme} %>_<%= $key %>" onclick="displayCalendar(event, this.form.<%= $key %>,'yyyy-mm-dd',this,false); return false;" 
   style="border:0px;background-color:white"><img border=0 src="/admin/img/icons/calendar.gif"></button></td>
 </tr>

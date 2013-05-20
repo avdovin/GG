@@ -670,7 +670,9 @@ sub register {
 			
 			my ($index, $sfield) = split(/__/, $self->send_params->{textEditElementId});
 			$index =~ s{\D+}{}gi;
-			my $value = $self->send_params->{textEditValue};
+			
+			require URI::Escape::JavaScript;
+			my $value = URI::Escape::JavaScript::js_unescape( $self->send_params->{textEditValue} );
 			
 			if($self->lkeys->{ $sfield }->{settings}->{type} eq 'list'){
 				

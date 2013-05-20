@@ -3,9 +3,15 @@
 use strict;
 use warnings;
 
+BEGIN { $ENV{MAGICK_THREAD_LIMIT}=2; }
+
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use lib "$FindBin::Bin/../extlib";
+
+# Mac os lib path
+use lib "/opt/local/lib/perl5/vendor_perl";
+use lib "/Users/aleksey/perl5/lib/perl5";
 
 #$ENV{MOJO_APP} ||= 'GG';
 $ENV{MOJO_HOME} =  "../"; #'/www/gg9.local/cgi-bin';

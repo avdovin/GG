@@ -1,0 +1,22 @@
+<div class="clearfix" id="body">
+    <div class="block block-margin block-background block-yellow block-radius clearfix">
+        <div class="content" id="gallery">
+            <h1>Фотогалерея</h1>
+            
+            <% foreach (@$items){ %>
+	            <div class="gallery-entry">
+	                <% if($_->{tdate} ne '0000-00-00'){ %><b><%= date_format( date => $_->{tdate}, format => 'dd month') %></b><% } %>
+	                <img alt="<%= cl ru => $_->{title_ru}, en => $_->{title_en}  %>" src="/images/gallery/214x124_<%= $_->{pict} %>">
+	                <h3><%= cl ru => $_->{title_ru}, en => $_->{title_en}  %></h3>
+	                <a href="<%= url_for('gallery_items_list', dir_alias => $_->{alias}) %>"></a>
+	            </div>
+            <% } %>
+            <div style="clear: both"></div>
+        </div>
+        <div id="mp-social">
+            <a class="fb" href="#"></a>
+            <a class="vk" href="#"></a>
+            <a class="in" href="#"></a>
+        </div>
+    </div>
+</div>

@@ -165,6 +165,8 @@ sub register {
 			
 			if(-f $path){
 				my ($filename, undef, $ext) = File::Basename::fileparse($path,qr/\.[^.]*/);
+				$ext =~ s{^\.}{};
+				
 				my $stat = stat($path);
         		my $modified = $stat->mtime;
         		my $size     = $stat->size;
@@ -173,10 +175,14 @@ sub register {
 				my $rsh = $res->headers;
 				$res->content->asset(Mojo::Asset::File->new(path => $path));
         		$res->code(200);
-				$rsh->content_disposition('attachment; filename='.$filename.$ext);
+				$rsh->content_disposition('attachment; filename='.$filename.'.'.$ext);
 				$rsh->content_length($size);
 				$rsh->content_encoding("Binary");
-				$rsh->content_type($self->app->types->type($ext) || "application/octet-stream");
+				
+				my $mimeType = $self->app->types->type($ext);
+				$mimeType = 'application/vnd.ms-excel' if($ext eq 'xls');
+				
+				$rsh->content_type($mimeType || "application/octet-stream");
 				$rsh->last_modified(Mojo::Date->new($modified));
 
 				$self->rendered;
