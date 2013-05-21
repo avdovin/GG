@@ -454,6 +454,8 @@ sub register {
 			my $tmp_dir = $self->file_tmpdir();
 			foreach my $f (@textFileMembers) {
 				
+				next if ($f =~ /__MACOSX/i);
+				
 				my $ext = ($f =~ m/([^.]+)$/)[0];
 				$ext =~ s{^\.}{};
 				next unless (grep(/$ext/, @$avalaible_ext) );
@@ -477,7 +479,7 @@ sub register {
 					close FILE or die("can't close ${tmp_dir}$filename: $!");
 				};
 				
-				die $@ if $@;
+				#die $@ if $@;
 				if($@){
 					warn $@;
 					next;	
