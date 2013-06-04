@@ -10,8 +10,8 @@ use lib "$FindBin::Bin/../lib";
 use lib "$FindBin::Bin/../extlib";
 
 # Mac os lib path
-use lib "/opt/local/lib/perl5/vendor_perl";
-use lib "/Users/aleksey/perl5/lib/perl5";
+use lib '/opt/local/lib/perl5/vendor_perl/5.12.4/darwin-thread-multi-2level/';
+use lib '/opt/local/lib/perl5/site_perl/5.12.4/darwin-thread-multi-2level';
 
 #$ENV{MOJO_APP} ||= 'GG';
 $ENV{MOJO_HOME} =  "../"; #'/www/gg9.local/cgi-bin';

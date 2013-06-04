@@ -400,20 +400,23 @@ sub register {
 	$app->helper(
 		transliteration => sub {
 			my $self = shift;
-			my $name = shift;
-
+			my $name = shift || return '';
+			
 			my $tr = new Lingua::Translit("GOST 7.79 RUS");
-			$name = lc($name);
-			$name = $tr->translit($name) if $tr->translit($name);
-
-			my $dec = new decoder;
-			my $name_tr;
-		
-			if ($name) {
-				if ($name =~ m/[\\\/]/) {
-					$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
-					$name = $2;
-				}
+			
+			if ($name =~ m/[\\\/]/) {
+				$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
+				$name = $2;				
+			}
+			$name =~ s{\s}{_}gi;
+			
+			if(my $name_tr = $tr->translit($name)){
+				$name = $name_tr;
+			
+			} else {
+				my $dec = new decoder;
+				my $name_tr;
+				
 				for my $i (0..length($name)-1) {
 					if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
 						if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
@@ -424,14 +427,15 @@ sub register {
 							$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
 						}
 					}
-				}
-				$name = $name_tr;
-				$name =~ s/[`\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
-				$name = lc($name);
+				}				
 			}
+			$name =~ s/[`\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
+			$name =~ tr/\x20-\x7f//cd;
+			$name = lc($name);
+			
 			return $name;
 		}
-	);	
+	);
 
 	$app->helper(
 		file_extract_zip => sub {
@@ -485,7 +489,7 @@ sub register {
 					next;	
 				}
 				
-				my $size = -s $tmp_dir.$filename;
+				next unless my $size = -s $tmp_dir.$filename;
 				my ($width, $height) = $self->image_set( file => $tmp_dir.$filename);
 				push @filenamereturn, { filename => $filename, ext => $ext, size => $size, oldfilename => $f, width => $width, height => $height};
 			}
