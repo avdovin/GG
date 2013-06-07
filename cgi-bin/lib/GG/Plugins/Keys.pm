@@ -505,6 +505,7 @@ sub register {
 						} elsif($lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }){
 							return $lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }
 						}
+						return '';
 						
 					} else {
 						return $lkeys->{$controller}->{$lkeyName};

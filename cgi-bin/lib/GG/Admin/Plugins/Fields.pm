@@ -323,7 +323,7 @@ sub register {
 					foreach my $item (@$items) {
 						my $name = _def_name_list_select($item->{name});
 			
-						$flag_sel = 1 if ($self->stash->{ $field_rules_f2 } && $self->stash->{ $field_rules_f2 } == $item->{ID});
+						#$flag_sel = 1 if ($self->stash->{ $field_rules_f2 } && $self->stash->{ $field_rules_f2 } == $item->{ID});
 						
 						$menu .= "lstobj[out].options[lstobj[out].options.length] = new Option('$name', '$$item{ID}');\n" if $name;
 				    }

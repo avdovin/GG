@@ -1,0 +1,36 @@
+% extends 'layouts/default';
+
+%= content body_default => begin
+
+	<div id="body" class="clearfix">
+	    <div class="block clearfix">
+	        <div id="leftCol">
+	            <div class="block block-width block-shadowed block-background">
+	                <div class="leftMenu">
+	                    <h2>Возможное меню</h2>
+	                    <ul>
+	                        <li><a href="#">Возможный пункт меню</a></li>
+	                        <li class="current"><a href="#">Второй пункт меню</a></li>
+	                        <li><a href="#">Пункт меню номер три</a></li>
+	                        <li><a href="#">Четвертый пункт меню</a></li>
+	                        <li><a href="#">Меню номер пять</a></li>
+	                        <li><a href="#">Шестой номер меню</a></li>
+	                        <li><a href="#">Седьмой пункт меню</a></li>
+	                        <li><a href="#">Восьмой пункт меню</a></li>
+	                        <li><a href="#">Пункт меню номер девять</a></li>
+	                        <li><a href="#">Десятый пункт меню</a></li>
+	                    </ul>
+	                </div>
+	            </div>
+	        </div>
+	        <div id="rightCol">
+	            <div class="block block-padding block-width block-shadowed block-background">
+	                <div class="content">
+	                    <%== content %>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+% end 
