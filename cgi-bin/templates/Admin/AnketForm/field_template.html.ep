@@ -12,7 +12,7 @@
   <td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
   <td>
 	<!-- Комментарий -->
-	<b>Нажмите F11 (или ESC для Safari на Mac OS X) когда курсор находится в поле редактирования для полноэкранного режима</b>
+	<b>Нажмите F4 когда курсор находится в поле редактирования для полноэкранного режима</b>
   </td>
 </tr>
 <tr>
@@ -37,8 +37,7 @@
 %								'/admin/js/codemirror/mode/xml/xml.js',
 %								'/admin/js/codemirror/mode/javascript/javascript.js',
 %								'/admin/js/codemirror/mode/css/css.js',
-%								'/admin/js/codemirror/lib/util/multiplex.js',
-%								'/admin/js/codemirror/mode/htmlmixed/htmlmixed.js',
+%								'/admin/js/codemirror/addon/mode/multiplex.js',								'/admin/js/codemirror/mode/htmlmixed/htmlmixed.js',
 %								'/admin/js/codemirror/mode/perl/perl.js',
 %							], 
 %							beforeSend: function(){
@@ -49,24 +48,16 @@
 %   								CODEMIRROR['template_$index'] = CodeMirror.fromTextArea(document.getElementById('template_$index'), {
 %       								lineNumbers: true,
 %										mode: 'mojotemplates',
-%                                       indentUnit: 4,
-%                                       matchBrackets: true, 
 %                                       indentWithTabs: true,
 %                                       enterMode: 'keep',
 %                                       tabMode: 'shift',
 %										theme: 'ambiance',
-% 										onKeyEvent: function(i, e) {
-%       		   							if ((e.keyCode == 122 || e.keyCode == 27) && e.type == 'keydown') {
-%	        		   	 						e.stop();
-%   	        		 						return toggleFullscreenEditing('template_$index');
-%       	   								}
-%        								},
-%										onCursorActivity: function() {
-%										    CODEMIRROR['template_$index'].setLineClass(hlLine, null);
-%								    		hlLine = CODEMIRROR['template_$index'].setLineClass(CODEMIRROR['template_$index'].getCursor().line, null, 'activeline');
+%										extraKeys: {
+%									        'F4': function(cm) {
+%          										toggleFullscreenEditing('template_$index', cm);
+%        									},
 %										}
 %   								});
-%									var hlLine = CODEMIRROR['template_$index'].setLineClass(0, 'activeline');
 %									CODEMIRROR['template_$index'].focus();
 %								}
 %							}	

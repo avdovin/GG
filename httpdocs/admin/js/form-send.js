@@ -1034,41 +1034,20 @@ function load_scripts(extend_settings) {
 
 	settings.beforeSend();
 
-	for(var i = 0; i < length; i++) {
-		var url = scripts[i];
-		if(loadedFiles[url] === undefined) {
-			// var deferred = new jQuery.Deferred();
-			// var e = document.createElement('script');
-			// e.onload = function () { deferred.resolve(); };
-			// e.src = url;
-			// document.getElementsByTagName("head")[0].appendChild(e);
-			// promises.push( deferred.promise() );
-			promises.push(
-			jQuery.ajax({
-				type: 'GET',
-				url: url,
-				dataType: 'script',
-				cache: true
-			}));
-		}
-	}
-
-	jQuery.when.apply(jQuery, promises).then(
-
-	function() {
-
-		for(var i = 0; i < length; i++) {
-			var url = scripts[i];
-			loadedFiles[url] = true;
-		}
-		settings.success();
-		loading_layout_hide(settings.loading_key);
-	}, function(arguments) {
-		if(console.log) console.log(arguments);
-		loading_layout_hide(settings.loading_key);
-		settings.error();
+	yepnope({
+		load: scripts,
+	  	complete: function () {
+			for(var i = 0; i < length; i++) {
+				var url = scripts[i];
+				loadedFiles[url] = true;
+			}
+			settings.success();
+			
+	    	loading_layout_hide(settings.loading_key);
+	    }
 	});
 }
+
 
 function load_script(url) {
 	if(loadedFiles[url]) return;
@@ -1215,10 +1194,18 @@ function swich_visible(div) {
 
 var CODEMIRROR = new Array();
 
-function toggleFullscreenEditing(id) {
+function isFullScreen(cm) {
+	return /\bCodeMirror-fullscreen\b/.test(cm.getWrapperElement().className);
+}
+function winHeight() {
+      return window.innerHeight || (document.documentElement || document.body).clientHeight;
+}    
+function toggleFullscreenEditing(id, cm) {
 	var container = jQuery('#' + id).parents("td:first");
 	var editorDiv = jQuery('.CodeMirror-scroll', container);
-	if(!editorDiv.hasClass('fullscreen') && jQuery("#DHTMLSuite_pane_center").length) {
+	var wrap = cm.getWrapperElement();
+		
+	if(!isFullScreen(cm) && jQuery("#DHTMLSuite_pane_center").length) {
 		editorDiv.data({
 			'state_east': paneSplitter.getState('east'),
 			'state_west': paneSplitter.getState('west')
@@ -1232,30 +1219,39 @@ function toggleFullscreenEditing(id) {
 			width: editorDiv.width()
 		}
 
-		editorDiv.parents("div.CodeMirror:first").css({
-			position: 'static'
-		});
-		editorDiv.addClass('fullscreen');
+		//editorDiv.parents("div.CodeMirror:first").css({
+		//	position: 'static'
+		//});
+		//editorDiv.addClass('fullscreen');
 
-		var width = jQuery("#DHTMLSuite_pane_center").css('width');
-		var height = jQuery("#DHTMLSuite_pane_center").css('height');
-		editorDiv.height(height);
-		editorDiv.width(width);
-		CODEMIRROR[id].refresh();
+		wrap.className += " CodeMirror-fullscreen";
+        wrap.style.height = winHeight() + "px";
+        document.documentElement.style.overflow = "hidden";
+
+        
+		//var width = jQuery("#DHTMLSuite_pane_center").css('width');
+		//var height = jQuery("#DHTMLSuite_pane_center").css('height');
+		//editorDiv.height(height);
+		//editorDiv.width(width);
+		//CODEMIRROR[id].refresh();
 	} else {
 		var data = editorDiv.data();
 		if(data['state_east'] && data['state_east'] == 'expanded') paneSplitter.expandPane('east');
 		if(data['state_west'] && data['state_west'] == 'expanded') paneSplitter.expandPane('west');
 
-		editorDiv.parents("div.CodeMirror:first").css({
-			position: 'relative'
-		});
-		editorDiv.removeClass('fullscreen');
+		wrap.className = wrap.className.replace(" CodeMirror-fullscreen", "");
+        wrap.style.height = "";
+        document.documentElement.style.overflow = "";
+		//editorDiv.parents("div.CodeMirror:first").css({
+		//	position: 'relative'
+		//});
+		//editorDiv.removeClass('fullscreen');
 
-		editorDiv.height(toggleFullscreenEditing.beforeFullscreen.height);
-		editorDiv.width(toggleFullscreenEditing.beforeFullscreen.width);
-		CODEMIRROR[id].refresh();
+		//editorDiv.height(toggleFullscreenEditing.beforeFullscreen.height);
+		//editorDiv.width(toggleFullscreenEditing.beforeFullscreen.width);
+		//CODEMIRROR[id].refresh();
 	}
+	cm.refresh();
 }
 
 function defineTempleteMode() {
