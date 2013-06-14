@@ -898,7 +898,9 @@ function editor_init(form) {
 		if(count == 0) loading_layout_show('ckeditor');
 		count = 1;
 		CKEDITOR.replace(id, {
-			toolbar: toolbar
+			toolbar: toolbar,
+			resize_enabled: false,
+			startupFocus: false
 		});
 
 		CKEDITOR.instances[id].on('afterCommandExec', function(e) {
