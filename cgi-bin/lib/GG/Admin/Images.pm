@@ -27,6 +27,7 @@ sub _init{
 		$self->getArraySQL(	select	=> '`ID` AS `razdel`,`name` AS `name_razdel`',
 							from 	=> $self->stash->{img_razdel},
 							where	=> "`key_razdel`='$kr' $access_where",
+							sys		=> 1,
 							stash	=> '', 
 						);	
 	}
@@ -35,6 +36,7 @@ sub _init{
 		$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 							from	=>	$self->stash->{img_razdel},
 							where	=> 	"1 $access_where",
+							sys		=> 1,
 							stash	=> 	'');
 
 		$self->sysuser->save_settings(images_razdel => $self->stash->{razdel});
@@ -44,10 +46,12 @@ sub _init{
 	if(!$self->stash->{key_razdel} && !$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 															from	=>	$self->stash->{img_razdel},
 															where	=> 	"`ID`='".$self->stash->{razdel}."' $access_where",
+															sys		=> 1,
 															stash	=> 	'')){
 		unless($self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 									from	=>	$self->stash->{img_razdel},
 									where	=> 	"1 $access_where",
+									sys		=> 1,
 									stash	=> 	'')){
 			$self->admin_msg_errors("Доступных данных нет");																	
 		}															
@@ -394,7 +398,7 @@ sub edit{
 	# Создание папки
 	if($params{dir}){
 		$self->stash->{page_name} = "Создание новой папки в разделе «".$self->stash->{name_razdel}."»";
-		$self->stash->{anketa}->{dir} = 1;
+		$self->param_default('dir' => $self->stash->{anketa}->{dir} = 1 );
 	}
 		
 	if($self->stash->{dop_table}){
