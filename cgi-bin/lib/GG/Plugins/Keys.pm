@@ -290,7 +290,7 @@ sub register {
 				controller	=> '',
 				key_program	=> '',
 				no_global	=> 0,
-				type		=> [],
+				type		=> ['lkey'],
 				@_
 			);
 			
@@ -343,7 +343,10 @@ sub register {
 			foreach my $t (@$type){
 				if($t eq 'lkey' and !$self->app->lkeys->{ $params{controller} } ){
 					$types{$t} = 1;
-				} elsif($t eq 'button' and !$self->app->buttons->{ $params{controller} } ){
+				#} elsif($t eq 'button' and !$self->app->buttons->{ $params{controller} } ){
+				
+				} elsif($t eq 'button' ){
+					
 					$types{$t} = 1;	
 				}
 			}
@@ -373,7 +376,7 @@ sub register {
 #				}	
 #			}
 
-			unless($params{no_global}){
+			if(!$params{no_global}){
 				if( my $rows = $app->dbi->query("SELECT * FROM `keys_global` WHERE `object` IN (".(join(',',map{ "'$_'"}@$type)).")")->hashes){
 					_parseLkeys(
 						app			=> $app,
@@ -388,11 +391,12 @@ sub register {
 				}
 				
 				$self->app->lkeys->{ '_cached_global_'.$params{controller} } = 1;
-			}
 			
-			if($keys_table){
+			} 
+			
+			if($keys_table and keys %types){
 				
-				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE $where")->hashes){
+				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE `object` IN (".(join(',',map{ "'$_'"}keys %types)).") ")->hashes){
 					_parseLkeys(
 						app			=> $app,
 						controller 	=> $params{controller},
@@ -401,6 +405,7 @@ sub register {
 				}
 				$self->app->lkeys->{ '_cached_'.$params{controller} } = 1;
 			}
+
 			#store_keys($self, $keys_table) if (!$params{tbl} and !$cache->get('keys_'.$keys_table));
 			#store_keys($self, $keys_table) if (!$params{tbl} and !$cache->get('keys_'.$keys_table));
 			
