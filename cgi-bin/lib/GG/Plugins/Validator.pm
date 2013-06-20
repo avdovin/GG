@@ -347,7 +347,6 @@ sub register {
 				    $value =~ s/([\(\n\ \>])"/$1«/g;
 				    $value =~ s/"([\ \.\,\:\;\!\?\)\<])/»$1/g;
 				    $value =~ s/"$/»/g;
-				    $value =~ s/ - / &#151; /g;
 				    $value =~ s/[\r\n]+- /\n– /g;
 				    $value =~ s/\A- /\n– /g;
 				    $value =~ s/'/"/g;
