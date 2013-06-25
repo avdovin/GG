@@ -38,7 +38,7 @@ sub body{
 			$self->app->plugin('excel');
 			$self->export_config; 	
 		}
-		when('lists_select') 			{ $self->lists_select; }
+		#when('lists_select') 			{ $self->lists_select; }
 		
 		when('load_table') 				{ $self->field_dop_table_reload; }
 		when('hot_link') 				{ $self->hot_link; }
@@ -82,6 +82,7 @@ sub mainpage{
 	$self->sysuser->save_settings(lang => "ru") if (!$self->sysuser->settings->{lang});
 	
 	$self->get_keys( type => ['lkey', 'button'], controller => 'global', no_global => 1);
+
 
 	my $user_lang = $self->sysuser->settings->{lang};
 
@@ -178,10 +179,18 @@ sub menu_top{
 		$is_msie = 1;
 	}
 
-		
-	for my $row  ($self->dbi->query("SELECT `ID`,`name`,`menu_btn_key`,`key_razdel` FROM `sys_program` WHERE `$user_lang`='1' AND `prgroup` IN (1, 2, 3) ORDER BY `prgroup`, `name`")->hashes){
+	my $rows = $self->dbi->query("SELECT `ID`,`name`,`menu_btn_key`,`key_razdel` FROM `sys_program` WHERE `$user_lang`='1' AND `prgroup` IN (1, 2, 3) ORDER BY `prgroup`, `name`")->hashes || [];
+	
+	push @$rows, {
+		ID			=> 999999,
+		key_razdel	=> 'settings',
+		name		=> 'Настройки',
+	};
+	
+	$self->sysuser->access->{modul}->{ $rows->[ scalar(@$rows)-1 ]->{ID} } = 1;
+	
+	for my $row  (@$rows){
 		next if( !$self->sysuser->sys and !exists($self->sysuser->access->{modul}->{ $$row{ID} }) );
-		
 		unless ($moduls->{$row->{ID}}){
 			$moduls->{$row->{ID}} = '1'.sprintf("%04d", $row->{ID} );
 			
@@ -203,8 +212,9 @@ sub menu_top{
 					my $button = $$buttons{$b};
 					
 					next if ($b eq 'admin' or $b eq 'logout');
+					
 					next if (!$$button{settings}{$button_key} or (!$access_buttons->{$b}->{r} and !$user_sys));
-
+					
 					if( $button->{settings}->{'do'} && substr($button->{settings}->{'do'}, 0, 14) eq 'list_container'){
 						$button->{settings}->{'do'} = 'enter'.substr($button->{settings}->{'do'}, 14)
 					}
@@ -287,6 +297,7 @@ sub menu_top{
 		}
 		
 	}
+
 
 	@$items =  (@$items, (
 		{

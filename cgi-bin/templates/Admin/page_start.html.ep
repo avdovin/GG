@@ -6,6 +6,7 @@
 	<script type="text/javascript" src="/admin/js/ajax.js"></script>
 	<script type="text/javascript">var DHTML_SUITE_THEME = 'gg'; // SPecifying gray theme</script>
 	<script type="text/javascript" src="/admin/js/dhtml-suite-for-applications-without-comments.js"></script>
+	<script type="text/javascript" src="/admin/js/yepnope.min.js"></script>
 	<script type="text/javascript" src="/admin/js/form-send.js"></script>
     <script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
 	

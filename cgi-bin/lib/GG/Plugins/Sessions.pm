@@ -94,11 +94,8 @@ sub register {
 				user_id => 0,
 				@_
 			);
-			my $cck		= delete $params{cck};
-			my $vars 	= _session_vars( $self,  $cck);
-
+			my $vars 	= _session_vars( $self,  delete $params{cck});
 			return 1 if $self->app->user->{check};
-			
 			
 			if($self->app->dbh->do(qq/
 				SELECT 
@@ -112,14 +109,16 @@ sub register {
 				REPLACE INTO `anonymous_session` (`cck`, `time`, `host`, `ip`) 
 				VALUES ('$$vars{cck}', NOW(), '$$vars{host}', '$$vars{ip}')/);
 				
-				$self->session( cck => $$vars{cck});
+				
+				$params{_set_sessions} = 1;
 													
 			} else{
 				$self->app->dbh->do("UPDATE `anonymous_session` SET `time`=NOW() WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' ");
 				
 			}
-			
+			#warn $params{user_id};
 			if(my $user_id = delete $params{user_id}){
+				#die $user_id;
 				if(my $user = $self->dbi->query(qq/
 					SELECT * FROM `data_users` 
 					WHERE `ID`='$user_id' AND `cck`='$$vars{cck}' AND `active`='1' 
@@ -143,12 +142,9 @@ sub register {
   				$self->app->userdata($userData);
 			}
 			
-			
-			#$self->app->userdata( $session->{data} ? $JSON->decode($session->{data}) : {} );
-			#$self->app->userdata( $session->{data} ? thaw($session->{data}) : {} );
+			return $$vars{cck} if $params{_set_sessions};
 
-			#$self->session( cck	=> $$vars{cck});
-			return 1;
+			return;
 		}
 	);
 }

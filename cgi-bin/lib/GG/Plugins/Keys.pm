@@ -290,94 +290,33 @@ sub register {
 				controller	=> '',
 				key_program	=> '',
 				no_global	=> 0,
-				type		=> ['lkey'],
+				type		=> [],
 				@_
 			);
 			
 			$params{controller} ||= $params{key_program};
 
-			my $type 	  = delete $params{type};
-			my $keys_table = 'keys_'.$params{controller} ;
+			my $type 	  		= delete $params{type};
+			my $keys_table 	= 'keys_'.$params{controller} ;
 			#my $use_cache = $self->app->get_var('cache_keys');
 
 			
-			#if(!$params{tbl} and $self->stash->{'_get_keys'}->{ $keys_table }){
-#			if(!$params{tbl} and $cache->get('keys_'.$keys_table)){
-#				my $app = $self->app;
-#				$app->buttons( {} );
-#				$app->lkeys( {} );
-#				$app->lists( {} );
-#				
-#				return restore_keys($self, $keys_table);
-#			
-#			} elsif(!$params{tbl}){
-#				my $app = $self->app;
-#				$app->buttons( {} );
-#				$app->lkeys( {} );
-#				$app->lists( {} );				
-#			}
-			
-			my $where = " 1 ";
-#			if ($params{tbl}) {
-#				$where = " `tbl` = '$params{tbl}' AND `object` IN (".(join(',',map{ "'$_'"}@$type)).") ORDER BY `tbl` ASC";
-#			
-#			} elsif($self->param('dop_table')){
-#				my $doptable = $self->param('dop_table');
-#				$where = "(`tbl` = '$doptable' OR `tbl` = '') AND `object` IN (".(join(',',map{ "'$_'"}@$type)).") ORDER BY `tbl` ASC";
-#
-#			} elsif($self->param('list_table')){
-#				my $doptable = $self->param('list_table');
-#				$where = "(`tbl` = '$doptable' OR `tbl` = '') AND `object` IN (".(join(',',map{ "'$_'"}@$type)).") ORDER BY `tbl` ASC";
-#
-#			} elsif($self->param('replaceme')){
-#				my $replaceme = $self->param('replaceme');
-#				my (undef, $list_table) = split("_", $replaceme, 2);
-#				$where = "(`tbl` = '$list_table' OR `tbl` = '') AND `object` IN (".(join(',',map{ "'$_'"}@$type)).") ORDER BY `tbl` ASC";
-#							
-#			} else {
-#				$where = "`object` IN (".(join(',',map{ "'$_'"}@$type)).") AND `tbl` = ''";
-#			}
-			
 			my $app = $self->app;
-			my %types = ();
-			foreach my $t (@$type){
-				if($t eq 'lkey' and !$self->app->lkeys->{ $params{controller} } ){
-					$types{$t} = 1;
-				#} elsif($t eq 'button' and !$self->app->buttons->{ $params{controller} } ){
-				
-				} elsif($t eq 'button' ){
-					
-					$types{$t} = 1;	
-				}
+			#my $cached = 0;
+			#my $cached_global = 0;
+			
+			if( !$params{no_global} && 
+				$self->app->lkeys->{ '_cached_global_'.$params{controller} } &&
+				$self->app->lkeys->{ '_cached_'.$params{controller} }
+				){
+				return $self->validate( controller => $params{controller} );
+			}
+			if( $self->app->lkeys->{ '_cached_'.$params{controller} } ){
+				return $self->validate( controller => $params{controller} );
 			}
 			
-			if(!$params{no_global}){
-				if($self->app->lkeys->{ '_cached_'.$params{controller} } && $self->app->lkeys->{ '_cached_global_'.$params{controller} }){
-					unless (keys %types){
-						return $self->validate( controller => $params{controller} );
-					}
-				}
-			} elsif($params{no_global}){
-				if($self->app->lkeys->{ '_cached_'.$params{controller} }){
-					unless (keys %types){
-						return $self->validate( controller => $params{controller} );
-					}
-				}
-									
-			}
-			
-#			if( ($params{no_global} and $params{controller} ne 'global') or
-#				(!$params{no_global} and $params{controller} ne 'global' and $self->app->lkeys->{'global'} and $self->app->buttons->{'global'}) or  
-#				($params{controller} eq 'global' and $self->app->lkeys->{'global'} and $self->app->buttons->{'global'})){
-#					warn "yes1";
-#				unless (keys %types){
-#					warn "yes2";
-#					return $self->validator( controller => $params{controller} );
-#				}	
-#			}
-
-			if(!$params{no_global}){
-				if( my $rows = $app->dbi->query("SELECT * FROM `keys_global` WHERE `object` IN (".(join(',',map{ "'$_'"}@$type)).")")->hashes){
+			unless($params{no_global}){
+				if( my $rows = $app->dbi->query("SELECT * FROM `keys_global` WHERE 1")->hashes){
 					_parseLkeys(
 						app			=> $app,
 						controller 	=> $params{controller},
@@ -391,12 +330,11 @@ sub register {
 				}
 				
 				$self->app->lkeys->{ '_cached_global_'.$params{controller} } = 1;
+			}
 			
-			} 
-			
-			if($keys_table and keys %types){
+			if($keys_table){
 				
-				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE `object` IN (".(join(',',map{ "'$_'"}keys %types)).") ")->hashes){
+				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE 1")->hashes){
 					_parseLkeys(
 						app			=> $app,
 						controller 	=> $params{controller},
@@ -405,9 +343,6 @@ sub register {
 				}
 				$self->app->lkeys->{ '_cached_'.$params{controller} } = 1;
 			}
-
-			#store_keys($self, $keys_table) if (!$params{tbl} and !$cache->get('keys_'.$keys_table));
-			#store_keys($self, $keys_table) if (!$params{tbl} and !$cache->get('keys_'.$keys_table));
 			
 			$self->validate( controller => $params{controller} ) if $params{validator};
 		}

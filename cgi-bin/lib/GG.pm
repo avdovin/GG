@@ -99,8 +99,9 @@ sub startup{
         	return;
         }
 		
-        #$self->app->sessions_check( cck => $self->cookie('cck'), user_id => $self->cookie('user_id') );
-        #$self->session( cck => $self->app->user->{cck});
+        #if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+		#	$self->session( cck => $cck );	        	
+        #}
     });
 
     $self->hook(after_dispatch => sub {

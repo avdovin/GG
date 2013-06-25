@@ -358,24 +358,45 @@ sub register {
 		save_logs => sub {
 			my $self = shift;
 			my %params = (
-				name	=> '',
-				comment	=> '',
-				ip		=> $self->tx->remote_address || '',
-				program	=> $self->stash->{controller} || '',
+				name		=> '',
+				comment		=> '',
+				ip			=> $self->tx->remote_address || '',
+				id_program	=> 0,
+				eventtype	=> 0,
+				event		=> '',
 				@_	
 			);
 			return unless $params{name};
 			
+			if($params{event} eq 'add'){
+				$params{eventtype} = 1;
+			} elsif($params{event} eq 'delete'){
+				$params{eventtype} = 2;
+			} elsif($params{event} eq 'update'){
+				$params{eventtype} = 3;
+			} elsif($params{event} eq 'restore'){
+				$params{eventtype} = 4;
+			}
+			
 			if($self->app->sysuser){
-				$params{login} ||= $self->app->sysuser->userinfo->{login};
+				$params{id_sysuser} ||= $self->app->sysuser->userinfo->{ID};
+			}
+			if($self->app->sysuser){
+				$params{id_sysusergroup} ||= $self->app->sysuser->userinfo->{id_group_user};
+			}
+			
+			if($self->app->program){
+				$params{id_program} ||= $self->app->program->{ID};
 			}
 
 			$self->app->dbi->insert_hash('sys_datalogs', {
-				name 	=> $params{name},
-				login	=> $params{login},
-				program	=> $params{program},
-				ip		=> $params{ip},
-				comment	=> $params{comment},
+				name 			=> $params{name},
+				id_sysuser		=> $params{id_sysuser},
+				id_sysusergroup		=> $params{id_sysusergroup},
+				id_program		=> $params{id_program},
+				ip				=> $params{ip},
+				comment			=> $params{comment},
+				eventtype		=> $params{eventtype},
 			});
 		}	
 	);
