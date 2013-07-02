@@ -235,7 +235,7 @@ sub list_container{
 
 	$self->stash->{win_name} = "Список правил";
 	
-	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};
+	$self->stash->{listfield_groups_buttons} = {};
 		
 	return $self->list_items(%params, container => 1)
 }
@@ -250,7 +250,7 @@ sub list_items{
 	$params{table} = $list_table;
 	$params{where} = $self->stash->{access_where};
 	
-	$self->stash->{listfield_buttons} =  [qw(delete)];
+	$self->stash->{listfield_buttons} =  [];
 	
 	$self->define_table_list(%params);
 }
