@@ -1,22 +1,22 @@
 package Mojolicious::Commands;
 use Mojo::Base 'Mojolicious::Command';
 
-use Getopt::Long
-  qw(GetOptions :config no_auto_abbrev no_ignore_case pass_through);
+use Getopt::Long 'GetOptions';
+use List::Util 'max';
 use Mojo::Server;
 
-has hint => <<"EOF";
+has hint => <<EOF;
 
 These options are available for all commands:
     -h, --help          Get more information on a specific command.
         --home <path>   Path to your applications home directory, defaults to
                         the value of MOJO_HOME or auto detection.
-    -m, --mode <name>   Run mode of your application, defaults to the value
-                        of MOJO_MODE or "development".
+    -m, --mode <name>   Run mode of your application, defaults to the value of
+                        MOJO_MODE/PLACK_ENV or "development".
 
 See '$0 help COMMAND' for more information on a specific command.
 EOF
-has message => <<"EOF";
+has message => <<EOF;
 usage: $0 COMMAND [OPTIONS]
 
 Tip: CGI and PSGI environments can be automatically detected very often and
@@ -41,11 +41,13 @@ sub detect {
 
 # Command line options for MOJO_HELP, MOJO_HOME and MOJO_MODE
 BEGIN {
+  Getopt::Long::Configure(qw(no_auto_abbrev no_ignore_case pass_through));
   GetOptions(
     'h|help'   => sub { $ENV{MOJO_HELP} = 1 },
     'home=s'   => sub { $ENV{MOJO_HOME} = $_[1] },
     'm|mode=s' => sub { $ENV{MOJO_MODE} = $_[1] }
   ) unless __PACKAGE__->detect;
+  Getopt::Long::Configure('default');
 }
 
 sub run {
@@ -64,7 +66,6 @@ sub run {
     $name = shift @args if my $help = $name eq 'help';
     $help = $ENV{MOJO_HELP} = $ENV{MOJO_HELP} ? 1 : $help;
 
-    # Try all namespaces
     my $module;
     $module = _command("${_}::$name", 1) and last for @{$self->namespaces};
 
@@ -72,15 +73,15 @@ sub run {
     die qq{Unknown command "$name", maybe you need to install it?\n}
       unless $module;
 
-    # Run
+    # Run command
     my $command = $module->new(app => $self->app);
     return $help ? $command->help(@args) : $command->run(@args);
   }
 
-  # Test
+  # Hide list for tests
   return 1 if $ENV{HARNESS_ACTIVE};
 
-  # Try all namespaces
+  # Find all available commands
   my (@commands, %seen);
   my $loader = Mojo::Loader->new;
   for my $namespace (@{$self->namespaces}) {
@@ -91,33 +92,15 @@ sub run {
     }
   }
 
-  # Make list
-  my @list;
-  my $max = 0;
-  for my $command (@commands) {
-    my $len = length $command->[0];
-    $max = $len if $len > $max;
-    push @list, [$command->[0], $command->[1]->new->description];
-  }
-
-  # Print list
+  # Print list of all available commands
+  my $max = max map { length $_->[0] } @commands;
   print $self->message;
-  for my $command (@list) {
-    my ($name, $description) = @$command;
-    print "  $name" . (' ' x ($max - length $name)) . "   $description";
+  for my $command (@commands) {
+    my $name        = $command->[0];
+    my $description = $command->[1]->new->description;
+    print "  $name", (' ' x ($max - length $name)), "   $description";
   }
   return print $self->hint;
-}
-
-# DEPRECATED in Rainbow!
-sub start {
-  warn <<EOF;
-Mojolicious::Commands->start is DEPRECATED in favor of
-Mojolicious::Commands->start_app!!!
-EOF
-  my $self = shift;
-  return $self->start_app($ENV{MOJO_APP} => @_) if $ENV{MOJO_APP};
-  return $self->new->app->start(@_);
 }
 
 sub start_app {
@@ -133,6 +116,8 @@ sub _command {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -185,7 +170,7 @@ Upload files to CPAN.
 
   $ ./myapp.pl daemon
 
-Start application with standalone HTTP server backend.
+Start application with standalone HTTP and WebSocket server.
 
 =head2 eval
 
@@ -245,6 +230,12 @@ Perform requests to remote host or local application.
 
 Turn templates and static files embedded in the C<DATA> sections of your
 application into real files.
+
+=head2 prefork
+
+  $ ./myapp.pl prefork
+
+Start application with standalone preforking HTTP and WebSocket server.
 
 =head2 psgi
 
@@ -320,7 +311,7 @@ Try to detect environment.
   $commands->run(@ARGV);
 
 Load and run commands. Automatic deployment environment detection can be
-disabled with the C<MOJO_NO_DETECT> environment variable.
+disabled with the MOJO_NO_DETECT environment variable.
 
 =head2 start_app
 

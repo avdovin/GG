@@ -8,7 +8,7 @@ use Getopt::Long qw(GetOptionsFromArray :config no_auto_abbrev no_ignore_case);
 use Mojo::Home;
 
 has description => "Run unit tests.\n";
-has usage       => <<"EOF";
+has usage       => <<EOF;
 usage: $0 test [OPTIONS] [TESTS]
 
 These options are available:
@@ -18,34 +18,31 @@ EOF
 sub run {
   my ($self, @args) = @_;
 
-  # Options
   GetOptionsFromArray \@args, 'v|verbose' => sub { $ENV{HARNESS_VERBOSE} = 1 };
 
-  # Search tests
   unless (@args) {
     my @base = splitdir(abs2rel $FindBin::Bin);
 
-    # Test directory in the same directory as "mojo" (t)
+    # "./t"
     my $path = catdir @base, 't';
 
-    # Test dirctory in the directory above "mojo" (../t)
+    # "../t"
     $path = catdir @base, '..', 't' unless -d $path;
     die "Can't find test directory.\n" unless -d $path;
 
-    # List test files
     my $home = Mojo::Home->new($path);
-    /\.t$/ and push(@args, $home->rel_file($_)) for @{$home->list_files};
-
+    /\.t$/ and push @args, $home->rel_file($_) for @{$home->list_files};
     say "Running tests from '", realpath($path), "'.";
   }
 
-  # Run tests
   $ENV{HARNESS_OPTIONS} //= 'c';
   require Test::Harness;
   Test::Harness::runtests(sort @args);
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

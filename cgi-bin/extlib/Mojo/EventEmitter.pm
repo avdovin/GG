@@ -86,6 +86,8 @@ sub unsubscribe {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::EventEmitter - Event emitter base class
@@ -198,7 +200,7 @@ Unsubscribe from event.
 
 =head1 DEBUGGING
 
-You can set the C<MOJO_EVENTEMITTER_DEBUG> environment variable to get some
+You can set the MOJO_EVENTEMITTER_DEBUG environment variable to get some
 advanced diagnostics information printed to C<STDERR>.
 
   MOJO_EVENTEMITTER_DEBUG=1

@@ -36,7 +36,7 @@ sub body{
 	
 	$elFinder->run(  %{$self->req->params->to_hash} );
 
-	$self->render_json( $elFinder->{RES} );
+	$self->render( json => $elFinder->{RES} );
 }
 
 

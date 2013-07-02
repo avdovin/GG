@@ -6,7 +6,7 @@ use Getopt::Long qw(GetOptionsFromArray :config no_auto_abbrev no_ignore_case);
 use Mojo::UserAgent;
 
 has description => "Upload distribution to CPAN.\n";
-has usage       => <<"EOF";
+has usage       => <<EOF;
 usage: $0 cpanify [OPTIONS] [FILE]
 
   mojo cpanify -u sri -p secr3t Mojolicious-Plugin-MyPlugin-0.01.tar.gz
@@ -19,15 +19,13 @@ EOF
 sub run {
   my ($self, @args) = @_;
 
-  # Options
   GetOptionsFromArray \@args,
     'p|password=s' => \(my $password = ''),
     'u|user=s'     => \(my $user     = '');
   die $self->usage unless my $file = shift @args;
 
-  # Upload
-  my $tx = Mojo::UserAgent->new->detect_proxy->post_form(
-    "https://$user:$password\@pause.perl.org/pause/authenquery" => {
+  my $tx = Mojo::UserAgent->new->detect_proxy->post(
+    "https://$user:$password\@pause.perl.org/pause/authenquery" => form => {
       HIDDENNAME                        => $user,
       CAN_MULTIPART                     => 1,
       pause99_add_uri_upload            => basename($file),
@@ -37,7 +35,6 @@ sub run {
     }
   );
 
-  # Error
   unless ($tx->success) {
     my $code = $tx->res->code || '';
     my $msg = $tx->error;
@@ -45,10 +42,13 @@ sub run {
     elsif ($code eq '409') { $msg = 'File already exists on CPAN.' }
     die qq{Problem uploading file "$file". ($msg)\n};
   }
+
   say 'Upload successful!';
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

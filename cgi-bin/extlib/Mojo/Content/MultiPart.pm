@@ -23,7 +23,7 @@ sub body_contains {
 sub body_size {
   my $self = shift;
 
-  # Check for Content-Lenght header
+  # Check for existing Content-Lenght header
   my $content_len = $self->headers->content_length;
   return $content_len if $content_len;
 
@@ -45,14 +45,14 @@ sub build_boundary {
   my $boundary;
   my $size = 1;
   while (1) {
-    $boundary = b64_encode join('', map chr(rand(256)), 1 .. $size++ * 3);
+    $boundary = b64_encode join('', map chr(rand 256), 1 .. $size++ * 3);
     $boundary =~ s/\W/X/g;
     last unless $self->body_contains($boundary);
   }
 
   # Add boundary to Content-Type header
   my $headers = $self->headers;
-  ($headers->content_type || '') =~ m!^(.*multipart/[^;]+)(.*)$!;
+  ($headers->content_type // '') =~ m!^(.*multipart/[^;]+)(.*)$!;
   my $before = $1 || 'multipart/mixed';
   my $after  = $2 || '';
   $headers->content_type("$before; boundary=$boundary$after");
@@ -78,7 +78,7 @@ sub get_body_chunk {
   my $len          = $boundary_len - 2;
   return substr "--$boundary\x0d\x0a", $offset if $len > $offset;
 
-  # Parts
+  # Prepare content part by part
   my $parts = $self->parts;
   for (my $i = 0; $i < @$parts; $i++) {
     my $part = $parts->[$i];
@@ -150,8 +150,6 @@ sub _parse_multipart_boundary {
   my $end = "\x0d\x0a--$boundary--";
   if ((index $self->{multipart}, $end) == 0) {
     substr $self->{multipart}, 0, length $end, '';
-
-    # Finished
     $self->{multi_state} = 'finished';
   }
 
@@ -174,7 +172,6 @@ sub _parse_multipart_preamble {
 sub _read {
   my ($self, $chunk) = @_;
 
-  # Parse
   $self->{multipart} .= $chunk;
   my $boundary = $self->boundary;
   until (($self->{multi_state} //= 'multipart_preamble') eq 'finished') {
@@ -201,6 +198,8 @@ sub _read {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -292,7 +291,7 @@ Clone content if possible, otherwise return C<undef>.
 
   my $bytes = $multi->get_body_chunk(0);
 
-Get a chunk of content starting from a specfic position.
+Get a chunk of content starting from a specific position.
 
 =head2 is_multipart
 

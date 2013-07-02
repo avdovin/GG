@@ -14,6 +14,7 @@ use Mojolicious::Sessions;
 use Mojolicious::Static;
 use Mojolicious::Types;
 use Scalar::Util qw(blessed weaken);
+use Time::HiRes 'gettimeofday';
 
 has commands => sub {
   my $commands = Mojolicious::Commands->new(app => shift);
@@ -21,7 +22,7 @@ has commands => sub {
   return $commands;
 };
 has controller_class => 'Mojolicious::Controller';
-has mode => sub { $ENV{MOJO_MODE} || 'development' };
+has mode => sub { $ENV{MOJO_MODE} || $ENV{PLACK_ENV} || 'development' };
 has moniker  => sub { decamelize ref shift };
 has plugins  => sub { Mojolicious::Plugins->new };
 has renderer => sub { Mojolicious::Renderer->new };
@@ -32,29 +33,26 @@ has secret   => sub {
   # Warn developers about insecure default
   $self->log->debug('Your secret passphrase needs to be changed!!!');
 
-  # Default to application name
-  return ref $self;
+  # Default to moniker
+  return $self->moniker;
 };
 has sessions => sub { Mojolicious::Sessions->new };
 has static   => sub { Mojolicious::Static->new };
 has types    => sub { Mojolicious::Types->new };
 
-our $CODENAME = 'Rainbow';
-our $VERSION  = '3.81';
+our $CODENAME = 'Top Hat';
+our $VERSION  = '4.17';
 
 sub AUTOLOAD {
   my $self = shift;
 
-  # Method
   my ($package, $method) = our $AUTOLOAD =~ /^([\w:]+)::(\w+)$/;
   croak "Undefined subroutine &${package}::$method called"
     unless blessed $self && $self->isa(__PACKAGE__);
 
-  # Check for helper
+  # Call helper with fresh controller
   croak qq{Can't locate object method "$method" via package "$package"}
     unless my $helper = $self->renderer->helpers->{$method};
-
-  # Call helper with fresh controller
   return $self->controller_class->new(app => $self)->$helper(@_);
 }
 
@@ -63,7 +61,6 @@ sub DESTROY { }
 sub new {
   my $self = shift->SUPER::new(@_);
 
-  # Paths
   my $home = $self->home;
   push @{$self->renderer->paths}, $home->rel_dir('templates');
   push @{$self->static->paths},   $home->rel_dir('public');
@@ -72,31 +69,28 @@ sub new {
   my $r = $self->routes->namespaces([ref $self]);
 
   # Hide controller attributes/methods and "handler"
-  $r->hide(qw(AUTOLOAD DESTROY app cookie finish flash handler on param));
-  $r->hide(qw(redirect_to render render_data render_exception render_json));
-  $r->hide(qw(render_not_found render_partial render_static render_text));
-  $r->hide(qw(rendered req res respond_to send session signed_cookie stash));
-  $r->hide(qw(tx ua url_for write write_chunk));
+  $r->hide(qw(AUTOLOAD DESTROY app cookie finish flash handler match on));
+  $r->hide(qw(param redirect_to render render_exception render_later));
+  $r->hide(qw(render_maybe render_not_found render_static rendered req res));
+  $r->hide(qw(respond_to send session signed_cookie stash tx url_for write));
+  $r->hide(qw(write_chunk));
 
-  # Prepare log
+  # Check if we have a log directory
   my $mode = $self->mode;
   $self->log->path($home->rel_file("log/$mode.log"))
     if -w $home->rel_file('log');
 
-  # Load default plugins
-  $self->plugin($_) for qw(HeaderCondition DefaultHelpers TagHelpers);
-  $self->plugin($_) for qw(EPLRenderer EPRenderer RequestTimer PoweredBy);
+  $self->plugin($_)
+    for qw(HeaderCondition DefaultHelpers TagHelpers EPLRenderer EPRenderer);
 
-  # Exception handling
+  # Exception handling should be first in chain
   $self->hook(around_dispatch => \&_exception);
 
   # Reduced log output outside of development mode
   $self->log->level('info') unless $mode eq 'development';
 
-  # Run mode
+  # Run mode before startup
   if (my $sub = $self->can("${mode}_mode")) { $self->$sub(@_) }
-
-  # Startup
   $self->startup(@_);
 
   return $self;
@@ -116,15 +110,26 @@ sub dispatch {
 
   # Prepare transaction
   my $tx = $c->tx;
-  $c->res->code(undef) if $tx->is_websocket;
+  $tx->res->code(undef) if $tx->is_websocket;
   $self->sessions->load($c);
   my $plugins = $self->plugins->emit_hook(before_dispatch => $c);
 
   # Try to find a static file
-  $self->static->dispatch($c) unless $tx->res->code;
-  $plugins->emit_hook_reverse(after_static_dispatch => $c);
+  $self->static->dispatch($c) and $plugins->emit_hook(after_static => $c)
+    unless $tx->res->code;
+
+  # Start timer (ignore static files)
+  my $stash = $c->stash;
+  unless ($stash->{'mojo.static'} || $stash->{'mojo.started'}) {
+    my $req    = $c->req;
+    my $method = $req->method;
+    my $path   = $req->url->path->to_abs_string;
+    $self->log->debug(qq{$method "$path".});
+    $stash->{'mojo.started'} = [gettimeofday];
+  }
 
   # Routes
+  $plugins->emit_hook(before_routes => $c);
   my $res = $tx->res;
   return if $res->code;
   if (my $code = ($tx->req->error)[1]) { $res->code($code) }
@@ -147,19 +152,16 @@ sub handler {
     = $self->controller_class->new(app => $self, stash => $stash, tx => $tx);
   weaken $c->{$_} for qw(app tx);
 
-  # Dispatcher
+  # Dispatcher has to be last in the chain
   ++$self->{dispatch}
+    and $self->hook(around_action   => sub { $_[2]->($_[1]) })
     and $self->hook(around_dispatch => sub { $_[1]->app->dispatch($_[1]) })
     unless $self->{dispatch};
 
-  # Process
-  unless (eval { $self->plugins->emit_chain(around_dispatch => $c) }) {
-    $self->log->fatal("Processing request failed: $@");
-    $tx->res->code(500);
-    $tx->resume;
-  }
+  # Process with chain
+  $self->plugins->emit_chain(around_dispatch => $c);
 
-  # Delayed
+  # Delayed response
   $self->log->debug('Nothing has been rendered, expecting delayed response.')
     unless $stash->{'mojo.rendered'} || $tx->is_writing;
 }
@@ -191,6 +193,8 @@ sub _exception {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -251,10 +255,11 @@ L<Mojolicious::Controller>.
   my $mode = $app->mode;
   $app     = $app->mode('production');
 
-The operating mode for your application, defaults to the value of the
-C<MOJO_MODE> environment variable or C<development>. You can also add per
-mode logic to your application by defining methods named C<${mode}_mode> in
-the application class, which will be called right before C<startup>.
+The operating mode for your application, defaults to a value from the
+MOJO_MODE and PLACK_ENV environment variables or C<development>. You can also
+add per mode logic to your application by defining methods named
+C<${mode}_mode> in the application class, which will be called right before
+C<startup>.
 
   sub development_mode {
     my $self = shift;
@@ -314,12 +319,13 @@ contain more information.
 The router, defaults to a L<Mojolicious::Routes> object. You use this in your
 startup method to define the url endpoints for your application.
 
-  sub startup {
-    my $self = shift;
+  # Add routes
+  my $r = $app->routes;
+  $r->get('/foo/bar')->to('test#foo', title => 'Hello Mojo!');
+  $r->post('/baz')->to('test#baz');
 
-    my $r = $self->routes;
-    $r->get('/:controller/:action')->to('test#welcome');
-  }
+  # Add another namespace to load controllers from
+  push @{$app->routes->namespaces}, 'MyApp::Controller';
 
 =head2 secret
 
@@ -327,9 +333,9 @@ startup method to define the url endpoints for your application.
   $app       = $app->secret('passw0rd');
 
 A secret passphrase used for signed cookies and the like, defaults to the
-application name which is not very secure, so you should change it!!! As long
-as you are using the insecure default there will be debug messages in the log
-file reminding you to change your passphrase.
+C<moniker> of this application, which is not very secure, so you should change
+it!!! As long as you are using the insecure default there will be debug
+messages in the log file reminding you to change your passphrase.
 
 =head2 sessions
 
@@ -340,6 +346,9 @@ Signed cookie based session manager, defaults to a L<Mojolicious::Sessions>
 object. You can usually leave this alone, see
 L<Mojolicious::Controller/"session"> for more information about working with
 session data.
+
+  # Change name of cookie used for all sessions
+  $app->sessions->cookie_name('mysession');
 
 =head2 static
 
@@ -363,6 +372,7 @@ L<Mojolicious::Static> object.
 Responsible for connecting file extensions with MIME types, defaults to a
 L<Mojolicious::Types> object.
 
+  # Add custom MIME type
   $app->types->type(twt => 'text/tweet');
 
 =head1 METHODS
@@ -377,7 +387,8 @@ new ones.
 Construct a new L<Mojolicious> application, calling C<${mode}_mode> and
 C<startup> in the process. Will automatically detect your home directory and
 set up logging based on your current operating mode. Also sets up the
-renderer, static dispatcher and a default set of plugins.
+renderer, static file server, a default set of plugins and an
+C<around_dispatch> hook with the default exception handling.
 
 =head2 build_tx
 
@@ -388,18 +399,16 @@ object.
 
 =head2 defaults
 
-  my $defaults = $app->defaults;
-  my $foo      = $app->defaults('foo');
-  $app         = $app->defaults({foo => 'bar'});
-  $app         = $app->defaults(foo => 'bar');
+  my $hash = $app->defaults;
+  my $foo  = $app->defaults('foo');
+  $app     = $app->defaults({foo => 'bar'});
+  $app     = $app->defaults(foo => 'bar');
 
 Default values for L<Mojolicious::Controller/"stash">, assigned for every new
 request.
 
-  # Manipulate defaults
-  $app->defaults->{foo} = 'bar';
-  my $foo = $app->defaults->{foo};
-  delete $app->defaults->{foo};
+  # Remove value
+  my $foo = delete $app->defaults->{foo};
 
 =head2 dispatch
 
@@ -444,7 +453,7 @@ requests indiscriminately.
   # Dispatchers will not run if there's already a response code defined
   $app->hook(before_dispatch => sub {
     my $c = shift;
-    $c->render(text => 'Skipped dispatchers!')
+    $c->render(text => 'Skipped static file server and router!')
       if $c->req->url->path->to_route =~ /do_not_dispatch/;
   });
 
@@ -469,7 +478,7 @@ application object)
 
 =item before_dispatch
 
-Emitted right before the static dispatcher and router start their work.
+Emitted right before the static file server and router start their work.
 
   $app->hook(before_dispatch => sub {
     my $c = shift;
@@ -479,18 +488,50 @@ Emitted right before the static dispatcher and router start their work.
 Very useful for rewriting incoming requests and other preprocessing tasks.
 (Passed the default controller object)
 
-=item after_static_dispatch
+=item after_static
 
-Emitted in reverse order after the static dispatcher determined if a static
-file should be served and before the router starts its work.
+Emitted after a static file response has been generated by the static file
+server.
 
-  $app->hook(after_static_dispatch => sub {
+  $app->hook(after_static => sub {
     my $c = shift;
     ...
   });
 
-Mostly used for custom dispatchers and post-processing static file responses.
-(Passed the default controller object)
+Mostly used for post-processing static file responses. (Passed the default
+controller object)
+
+=item before_routes
+
+Emitted after the static file server determined if a static file should be
+served and before the router starts its work.
+
+  $app->hook(before_routes => sub {
+    my $c = shift;
+    ...
+  });
+
+Mostly used for custom dispatchers and collecting metrics. (Passed the default
+controller object)
+
+=item around_action
+
+Emitted right before an action gets invoked and wraps around it, so you have
+to manually forward to the next hook if you want to continue the chain.
+Default action dispatching is the last hook in the chain, yours will run
+before it.
+
+  $app->hook(around_action => sub {
+    my ($next, $c, $action, $last) = @_;
+    ...
+    return $next->();
+  });
+
+This is a very powerful hook and should not be used lightly, it allows you for
+example to pass additional arguments to actions or handle return values
+differently. (Passed a callback leading to the next hook, the current
+controller object, the action callback and a flag indicating if this action is
+an endpoint)
 
 =item after_render
 
@@ -536,8 +577,8 @@ and a call to C<dispatch> the last, yours will be in between.
     ...
   });
 
-This is a very powerful hook and should not be used lightly, it allows you to
-customize application wide exception handling for example, consider it the
+This is a very powerful hook and should not be used lightly, it allows you for
+example to customize application wide exception handling, consider it the
 sledgehammer in your toolbox. (Passed a callback leading to the next hook and
 the default controller object)
 
@@ -592,26 +633,6 @@ request, response and stash.
 
   $app->log->debug($app->dumper({foo => 'bar'}));
 
-=head1 SUPPORT
-
-=head2 Web
-
-L<http://mojolicio.us>
-
-=head2 IRC
-
-C<#mojo> on C<irc.perl.org>
-
-=head2 Mailing-List
-
-L<http://groups.google.com/group/mojolicious>
-
-=head1 DEVELOPMENT
-
-=head2 Repository
-
-L<http://github.com/kraih/mojo>
-
 =head1 BUNDLED FILES
 
 The L<Mojolicious> distribution includes a few files with different licenses
@@ -626,13 +647,13 @@ L<http://creativecommons.org/licenses/by-sa/3.0>.
 
 =head2 jQuery
 
-  Copyright (C) 2011, John Resig.
+  Copyright (C) 2005, 2013 jQuery Foundation, Inc.
 
 Licensed under the MIT License, L<http://creativecommons.org/licenses/MIT>.
 
 =head2 prettify.js
 
-  Copyright (C) 2006, Google Inc.
+  Copyright (C) 2006, 2013 Google Inc.
 
 Licensed under the Apache License, Version 2.0
 L<http://www.apache.org/licenses/LICENSE-2.0>.
@@ -641,6 +662,8 @@ L<http://www.apache.org/licenses/LICENSE-2.0>.
 
 Every major release of L<Mojolicious> has a code name, these are the ones that
 have been used in the past.
+
+4.0, C<Top Hat> (u1F3A9)
 
 3.0, C<Rainbow> (u1F308)
 
@@ -660,6 +683,11 @@ have been used in the past.
 
 0.999920, C<Snowman> (u2603)
 
+=head1 SPONSORS
+
+Some of the work on this distribution has been sponsored by
+L<The Perl Foundation|http://www.perlfoundation.org>, thank you!
+
 =head1 PROJECT FOUNDER
 
 Sebastian Riedel, C<sri@cpan.org>
@@ -673,6 +701,8 @@ Current members of the core team in alphabetical order:
 Abhijit Menon-Sen, C<ams@cpan.org>
 
 Glen Hinkle, C<tempire@cpan.org>
+
+Joel Berger, C<jberger@cpan.org>
 
 Marcus Ramberg, C<mramberg@cpan.org>
 
@@ -756,6 +786,8 @@ Dmitriy Shalashov
 
 Dmitry Konstantinov
 
+Dominik Jarmulowicz
+
 Dominique Dumont
 
 Douglas Christopher Wilson
@@ -776,17 +808,19 @@ James Duncan
 
 Jan Jona Javorsek
 
+Jan Schmidt
+
 Jaroslav Muhin
 
 Jesse Vincent
-
-Joel Berger
 
 Johannes Plunien
 
 John Kingsley
 
 Jonathan Yu
+
+Josh Leder
 
 Kazuhiro Shibuya
 
@@ -836,6 +870,8 @@ Paul Evans
 
 Paul Tomlin
 
+Pavel Shaydo
+
 Pedro Melo
 
 Peter Edwards
@@ -878,8 +914,6 @@ Tatsuhiko Miyagawa
 
 Terrence Brannon
 
-The Perl Foundation
-
 Tomas Znamenacek
 
 Ulrich Habel
@@ -910,5 +944,9 @@ Copyright (C) 2008-2013, Sebastian Riedel.
 
 This program is free software, you can redistribute it and/or modify it under
 the terms of the Artistic License version 2.0.
+
+=head1 SEE ALSO
+
+L<Mojolicious::Guides>, L<http://mojolicio.us>.
 
 =cut

@@ -1,5 +1,4 @@
-package GG::Plugins::Mail;
-
+package Mojolicious::Plugin::Mail;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use MIME::Lite;
@@ -7,11 +6,11 @@ use MIME::EncWords ();
 use Mojo::ByteStream 'b';
 
 use constant TEST     => $ENV{MOJO_MAIL_TEST} || 0;
-use constant FROM     => 'no-reply@mojolicio.us';
+use constant FROM     => 'test-mail-plugin@mojolicio.us';
 use constant CHARSET  => 'UTF-8';
 use constant ENCODING => 'base64';
 
-our $VERSION = '0.94';
+our $VERSION = '1.0';
 
 has conf => sub { +{} };
 
@@ -33,7 +32,7 @@ sub register {
 			# simple interface
 			unless (exists $args->{mail}) {
 				$args->{mail}->{ $_->[1] } = delete $args->{ $_->[0] }
-					for grep { $args->{ $_->[0] } }
+					for grep $args->{ $_->[0] },
 						[to   => 'To'  ], [from => 'From'], [reply_to => 'Reply-To'],
 						[cc   => 'Cc'  ], [bcc  => 'Bcc' ], [subject  => 'Subject' ],
 						[data => 'Data'], [type => 'Type'],
@@ -55,17 +54,17 @@ sub register {
 			my $test = $args->{test} || TEST;
 			$msg->send( $conf->{'how'}, @{$conf->{'howargs'}||[]} ) unless $test;
 			
-			return $msg->as_string;
+			$msg->as_string;
 		},
 	);
 	
 	$app->helper(
 		render_mail => sub {
 			my $self = shift;
-			my $data = $self->render_partial(@_, format => 'mail');
+			my $data = $self->render(@_, format => 'mail', partial => 1);
 			
-			delete @{$self->stash}{ qw(partial mojo.content mojo.rendered format) };
-			return $data;
+			delete @{$self->stash}{ qw(partial cb format mojo.captures mojo.started mojo.content mojo.routed mojo.secret) };
+			$data;
 		},
 	);
 }
@@ -83,8 +82,8 @@ sub build {
 	
 	# tuning
 	
-	$mail->{From} ||= $conf->{from};
-	$mail->{Type} ||= $conf->{type};
+	$mail->{From} ||= $conf->{from} || '';
+	$mail->{Type} ||= $conf->{type} || '';
 	
 	if ($mail->{Data} && $mail->{Type} !~ /multipart/) {
 		$mail->{Encoding} ||= $encoding;
@@ -92,10 +91,12 @@ sub build {
 	}
 	
 	if ($mimeword) {
-		$_ = MIME::EncWords::encode_mimeword($_, $encode, $charset) for grep { _enc($_ => $charset); 1 } $mail->{Subject};
+		$_ = MIME::EncWords::encode_mimeword($_, $encode, $charset)
+			for grep { _enc($_ => $charset); 1 } $mail->{Subject}
+		;
 		
-		for (grep { $mail->{$_} } qw(From To Cc Bcc)) {
-			$mail->{$_} = join ",\n",
+		for (grep $mail->{$_}, qw(From To Cc Bcc)) {
+			$mail->{$_} = join ", ",
 				grep {
 					_enc($_ => $charset);
 					{
@@ -144,13 +145,13 @@ sub build {
 		@{$p->{attach} || []}
 	;
 	
-	return $msg;
+	$msg;
 }
 
 sub _enc($$) {
 	my $charset = $_[1] || CHARSET;
 	$_[0] = b($_[0])->encode('UTF-8')->to_string if $_[0] && $charset && $charset =~ /utf-8/i;
-	return $_[0];
+	$_[0];
 }
 
 1;
@@ -222,9 +223,13 @@ L<Mojolicious::Plugin::Mail> contains two helpers: I<mail> and I<render_mail>.
       
       # as MIME::Lite->new( ... )
       mail   => {
-        To      => 'sharifulin@gmail.com',
-        Subject => 'Test',
-        Data    => 'use Perl or die;',
+        To       => 'sharifulin@gmail.com',
+        Subject  => 'Test',
+        Data     => 'use Perl or die;',
+        
+        # add credentials parameters
+        AuthUser => 'username',
+        AuthPass => 'password',
       },
 
       attach => [
@@ -562,6 +567,28 @@ Mail with render data and subject from stash param:
   % stash 'subject' => 'Привет render';
   
   <p>Привет mail render!</p>
+
+Send email via remote SMTP server.
+
+  # in main
+  $self->plugin(
+    mail => {
+      from    => 'info@host.example',
+      type    => 'text/html',
+      how     => 'smtp',
+      howargs => [ 'mail.host.example',
+                      AuthUser => 'me@host.example',
+                      AuthPass => '123xyz',
+                 ],
+    }
+  );
+  
+  # in controller
+  $self->mail(
+    to      => 'friend@hishost.example',
+    subject => 'Test',
+    data    => 'use Perl or die;',
+  );
 
 =head1 SEE ALSO
 

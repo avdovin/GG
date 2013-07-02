@@ -98,7 +98,7 @@ sub body{
 		
 		when('lists_select') 			{ $self->lists_select; }
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 
@@ -141,7 +141,7 @@ sub lists_select{
 		}
 	}	
 	$list_out .= "document.getElementById('ok_' + out).innerHTML = \"<span style='background-color:lightgreen;width:45px;padding:3px'>найдено: ".$sch."</span>\";\n";
-	$self->render_text($list_out);
+	$self->render( text => $list_out);
 
 	sub def_name_list_select {
 		my ($title, $name) = @_;
@@ -212,14 +212,14 @@ sub tree_block{
 		$items->[$i]->{param_default} = "&replaceme=".$items->[$i]->{replaceme}; 
 	}	
 	
-	$self->render_json({
-					content	=> $self->render_partial( items => $items, template => 'Admin/tree_elements'),
+	$self->render( json => {
+					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"
 					},
 					]
-				});	
+	});	
 	
 }
 
@@ -352,7 +352,7 @@ sub save{
 
 	if($self->stash->{dop_table}){
 		$self->restore_doptable;
-		return $self->render_json({
+		return $self->render( json => {
 				content	=> $self->has_errors ? "ERROR" : "OK",
 				items	=> $self->init_dop_tablelist_reload(),
 		});

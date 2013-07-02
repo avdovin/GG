@@ -2,15 +2,17 @@ package Mojo::Transaction::WebSocket;
 use Mojo::Base 'Mojo::Transaction';
 
 use Config;
+use Mojo::JSON;
 use Mojo::Transaction::HTTP;
 use Mojo::Util qw(b64_encode decode encode sha1_bytes xor_encode);
 
 use constant DEBUG => $ENV{MOJO_WEBSOCKET_DEBUG} || 0;
 
-# 64bit Perl
-use constant MODERN => $Config{ivsize} > 4;
+# Perl with support for quads
+use constant MODERN =>
+  (($Config{use64bitint} // '') eq 'define' || $Config{longsize} >= 8);
 
-# Unique value from the spec
+# Unique value from RFC 6455
 use constant GUID => '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
 # Opcodes
@@ -67,12 +69,12 @@ sub build_frame {
     warn "-- Extended 64bit payload ($len)\n$payload\n" if DEBUG;
     vec($prefix, 0, 8) = $masked ? (127 | 0b10000000) : 127;
     $frame .= $prefix;
-    $frame .= MODERN ? pack('Q>', $len) : pack('NN', 0, $len & 0xFFFFFFFF);
+    $frame .= MODERN ? pack('Q>', $len) : pack('NN', 0, $len & 0xffffffff);
   }
 
   # Mask payload
   if ($masked) {
-    my $mask = pack 'N', int(rand 9999999);
+    my $mask = pack 'N', int(rand 9 x 7);
     $payload = $mask . xor_encode($payload, $mask x 128);
   }
 
@@ -88,17 +90,14 @@ sub client_challenge {
 sub client_handshake {
   my $self = shift;
 
-  # Default headers
   my $headers = $self->req->headers;
-  $headers->upgrade('websocket')  unless $headers->upgrade;
-  $headers->connection('Upgrade') unless $headers->connection;
-  $headers->sec_websocket_protocol('mojo')
-    unless $headers->sec_websocket_protocol;
+  $headers->upgrade('websocket')      unless $headers->upgrade;
+  $headers->connection('Upgrade')     unless $headers->connection;
   $headers->sec_websocket_version(13) unless $headers->sec_websocket_version;
 
-  # Generate WebSocket challenge
-  $headers->sec_websocket_key(b64_encode(pack('N*', int(rand 9999999)), ''))
-    unless $headers->sec_websocket_key;
+  # Generate 16 byte WebSocket challenge
+  my $challenge = b64_encode sprintf('%16u', int(rand 9 x 16)), '';
+  $headers->sec_websocket_key($challenge) unless $headers->sec_websocket_key;
 }
 
 sub client_read  { shift->server_read(@_) }
@@ -108,7 +107,13 @@ sub connection { shift->handshake->connection }
 
 sub finish {
   my $self = shift;
-  $self->send([1, 0, 0, 0, CLOSE, ''])->{finished} = 1;
+
+  my $close = $self->{close} = [@_];
+  my $payload = $close->[0] ? pack('n', $close->[0]) : '';
+  $payload .= encode 'UTF-8', $close->[1] if defined $close->[1];
+  $close->[0] //= 1005;
+  $self->send([1, 0, 0, 0, CLOSE, $payload])->{finished} = 1;
+
   return $self;
 }
 
@@ -160,7 +165,7 @@ sub parse_frame {
   }
 
   # Check message size
-  $self->finish and return undef if $len > $self->max_websocket_size;
+  $self->finish(1009) and return undef if $len > $self->max_websocket_size;
 
   # Check if whole packet has arrived
   my $masked = vec($head, 1, 8) & 0b10000000;
@@ -194,34 +199,42 @@ sub resume {
 sub send {
   my ($self, $frame, $cb) = @_;
 
-  # Binary or raw text
   if (ref $frame eq 'HASH') {
+
+    # JSON
+    $frame->{text} = Mojo::JSON->new->encode($frame->{json}) if $frame->{json};
+
+    # Binary or raw text
     $frame
       = exists $frame->{text}
       ? [1, 0, 0, 0, TEXT, $frame->{text}]
       : [1, 0, 0, 0, BINARY, $frame->{binary}];
   }
 
-  # Text
-  elsif (!ref $frame) { $frame = [1, 0, 0, 0, TEXT, encode('UTF-8', $frame)] }
+  # Text or object (forcing stringification)
+  $frame = [1, 0, 0, 0, TEXT, encode('UTF-8', "$frame")]
+    if ref $frame ne 'ARRAY';
 
-  # Prepare frame
   $self->once(drain => $cb) if $cb;
   $self->{write} .= $self->build_frame(@$frame);
   $self->{state} = 'write';
 
-  # Resume
   return $self->emit('resume');
+}
+
+sub server_close {
+  my $self = shift;
+  $self->{state} = 'finished';
+  return $self->emit(finish => $self->{close} ? (@{$self->{close}}) : 1006);
 }
 
 sub server_handshake {
   my $self = shift;
 
-  # WebSocket handshake
   my $res_headers = $self->res->code(101)->headers;
   $res_headers->upgrade('websocket')->connection('Upgrade');
   my $req_headers = $self->req->headers;
-  ($req_headers->sec_websocket_protocol || '') =~ /^\s*([^,]+)/
+  ($req_headers->sec_websocket_protocol // '') =~ /^\s*([^,]+)/
     and $res_headers->sec_websocket_protocol($1);
   $res_headers->sec_websocket_accept(
     _challenge($req_headers->sec_websocket_key));
@@ -230,26 +243,22 @@ sub server_handshake {
 sub server_read {
   my ($self, $chunk) = @_;
 
-  # Parse frames
   $self->{read} .= $chunk // '';
   while (my $frame = $self->parse_frame(\$self->{read})) {
     $self->emit(frame => $frame);
   }
 
-  # Resume
   $self->emit('resume');
 }
 
 sub server_write {
   my $self = shift;
 
-  # Drain
   unless (length($self->{write} // '')) {
     $self->{state} = $self->{finished} ? 'finished' : 'read';
     $self->emit('drain');
   }
 
-  # Empty buffer
   return delete $self->{write} // '';
 }
 
@@ -266,28 +275,34 @@ sub _message {
   return if $op == PONG;
 
   # Close
-  return $self->finish if $op == CLOSE;
+  if ($op == CLOSE) {
+    return $self->finish unless length $frame->[5] >= 2;
+    return $self->finish(unpack('n', substr($frame->[5], 0, 2, '')),
+      decode('UTF-8', $frame->[5]));
+  }
 
   # Append chunk and check message size
   $self->{op} = $op unless exists $self->{op};
   $self->{message} .= $frame->[5];
-  $self->finish and last
+  return $self->finish(1009)
     if length $self->{message} > $self->max_websocket_size;
 
   # No FIN bit (Continuation)
   return unless $frame->[0];
 
-  # Message
+  # Whole message
   my $msg = delete $self->{message};
-  if (delete $self->{op} == TEXT) {
-    $self->emit(text => $msg);
-    $msg = decode 'UTF-8', $msg if $msg;
-  }
-  else { $self->emit(binary => $msg); }
-  $self->emit(message => $msg);
+  $self->emit(json => Mojo::JSON->new->decode($msg))
+    if $self->has_subscribers('json');
+  $op = delete $self->{op};
+  $self->emit($op == TEXT ? 'text' : 'binary' => $msg);
+  $self->emit(message => $op == TEXT ? decode('UTF-8', $msg) : $msg)
+    if $self->has_subscribers('message');
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -305,15 +320,15 @@ Mojo::Transaction::WebSocket - WebSocket transaction
     say "Message: $msg";
   });
   $ws->on(finish => sub {
-    my $ws = shift;
-    say 'WebSocket closed.';
+    my ($ws, $code, $reason) = @_;
+    say "WebSocket closed with status $code.";
   });
 
 =head1 DESCRIPTION
 
 L<Mojo::Transaction::WebSocket> is a container for WebSocket transactions as
-described in RFC 6455. Note that 64bit frames require a Perl with 64bit
-integer support, or they are limited to 32bit.
+described in RFC 6455. Note that 64bit frames require a Perl with support for
+quads or they are limited to 32bit.
 
 =head1 EVENTS
 
@@ -348,6 +363,15 @@ Emitted once all data has been sent.
     $ws->send(time);
   });
 
+=head2 finish
+
+  $ws->on(finish => sub {
+    my ($ws, $code, $reason) = @_;
+    ...
+  });
+
+Emitted when transaction is finished.
+
 =head2 frame
 
   $ws->on(frame => sub {
@@ -368,6 +392,22 @@ Emitted when a WebSocket frame has been received.
     say "Payload: $frame->[5]";
   });
 
+=head2 json
+
+  $ws->on(json => sub {
+    my ($ws, $json) = @_;
+    ...
+  });
+
+Emitted when a complete WebSocket message has been received, all text and
+binary messages will be automatically JSON decoded. Note that this event only
+gets emitted when it has at least one subscriber.
+
+  $ws->on(json => sub {
+    my ($ws, $hash) = @_;
+    say "Message: $hash->{msg}";
+  });
+
 =head2 message
 
   $ws->on(message => sub {
@@ -376,7 +416,8 @@ Emitted when a WebSocket frame has been received.
   });
 
 Emitted when a complete WebSocket message has been received, text messages
-will be automatically decoded.
+will be automatically decoded. Note that this event only gets emitted when it
+has at least one subscriber.
 
   $ws->on(message => sub {
     my ($ws, $msg) = @_;
@@ -423,7 +464,7 @@ Mask outgoing frames with XOR cipher and a random 32bit key.
   $ws      = $ws->max_websocket_size(1024);
 
 Maximum WebSocket message size in bytes, defaults to the value of the
-C<MOJO_MAX_WEBSOCKET_SIZE> environment variable or C<262144>.
+MOJO_MAX_WEBSOCKET_SIZE environment variable or C<262144>.
 
 =head1 METHODS
 
@@ -432,7 +473,7 @@ L<Mojo::Transaction> and implements the following new ones.
 
 =head2 new
 
-  my $multi = Mojo::Content::MultiPart->new;
+  my $ws = Mojo::Transaction::WebSocket->new;
 
 Construct a new L<Mojo::Transaction::WebSocket> object and subscribe to
 C<frame> event with default message parser, which also handles C<PING> and
@@ -444,14 +485,14 @@ C<CLOSE> frames automatically.
 
 Build WebSocket frame.
 
-  # Continuation frame with FIN bit and payload
-  say $ws->build_frame(1, 0, 0, 0, 0, 'World!');
-
-  # Text frame with payload
-  say $ws->build_frame(0, 0, 0, 0, 1, 'Hello');
-
   # Binary frame with FIN bit and payload
   say $ws->build_frame(1, 0, 0, 0, 2, 'Hello World!');
+
+  # Text frame with payload but without FIN bit
+  say $ws->build_frame(0, 0, 0, 0, 1, 'Hello ');
+
+  # Continuation frame with FIN bit and payload
+  say $ws->build_frame(1, 0, 0, 0, 0, 'World!');
 
   # Close frame with FIN bit and without payload
   say $ws->build_frame(1, 0, 0, 0, 8, '');
@@ -496,8 +537,10 @@ Connection identifier or socket.
 =head2 finish
 
   $ws = $ws->finish;
+  $ws = $ws->finish(1000);
+  $ws = $ws->finish(1003 => 'Cannot accept data!');
 
-Finish the WebSocket connection gracefully.
+Close WebSocket connection gracefully.
 
 =head2 is_websocket
 
@@ -572,7 +615,9 @@ Resume C<handshake> transaction.
 
   $ws = $ws->send({binary => $bytes});
   $ws = $ws->send({text   => $bytes});
+  $ws = $ws->send({json   => {test => [1, 2, 3]}});
   $ws = $ws->send([$fin, $rsv1, $rsv2, $rsv3, $op, $bytes]);
+  $ws = $ws->send(Mojo::ByteStream->new($chars));
   $ws = $ws->send($chars);
   $ws = $ws->send($chars => sub {...});
 
@@ -581,6 +626,12 @@ will be invoked once all data has been written.
 
   # Send "Ping" frame
   $ws->send([1, 0, 0, 0, 9, 'Hello World!']);
+
+=head2 server_close
+
+  $ws->server_close;
+
+Transaction closed server-side, used to implement web servers.
 
 =head2 server_handshake
 
@@ -602,8 +653,8 @@ Write data server-side, used to implement web servers.
 
 =head1 DEBUGGING
 
-You can set the C<MOJO_WEBSOCKET_DEBUG> environment variable to get some
-advanced diagnostics information printed to C<STDERR>.
+You can set the MOJO_WEBSOCKET_DEBUG environment variable to get some advanced
+diagnostics information printed to C<STDERR>.
 
   MOJO_WEBSOCKET_DEBUG=1
 

@@ -2,18 +2,12 @@ package Mojolicious::Plugin::Config;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use File::Spec::Functions 'file_name_is_absolute';
+use Mojo::Util qw(decode slurp);
 
 sub load {
   my ($self, $file, $conf, $app) = @_;
   $app->log->debug(qq{Reading config file "$file".});
-
-  # Slurp UTF-8 file
-  open my $handle, "<:encoding(UTF-8)", $file
-    or die qq{Couldn't open config file "$file": $!};
-  my $content = do { local $/; <$handle> };
-
-  # Process
-  return $self->parse($content, $file, $conf, $app);
+  return $self->parse(decode('UTF-8', slurp $file), $file, $conf, $app);
 }
 
 sub parse {
@@ -39,7 +33,6 @@ sub register {
   # Mode specific config file
   my $mode = $file =~ /^(.*)\.([^.]+)$/ ? join('.', $1, $app->mode, $2) : '';
 
-  # Absolute paths
   my $home = $app->home;
   $file = $home->rel_file($file) unless file_name_is_absolute $file;
   $mode = $home->rel_file($mode) if $mode && !file_name_is_absolute $mode;
@@ -65,13 +58,15 @@ sub register {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojolicious::Plugin::Config - Perl-ish configuration plugin
 
 =head1 SYNOPSIS
 
-  # myapp.conf
+  # myapp.conf (it's just Perl returning a hash)
   {
     foo       => "bar",
     music_dir => app->home->rel_dir('music')
@@ -79,15 +74,18 @@ Mojolicious::Plugin::Config - Perl-ish configuration plugin
 
   # Mojolicious
   my $config = $self->plugin('Config');
+  say $config->{foo};
 
   # Mojolicious::Lite
   my $config = plugin 'Config';
+  say $config->{foo};
 
   # foo.html.ep
   %= $config->{foo}
 
   # The configuration is available application wide
   my $config = app->config;
+  say $config->{foo};
 
   # Everything can be customized with options
   my $config = plugin Config => {file => '/etc/myapp.stuff'};
@@ -129,7 +127,7 @@ File extension for generated configuration filenames, defaults to C<conf>.
   plugin Config => {file => 'myapp.conf'};
   plugin Config => {file => '/etc/foo.stuff'};
 
-Full path to configuration file, defaults to the value of the C<MOJO_CONFIG>
+Full path to configuration file, defaults to the value of the MOJO_CONFIG
 environment variable or C<myapp.conf> in the application home directory.
 
 =head1 METHODS
@@ -166,7 +164,7 @@ Parse configuration file.
   my $config = $plugin->register(Mojolicious->new);
   my $config = $plugin->register(Mojolicious->new, {file => '/etc/app.conf'});
 
-Register plugin in L<Mojolicious> application.
+Register plugin in L<Mojolicious> application and merge configuration.
 
 =head1 SEE ALSO
 

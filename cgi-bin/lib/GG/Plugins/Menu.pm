@@ -108,7 +108,7 @@ sub _menu_track {
 		}
 	}
 	
-	return  $self->render_partial(
+	return  $self->render(
 		levels		=> $levels,
 		order_ids	=> $menu_order_ids,
 		template   	=> 'Menu/'.$params{template},
@@ -117,6 +117,8 @@ sub _menu_track {
 		toplevel   	=> $params{toplevel},
 		botomlevel 	=> $params{botomlevel},
 		items       => $items,
+		
+		partial		=> 1,
 	);
 }
 

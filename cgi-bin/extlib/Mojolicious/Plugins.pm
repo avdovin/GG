@@ -19,9 +19,8 @@ sub emit_chain {
     my $next = $wrapper;
     $wrapper = sub { $cb->($next, @args) };
   }
-  $wrapper->();
 
-  return $self;
+  !$wrapper ? return : return $wrapper->();
 }
 
 sub emit_hook_reverse {
@@ -37,11 +36,11 @@ sub load_plugin {
   my $class = $name =~ /^[a-z]/ ? camelize($name) : $name;
   for my $namespace (@{$self->namespaces}) {
     my $module = "${namespace}::$class";
-    return $module->new if $self->_load($module);
+    return $module->new if _load($module);
   }
 
   # Full module name
-  return $name->new if $self->_load($name);
+  return $name->new if _load($name);
 
   # Not found
   die qq{Plugin "$name" missing, maybe you need to install it?\n};
@@ -52,18 +51,16 @@ sub register_plugin {
 }
 
 sub _load {
-  my ($self, $module) = @_;
-
-  # Load
+  my $module = shift;
   if (my $e = Mojo::Loader->new->load($module)) {
     ref $e ? die $e : return undef;
   }
-
-  # Module is a plugin
   return $module->isa('Mojolicious::Plugin') ? 1 : undef;
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -105,8 +102,7 @@ Renderer for plain embedded Perl templates, loaded automatically.
 
 =item L<Mojolicious::Plugin::EPRenderer>
 
-Renderer for more sophisiticated embedded Perl templates, loaded
-automatically.
+Renderer for more sophisticated embedded Perl templates, loaded automatically.
 
 =item L<Mojolicious::Plugin::HeaderCondition>
 
@@ -124,14 +120,6 @@ Mount whole L<Mojolicious> applications.
 
 Renderer for turning POD into HTML and documentation browser for
 L<Mojolicious::Guides>.
-
-=item L<Mojolicious::Plugin::PoweredBy>
-
-Add an C<X-Powered-By> header to outgoing responses, loaded automatically.
-
-=item L<Mojolicious::Plugin::RequestTimer>
-
-Log timing information, loaded automatically.
 
 =item L<Mojolicious::Plugin::TagHelpers>
 
@@ -164,8 +152,8 @@ implements the following new ones.
 
 =head2 emit_chain
 
-  $plugins = $plugins->emit_chain('foo');
-  $plugins = $plugins->emit_chain(foo => 123);
+  $plugins->emit_chain('foo');
+  $plugins->emit_chain(foo => 123);
 
 Emit events as chained hooks.
 

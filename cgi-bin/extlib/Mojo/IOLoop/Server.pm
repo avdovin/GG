@@ -34,7 +34,7 @@ has reactor      => sub {
 sub DESTROY {
   my $self = shift;
   if (my $port = $self->{port}) { $ENV{MOJO_REUSE} =~ s/(?:^|\,)${port}:\d+// }
-  return unless my $reactor = $self->{reactor};
+  return unless my $reactor = $self->reactor;
   $self->stop if $self->{handle};
   $reactor->remove($_) for values %{$self->{handles}};
 }
@@ -56,8 +56,8 @@ sub listen {
   my $handle;
   my $class = IPV6 ? 'IO::Socket::IP' : 'IO::Socket::INET';
   if (defined $fd) {
-    $handle = $class->new;
-    $handle->fdopen($fd, 'r') or croak "Can't open file descriptor $fd: $!";
+    $handle = $class->new_from_fd($fd, 'r')
+      or croak "Can't open file descriptor $fd: $!";
   }
 
   # New socket
@@ -71,14 +71,13 @@ sub listen {
       Type      => SOCK_STREAM
     );
     $options{LocalAddr} =~ s/[\[\]]//g;
-    $handle = $class->new(%options) or croak "Can't create listen socket: $!";
+    $handle = $class->new(%options) or croak "Can't create listen socket: $@";
     $fd = fileno $handle;
     $ENV{MOJO_REUSE} .= length $ENV{MOJO_REUSE} ? ",$reuse:$fd" : "$reuse:$fd";
   }
   $handle->blocking(0);
   $self->{handle} = $handle;
 
-  # TLS
   return unless $args->{tls};
   croak "IO::Socket::SSL 1.75 required for TLS support" unless TLS;
 
@@ -110,12 +109,11 @@ sub start {
     $self->{handle} => sub { $self->_accept for 1 .. $self->multi_accept });
 }
 
-sub stop { $_[0]->reactor->remove($_[0]->{handle}) }
+sub stop { $_[0]->reactor->remove($_[0]{handle}) }
 
 sub _accept {
   my $self = shift;
 
-  # Accept
   return unless my $handle = $self->{handle}->accept;
   $handle->blocking(0);
 
@@ -141,8 +139,7 @@ sub _tls {
   # Accepted
   if ($handle->accept_SSL) {
     $self->reactor->remove($handle);
-    delete $self->{handles}{$handle};
-    return $self->emit_safe(accept => $handle);
+    return $self->emit_safe(accept => delete $self->{handles}{$handle});
   }
 
   # Switch between reading and writing
@@ -152,6 +149,8 @@ sub _tls {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

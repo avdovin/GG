@@ -12,7 +12,7 @@ sub register {
     $app->helper($name => sub { shift->$name(@_) });
   }
 
-  # Stash key shortcuts
+  # Stash key shortcuts (should not generate log messages)
   for my $name (qw(extends layout title)) {
     $app->helper(
       $name => sub {
@@ -25,60 +25,14 @@ sub register {
     );
   }
 
-  # Add "config" helper
   $app->helper(config => sub { shift->app->config(@_) });
-
-  # Add "content" helper
-  $app->helper(content => \&_content);
-
-  # Add "content_for" helper
-  $app->helper(content_for => \&_content_for);
-
-  # Add "current_route" helper
+  $app->helper(content       => \&_content);
+  $app->helper(content_for   => \&_content_for);
   $app->helper(current_route => \&_current_route);
-
-  # Add "dumper" helper
-  $app->helper(dumper => \&_dumper);
-
-  # Add "include" helper
-  $app->helper(include => \&_include);
-
-  # Add "memorize" helper
-  my %mem;
-  $app->helper(
-    memorize => sub {
-      my $self = shift;
-      return '' unless ref(my $cb = pop) eq 'CODE';
-      my ($name, $args)
-        = ref $_[0] eq 'HASH' ? (undef, shift) : (shift, shift || {});
-
-      # Default name
-      $name ||= join '', map { $_ || '' } (caller(1))[0 .. 3];
-
-      # Expire old results
-      my $expires = $args->{expires} || 0;
-      delete $mem{$name}
-        if exists $mem{$name} && $expires > 0 && $mem{$name}{expires} < time;
-
-      # Memorized result
-      return $mem{$name}{content} if exists $mem{$name};
-
-      # Memorize new result
-      $mem{$name}{expires} = $expires;
-      return $mem{$name}{content} = $cb->();
-    }
-  );
-
-  # DEPRECATED in Rainbow!
-  $app->helper(
-    render_content => sub {
-      warn "Mojolicious::Controller->render_content is DEPRECATED!\n";
-      shift->content(@_);
-    }
-  );
-
-  # Add "url_with" helper
-  $app->helper(url_with => \&_url_with);
+  $app->helper(dumper        => \&_dumper);
+  $app->helper(include       => \&_include);
+  $app->helper(ua            => sub { shift->app->ua });
+  $app->helper(url_with      => \&_url_with);
 }
 
 sub _content {
@@ -107,7 +61,10 @@ sub _current_route {
   return $endpoint->name eq shift;
 }
 
-sub _dumper { shift; Data::Dumper->new([@_])->Indent(1)->Terse(1)->Dump }
+sub _dumper {
+  my $self = shift;
+  return Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Dump;
+}
 
 sub _include {
   my $self     = shift;
@@ -123,7 +80,7 @@ sub _include {
   my @keys = keys %$args;
   local @{$self->stash}{@keys} = @{$args}{@keys};
 
-  return $self->render_partial(layout => $layout, extend => $extends);
+  return $self->render(partial => 1, layout => $layout, extend => $extends);
 }
 
 sub _url_with {
@@ -132,6 +89,8 @@ sub _url_with {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -242,23 +201,6 @@ only available in the partial template.
 Render this template with a layout. All additional values get merged into the
 C<stash>.
 
-=head2 memorize
-
-  %= memorize begin
-    %= time
-  % end
-  %= memorize {expires => time + 1} => begin
-    %= time
-  % end
-  %= memorize foo => begin
-    %= time
-  % end
-  %= memorize foo => {expires => time + 1} => begin
-    %= time
-  % end
-
-Memorize block result in memory and prevent future execution.
-
 =head2 param
 
   %= param 'foo'
@@ -278,7 +220,7 @@ Alias for L<Mojolicious::Controller/"session">.
 
 Alias for L<Mojolicious::Controller/"stash">.
 
-  %= stash 'name' // 'Somebody'
+  %= stash('name') // 'Somebody'
 
 =head2 title
 
@@ -287,6 +229,12 @@ Alias for L<Mojolicious::Controller/"stash">.
   %= title
 
 Page title. All additional values get merged into the C<stash>.
+
+=head2 ua
+
+  %= ua->get('mojolicio.us')->res->dom->at('title')->text
+
+Alias for L<Mojo/"ua">.
 
 =head2 url_for
 

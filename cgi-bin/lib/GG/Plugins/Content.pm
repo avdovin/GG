@@ -49,13 +49,45 @@ sub register {
 			    	data    => $email_body,
 			  	);	
 		    }
-		    $vals->{html} = $self->render_partial( template => 'Texts/callback_message_success');
+		    $vals->{html} = $self->render( template => 'Texts/callback_message_success', partial => 1);
 		    
 		    $self->render_json( $vals );
 		}
 	);	
 	
 
+	$app->helper(
+		news_list => sub {
+			my $self   = shift;
+			my %params = (
+				page	=> 1,
+				@_
+			);
+			
+			my 	$where = " `viewtext`='1' ";
+				$where .= " AND YEAR(tdate)='".$self->param('year')."' "	if $self->param('year');
+				$where .= " ORDER BY `tdate` DESC ";
+				
+			if($params{limit}){
+				my $count = $self->dbi->getCountCol(from => 'texts_news_ru', where => $where);
+				$self->def_text_interval( total_vals => $count, cur_page => $params{page}, col_per_page => $params{limit} );
+				$params{npage} = $params{limit} * ($params{page} - 1);
+				$where .= " LIMIT $params{npage},$params{limit} "; 
+			}			
+			
+			my $items = $self->app->dbi->query("
+				SELECT * 
+				FROM `texts_news_ru` 
+				WHERE $where
+			")->hashes;
+
+			return $self->render( 
+							items		=> $items, 
+							template 	=> 'Texts/_news_list_items',
+							partial		=> 1);			
+
+		}
+	);	
 	
 	$app->helper(
 		news_anons => sub {
@@ -64,9 +96,10 @@ sub register {
 			
 			my $items = $self->app->dbi->query("SELECT * FROM `texts_news_ru` WHERE `viewtext`='1' ORDER BY `tdate` DESC LIMIT 0,2")->hashes;
 
-			return $self->render_partial( 
+			return $self->render( 
 							items	=> $items, 
-							template => 'Texts/news_anons');			
+							template => 'Texts/news_anons',
+							partial	=> 1);			
 
 		}
 	);		

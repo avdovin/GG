@@ -92,10 +92,10 @@ sub cookies {
 sub default_message { $MESSAGES{$_[1] || $_[0]->code || 404} || '' }
 
 sub extract_start_line {
-  my ($self, $bufferref) = @_;
+  my ($self, $bufref) = @_;
 
   # We have a full response line
-  return undef unless defined(my $line = get_line $bufferref);
+  return undef unless defined(my $line = get_line $bufref);
   $self->error('Bad response start line') and return undef
     unless $line =~ m!^\s*HTTP/(\d\.\d)\s+(\d\d\d)\s*(.+)?$!;
   $self->content->skip_body(1) if $self->code($2)->is_empty;
@@ -116,24 +116,20 @@ sub fix_headers {
 sub get_start_line_chunk {
   my ($self, $offset) = @_;
 
-  # Status line
   unless (defined $self->{start_buffer}) {
     my $code = $self->code    || 404;
     my $msg  = $self->message || $self->default_message;
     $self->{start_buffer} = "HTTP/@{[$self->version]} $code $msg\x0d\x0a";
   }
 
-  # Progress
   $self->emit(progress => 'start_line', $offset);
-
-  # Chunk
   return substr $self->{start_buffer}, $offset, 131072;
 }
 
 sub is_empty {
   my $self = shift;
   return undef unless my $code = $self->code;
-  return $self->is_status_class(100) || grep { $_ eq $code } qw(204 304);
+  return $self->is_status_class(100) || $code eq 204 || $code eq 304;
 }
 
 sub is_status_class {
@@ -143,6 +139,8 @@ sub is_status_class {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -218,7 +216,7 @@ Generate default response message for code.
 
 =head2 extract_start_line
 
-  my $success = $req->extract_start_line(\$string);
+  my $success = $res->extract_start_line(\$str);
 
 Extract status line from string.
 

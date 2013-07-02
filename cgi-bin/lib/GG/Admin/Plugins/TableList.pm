@@ -90,9 +90,9 @@ sub register {
 					$self->stash->{listfield_header} = [];
 				}
 				
-				my $body = $self->render_partial(	template	=> 'Admin/TableList/tablelist_container');
+				my $body = $self->render(	template	=> 'Admin/TableList/tablelist_container', partial => 1);
 							
-				return $self->render_json({
+				return $self->render( json => {
 					content	=> $body,
 					items	=> $self->get_init_items( init => 'init_modul'),
 				});
@@ -160,7 +160,7 @@ sub register {
 			} 
 			$Data->{data} = $data_items;
 			
-			$self->render_json($Data);	
+			$self->render( json => $Data);	
 		}
 	);
 	
@@ -187,7 +187,7 @@ sub register {
 			
 			if($self->param('clear')){
 				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => "");
-				return $self->render_json({ content => 'OK', items => $self->init_tablelist_reload});
+				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
 			
 			if($self->stash->{group} == 2){
@@ -274,15 +274,15 @@ sub register {
 
 				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
 				
-				return $self->render_json({ content => 'OK', items => $self->init_tablelist_reload});
+				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
 			
 			$self->stash->{listfield} = \@anketa_keys;
 			
 			
 			if($self->stash->{flag_win}){
-				$self->render_json({
-						content	=> $self->render_partial( template => "Admin/TableList/defcol"),
+				$self->render( json => {
+						content	=> $self->render( template => "Admin/TableList/defcol", partial => 1),
 						items	=> $self->get_init_items(),
 				});				
 			} else {
@@ -340,7 +340,7 @@ sub register {
 			
 			$self->sysuser->save_settings(%user_set);
 			
-			$self->render_json({
+			$self->render( json => {
 					content	=> "OK!",
 					items	=> $self->init_save_filter,
 			});
@@ -438,7 +438,7 @@ sub register {
 			$self->stash->{filter_take_text} = $filter_take{ $value };
 			
 			delete $self->stash->{text};
-			$self->render_text( $self->stash->{filter_take_text} ) if $params{render};			
+			$self->render( text => $self->stash->{filter_take_text} ) if $params{render};			
 		}
 	);			
 
@@ -683,10 +683,10 @@ sub register {
 					name 	=> "Сохранение записи в таблице объектов (ключей) $table",
 					comment	=> "Сохранена запись в таблице объектов [$index]. Таблица $table"
 				);
-				return $self->render_data('OK');
+				return $self->render( text =>'OK');
 			}
 		
-			$self->render_data("Ошибка - ".$self->admin_error('update_hash'));
+			$self->render( text => "Ошибка - ".$self->admin_error('update_hash'));
 		}
 	);	
 
@@ -706,7 +706,7 @@ sub register {
 				#$self->stash->{key_reload}  = $params{info} ? "_i_".$lkey : $lkey;
 				$self->sysuser->save_settings($controller.'_qedit' => 1);
 		
-				$self->render_json({
+				$self->render( json => {
 					content	=> 'Выключить qedit',
 					items	=> [
 						{
@@ -719,7 +719,7 @@ sub register {
 				#$self->stash->{flag_reload} = 0;
 				$self->sysuser->save_settings($controller.'_qedit' => 0);
 		
-				$self->render_json({
+				$self->render( json => {
 					content	=> 'Включить qedit',
 					items	=> [
 						{

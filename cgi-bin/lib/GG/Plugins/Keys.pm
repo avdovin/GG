@@ -232,7 +232,7 @@ sub register {
 	
 			} elsif($type eq 'tlist'){
 				my $where = $lkey->{settings}->{where} || '';
-				$where = $self->render_partial( inline => $where ) if $where;
+				$where = $self->render( inline => $where, partial => 1 ) if $where;
 				
 				eval{
 					$list_vals = $self->app->dbi->query(qq/
@@ -309,10 +309,12 @@ sub register {
 				$self->app->lkeys->{ '_cached_global_'.$params{controller} } &&
 				$self->app->lkeys->{ '_cached_'.$params{controller} }
 				){
-				return $self->validate( controller => $params{controller} );
+				$self->validate( controller => $params{controller} ) if $params{validator};
+				return 1;
 			}
 			if( $self->app->lkeys->{ '_cached_'.$params{controller} } ){
-				return $self->validate( controller => $params{controller} );
+				$self->validate( controller => $params{controller} ) if $params{validator};
+				return 1;
 			}
 			
 			unless($params{no_global}){

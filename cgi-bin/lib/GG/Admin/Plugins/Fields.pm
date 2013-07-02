@@ -125,7 +125,7 @@ sub register {
 									template	=> "Admin/AnketForm/tree_elements_select"
 									);
 			
-			$self->render_json({
+			$self->render( json => {
 					content	=> $html,
 					items	=> [
 						{
@@ -187,7 +187,7 @@ sub register {
 			}
 			
 			my $content = $self->render_partial( key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_pict_reload');
-			$self->render_json({
+			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),
 			});
@@ -228,7 +228,7 @@ sub register {
 			}
 	
 			my $content = $self->render_partial(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload');
-			$self->render_json({
+			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),
 			});

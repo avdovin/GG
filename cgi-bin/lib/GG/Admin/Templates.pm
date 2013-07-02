@@ -69,7 +69,7 @@ sub body{
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 	
 }

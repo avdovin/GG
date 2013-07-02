@@ -77,7 +77,7 @@ sub body{
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 
@@ -139,7 +139,7 @@ sub save{
 
 	if($self->stash->{dop_table}){
 		$self->restore_doptable;
-		return $self->render_json({
+		return $self->render( json => {
 				content	=> $self->has_errors ? "ERROR" : "OK",
 				items	=> $self->init_dop_tablelist_reload(),
 		});

@@ -6,7 +6,6 @@ use Mojo::Asset::File;
 use Mojo::Asset::Memory;
 use Mojo::Home;
 use Mojo::Loader;
-use Mojo::Path;
 
 has classes => sub { ['main'] };
 has paths   => sub { [] };
@@ -23,10 +22,9 @@ sub dispatch {
 
   # Canonical path
   my $stash = $c->stash;
-  my $path = $stash->{path} || $c->req->url->path->clone->canonicalize;
-
-  # Split parts
-  return undef unless my @parts = @{Mojo::Path->new("$path")->parts};
+  my $path  = $c->req->url->path;
+  $path = $stash->{path} ? $path->new($stash->{path}) : $path->clone;
+  return undef unless my @parts = @{$path->canonicalize->parts};
 
   # Serve static file and prevent directory traversal
   return undef if $parts[0] eq '..' || !$self->serve($c, join('/', @parts));
@@ -91,7 +89,6 @@ sub serve_asset {
       ->content_range("bytes $start-$end/$size");
   }
 
-  # Serve asset
   return $res->content->asset($asset->start_range($start)->end_range($end));
 }
 
@@ -124,6 +121,8 @@ sub _get_file {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojolicious::Static - Serve static files
@@ -138,7 +137,7 @@ Mojolicious::Static - Serve static files
 
 =head1 DESCRIPTION
 
-L<Mojolicious::Static> is a dispatcher for static files with C<Range> and
+L<Mojolicious::Static> is a static file server with C<Range> and
 C<If-Modified-Since> support.
 
 =head1 ATTRIBUTES

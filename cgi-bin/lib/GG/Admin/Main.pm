@@ -43,7 +43,7 @@ sub body{
 		when('load_table') 				{ $self->field_dop_table_reload; }
 		when('hot_link') 				{ $self->hot_link; }
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 
@@ -114,7 +114,7 @@ sub mainpage{
 		);
 
 		if( $self->sysuser->sys or exists($self->sysuser->access->{modul}->{ $$row{ID} }) ){
-			$main_menu{ $$row{prgroup} } .= $self->render_partial(template => 'Admin/icon', button => \%button_conf)
+			$main_menu{ $$row{prgroup} } .= $self->render(template => 'Admin/icon', button => \%button_conf, partial => 1 );
 		}
 	}
 	
@@ -127,12 +127,13 @@ sub mainpage{
 	}
 
 	my $result = {
-			content	=> $self->render_partial(	body		=> $body,
-												template	=> 'Admin/block_admin_main'),
+			content	=> $self->render(	body		=> $body,
+										partial		=> 1,
+										template	=> 'Admin/block_admin_main'),
 			items	=> $self->init_main,
 	};
 
-	$self->render_json($result);
+	$self->render(json => $result);
 }
 
 sub user_block{
@@ -318,7 +319,7 @@ sub menu_top{
 		},	
 	) );
 				
-	$self->render_json({
+	$self->render( json => {
 		content	=> 'OK',
 		items	=> $items,
 	});

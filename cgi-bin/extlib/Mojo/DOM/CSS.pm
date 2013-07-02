@@ -3,7 +3,7 @@ use Mojo::Base -base;
 
 has 'tree';
 
-my $ESCAPE_RE = qr/\\[^[:xdigit:]]|\\[[:xdigit:]]{1,6}/;
+my $ESCAPE_RE = qr/\\[^0-9a-fA-F]|\\[0-9a-fA-F]{1,6}/;
 my $ATTR_RE   = qr/
   \[
   ((?:$ESCAPE_RE|[\w\-])+)        # Key
@@ -36,13 +36,10 @@ my $TOKEN_RE        = qr/
 sub select {
   my $self = shift;
 
-  # Compile selectors
-  my $pattern = $self->_compile(shift);
-
-  # Walk tree
   my @results;
-  my $tree  = $self->tree;
-  my @queue = ($tree);
+  my $pattern = $self->_compile(shift);
+  my $tree    = $self->tree;
+  my @queue   = ($tree);
   while (my $current = shift @queue) {
     my $type = $current->[0];
 
@@ -55,7 +52,7 @@ sub select {
 
       # Try all selectors with element
       for my $part (@$pattern) {
-        push(@results, $current) and last
+        push @results, $current and last
           if $self->_combinator([reverse @$part], $current, $tree);
       }
     }
@@ -123,7 +120,6 @@ sub _combinator {
 sub _compile {
   my ($self, $css) = @_;
 
-  # Tokenize
   my $pattern = [[]];
   while ($css =~ /$TOKEN_RE/g) {
     my ($separator, $element, $pc, $attrs, $combinator)
@@ -321,7 +317,6 @@ sub _regex {
 sub _selector {
   my ($self, $selector, $current) = @_;
 
-  # Selectors
   for my $s (@$selector[1 .. $#$selector]) {
     my $type = $s->[0];
 
@@ -348,7 +343,6 @@ sub _selector {
 sub _sibling {
   my ($self, $selectors, $current, $tree, $immediate) = @_;
 
-  # Find preceding elements
   my $parent = $current->[3];
   my $found;
   my $start = $parent->[0] eq 'root' ? 1 : 4;
@@ -373,7 +367,7 @@ sub _unescape {
   $value =~ s/\\\n//g;
 
   # Unescape Unicode characters
-  $value =~ s/\\([[:xdigit:]]{1,6})\s?/pack('U', hex $1)/ge;
+  $value =~ s/\\([0-9a-fA-F]{1,6})\s?/pack('U', hex $1)/ge;
 
   # Remove backslash
   $value =~ s/\\//g;
@@ -382,6 +376,8 @@ sub _unescape {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -606,9 +602,10 @@ L<Mojo::DOM::CSS> implements the following attributes.
 =head2 tree
 
   my $tree = $css->tree;
-  $css     = $css->tree(['root', [qw(text lalala)]]);
+  $css     = $css->tree(['root', ['text', 'foo']]);
 
-Document Object Model.
+Document Object Model. Note that this structure should only be used very
+carefully since it is very dynamic.
 
 =head1 METHODS
 

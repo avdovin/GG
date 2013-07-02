@@ -126,10 +126,11 @@ sub register {
 				}			
 			}
 
-			$self->render_partial(		%params,
-										banners			=> $banners,
-										banner_block	=> $banner_block,
-   										template		=> $params{template} );
+			$self->render(		%params,
+								banners			=> $banners,
+								banner_block	=> $banner_block,
+   								template		=> $params{template},
+   								partial			=> 1 );
 			
 		}
 	);

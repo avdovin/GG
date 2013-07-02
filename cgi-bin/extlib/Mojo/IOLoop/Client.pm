@@ -34,7 +34,7 @@ sub connect {
 
 sub _cleanup {
   my $self = shift;
-  return $self unless my $reactor = $self->{reactor};
+  return $self unless my $reactor = $self->reactor;
   $self->{$_} && $reactor->remove(delete $self->{$_})
     for qw(delay timer handle);
   return $self;
@@ -43,7 +43,6 @@ sub _cleanup {
 sub _connect {
   my ($self, $args) = @_;
 
-  # New socket
   my $handle;
   my $reactor = $self->reactor;
   my $address = $args->{address} ||= 'localhost';
@@ -57,7 +56,7 @@ sub _connect {
     $options{LocalAddr} = $args->{local_address} if $args->{local_address};
     $options{PeerAddr} =~ s/[\[\]]//g if $options{PeerAddr};
     my $class = IPV6 ? 'IO::Socket::IP' : 'IO::Socket::INET';
-    return $self->emit_safe(error => "Couldn't connect")
+    return $self->emit_safe(error => "Couldn't connect: $@")
       unless $self->{handle} = $handle = $class->new(%options);
 
     # Timeout
@@ -74,17 +73,15 @@ sub _connect {
 sub _tls {
   my $self = shift;
 
-  # Switch between reading and writing
-  my $handle = $self->{handle};
-  if ($self->{tls} && !$handle->connect_SSL) {
-    my $err = $IO::Socket::SSL::SSL_ERROR;
-    if    ($err == TLS_READ)  { $self->reactor->watch($handle, 1, 0) }
-    elsif ($err == TLS_WRITE) { $self->reactor->watch($handle, 1, 1) }
-    return;
-  }
-
   # Connected
-  $self->_cleanup->emit_safe(connect => $handle);
+  my $handle = $self->{handle};
+  return $self->_cleanup->emit_safe(connect => $handle)
+    if $handle->connect_SSL;
+
+  # Switch between reading and writing
+  my $err = $IO::Socket::SSL::SSL_ERROR;
+  if    ($err == TLS_READ)  { $self->reactor->watch($handle, 1, 0) }
+  elsif ($err == TLS_WRITE) { $self->reactor->watch($handle, 1, 1) }
 }
 
 sub _try {
@@ -100,41 +97,36 @@ sub _try {
   # Disable Nagle's algorithm
   setsockopt $handle, IPPROTO_TCP, TCP_NODELAY, 1;
 
-  # TLS
-  if ($args->{tls} && !$handle->isa('IO::Socket::SSL')) {
+  return $self->_cleanup->emit_safe(connect => $handle)
+    if !$args->{tls} || $handle->isa('IO::Socket::SSL');
+  return $self->emit_safe(
+    error => 'IO::Socket::SSL 1.75 required for TLS support')
+    unless TLS;
 
-    # No TLS support
-    return $self->emit_safe(
-      error => 'IO::Socket::SSL 1.75 required for TLS support')
-      unless TLS;
-
-    # Upgrade
-    weaken $self;
-    my %options = (
-      SSL_ca_file => $args->{tls_ca}
-        && -T $args->{tls_ca} ? $args->{tls_ca} : undef,
-      SSL_cert_file      => $args->{tls_cert},
-      SSL_error_trap     => sub { $self->_cleanup->emit_safe(error => $_[1]) },
-      SSL_hostname       => $args->{address},
-      SSL_key_file       => $args->{tls_key},
-      SSL_startHandshake => 0,
-      SSL_verify_mode    => $args->{tls_ca} ? 0x01 : 0x00,
-      SSL_verifycn_name  => $args->{address},
-      SSL_verifycn_scheme => $args->{tls_ca} ? 'http' : undef
-    );
-    $self->{tls} = 1;
-    my $reactor = $self->reactor;
-    $reactor->remove($handle);
-    return $self->emit_safe(error => 'TLS upgrade failed')
-      unless $handle = IO::Socket::SSL->start_SSL($handle, %options);
-    return $reactor->io($handle => sub { $self->_tls })->watch($handle, 0, 1);
-  }
-
-  # Connected
-  $self->_cleanup->emit_safe(connect => $handle);
+  # Upgrade
+  weaken $self;
+  my %options = (
+    SSL_ca_file => $args->{tls_ca}
+      && -T $args->{tls_ca} ? $args->{tls_ca} : undef,
+    SSL_cert_file       => $args->{tls_cert},
+    SSL_error_trap      => sub { $self->_cleanup->emit_safe(error => $_[1]) },
+    SSL_hostname        => $args->{address},
+    SSL_key_file        => $args->{tls_key},
+    SSL_startHandshake  => 0,
+    SSL_verify_mode     => $args->{tls_ca} ? 0x01 : 0x00,
+    SSL_verifycn_name   => $args->{address},
+    SSL_verifycn_scheme => $args->{tls_ca} ? 'http' : undef
+  );
+  my $reactor = $self->reactor;
+  $reactor->remove($handle);
+  return $self->emit_safe(error => 'TLS upgrade failed')
+    unless $handle = IO::Socket::SSL->start_SSL($handle, %options);
+  $reactor->io($handle => sub { $self->_tls })->watch($handle, 0, 1);
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -154,7 +146,7 @@ Mojo::IOLoop::Client - Non-blocking TCP client
     my ($client, $err) = @_;
     ...
   });
-  $client->connect(address => 'mojolicio.us', port => 80);
+  $client->connect(address => 'example.com', port => 80);
 
   # Start reactor if necessary
   $client->reactor->start unless $client->reactor->is_running;

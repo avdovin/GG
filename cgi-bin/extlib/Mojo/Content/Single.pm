@@ -30,11 +30,7 @@ sub clone {
 
 sub get_body_chunk {
   my ($self, $offset) = @_;
-
-  # Body generator
   return $self->generate_body_chunk($offset) if $self->{dynamic};
-
-  # Normal content
   return $self->asset->get_chunk($offset);
 }
 
@@ -57,6 +53,8 @@ sub parse {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::Content::Single - HTTP content
@@ -66,7 +64,7 @@ Mojo::Content::Single - HTTP content
   use Mojo::Content::Single;
 
   my $single = Mojo::Content::Single->new;
-  $single->parse("Content-Length: 12\r\n\r\nHello World!");
+  $single->parse("Content-Length: 12\x0d\x0a\x0d\x0aHello World!");
   say $single->headers->content_length;
 
 =head1 DESCRIPTION
@@ -149,15 +147,16 @@ Clone content if possible, otherwise return C<undef>.
 
   my $bytes = $single->get_body_chunk(0);
 
-Get a chunk of content starting from a specfic position.
+Get a chunk of content starting from a specific position.
 
 =head2 parse
 
-  $single   = $single->parse("Content-Length: 12\r\n\r\nHello World!");
-  my $multi = $single->parse("Content-Type: multipart/form-data\r\n\r\n");
+  $single = $single->parse("Content-Length: 12\x0d\x0a\x0d\x0aHello World!");
+  my $multi
+    = $single->parse("Content-Type: multipart/form-data\x0d\x0a\x0d\x0a");
 
 Parse content chunk and upgrade to L<Mojo::Content::MultiPart> object if
-possible.
+necessary.
 
 =head1 SEE ALSO
 

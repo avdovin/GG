@@ -214,11 +214,11 @@ sub register {
 				$self->render( template	=> $self->stash->{template_dir}.$params{template})
 
 			} else {
-				my $body = $self->render_partial(	template	=> $self->stash->{template_dir}.$params{template});
+				my $body = $self->render(	template	=> $self->stash->{template_dir}.$params{template}, partial => 1);
 
 				my $init_inems = 'init_'.$template_blocks{$params{access}};
 						
-				$self->render_json({
+				$self->render( json => {
 					content	=> $body,
 					items	=> $self->get_init_items( init => $init_inems),
 				});

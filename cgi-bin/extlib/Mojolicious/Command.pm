@@ -32,10 +32,7 @@ sub chmod_rel_file {
 sub create_dir {
   my ($self, $path) = @_;
 
-  # Exists
   if (-d $path) { say "  [exist] $path" unless $self->quiet }
-
-  # Create
   else {
     mkpath $path or croak qq{Can't make directory "$path": $!};
     say "  [mkdir] $path" unless $self->quiet;
@@ -91,6 +88,8 @@ sub write_rel_file {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojolicious::Command - Command base class
@@ -105,7 +104,7 @@ Mojolicious::Command - Command base class
   has description => "My first Mojo command.\n";
 
   # Short usage message
-  has usage => <<"EOF";
+  has usage => <<EOF;
   usage: $0 mycommand [OPTIONS]
 
   These options are available:

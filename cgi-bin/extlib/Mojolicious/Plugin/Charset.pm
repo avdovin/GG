@@ -4,7 +4,6 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app, $conf) = @_;
 
-  # Change default charset on all layers
   return unless my $c = $conf->{charset};
   $app->types->type(html => "text/html;charset=$c");
   $app->renderer->encoding($c);
@@ -13,6 +12,8 @@ sub register {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -54,7 +55,8 @@ L<Mojolicious::Plugin> and implements the following new ones.
 
   $plugin->register(Mojolicious->new, {charset => 'Shift_JIS'});
 
-Register hooks in L<Mojolicious> application.
+Register C<before_dispatch> hook in L<Mojolicious> application and change a
+few defaults.
 
 =head1 SEE ALSO
 

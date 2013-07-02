@@ -25,9 +25,9 @@ sub check_file {
 sub run {
   my ($self, $app) = @_;
 
-  # Prepare environment
-  $SIG{CHLD} = sub { $self->_reap };
-  $SIG{INT} = $SIG{TERM} = $SIG{QUIT} = sub {
+  # Clean manager environment
+  local $SIG{CHLD} = sub { $self->_reap };
+  local $SIG{INT} = local $SIG{TERM} = local $SIG{QUIT} = sub {
     $self->{finished} = 1;
     kill 'TERM', $self->{running} if $self->{running};
   };
@@ -37,7 +37,6 @@ sub run {
   # Prepare and cache listen sockets for smooth restarting
   my $daemon = Mojo::Server::Daemon->new(silent => 1)->start->stop;
 
-  # Watch files and manage worker
   $self->_manage while !$self->{finished} || $self->{running};
   exit 0;
 }
@@ -63,7 +62,6 @@ sub _manage {
     $self->{modified} = 1;
   }
 
-  # Housekeeping
   $self->_reap;
   delete $self->{running} if $self->{running} && !kill 0, $self->{running};
   $self->_spawn if !$self->{running} && delete $self->{modified};
@@ -102,6 +100,8 @@ sub _spawn {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::Server::Morbo - DOOOOOOOOOOOOOOOOOOM!
@@ -117,18 +117,21 @@ Mojo::Server::Morbo - DOOOOOOOOOOOOOOOOOOM!
 
 L<Mojo::Server::Morbo> is a full featured, self-restart capable non-blocking
 I/O HTTP and WebSocket server, built around the very well tested and reliable
-L<Mojo::Server::Daemon>, with C<IPv6>, C<TLS>, C<Comet> (long polling) and
-multiple event loop support.
+L<Mojo::Server::Daemon>, with IPv6, TLS, Comet (long polling), keep-alive,
+connection pooling, timeout, cookie, multipart and multiple event loop
+support. Note that the server uses signals for process management, so you
+should avoid modifying signal handlers in your applications.
 
 To start applications with it you can use the L<morbo> script.
 
   $ morbo myapp.pl
   Server available at http://127.0.0.1:3000.
 
-Optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
-L<IO::Socket::SSL> (1.75+) are supported transparently through
-L<Mojo::IOLoop>, and used if installed. Individual features can also be
-disabled with the C<MOJO_NO_IPV6> and C<MOJO_NO_TLS> environment variables.
+For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
+support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
+L<IO::Socket::SSL> (1.75+) will be used automatically by L<Mojo::IOLoop> if
+they are installed. Individual features can also be disabled with the
+MOJO_NO_IPV6 and MOJO_NO_TLS environment variables.
 
 See L<Mojolicious::Guides::Cookbook> for more.
 

@@ -9,7 +9,6 @@ use Time::Local 'timegm';
 
 has 'epoch';
 
-# Days and months
 my @DAYS   = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @MONTHS = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 my %MONTHS;
@@ -58,11 +57,13 @@ sub to_string {
 
   # RFC 2616 (Sun, 06 Nov 1994 08:49:37 GMT)
   my ($s, $m, $h, $mday, $month, $year, $wday) = gmtime($self->epoch // time);
-  return sprintf "%s, %02d %s %04d %02d:%02d:%02d GMT", $DAYS[$wday], $mday,
+  return sprintf '%s, %02d %s %04d %02d:%02d:%02d GMT', $DAYS[$wday], $mday,
     $MONTHS[$month], $year + 1900, $h, $m, $s;
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -110,7 +111,7 @@ following new ones.
   my $date = Mojo::Date->new;
   my $date = Mojo::Date->new('Sun Nov  6 08:49:37 1994');
 
-Construct a new L<Mojo::Date> object.
+Construct a new L<Mojo::Date> object and C<parse> date if necessary.
 
 =head2 parse
 
@@ -132,8 +133,8 @@ Parse date.
 
 =head2 to_string
 
-  my $string = $date->to_string;
-  my $string = "$date";
+  my $str = $date->to_string;
+  my $str = "$date";
 
 Render date suitable for HTTP messages.
 

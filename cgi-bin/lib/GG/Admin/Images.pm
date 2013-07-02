@@ -166,7 +166,7 @@ sub body{
 		
 		when('lists_select') 			{ $self->lists_select; }
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 
@@ -194,9 +194,9 @@ sub zipimport_save{
 	
 	my $files = $self->file_extract_zip( path => $self->file_tmpdir.$self->send_params->{zip} );
 
-	my $html = $self->render_partial( files => $files, template => 'Admin/Plugins/File/zipimport_img_node');
+	my $html = $self->render( files => $files, template => 'Admin/Plugins/File/zipimport_img_node', partial => 1);
 
-	$self->render_json({html => $html, count => scalar(@$files)});
+	$self->render( json => {html => $html, count => scalar(@$files)});
 }
 
 sub zipimport_save_pict{
@@ -219,7 +219,7 @@ sub zipimport_save_pict{
 	my $item = $self->dbi->query("SELECT `pict`,`folder` FROM `".$self->stash->{list_table}."` WHERE `ID`='".$self->stash->{index}."'")->hash;
 	
 	my $folder = $self->lfield_folder( lfield => $lfield ) || $item->{folder};
-	$self->render_json({filename	=> $item->{pict}, src => $folder.$item->{pict} });
+	$self->render( json => {filename	=> $item->{pict}, src => $folder.$item->{pict} });
 }
 
 sub lists_select{
@@ -261,7 +261,7 @@ sub lists_select{
 		}
 	}	
 	$list_out .= "document.getElementById('ok_' + out).innerHTML = \"<span style='background-color:lightgreen;width:45px;padding:3px'>найдено: ".$sch."</span>\";\n";
-	$self->render_text($list_out);
+	$self->render( text => $list_out);
 
 	sub def_name_list_select {
 		my ($title, $name) = @_;
@@ -359,7 +359,7 @@ sub save{
 	
 	if($self->stash->{dop_table}){
 		$self->restore_doptable;
-		return $self->render_json({
+		return $self->render( json => {
 				content	=> "OK",
 				items	=> $self->init_dop_tablelist_reload(),
 		});
@@ -515,14 +515,14 @@ sub tree_block{
 		}	
 	}
 	
-	$self->render_json({
-					content	=> $self->render_partial( items => $items, template => 'Admin/tree_elements'),
+	$self->render( json => {
+					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"
 					},
 					]
-				});	
+	});	
 	
 }
 

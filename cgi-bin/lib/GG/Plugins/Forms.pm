@@ -38,9 +38,10 @@ sub register {
 			
 			foreach (@$keys){
 				if($using_keys{ $_ }){
-					$output_form .= $self->render_partial(
+					$output_form .= $self->render(
 										lkey		=> $self->app->lkeys->{$_},
 										value		=> $self->stash('send_params')->{$_},
+										partial		=> 1,
 										template 	=> $params{controller}.'/'.$self->app->lkeys->{$_}->{settings}->{ $template_fields->{$access} });	
 				}
 			}

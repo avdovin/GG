@@ -4,14 +4,9 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app) = @_;
 
-  # "headers" condition
   $app->routes->add_condition(headers => \&_headers);
-
-  # "agent" condition
   $app->routes->add_condition(
     agent => sub { _headers(@_[0 .. 2], {'User-Agent' => $_[3]}) });
-
-  # "host" condition
   $app->routes->add_condition(
     host => sub { _check($_[1]->req->url->to_abs->host, $_[3]) });
 }
@@ -36,6 +31,8 @@ sub _headers {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -81,7 +78,7 @@ L<Mojolicious::Plugin> and implements the following new ones.
 
   $plugin->register(Mojolicious->new);
 
-Register condition in L<Mojolicious> application.
+Register conditions in L<Mojolicious> application.
 
 =head1 SEE ALSO
 

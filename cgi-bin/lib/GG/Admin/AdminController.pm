@@ -30,7 +30,7 @@ sub print_choose{
 			};			
 		}
 		
-		$self->render_json({
+		$self->render( json => {
 				content	=> "документ формируется...",
 				items	=> [
 						{
@@ -156,8 +156,9 @@ HEAD
 sub block_null{
 	my $self = shift;
 	
-	my $body = $self->render_partial(	template	=> 'Admin/block_null');
-	$self->render_json({
+	my $body = $self->render(	template	=> 'Admin/block_null', partial => 1);
+	
+	$self->render( json => {
 			content	=> $body,
 			items	=> $self->init_modul,
 	});	
@@ -661,7 +662,7 @@ sub def_context_menu{
 		$button->def_params_button($stash);
 		$button->def_script_button($stash);
 
-		$context_menu .= $self->render_partial( template => 'Admin/anchor_html', button => $button);
+		$context_menu .= $self->render( template => 'Admin/anchor_html', button => $button, partial => 1);
 	}
 
 	return $self->stash->{context_menu} = $context_menu;
@@ -705,7 +706,7 @@ sub def_menu_button{
 	
 	
 	$result->{items} = \@buttons;
-	$self->render_json( $result);		
+	$self->render(json => $result);		
 }
 
 

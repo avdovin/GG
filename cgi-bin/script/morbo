@@ -4,8 +4,7 @@ use strict;
 use warnings;
 
 use FindBin;
-use lib "$FindBin::Bin/../lib";
-use lib "$FindBin::Bin/../extlib";
+BEGIN { unshift @INC, "$FindBin::Bin/../lib", "$FindBin::Bin/../extlib" }
 
 use Getopt::Long qw(GetOptions :config no_auto_abbrev no_ignore_case);
 
@@ -16,8 +15,7 @@ GetOptions(
   'w|watch=s'  => \my @watch
 );
 
-# Usage
-die <<"EOF" if $help || !(my $app = shift);
+die <<EOF if $help || !(my $app = shift);
 usage: $0 [OPTIONS] [APPLICATION]
 
   morbo script/myapp
@@ -44,6 +42,8 @@ my $morbo = Mojo::Server::Morbo->new;
 @watch = qw(../lib ../extlib ../templates);
 $morbo->watch(\@watch) if @watch;
 $morbo->run($app);
+
+=encoding utf8
 
 =head1 NAME
 

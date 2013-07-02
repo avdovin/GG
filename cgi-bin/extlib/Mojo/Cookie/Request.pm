@@ -1,18 +1,17 @@
 package Mojo::Cookie::Request;
 use Mojo::Base 'Mojo::Cookie';
 
-use Mojo::Util 'quote';
+use Mojo::Util qw(quote split_header);
 
 sub parse {
-  my ($self, $string) = @_;
+  my ($self, $str) = @_;
 
-  # Walk tree
   my @cookies;
-  for my $token (map {@$_} $self->_tokenize($string)) {
-    my ($name, $value) = @$token;
+  my @pairs = map {@$_} @{split_header($str // '')};
+  while (@pairs) {
+    my ($name, $value) = (shift @pairs, shift @pairs);
     next if $name =~ /^\$/;
-    push @cookies,
-      Mojo::Cookie::Request->new(name => $name, value => $value // '');
+    push @cookies, $self->new(name => $name, value => $value // '');
   }
 
   return \@cookies;
@@ -22,11 +21,13 @@ sub to_string {
   my $self = shift;
   return '' unless my $name = $self->name;
   my $value = $self->value // '';
-  $value = $value =~ /[,;"]/ ? quote($value) : $value;
+  $value = $value =~ /[,;" ]/ ? quote($value) : $value;
   return "$name=$value";
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -43,7 +44,8 @@ Mojo::Cookie::Request - HTTP request cookie
 
 =head1 DESCRIPTION
 
-L<Mojo::Cookie::Request> is a container for HTTP request cookies.
+L<Mojo::Cookie::Request> is a container for HTTP request cookies as described
+in RFC 6265.
 
 =head1 ATTRIBUTES
 
@@ -56,13 +58,13 @@ implements the following new ones.
 
 =head2 parse
 
-  my $cookies = $cookie->parse('f=b; g=a');
+  my $cookies = Mojo::Cookie::Request->parse('f=b; g=a');
 
 Parse cookies.
 
 =head2 to_string
 
-  my $string = $cookie->to_string;
+  my $str = $cookie->to_string;
 
 Render cookie.
 

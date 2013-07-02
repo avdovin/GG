@@ -2,7 +2,6 @@ package Mojo::Message::Request;
 use Mojo::Base 'Mojo::Message';
 
 use Mojo::Cookie::Request;
-use Mojo::Parameters;
 use Mojo::Util qw(b64_encode b64_decode get_line);
 use Mojo::URL;
 
@@ -10,14 +9,14 @@ has env => sub { {} };
 has method => 'GET';
 has url => sub { Mojo::URL->new };
 
-my $START_LINE_RE = qr|
-  ^\s*
-  ([a-zA-Z]+)                                  # Method
+my $START_LINE_RE = qr/
+  ^
+  ([a-zA-Z]+)                                            # Method
   \s+
-  ([0-9a-zA-Z\-._~:/?#[\]\@!\$&'()*+,;=\%]+)   # Path
-  (?:\s+HTTP/(\d\.\d))?                        # Version
+  ([0-9a-zA-Z!#\$\%&'()*+,\-.\/:;=?\@[\\\]^_`\{|\}~]+)   # URL
+  (?:\s+HTTP\/(\d\.\d))?                                 # Version
   $
-|x;
+/x;
 
 sub clone {
   my $self = shift;
@@ -55,11 +54,11 @@ sub cookies {
 }
 
 sub extract_start_line {
-  my ($self, $bufferref) = @_;
+  my ($self, $bufref) = @_;
 
   # Ignore any leading empty lines
-  $$bufferref =~ s/^\s+//;
-  return undef unless defined(my $line = get_line $bufferref);
+  $$bufref =~ s/^\s+//;
+  return undef unless defined(my $line = get_line $bufref);
 
   # We have a (hopefully) full request line
   $self->error('Bad request start line', 400) and return undef
@@ -79,11 +78,8 @@ sub fix_headers {
   $headers->authorization('Basic ' . b64_encode($auth, ''))
     if $auth && !$headers->authorization;
 
-  # Proxy
+  # Basic proxy authentication
   if (my $proxy = $self->proxy) {
-    $url = $proxy if $self->method eq 'CONNECT';
-
-    # Basic proxy authentication
     my $proxy_auth = $proxy->userinfo;
     $headers->proxy_authorization('Basic ' . b64_encode($proxy_auth, ''))
       if $proxy_auth && !$headers->proxy_authorization;
@@ -100,7 +96,6 @@ sub fix_headers {
 sub get_start_line_chunk {
   my ($self, $offset) = @_;
 
-  # Request line
   unless (defined $self->{start_buffer}) {
 
     # Path
@@ -120,7 +115,7 @@ sub get_start_line_chunk {
     # Proxy
     elsif ($self->proxy) {
       my $clone = $url = $url->clone->userinfo(undef);
-      my $upgrade = lc($self->headers->upgrade || '');
+      my $upgrade = lc($self->headers->upgrade // '');
       $path = $clone
         unless $upgrade eq 'websocket' || $url->protocol eq 'https';
     }
@@ -128,10 +123,7 @@ sub get_start_line_chunk {
     $self->{start_buffer} = "$method $path HTTP/@{[$self->version]}\x0d\x0a";
   }
 
-  # Progress
   $self->emit(progress => 'start_line', $offset);
-
-  # Chunk
   return substr $self->{start_buffer}, $offset, 131072;
 }
 
@@ -141,7 +133,7 @@ sub is_secure {
 }
 
 sub is_xhr {
-  (shift->headers->header('X-Requested-With') || '') =~ /XMLHttpRequest/i;
+  (shift->headers->header('X-Requested-With') // '') =~ /XMLHttpRequest/i;
 }
 
 sub param { shift->params->param(@_) }
@@ -149,7 +141,7 @@ sub param { shift->params->param(@_) }
 sub params {
   my $self = shift;
   return $self->{params}
-    ||= Mojo::Parameters->new->merge($self->body_params, $self->query_params);
+    ||= $self->body_params->clone->merge($self->query_params);
 }
 
 sub parse {
@@ -237,7 +229,7 @@ sub _parse_env {
   $self->method($env->{REQUEST_METHOD}) if $env->{REQUEST_METHOD};
 
   # Scheme/Version
-  if (($env->{SERVER_PROTOCOL} || '') =~ m!^([^/]+)/([^/]+)$!) {
+  if (($env->{SERVER_PROTOCOL} // '') =~ m!^([^/]+)/([^/]+)$!) {
     $base->scheme($1);
     $self->version($2);
   }
@@ -268,6 +260,8 @@ sub _parse_env {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::Message::Request - HTTP request
@@ -295,7 +289,7 @@ Mojo::Message::Request - HTTP request
 =head1 DESCRIPTION
 
 L<Mojo::Message::Request> is a container for HTTP requests as described in RFC
-2616.
+2616 and RFC 2817.
 
 =head1 EVENTS
 
@@ -333,8 +327,10 @@ HTTP request method, defaults to C<GET>.
 
 HTTP request URL, defaults to a L<Mojo::URL> object.
 
-  # Get request path
-  say $req->url->path;
+  # Get request information
+  say $req->url->to_abs->userinfo;
+  say $req->url->to_abs->host;
+  say $req->url->to_abs->path;
 
 =head1 METHODS
 
@@ -357,7 +353,7 @@ Access request cookies, usually L<Mojo::Cookie::Request> objects.
 
 =head2 extract_start_line
 
-  my $success = $req->extract_start_line(\$string);
+  my $success = $req->extract_start_line(\$str);
 
 Extract request line from string.
 
@@ -391,16 +387,20 @@ Check C<X-Requested-With> header for C<XMLHttpRequest> value.
   my $foo   = $req->param('foo');
   my @foo   = $req->param('foo');
 
-Access C<GET> and C<POST> parameters. Note that this method caches all data,
-so it should not be called before the entire request body has been received.
+Access GET and POST parameters. Note that this method caches all data, so it
+should not be called before the entire request body has been received. Parts
+of the request body need to be loaded into memory to parse POST parameters, so
+you have to make sure it is not excessively large.
 
 =head2 params
 
   my $params = $req->params;
 
-All C<GET> and C<POST> parameters, usually a L<Mojo::Parameters> object. Note
-that this method caches all data, so it should not be called before the entire
-request body has been received.
+All GET and POST parameters, usually a L<Mojo::Parameters> object. Note that
+this method caches all data, so it should not be called before the entire
+request body has been received. Parts of the request body need to be loaded
+into memory to parse POST parameters, so you have to make sure it is not
+excessively large.
 
   # Get parameter value
   say $req->params->param('foo');
@@ -428,7 +428,7 @@ Proxy URL for request.
 
   my $params = $req->query_params;
 
-All C<GET> parameters, usually a L<Mojo::Parameters> object.
+All GET parameters, usually a L<Mojo::Parameters> object.
 
   # Turn GET parameters to hash and extract value
   say $req->query_params->to_hash->{foo};

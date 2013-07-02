@@ -4,11 +4,8 @@ use Mojo::Base 'Mojo::Server';
 sub run {
   my ($self, $env) = @_;
 
-  # Environment
   my $tx  = $self->build_tx;
   my $req = $tx->req->parse($env);
-
-  # Store connection information
   $tx->local_port($env->{SERVER_PORT})->remote_address($env->{REMOTE_ADDR});
 
   # Request body
@@ -20,7 +17,7 @@ sub run {
     last if ($len -= $read) <= 0;
   }
 
-  # Handle
+  # Handle request
   $self->emit(request => $tx);
 
   # Response headers
@@ -32,8 +29,8 @@ sub run {
   }
 
   # PSGI response
-  return [$res->code || 404,
-    \@headers, Mojo::Server::PSGI::_IO->new(tx => $tx)];
+  my $io = Mojo::Server::PSGI::_IO->new(tx => $tx, empty => $tx->is_empty);
+  return [$res->code || 404, \@headers, $io];
 }
 
 sub to_psgi_app {
@@ -47,10 +44,14 @@ sub to_psgi_app {
 package Mojo::Server::PSGI::_IO;
 use Mojo::Base -base;
 
+# Finish transaction
 sub close { shift->{tx}->server_close }
 
 sub getline {
   my $self = shift;
+
+  # Empty
+  return undef if $self->{empty};
 
   # No content yet, try again later
   my $chunk = $self->{tx}->res->get_body_chunk($self->{offset} //= 0);
@@ -59,12 +60,13 @@ sub getline {
   # End of content
   return undef unless length $chunk;
 
-  # Content
   $self->{offset} += length $chunk;
   return $chunk;
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

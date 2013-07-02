@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::TagHelpers;
 use Mojo::Base 'Mojolicious::Plugin';
 
-use Mojo::ByteStream 'b';
+use Mojo::ByteStream;
 use Mojo::Util 'xml_escape';
 
 sub register {
@@ -13,61 +13,30 @@ sub register {
     $app->helper("${name}_field" => sub { _input(@_, type => $name) });
   }
 
-  # DEPRECATED in Rainbow!
-  $app->helper(
-    base_tag => sub {
-      warn "base_tag is DEPRECATED!!!\n";
-      _tag('base', href => shift->req->url->base, @_);
-    }
-  );
-
-  # Add "checkbox" helper
   $app->helper(check_box =>
       sub { _input(shift, shift, value => shift, @_, type => 'checkbox') });
-
-  # Add "file_field" helper
   $app->helper(file_field =>
       sub { shift; _tag('input', name => shift, @_, type => 'file') });
 
-  # Add "form_for" helper
-  $app->helper(form_for => \&_form_for);
-
-  # Add "hidden_field" helper
+  $app->helper(form_for     => \&_form_for);
   $app->helper(hidden_field => \&_hidden_field);
-
-  # Add "image" helper
   $app->helper(image => sub { _tag('img', src => shift->url_for(shift), @_) });
-
-  # Add "input_tag" helper
   $app->helper(input_tag => sub { _input(@_) });
-
-  # Add "javascript" helper
   $app->helper(javascript => \&_javascript);
+  $app->helper(link_to    => \&_link_to);
 
-  # Add "link_to" helper
-  $app->helper(link_to => \&_link_to);
-
-  # Add "password_field" helper
   $app->helper(password_field =>
       sub { shift; _tag('input', name => shift, @_, type => 'password') });
-
-  # Add "radio_button" helper
   $app->helper(radio_button =>
       sub { _input(shift, shift, value => shift, @_, type => 'radio') });
 
-  # Add "select_field" helper
-  $app->helper(select_field => \&_select_field);
-
-  # Add "stylesheet" helper
-  $app->helper(stylesheet => \&_stylesheet);
-
-  # Add "submit_button" helper
+  $app->helper(select_field  => \&_select_field);
+  $app->helper(stylesheet    => \&_stylesheet);
   $app->helper(submit_button => \&_submit_button);
 
-  # Add "t" and "tag" helpers
+  # "t" is just a shortcut for the "tag" helper
   $app->helper($_ => sub { shift; _tag(@_) }) for qw(t tag);
 
-  # Add "text_area" helper
   $app->helper(text_area => \&_text_area);
 }
 
@@ -97,14 +66,10 @@ sub _hidden_field {
 
 sub _input {
   my ($self, $name) = (shift, shift);
-
-  # Attributes
   my %attrs = @_ % 2 ? (value => shift, @_) : @_;
 
-  # Values
-  my @values = $self->param($name);
-
   # Special selection value
+  my @values = $self->param($name);
   my $type = $attrs{type} || '';
   if (@values && $type ne 'submit') {
 
@@ -210,10 +175,8 @@ sub _stylesheet {
     $cb = sub { "/*<![CDATA[*/\n" . $old->() . "\n/*]]>*/" }
   }
 
-  # URL
-  my $href = @_ % 2 ? $self->url_for(shift) : undef;
-
   # "link" or "style" tag
+  my $href = @_ % 2 ? $self->url_for(shift) : undef;
   return $href
     ? _tag('link', rel => 'stylesheet', href => $href, media => 'screen', @_)
     : _tag('style', @_, $cb);
@@ -249,7 +212,7 @@ sub _tag {
   else { $tag .= ' />' }
 
   # Prevent escaping
-  return b($tag);
+  return Mojo::ByteStream->new($tag);
 }
 
 sub _text_area {
@@ -268,6 +231,8 @@ sub _text_area {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -390,13 +355,13 @@ Generate file input element.
     %= text_field 'first_name'
     %= submit_button
   % end
-  %= form_for 'http://kraih.com/login' => (method => 'POST') => begin
+  %= form_for 'http://example.com/login' => (method => 'POST') => begin
     %= text_field 'first_name'
     %= submit_button
   % end
 
-Generate portable form for route, path or URL. For routes that allow C<POST>
-but not C<GET>, a C<method> attribute will be automatically added.
+Generate portable form for route, path or URL. For routes that allow POST but
+not GET, a C<method> attribute will be automatically added.
 
   <form action="/path/to/login">
     <input name="first_name" />
@@ -410,7 +375,7 @@ but not C<GET>, a C<method> attribute will be automatically added.
     <input name="first_name" />
     <input value="Ok" type="submit" />
   </form>
-  <form action="http://kraih.com/login" method="POST">
+  <form action="http://example.com/login" method="POST">
     <input name="first_name" />
     <input value="Ok" type="submit" />
   </form>
@@ -469,6 +434,7 @@ Generate portable script tag for C<Javascript> asset.
   %= link_to index => {format => 'txt'} => (class => 'links') => begin
     Home
   % end
+  %= link_to Contact => 'mailto:sri@example.com'
   <%= link_to index => begin %>Home<% end %>
   <%= link_to '/path/to/file' => begin %>File<% end %>
   <%= link_to 'http://mojolicio.us' => begin %>Mojolicious<% end %>
@@ -482,6 +448,7 @@ capitalized link target as content.
   <a class="links" href="/path/to/index.txt">
     Home
   </a>
+  <a href="mailto:sri@example.com">Contact</a>
   <a href="/path/to/index">Home</a>
   <a href="/path/to/file">File</a>
   <a href="http://mojolicio.us">Mojolicious</a>

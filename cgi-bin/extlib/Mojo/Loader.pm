@@ -6,7 +6,6 @@ use File::Spec::Functions qw(catdir catfile splitdir);
 use Mojo::Exception;
 use Mojo::Util qw(b64_decode class_to_path);
 
-# Cache
 my %CACHE;
 
 sub data {
@@ -34,7 +33,6 @@ sub load {
 sub search {
   my ($self, $namespace) = @_;
 
-  # Check all directories
   my (@modules, %found);
   for my $directory (@INC) {
     next unless -d (my $path = catdir $directory, split(/::|'/, $namespace));
@@ -43,8 +41,6 @@ sub search {
     opendir(my $dir, $path);
     for my $file (grep /\.pm$/, readdir $dir) {
       next if -d catfile splitdir($path), $file;
-
-      # Module found
       my $class = "${namespace}::" . fileparse $file, qr/\.pm/;
       push @modules, $class unless $found{$class}++;
     }
@@ -69,7 +65,7 @@ sub _all {
   # Ignore everything after __END__
   $content =~ s/\n__END__\r?\n.*$/\n/s;
 
-  # Split
+  # Split files
   my @data = split /^@@\s*(.+?)\s*\r?\n/m, $content;
   shift @data;
 
@@ -85,6 +81,8 @@ sub _all {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

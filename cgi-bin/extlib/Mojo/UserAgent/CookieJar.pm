@@ -9,7 +9,6 @@ has max_cookie_size => 4096;
 sub add {
   my ($self, @cookies) = @_;
 
-  # Add cookies
   my $size = $self->max_cookie_size;
   for my $cookie (@cookies) {
 
@@ -44,11 +43,11 @@ sub extract {
   for my $cookie (@{$tx->res->cookies}) {
 
     # Validate domain
-    my $host = lc $url->ihost;
+    my $host = $url->ihost;
     my $domain = lc($cookie->domain // $host);
     $domain =~ s/^\.//;
-    next unless $host eq $domain || $host =~ /\Q.$domain\E$/;
-    next if $host =~ /\.\d+$/;
+    next
+      if $host ne $domain && ($host !~ /\Q.$domain\E$/ || $host =~ /\.\d+$/);
     $cookie->domain($domain);
 
     # Validate path
@@ -62,8 +61,7 @@ sub extract {
 sub find {
   my ($self, $url) = @_;
 
-  # Look through the jar
-  return unless my $domain = lc($url->ihost // '');
+  return unless my $domain = $url->ihost;
   my $path = $url->path->to_abs_string;
   my @found;
   while ($domain =~ /[^.]+\.[^.]+|localhost$/) {
@@ -104,6 +102,8 @@ sub _path { $_[0] eq '/' || $_[0] eq $_[1] || $_[1] =~ m!^\Q$_[0]/! }
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::UserAgent::CookieJar - Cookie jar for HTTP user agents
@@ -131,8 +131,8 @@ Mojo::UserAgent::CookieJar - Cookie jar for HTTP user agents
 
 =head1 DESCRIPTION
 
-L<Mojo::UserAgent::CookieJar> is a minimalistic and relaxed cookie jar used by
-L<Mojo::UserAgent>.
+L<Mojo::UserAgent::CookieJar> is a minimalistic and relaxed cookie jar based
+on RFC 6265 for L<Mojo::UserAgent>.
 
 =head1 ATTRIBUTES
 

@@ -11,36 +11,30 @@ has usage       => "usage: $0 version\n";
 sub run {
   my $self = shift;
 
-  # EV
   my $ev = eval 'use Mojo::Reactor::EV; 1' ? $EV::VERSION : 'not installed';
-
-  # IPv6
   my $ipv6
     = Mojo::IOLoop::Server::IPV6 ? $IO::Socket::IP::VERSION : 'not installed';
-
-  # TLS
   my $tls
     = Mojo::IOLoop::Server::TLS ? $IO::Socket::SSL::VERSION : 'not installed';
 
-  print <<"EOF";
+  print <<EOF;
 CORE
   Perl        ($^V, $^O)
   Mojolicious ($Mojolicious::VERSION, $Mojolicious::CODENAME)
 
 OPTIONAL
-  EV              ($ev)
-  IO::Socket::IP  ($ipv6)
-  IO::Socket::SSL ($tls)
+  EV 4.0+               ($ev)
+  IO::Socket::IP 0.16+  ($ipv6)
+  IO::Socket::SSL 1.75+ ($tls)
 
 EOF
 
-  # Latest version
+  # Check latest version on CPAN
   my $latest = eval {
     my $ua = Mojo::UserAgent->new(max_redirects => 10)->detect_proxy;
     $ua->get('api.metacpan.org/v0/release/Mojolicious')->res->json->{version};
   };
 
-  # Message
   return unless $latest;
   my $msg = 'This version is up to date, have fun!';
   $msg = 'Thanks for testing a development release, you are awesome!'
@@ -51,6 +45,8 @@ EOF
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

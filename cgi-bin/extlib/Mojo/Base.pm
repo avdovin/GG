@@ -2,8 +2,6 @@ package Mojo::Base;
 
 use strict;
 use warnings;
-
-# Mojo modules are modern!
 use utf8;
 use feature ();
 
@@ -16,8 +14,6 @@ use IO::Handle ();
 sub import {
   my $class = shift;
   return unless my $flag = shift;
-
-  # No limits!
   no strict 'refs';
 
   # Base
@@ -37,8 +33,6 @@ sub import {
   if ($flag) {
     my $caller = caller;
     push @{"${caller}::ISA"}, $flag;
-
-    # Can haz?
     *{"${caller}::has"} = sub { attr($caller, @_) };
   }
 
@@ -61,14 +55,12 @@ sub attr {
   my ($class, $attrs, $default) = @_;
   return unless ($class = ref $class || $class) && $attrs;
 
-  # Check default
-  Carp::croak('Default has to be a code reference or constant value')
+  Carp::croak 'Default has to be a code reference or constant value'
     if ref $default && ref $default ne 'CODE';
 
-  # Create attributes
+  # Compile attributes
   for my $attr (@{ref $attrs eq 'ARRAY' ? $attrs : [$attrs]}) {
-    Carp::croak(qq{Attribute "$attr" invalid})
-      unless $attr =~ /^[a-zA-Z_]\w*$/;
+    Carp::croak qq{Attribute "$attr" invalid} unless $attr =~ /^[a-zA-Z_]\w*$/;
 
     # Header (check arguments)
     my $code = "package $class;\nsub $attr {\n  if (\@_ == 1) {\n";
@@ -96,7 +88,7 @@ sub attr {
     # We compile custom attribute code for speed
     no strict 'refs';
     warn "-- Attribute $attr in $class\n$code\n\n" if $ENV{MOJO_BASE_DEBUG};
-    Carp::croak("Mojo::Base error: $@") unless eval "$code;1";
+    Carp::croak "Mojo::Base error: $@" unless eval "$code;1";
   }
 }
 
@@ -107,6 +99,8 @@ sub tap {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -217,7 +211,7 @@ pass it either a hash or a hash reference with attribute values.
 Create attribute accessor for hash-based objects, an array reference can be
 used to create more than one at a time. Pass an optional second argument to
 set a default value, it should be a constant or a callback. The callback will
-be excuted at accessor read time if there's no set value. Accessors can be
+be executed at accessor read time if there's no set value. Accessors can be
 chained, that means they return their invocant when they are called with an
 argument.
 
@@ -226,11 +220,12 @@ argument.
   $object = $object->tap(sub {...});
 
 K combinator, tap into a method chain to perform operations on an object
-within the chain.
+within the chain. The object will be the first argument passed to the closure
+and is also available as C<$_>.
 
 =head1 DEBUGGING
 
-You can set the C<MOJO_BASE_DEBUG> environment variable to get some advanced
+You can set the MOJO_BASE_DEBUG environment variable to get some advanced
 diagnostics information printed to C<STDERR>.
 
   MOJO_BASE_DEBUG=1

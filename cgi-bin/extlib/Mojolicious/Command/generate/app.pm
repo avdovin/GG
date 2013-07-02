@@ -57,7 +57,7 @@ use strict;
 use warnings;
 
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
 
 # Start command line interface for application
 require Mojolicious::Commands;
@@ -142,6 +142,9 @@ and the layout "templates/layouts/default.html.ep",
 <a href="/index.html">here</a> to move forward to a static page.
 
 __END__
+
+=encoding utf8
+
 =head1 NAME
 
 Mojolicious::Command::generate::app - App generator command

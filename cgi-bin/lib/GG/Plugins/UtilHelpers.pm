@@ -94,9 +94,10 @@ sub register {
 			
 			my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`tdate`) AS `year` FROM `texts_news_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`tdate`) ORDER BY `tdate` DESC")->hashes;
 
-			return $self->render_partial( 
+			return $self->render( 
 							items	=> $items, 
-							template => 'Texts/news_year_navigator');			
+							template => 'Texts/news_year_navigator',
+							partial	=> 1,);			
 
 		}
 	);
@@ -256,9 +257,10 @@ sub register {
 				$header->{keywords} ||= $header->{title};
 				$header->{description} ||= $header->{title};
 
-				return $self->render_partial(
-					template => "header",
-					header	 => $header,
+				return $self->render(
+					template 	=> "header",
+					header	 	=> $header,
+					partial		=> 1,
 				);				
 			}
 		}
@@ -278,10 +280,12 @@ sub register {
 				WHERE 1 ORDER BY `rdate` DESC LIMIT 0,3"
 			)->hashes;
 
-			return $self->render_partial(
+			return $self->render(
 				template => "Texts/anons/$params{template}",
 				handler  => $params{handler},
-				rows     => $rows
+				rows     => $rows,
+				
+				partial  => 1,
 			);
 		}
 	);
@@ -639,11 +643,12 @@ sub register {
 					$end_page = $total_page;
 				}
 			}
-			return $self->render_partial(
+			return $self->render(
 				first_page 	=> $first_page,
 				end_page	=> $end_page,
 				page		=> $page,
 				total_page  => $total_page,
+				partial		=> 1,
 				%params
 			);
 				

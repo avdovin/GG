@@ -79,7 +79,7 @@ sub body{
 		when('tree_block') 				{ $self->tree_block; }
 		when('tree_reload') 			{ $self->tree_block; }	
 		
-		default							{ $self->render_text("действие не определенно"); }
+		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 
@@ -122,8 +122,8 @@ sub tree_block{
 		$items->[$i]->{param_default} = "&replaceme=".$items->[$i]->{replaceme}; 
 	}	
 	
-	$self->render_json({
-					content	=> $self->render_partial( items => $items, template => 'Admin/tree_elements'),
+	$self->render( json => {
+					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"

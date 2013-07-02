@@ -6,47 +6,15 @@ use overload
   fallback => 1;
 
 use Carp 'croak';
-use Mojo::Util 'unquote';
 
 has [qw(name value)];
 
 sub parse     { croak 'Method "parse" not implemented by subclass' }
 sub to_string { croak 'Method "to_string" not implemented by subclass' }
 
-sub _tokenize {
-  my ($self, $string) = @_;
-
-  # Nibbling parser
-  my (@tree, @token);
-  while ($string) {
-
-    # Name
-    last unless $string =~ s/^\s*([^=;,]+)\s*=?\s*//;
-    my $name = $1;
-
-    # "expires" is a special case, thank you Netscape...
-    $string =~ s/^([^;,]+,?[^;,]+)/"$1"/ if $name =~ /^expires$/i;
-
-    # Value
-    my $value;
-    $value = unquote $1 if $string =~ s/^("(?:\\\\|\\"|[^"])+"|[^;,]+)\s*//;
-
-    # Token
-    push @token, [$name, $value];
-
-    # Separator
-    $string =~ s/^\s*;\s*//;
-    if ($string =~ s/^\s*,\s*//) {
-      push @tree, [@token];
-      @token = ();
-    }
-  }
-
-  # Take care of final token
-  return @token ? (@tree, \@token) : @tree;
-}
-
 1;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -62,7 +30,8 @@ Mojo::Cookie - HTTP cookie base class
 
 =head1 DESCRIPTION
 
-L<Mojo::Cookie> is an abstract base class for HTTP cookies.
+L<Mojo::Cookie> is an abstract base class for HTTP cookies as described in RFC
+6265.
 
 =head1 ATTRIBUTES
 
@@ -89,14 +58,14 @@ following new ones.
 
 =head2 parse
 
-  my $cookies = $cookie->parse($string);
+  my $cookies = $cookie->parse($str);
 
 Parse cookies. Meant to be overloaded in a subclass.
 
 =head2 to_string
 
-  my $string = $cookie->to_string;
-  my $string = "$cookie";
+  my $str = $cookie->to_string;
+  my $str = "$cookie";
 
 Render cookie. Meant to be overloaded in a subclass.
 

@@ -20,6 +20,8 @@ sub slurp   { croak 'Method "slurp" not implemented by subclass' }
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::Asset - HTTP content storage base class
@@ -83,9 +85,10 @@ subclass.
 =head2 get_chunk
 
   my $bytes = $asset->get_chunk($offset);
+  my $bytes = $asset->get_chunk($offset, $max);
 
-Get chunk of data starting from a specific position. Meant to be overloaded
-in a subclass.
+Get chunk of data starting from a specific position, defaults to a maximum
+chunk size of C<131072> bytes. Meant to be overloaded in a subclass.
 
 =head2 is_file
 
