@@ -9,7 +9,7 @@ sub _init{
 
 	$self->def_program('texts');
 
-	$self->get_keys( type => ['lkey', 'button'], controller => $self->app->program->{key_razdel});
+	$self->get_keys(controller => $self->app->program->{key_razdel});
 	
 	my $config = {
 		controller_name	=> $self->app->program->{name},

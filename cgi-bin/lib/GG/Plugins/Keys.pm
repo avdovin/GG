@@ -311,8 +311,9 @@ sub register {
 				){
 				$self->validate( controller => $params{controller} ) if $params{validator};
 				return 1;
-			}
-			if( $self->app->lkeys->{ '_cached_'.$params{controller} } ){
+			
+			} elsif( $params{no_global} && $self->app->lkeys->{ '_cached_'.$params{controller} } ){
+				
 				$self->validate( controller => $params{controller} ) if $params{validator};
 				return 1;
 			}
@@ -335,7 +336,6 @@ sub register {
 			}
 			
 			if($keys_table){
-				
 				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE 1")->hashes){
 					_parseLkeys(
 						app			=> $app,
