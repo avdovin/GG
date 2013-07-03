@@ -8,6 +8,7 @@ our $VERSION = '0.03';
 use utf8;
 
 my @SYSTEM_VALUES = qw(text data json inline);
+use Mojo::Util qw(url_escape trim);
 
 sub register {
 	my ( $self, $app, $args ) = @_;
@@ -37,7 +38,8 @@ sub register {
 			while (my ($k, $v) = each %$vals) {
 				my $type = 's';
 				my $settings = {};
-
+				$v = trim $v;
+				
 				if(my $lk = $self->lkey( name => $k, controller => $params{controller} )){
 					$type = $lk->{type} || next;
 					$settings = $lk->{settings};
@@ -196,7 +198,6 @@ sub register {
 			my %settings = @_;
 			
 			return '' unless my $value = delete $settings{value};
-			my $lkey = $settings{lkey};
 			
 			if($value !~ m{^/} && $value !~ m/^http:\/\//){
 				# если ссылка не относительная добавляем протокол HTTP

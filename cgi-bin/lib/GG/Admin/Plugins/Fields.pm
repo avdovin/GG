@@ -119,10 +119,11 @@ sub register {
 			
 			return $items if $params{items};
 			
-			my $html = $self->render_partial(
+			my $html = $self->render(
 									lfield		=> $params{lfield},
 									items		=> $items,
-									template	=> "Admin/AnketForm/tree_elements_select"
+									template	=> "Admin/AnketForm/tree_elements_select",
+									partial		=> 1,
 									);
 			
 			$self->render( json => {
@@ -186,7 +187,7 @@ sub register {
 				$self->save_info( table => $params{table}, field_values => $clear_fields);
 			}
 			
-			my $content = $self->render_partial( key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_pict_reload');
+			my $content = $self->render( key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_pict_reload', partial => 1);
 			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),
@@ -227,7 +228,7 @@ sub register {
 				$self->save_info( table => $params{table}, field_values => $clear_fields);
 			}
 	
-			my $content = $self->render_partial(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload');
+			my $content = $self->render(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload', partial => 1);
 			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),
@@ -293,7 +294,7 @@ sub register {
 				#my $from   = $list_table;
 				my (@rules, $field_rules_f1, $field_rules_f2);
 				
-				return $self->render_text($list_table) unless $list_table;
+				return $self->render( text => $list_table) unless $list_table;
 				
 				$rules =~ s/&brvbar;/\|/g;
 				(@rules) = split(/\|/, $rules);
@@ -346,7 +347,7 @@ sub register {
 #					}
 #				}
 			
-				$self->render_text($menu) 		
+				$self->render( text => $menu) 		
 			
 			
 			} elsif(my $keystring = $self->param('keystring')){
@@ -377,7 +378,7 @@ sub register {
 				}
    				$list_out .= "document.getElementById('ok_' + out).innerHTML = \"<span style='background-color:lightgreen;width:45px;padding:3px'>найдено: ".$sch."</span>\";\n";
 				
-				$self->render_text($list_out);				
+				$self->render( text => $list_out);				
 			}
 			
 						

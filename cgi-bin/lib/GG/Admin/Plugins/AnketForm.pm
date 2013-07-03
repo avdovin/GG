@@ -441,6 +441,8 @@ sub register {
 			my $sys_user = $self->sysuser->sys;
 			my $access = $self->sysuser->access->{lkey};
 			
+			no warnings;
+			
 			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
 					
 				my $lkey = $self->lkey(name => $k);
@@ -463,6 +465,8 @@ sub register {
 					$self->def_doptable(lkey => $k, access => $params{access}, key_shablon => $key_shablon) if($lkey->{settings}->{type} eq 'table');
 				}				
 			}
+			
+			use warnings;
 		}
 	);
 	
@@ -477,6 +481,8 @@ sub register {
 			my $key_shablon = $self->stash->{key_shablon};
 			
 			my @anketa_keys  = ();
+			
+			no warnings;
 			
 			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
 				my $lkey = $self->lkey(name => $k);
@@ -495,7 +501,8 @@ sub register {
 				}				
 			}
 			$self->stash->{listfield} = \@anketa_keys;
-
+			
+			use warnings;
 		}
 	);	
 
