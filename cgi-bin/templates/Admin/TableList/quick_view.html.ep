@@ -1,7 +1,8 @@
 <table class=tablelist border=0 width="1005" align=center style="border:solid 1px #ccc;background:white">
 %	my $class = 'even';
 %	my $lkeys = $self->lkey;
-%	foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+%	no warnings;
+%	foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
 %		if(exists ($item->{$k}) ){
 %			my $lkey = $self->lkey(name => $k);
 %			$class = $class eq 'even' ? 'odd' : 'even';
@@ -20,4 +21,5 @@
 		</div></td>
 %		}
 %	}
+%	use warnings;
 </table>

@@ -46,7 +46,36 @@ sub register {
 			return undef;
 		}
 	});
-		
+
+	$app->helper(
+		seo_custom_tags => sub {
+			my $self   = shift;
+			my $reqUrl = '/'.$self->req->url;
+			
+			($reqUrl, undef) = split(/\?/, $reqUrl);
+			
+			# Собираем все где есть *
+			my $seoMeta = {};
+			my $found = 0;
+			for my $node  ($self->dbi->query('SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` REGEXP "[*]$" ')->hashes){
+				$node->{name} =~ s{\*$}{}gi;
+				
+				if($reqUrl =~ /$$node{name}.*/gi){
+					$seoMeta = $node;
+					$found = 1;
+					last;
+				}
+			}
+			
+			unless($found){
+				if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
+					$seoMeta = $node
+				}
+			}					
+			
+			return $self->stash->{header} = $seoMeta || {};
+	});
+			
 	$app->helper( ip => sub {
 		my $self = shift;
 		my $for  = $self->req->headers->header('X-Forwarded-For');
@@ -246,6 +275,8 @@ sub register {
 				}
 				$self->stash->{header} = $header;
 			} else {
+				$self->seo_custom_tags();
+				$header = $self->stash->{header};
 				
 				if(!$header->{title} && $self->stash->{alias}){
 					$header = $self->app->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
