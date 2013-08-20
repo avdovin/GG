@@ -597,6 +597,35 @@ sub register {
 		}
 	);
 	$app->helper(
+		get_index_after => sub {
+			my $c      = shift;
+			my %params = @_;
+			
+			if (!$params{from})  {die "helper get_index_after. Отсутствует параметр FROM";}
+			
+			$params{index} 	||=	$c->stash('ID');
+			if (!$params{index}) {die "Не задан index";}
+			if (!$params{where}) {$params{where} = '';}
+			if (!$params{order}) {$params{order} = "ID";}
+
+			my $sql = qq/
+			SELECT `ID` 
+			FROM `$params{from}` 
+			WHERE 1 $params{where}  
+			ORDER BY `$params{order}` ASC
+			/;
+			
+			$sql .= ", `ID` ASC" if($params{order} ne 'ID');
+			
+			my @IDs = $c->app->dbi->query($sql)->flat;
+			
+			foreach (0..$#IDs){
+				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'});
+			}
+			return $params{ring} ? shift(@IDs) : 0;
+		}
+	);
+	$app->helper(
 		get_index_befor => sub {
 			my $c      = shift;
 			my %params = @_;
@@ -607,36 +636,22 @@ sub register {
 			if (!$params{index}) {die "Не задан index";}
 			if (!$params{where}) {$params{where} = '';}
 			if (!$params{order}) {$params{order} = "ID";}
-
-			my @IDs = $c->app->dbi->query(qq/
+			
+			my $sql = qq/
 			SELECT `ID` 
 			FROM `$params{from}` 
 			WHERE 1 $params{where}  
-			ORDER BY `$params{order}` desc, `ID` desc
-			/)->flat;
+			ORDER BY `$params{order}` desc
+			/;
 
-			map{ return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{index}) }0..$#IDs;
-			return $params{ring} ? shift(@IDs) : 0;
-		}
-	);
-	$app->helper(
-		def_text_interval => sub {
-			my $c      = shift;
-			my %params = @_;
+			$sql .= ", `ID` desc" if($params{order} ne 'ID');
 			
-			$params{cur_page} ||= $c->stash('page') || 1;
-			$params{postfix} = $params{postfix} ? "_".$params{postfix} : '';
+			my @IDs = $c->app->dbi->query($sql)->flat;
 			
-			my $total_page = int($params{total_vals} / $params{col_per_page});
-			$total_page++ if (int($params{total_vals} / $params{col_per_page}) != $params{total_vals} / $params{col_per_page});
-			$c->stash("total_page".$params{postfix}, $total_page);
-
-			$params{cur_page} = 1 if ($params{cur_page} > $total_page);
-
-			if ($total_page >= $params{cur_page}) {
-				$c->stash("first_index_page".$params{postfix}, ($params{cur_page} - 1) * $params{col_per_page});
+			foreach (0..$#IDs){
+				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'}); 
 			}
-			
+			return $params{ring} ? shift(@IDs) : 0;
 		}
 	);
 	

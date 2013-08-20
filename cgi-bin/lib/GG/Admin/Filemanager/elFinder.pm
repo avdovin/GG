@@ -7,7 +7,7 @@ use v5.10;
 use vars qw/$VERSION $DIRECTORY_SEPARATOR/;
 
 use Digest::MD5 qw(md5_hex);
-use MIME::Base64 ();
+#use MIME::Base64 ();
 use File::Basename qw();
 use File::Find qw();
 use File::Path qw();
@@ -16,6 +16,7 @@ use File::Copy::Recursive ();
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 use Mojolicious::Types;
+use Mojo::Util qw(decode encode b64_decode b64_encode url_escape url_unescape);
 
 use utf8;
 
@@ -321,7 +322,7 @@ sub _basename
 {
 	my ($path) = @_;
 	
-	utf8::decode($path);
+	$path = decode 'UTF-8', $path;
 	if (rindex($path, $DIRECTORY_SEPARATOR) == -1){
 		return $path;
 	}
@@ -1175,16 +1176,17 @@ sub _open
 				$self->{RES}->{'error'} .= 'Invalid parameters'. $p;
 			}
 		}
-		elsif (_isAllowed($self, $p, 'read') eq 'false')
-		{
-			if (! exists $self->{REQUEST}->{'init'}) {
-				$self->{RES}->{'error'} .= 'Access denied';
-			}
-		}
+#		elsif (_isAllowed($self, $p, 'read') eq 'false')
+#		{
+#			if (! exists $self->{REQUEST}->{'init'}) {
+#				$self->{RES}->{'error'} .= 'Access denied';
+#			}
+#		}
 		else
 		{
 			$path = $p;
 		}
+		
 	}
 
 	if (exists $self->{REQUEST}->{'current'})
@@ -1205,6 +1207,7 @@ sub _utime
 	return time().'0';
 }
 
+
 sub _findDir
 {
 	my ($self, $hash, $path) = @_;
@@ -1219,19 +1222,22 @@ sub _findDir
 		}
 	}
 
-	opendir(DIR, $path);
-	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);  
+	opendir( DIR, $path );
+	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
+	#$_ = decode 'UTF-8', $_ for ( @content );
 	closedir(DIR);
-
+	
 	foreach my $subdir (grep {-d "$path/$_" } @content)
 	{
+		next unless $subdir;
 		$p = $path.'/'.$subdir;
-
+		
 		if ($self->_hash_api2_encode($p) eq $hash || ($p = _findDir($self, $hash, $p)) ne 'false')
 		{
 			last;
 		}
 	}
+
 	return $p;
 }
 
@@ -1277,15 +1283,18 @@ sub __has_subdir{
 	return 0;  
 }
 
+
 sub _hash_api2_decode{
 	my $self = shift;
 	my $hash = shift;
-
+	
 	if(substr($hash, 0, length($self->{CONF}->{volume_id})) eq $self->{CONF}->{volume_id}){
+
 		$hash = substr($hash, length($self->{CONF}->{volume_id}) );
 		$hash =~ tr{\+\/=}{-_.};
-		$hash = MIME::Base64::decode($hash);
-		my $path = __uncrypt($hash);
+		$hash = b64_decode($hash);
+		my $path = __uncrypt( $hash);
+		#$path = encode 'UTF-8', $path;
 
 		return $self->_abs_path( $path );
 	}
@@ -1295,14 +1304,18 @@ sub _hash_api2_encode{
 	my $self = shift;
 	my $path = shift;
 	my $safe = $path;
+	
 	if($path){
+		$path = encode 'UTF-8', $path;
 		$path = $self->_rel_path($path);
 		
 		$path ||= $DIRECTORY_SEPARATOR;
 		#die $path if ($safe eq '../../userfiles/123');
-
+		
 		my $hash = __crypt($path);
-		$hash = MIME::Base64::encode($hash);
+		
+		$hash = b64_encode( $hash );
+		
 		$hash =~ tr{\+\/=}{-_.};
 		$hash =~ s/[\s\.]+$//;
 		$hash =~ s/[\s]+//;
@@ -1310,4 +1323,11 @@ sub _hash_api2_encode{
 		return $self->{CONF}->{volume_id}.$hash;		
 	}
 }
+
+#use Mojo::ByteStream 'b';
+#sub _enc($$) {
+#	$_[0] = b($_[0])->encode('UTF-8')->to_string if $_[0];
+#	$_[0];
+#}
+
 1;
