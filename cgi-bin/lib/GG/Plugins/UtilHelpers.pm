@@ -327,7 +327,7 @@ sub register {
 			my	%params = (
 				string	=> '',
 				size	=> 300,
-				ends	=> "...",
+				ends	=> " &hellip;",
 				@_
 			);
 			
@@ -352,13 +352,16 @@ sub register {
 					}
 				}
 				else { $string = substr( $string, 0, $size ); }
-
+				
+				$string =~ s{\s$}{}gi;
+				
 				my $str_temp =
-				  substr( $string, length($string) - 2, 1 )
-				  ; # Проверка на знаки препинания в конце урезаной строки
-				#if ( $str_temp !~ m/[\.\,\:\;\-\(\!\?]+/ ) {
+				  substr( $string, length($string) - 1, 1 );
+				
+				# Проверка на знаки препинания в конце урезаной строки
+				if ( $str_temp !~ m/[\.\,\:\;\-\(\!\?]+/ ) {
 					$string .= $params{ends};
-				#}
+				}
 			}
 
 			return $string;
