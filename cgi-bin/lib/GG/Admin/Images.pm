@@ -491,7 +491,7 @@ sub tree_block{
 	
 	if($self->sysuser->access->{table}->{$table}->{r}){
 		my 	$select = "`ID`,`name`,`type_file`";
-			$select .= " " if $self->dbi->exists_keys( table => $self->stash->{list_table}, lkey => "dir");
+			$select .= ", `dir` " if $self->dbi->exists_keys( table => $table, lkey => "dir");
 		
 		$items = $self->getHashSQL(	select	=> $select,
 									from 	=> $table, 

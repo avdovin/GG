@@ -198,7 +198,13 @@ sub register {
  			return $out;
 		}
 	);
-	
+
+	# в rails этот helper называется - pluralize
+	# образовывает множественное число
+	$app->helper( pluralize	=> sub {
+		return shift->declension( @_ );
+	});
+		
 	$app->helper(
 		declension	=> sub {
 			my $self = shift;
@@ -575,30 +581,7 @@ sub register {
 			return $d;	
 		}
 	);
-	
-	$app->helper(
-		get_index_after => sub {
-			my $c      = shift;
-			my %params = @_;
-			
-			if (!$params{from})  {die "helper get_index_after. Отсутствует параметр FROM";}
-			
-			$params{index} 	||=	$c->stash('ID');
-			if (!$params{index}) {die "Не задан index";}
-			if (!$params{where}) {$params{where} = '';}
-			if (!$params{order}) {$params{order} = "ID";}
 
-			my @IDs = $c->app->dbi->query(qq/
-			SELECT `ID` 
-			FROM `$params{from}` 
-			WHERE 1 $params{where} 
-			ORDER BY `$params{order}` ASC, `ID` ASC
-			/)->flat;
-
-			map{ return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{index}) }0..$#IDs;
-			return $params{ring} ? shift(@IDs) : 0;
-		}
-	);
 	$app->helper(
 		get_index_after => sub {
 			my $c      = shift;
@@ -657,7 +640,28 @@ sub register {
 			return $params{ring} ? shift(@IDs) : 0;
 		}
 	);
-	
+
+	$app->helper(
+		def_text_interval => sub {
+			my $c      = shift;
+			my %params = @_;
+			
+			$params{cur_page} ||= $c->stash('page') || 1;
+			$params{postfix} = $params{postfix} ? "_".$params{postfix} : '';
+			
+			my $total_page = int($params{total_vals} / $params{col_per_page});
+			$total_page++ if (int($params{total_vals} / $params{col_per_page}) != $params{total_vals} / $params{col_per_page});
+			$c->stash("total_page".$params{postfix}, $total_page);
+
+			$params{cur_page} = 1 if ($params{cur_page} > $total_page);
+
+			if ($total_page >= $params{cur_page}) {
+				$c->stash("first_index_page".$params{postfix}, ($params{cur_page} - 1) * $params{col_per_page});
+			}
+			
+		}
+	);
+		
 	$app->helper(
 		page_navigator => sub {
 			my $self   = shift;

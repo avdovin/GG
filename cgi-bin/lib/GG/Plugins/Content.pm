@@ -32,7 +32,7 @@ sub register {
 					$vals->{error} = 'Не заполенно обязательное поле - '.$fields{$_};
 					$vals->{error_field} = $_;
 		
-					return $self->render_json( $vals );			
+					return $self->render( json => $vals );			
 				}
 			}
 						
@@ -51,7 +51,7 @@ sub register {
 		    }
 		    $vals->{html} = $self->render( template => 'Texts/callback_message_success', partial => 1);
 		    
-		    $self->render_json( $vals );
+		    $self->render( json => $vals );
 		}
 	);	
 	

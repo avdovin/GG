@@ -3,6 +3,23 @@ package GG::Content::Texts;
 use utf8;
 use Mojo::Base 'GG::Content::Controller';
 
+sub redirect_to_first_item{
+	my $self = shift;
+	
+	$self->stash->{key_razdel} ||= 'news';
+	
+	my $db_table = 'texts_'.$self->stash->{key_razdel}.'_'.$self->lang;
+	
+	return $self->render_not_found unless my $item = $self->dbi->query(qq/
+		SELECT `alias`
+		FROM `$db_table`
+		WHERE `viewtext`='1' ORDER BY `tdate` DESC
+		LIMIT 0,1
+	/)->hash;
+	
+	$self->redirect_to($self->stash->{key_razdel}.'/'.$item->{alias})
+}
+
 sub events_item{
     my $self = shift;
 	my %params = @_;

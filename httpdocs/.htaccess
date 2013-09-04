@@ -6,6 +6,9 @@ Options FollowSymLinks Includes MultiViews Indexes
 
 RewriteEngine On
 
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)/$ $1.html [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ /cgi-bin/script/dispatch.fcgi/$1 [QSA,L]
 
