@@ -10,7 +10,7 @@
 			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
 
 %		} elsif($lkey->{settings}->{type} eq 'chb'){
-			<% if($self->sysuser->settings->{$replaceme.'_filter_'.$f}==1){ %><%= $lkey->{settings}->{yes}%><% }else{ %><%= $lkey->{settings}->{no}%><% } =%>
+			<% if($self->sysuser->settings->{$replaceme.'_filter_'.$f}==1){ %><%== $lkey->{settings}->{yes}%><% }else{ %><%== $lkey->{settings}->{no}%><% } =%>
 
 %		} elsif($lkey->{settings}->{type} eq 'd' or $lkey->{settings}->{type} eq 'date'){
 			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'} %> <%= $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>

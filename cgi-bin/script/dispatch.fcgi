@@ -6,8 +6,8 @@ use warnings;
 BEGIN { $ENV{MAGICK_THREAD_LIMIT}=2; }
 
 use FindBin;
-use lib "$FindBin::Bin/../lib";
-use lib "$FindBin::Bin/../extlib";
+BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
+BEGIN { unshift @INC, "$FindBin::Bin/../extlib" }
 
 # Mac os lib path
 use lib '/opt/local/lib/perl5/vendor_perl/5.12.4/darwin-thread-multi-2level/';
