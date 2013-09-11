@@ -1,61 +1,186 @@
-%# Last Modified 2012-09-27 13:30:41 by root 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+<!DOCTYPE html>
+<html lang="ru-RU">
 <head>
 <%= metaHeader %>
 
 <%== uncache( '/css/style.css' ) %>
-<%== uncache( '/js/script.js' ) %>
+<%== uncache( '/js/jquery.galleryCarousel-1.2.js' ) %>
+<%== uncache( '/js/core.js' ) %>
 
 </head>
 <body>
+	<%== include 'Texts/_callback' %>
 
-    <div id="blackbox"></div>
+    <div class="wrapper">
 
-    <table id="subscribe-popup">
-        <tr>
-            <td>
-                <div>
-                    <a href="#" class="close"></a>
-                    <h2>Подписка</h2>
-                    <p>Спасибо за доверие!</p>
+        <div class="block block_background block_shadowed">
+            <div class="header">
+                <a href="/" class="header__logo"></a>
+                <div class="header__contacts">
+                    <p class="contacts__phone">8 (812) 555-55-55</p>
+                    <a href="/feedback" class="contacts__callback">Заказ обратного звонка</a>
                 </div>
-            </td>
-        </tr>
-    </table>
-
-    <!-- body -->
-    <div id="top">
-        <!-- topmenu -->
+            </div>
             <%== menu_track( template => 'top' ) =%>
-        <!-- end of topmenu -->
-    
-        <!-- header -->
-            <%== include 'Texts/head' =%>
-        <!-- end of header -->
-        
-        <!-- content -->
-        <div id="body" class="clearfix main">
-        
-            <div id="leftCol">
-                <h2>Страны</h2>
-            </div>
+ 			
+			<%== catalog_categorys_top %>
+        </div>
 
-            <div id="rightCol">
-				<div class="content">
-                	<%== text_by_alias('main') =%>
-                
-                	<%== soffers_anons =%>
+        <div class="body">
+            <div class="block block_background clearfix">
+                <div class="block_shadow">
+                    <div class="banners">
+                    	<%== banner_place place => 1, count => 10, template => "Banners/slider" %>
+ 						
+ 						<%== banner_place 
+ 							place 		=> 10, 
+ 							count 		=> 1,
+ 							before_html	=> qq{
+ 							<div class='banners__unit banners__unit_right'>
+ 							},
+ 							after_html	=> qq{</div></div>} 
+						%>
+                    </div>
+                </div>
+
+                <div class="block">
+                    <div class="showcase clearfix">
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль еще одна строка</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение.</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                        <div class="showcase__entry">
+                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
+                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
+                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
+                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        </div>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <div class="mainpage-content">
+                    <div class="content">
+                        <h1>О нас</h1>
+                        <p>День торжества, установленный в честь или в память кого-нибудь, чего-нибудь. В том числе, день или ряд дней, отмечаемых церковью в память религиозного события или святого. Выходной, нерабочий день. День радости и торжества. День игр и развлечений.Социальное время можно разбить на три вида: повседневность, выходные и праздники. Повседневностьэто череда практик, повторяющихся изо дня в день. Выходные — это регулярные перерывы в беге повседневности. Повседневность и выходные имеют тенденцию к рутинизации. Чаще всего основным содержанием повседневности является труд.</p>
+                        <p>В выходные же преобладает свободное время. В это свободное время может меняться график и содержание питания, индивид может сам выбирать свое окружение. Считается, что в выходные человек должен восстанавливать свои силы после рабочих будней. Праздник является особым элементом в структуре социального времени. Главная функция праздника — социокультурная интеграция той или иной общности людей. Разные праздники осуществляют разные виды интеграции. Праздничный спектакль любого уровня строится по образу семейного праздника, при этом делаются попытки усилить интеграцию социокультурных полей, приблизить управляющих к управляемым, главу государства к народу. </p>
+                    </div>
+                </div>
+
+                <div class="mainpage-upcoming">
+                    <h2 class="mainpage-upcoming__title">Ближайшие мероприятия</h2>
+                    <div class="mainpage-upcoming__container">
+                        <div class="calendar__date">
+                            <a href="#" class="date__prev"></a>
+                            <span class="date__text">июнь 2013</span>
+                            <a href="#" class="date__next"></a>
+                        </div>
+                        <div  class="calendar__wrapper">
+                            <table class="calendar__layout">
+                                <tr>
+                                    <th class="calendar-cell calendar-cell_day">пн</th>
+                                    <th class="calendar-cell calendar-cell_day">вт</th>
+                                    <th class="calendar-cell calendar-cell_day">ср</th>
+                                    <th class="calendar-cell calendar-cell_day">чт</th>
+                                    <th class="calendar-cell calendar-cell_day">пт</th>
+                                    <th class="calendar-cell calendar-cell_day">сб</th>
+                                    <th class="calendar-cell calendar-cell_day">вс</th>
+                                </tr>
+                                <tr>
+                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
+                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
+                                    <td class="calendar-cell calendar-cell_disabled">1</td>
+                                    <td class="calendar-cell calendar-cell_disabled">2</td>
+                                    <td class="calendar-cell calendar-cell_disabled">3</td>
+                                    <td class="calendar-cell calendar-cell_disabled">4</td>
+                                    <td class="calendar-cell">5</td>
+                                </tr>
+                                <tr>
+                                    <td class="calendar-cell">6</td>
+                                    <td class="calendar-cell">7</td>
+                                    <td class="calendar-cell">8</td>
+                                    <td class="calendar-cell">9</td>
+                                    <td class="calendar-cell">10</td>
+                                    <td class="calendar-cell">11</td>
+                                    <td class="calendar-cell">12</td>
+                                </tr>
+                                <tr>
+                                    <td class="calendar-cell">13</td>
+                                    <td class="calendar-cell">14</td>
+                                    <td class="calendar-cell">15</td>
+                                    <td class="calendar-cell calendar-cell_active calendar-cell_current">16</td>
+                                    <td class="calendar-cell">17</td>
+                                    <td class="calendar-cell calendar-cell_active">18</td>
+                                    <td class="calendar-cell calendar-cell_active">19</td>
+                                </tr>
+                                <tr>
+                                    <td class="calendar-cell">20</td>
+                                    <td class="calendar-cell">21</td>
+                                    <td class="calendar-cell">22</td>
+                                    <td class="calendar-cell">23</td>
+                                    <td class="calendar-cell">24</td>
+                                    <td class="calendar-cell">25</td>
+                                    <td class="calendar-cell">26</td>
+                                </tr>
+                                <tr>
+                                    <td class="calendar-cell">27</td>
+                                    <td class="calendar-cell">28</td>
+                                    <td class="calendar-cell">29</td>
+                                    <td class="calendar-cell">30</td>
+                                    <td class="calendar-cell">31</td>
+                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
+                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <a href="#" class="mainpage-upcoming__link">Все ближайшие мероприятия</a>
+                    </div>
                 </div>
             </div>
-            <div style="clear: both"></div>
         </div>
-        <!-- end of content -->
 
-        <div id="bottom">
-			<%== include 'Texts/footer' =%>
-        </div>
     </div>
+
+    <%== include 'Texts/footer' =%>
 <%== js_files %>
 </body>
 </html>

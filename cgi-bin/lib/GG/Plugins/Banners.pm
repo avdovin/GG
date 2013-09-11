@@ -59,6 +59,8 @@ sub register {
 				place		=> 0, # баннерное место
 				template 	=> 'Banners/manywithdelimiter',
 				delimiter 	=> '',
+				before_html	=> '',
+				after_html	=> '',
 				@_
 			);
 			
@@ -125,19 +127,19 @@ sub register {
 					}
 				}			
 			}
-
-			$self->render(		%params,
+			
+			my $banner_content = 	$self->render(		%params,
 								banners			=> $banners,
 								banner_block	=> $banner_block,
    								template		=> $params{template},
    								partial			=> 1 );
-			
+   			
+   			return $params{before_html} . $banner_content . $params{after_html};			
+		
 		}
 	);
 
 	
 }
-
-
 
 1;

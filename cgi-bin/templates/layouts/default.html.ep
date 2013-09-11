@@ -9,6 +9,9 @@
 %	js_files('/js/jquery.galleryCarousel-1.1.js');
 %	js_files('/js/script.js');
 
+%# 	catalog
+%	js_files('/js/catalog.js') if ($self->stash->{alias} eq 'catalog');
+
 </head>
 <body>
 

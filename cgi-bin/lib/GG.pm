@@ -136,8 +136,18 @@ sub startup{
     	$self->stash->{catalog} = 1;
     	return 1;
     });
-    $routesCatalog->any('/brands')->to('Catalog#brands', alias => 'catalog_brands', admin_name => 'Каталог. Бренды')->name('catalog_brands');
-       
+    
+    my $routesCatalogAjax = $routesCatalog->bridge('/ajax')->to(layout => '', cb => sub {
+    	
+    	return 1;
+    });
+    
+    $routesCatalogAjax->any('/list_items')->to('Catalog#list_items', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+    
+    $routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_sub_category');
+    $routesCatalog->any('/:category_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+
+
     $routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args )->name('main');
 
 	$routes->any('/news/list')->to( "Texts#texts_list", alias => 'news', key_razdel => "news", admin_name => 'Новости' )->name('news_list');
