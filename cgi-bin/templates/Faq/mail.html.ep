@@ -1,12 +1,30 @@
-<h2>Получен новый вопрос с сайта <%= get_var 'site_name'%></h2><br />
+<html>
+<head>
+    <title><%= get_var 'site_name'%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+    	@media only screen and (max-width:600px) {
+    		#wrapper {
+      			width:100% !important;
+    		}
+		}
+    </style>
+</head>
+<body>
 
+	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+		<tr>
+			<td>
 
-Имя: <b><%= $form->{author_name}->{value} %></b><br />
-E-mail: <b><%= $form->{email}->{value} %></b><br />
-Вопрос:<br />
-<%= $form->{name}->{value} %>
+				<h2>Получен новый вопрос с сайта <%= get_var 'site_name'%></h2><br />
+				
+				
+				Имя: <b><%= $form->{author_name}->{value} %></b><br />
+				E-mail: <b><%= $form->{email}->{value} %></b><br />
+				Вопрос:<br />
+				<%= $form->{name}->{value} %>
 
-
-
-
-
+		</tr>
+	</table>
+</body>
+</html>

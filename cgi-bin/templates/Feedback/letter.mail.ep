@@ -1,11 +1,29 @@
-<h2>Получен письмо с сайта <%= get_var 'site_name'%></h2><br />
+<html>
+<head>
+    <title><%= get_var 'site_name'%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+    	@media only screen and (max-width:600px) {
+    		#wrapper {
+      			width:100% !important;
+    		}
+		}
+    </style>
+</head>
+<body>
 
-Имя: <b><%= $self->stash->{name} %></b><br />
-Телефон: <b><%= $self->stash->{phone} %></b><br />
-Email: <b><%= $self->stash->{email} %></b><br />
-Вопрос:<br />
-<%= $self->stash->{ftext} %>
-
-
-
-
+	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+		<tr>
+			<td>
+				<h2>Получен письмо с сайта <%= get_var 'site_name'%></h2><br />
+				
+				Имя: <b><%= $self->stash->{name} %></b><br />
+				Телефон: <b><%= $self->stash->{phone} %></b><br />
+				Email: <b><%= $self->stash->{email} %></b><br />
+				Вопрос:<br />
+				<%= $self->stash->{ftext} %>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

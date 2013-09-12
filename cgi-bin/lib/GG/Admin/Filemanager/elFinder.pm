@@ -549,12 +549,22 @@ sub _info
 			eval{
 				my $image = Image::Magick->new();
 				my $x = $image -> Read($path);
-				die $x if $x;
+
+				# в изображении есть ошибки, удаляем его
+				if( $x ){
+					unlink $path;
+					die $x;
+					#die $path if $x;	
+				}
+				
+				
 				my ($w, $h) = $image->Get('width', 'height');
 				$info{'dim'} = $w.'x'.$h;
+				
 				undef $image;
 			};
 			warn $@ if $@;
+			
 			
 			# check tmb
 			my $dir = substr($path, 0, -length($info{'name'}));

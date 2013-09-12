@@ -1,8 +1,31 @@
-<%== $letter->{text} %>
+<html>
+<head>
+    <title><%= get_var 'site_name'%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+    	@media only screen and (max-width:600px) {
+    		#wrapper {
+      			width:100% !important;
+    		}
+		}
+    </style>
+</head>
+<body>
 
-<% if($letter->{soffers}){ %>
-<br /><%== $offers_text %><br />
-<% } %>
+	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+		<tr>
+			<td>
 
-<br />
-<p>Если вы больше не хотите получать информационные письма от компании "Тандем", пожалуйста, нажмите на <a href="http://<%= $ENV{HTTP_HOST} %>/subscribe/unsubscribe?cck=<%= $letter->{cck} %>&user_id=<%= $letter->{user_id} %>">отписаться от рассылки</a></p>
+				<%== $letter->{text} %>
+				
+				<% if($letter->{soffers}){ %>
+				<br /><%== $offers_text %><br />
+				<% } %>
+				
+				<br />
+				<p>Если вы больше не хотите получать информационные письма от компании "Тандем", пожалуйста, нажмите на <a href="http://<%= $ENV{HTTP_HOST} %>/subscribe/unsubscribe?cck=<%= $letter->{cck} %>&user_id=<%= $letter->{user_id} %>">отписаться от рассылки</a></p>
+
+		</tr>
+	</table>
+</body>
+</html>
