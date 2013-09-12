@@ -3,9 +3,11 @@
 <head>
 <%= metaHeader %>
 
-<%== uncache( '/css/style.css' ) %>
-<%== uncache( '/js/jquery.galleryCarousel-1.2.js' ) %>
-<%== uncache( '/js/core.js' ) %>
+%== uncache( '/css/style.css' )
+
+% uncache( '/js/jquery.galleryCarousel-1.2.js' );
+% uncache( '/js/common.js' );
+% uncache( '/js/core.js' );
 
 </head>
 <body>
@@ -181,6 +183,6 @@
     </div>
 
     <%== include 'Texts/footer' =%>
-<%== js_files %>
+%== js_files
 </body>
 </html>

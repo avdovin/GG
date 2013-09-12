@@ -183,16 +183,23 @@ sub register {
 		js_files	=> sub {
 			my $self = shift;
  			my $file = shift;
+ 			my $template = shift || '';
  			
  			if($file){
- 				push @{$self->stash->{_js_files}}, $file;
+ 				push @{ $self->stash->{_js_files} }, {
+ 					file		=> $file,
+ 					template	=> __FILE__,
+ 				};
  				return;
  			}
  			
  			my $js_files = $self->stash->{_js_files} || []; 
- 			my $out;
+ 			my $out = '';
  			foreach (@$js_files){
- 				$out .= $self->javascript($_)."\n" if $_;
+ 				next unless $_->{file};
+ 				
+ 				$out .= '<!-- '.$_->{template}." -->\n" if $_->{template}; 
+ 				$out .= $self->javascript($_->{file})."\n";
  			}
  			
  			return $out;
@@ -200,7 +207,6 @@ sub register {
 	);
 
 	# в rails этот helper называется - pluralize
-	# образовывает множественное число
 	$app->helper( pluralize	=> sub {
 		return shift->declension( @_ );
 	});
