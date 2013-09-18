@@ -209,7 +209,11 @@ sub register {
         		$self->stash->{group_total} = $#{$self->app->program->{groupname}} + 1;
         		$self->stash->{group_name_list} = join(",",  @tablist);
     		}
-			
+
+    		if( $self->stash->{'index'} && defined $self->stash->{'anketa'}->{'dir'} && defined $self->stash->{'anketa'}->{'alias'} ){
+    			$self->lkey( name => 'dir')->{settings}->{template_w} = 'field_checkbox_read';
+    		}
+    					
 			if($params{render_html}){
 				$self->render( template	=> $self->stash->{template_dir}.$params{template})
 

@@ -552,7 +552,7 @@ sub edit{
 	# Создание папки
 	if($params{dir}){
 		$self->stash->{page_name} = "Создание новой папки в разделе «".$self->stash->{name_razdel}."»";
-		$self->stash->{anketa}->{dir} = 1;
+		$self->param_default('dir' => $self->stash->{anketa}->{dir} = 1 );
 	}
 		
 	$self->define_anket_form( access => 'w');		
