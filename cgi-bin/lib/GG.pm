@@ -66,11 +66,14 @@ sub startup{
 	  	});
 	};
 	
+	# значения по умолчанию для маршрутов
 	my %routes_args = (
-		handler	=> 'ep',
-		controller_class	=> 'GG::Controller',
-		layout	=> 'default',
-	#	lang	=> 'ru',
+		handler	=> 'ep',							# Тип шаблонозитора и соответсвенно файлов шаблона
+		controller_class	=> 'GG::Controller',	# Папка с модулями
+		layout	=> 'default',						# Скелет (layout) страниц
+		seo_custom_tags => 1,						# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
+		seo_title_sitename	=> 1					# Показывать вначале тега title имя сайта
+	#	lang	=> 'ru',							# языковая версия сайта
 	);
 
 	$self->hook(before_dispatch => sub {

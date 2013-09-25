@@ -899,8 +899,9 @@ function editor_init(form) {
 		count = 1;
 		CKEDITOR.replace(id, {
 			toolbar: toolbar,
-			resize_enabled: false,
-			startupFocus: false
+			//resize_enabled: false,
+			startupFocus: false,
+			removePlugins: 'resize',
 		});
 
 		CKEDITOR.instances[id].on('afterCommandExec', function(e) {

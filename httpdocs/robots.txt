@@ -1,4 +1,7 @@
 User-agent: *
+
+Disallow: /
+
 Disallow: /admin/
 Disallow: /userfiles/
 Disallow: /docfiles/

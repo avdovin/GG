@@ -287,7 +287,8 @@ sub register {
 				}
 				$self->stash->{header} = $header;
 			} else {
-				$self->seo_custom_tags();
+				$self->seo_custom_tags() if $self->stash->{seo_custom_tags};
+				
 				$header = $self->stash->{header};
 				
 				if(!$header->{title} && $self->stash->{alias}){
