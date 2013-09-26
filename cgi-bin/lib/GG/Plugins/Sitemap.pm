@@ -44,7 +44,7 @@ sub register {
 								},	
 		};
 		
-		my $host = $self->req->url->{base}->{host};
+		my $host = $self->req->headers->host();
 		my $nodes;
 		foreach my $table (keys %$CONFIG){
 			my $priority = $CONFIG->{$table}->{priority} || '0.5';

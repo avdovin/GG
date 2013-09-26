@@ -72,7 +72,8 @@ sub startup{
 		controller_class	=> 'GG::Controller',	# Папка с модулями
 		layout	=> 'default',						# Скелет (layout) страниц
 		seo_custom_tags => 1,						# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
-		seo_title_sitename	=> 1					# Показывать вначале тега title имя сайта
+		seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
+		jquery_history		=> 0,					# Загрузить jQuery плагин - history
 	#	lang	=> 'ru',							# языковая версия сайта
 	);
 

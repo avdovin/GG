@@ -363,6 +363,7 @@ sub register {
 			my $self = shift;
 			my %params = (
 				field	=> 'Filedata',
+				size	=> 1,			# флаг добавления к возвращаемому значению размера файла (админка)
 				@_
 			);
 			
@@ -389,13 +390,13 @@ sub register {
 
 				$size = $self->file_nice_size($size) if $size;
 				
-				$filename .= "| $size";
+				$filename .= "| $size" if $params{'size'};
 				return $filename;
 			}
 			return;
 			
 		}
-	);	
+	);		
 
 	$app->helper(
 		transliteration => sub {
