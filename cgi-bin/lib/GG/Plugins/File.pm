@@ -362,11 +362,11 @@ sub register {
 		file_upload_tmp => sub {
 			my $self = shift;
 			my %params = (
-				field	=> 'Filedata',
+				field	=> 'Filedata[]',
 				size	=> 1,			# флаг добавления к возвращаемому значению размера файла (админка)
 				@_
 			);
-			
+
 			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
 
 			if (my $upload = $self->req->upload( $params{field} )) {
@@ -389,7 +389,7 @@ sub register {
 				my $size = -s $dir.$filename;
 
 				$size = $self->file_nice_size($size) if $size;
-				
+
 				$filename .= "| $size" if $params{'size'};
 				return $filename;
 			}
@@ -582,6 +582,27 @@ sub register {
 		}
 	);	
 
+	$app->helper(
+		file_convert_ext_to_mime => sub {
+			my $self = shift;
+			my $ext = shift;
+			
+			my $exts = {
+				'*.jpg'		=> 'image/jpeg',
+				'*.png'		=> 'image/png',
+				'*.gif'		=> 'image/gif',
+				
+				'*.*'		=> '',
+			};
+			
+			my @res;
+			foreach (split(';', $ext )){
+				push @res, $exts->{$_}	if $exts->{$_};
+			}
+			return join(',', @res);
+		}
+	);
+	
 	$app->helper(
 		file_nice_size => sub {
 			my $self = shift;

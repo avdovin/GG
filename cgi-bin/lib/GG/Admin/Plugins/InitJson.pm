@@ -119,10 +119,6 @@ sub register {
 				type		=> 'eval',
 				value		=> "load_script('/admin/ckeditor/ckeditor.js');"
 			},
-			{
-				type		=> 'eval',
-				value		=> "load_css('/admin/js/jquery/uploadify/uploadify.css');",
-			},
 			#{
 			#	type		=> 'eval',
 			#	value		=> "load_css('/admin/js/SpinBoxJs/Scripts/SpinBoxJs.css');",
@@ -139,7 +135,7 @@ sub register {
 											'/admin/js/calendar.js',
 											'/admin/js/urlify.js',
 											'/admin/js/drag-drop-folder-tree.js',
-											'/admin/js/jquery/uploadify/jquery.uploadify.min.js'
+											'/admin/js/jquery/jquery.liteuploader.min.js'
 										],
 										success		: function(){}
 									})
