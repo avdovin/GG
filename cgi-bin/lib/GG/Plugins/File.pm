@@ -16,7 +16,7 @@ use File::stat;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 my $MAX_IMAGE_SIZE = 1000; # Максимальный размер картинки по большей стороне, px
-		
+
 sub register {
 	my ( $self, $app, $opts ) = @_;
 
@@ -36,27 +36,35 @@ sub register {
 			);
 
 			$params{folder} ||= $self->lkey(name => $params{lfield}, setting => 'folder' );
-						
+
 			my $document_root = $ENV{DOCUMENT_ROOT};
 
 			if(my $mini = $self->lkey(name => $params{lfield}, setting => 'mini' )){
-				
+
 				foreach (split(/,/, $mini)){
 					s{~[\w]+$}{};
-					my $path = $self->file_path_with_prefix( path => $document_root.$params{folder}.$params{pict}, prefix => $_);
+
 					eval{
-						unlink($path);
+						my $path = $self->file_path_with_prefix( path => $document_root.$params{folder}.$params{pict}, prefix => $_);
+						unlink( $path );
+
+						my $retina_path = $self->file_path_retina($path);
+						unlink( $retina_path );
 					};
+
 					warn $@ if $@;
 				}
+
+				my $retina_path = $self->file_path_retina($document_root.$params{folder}.$params{pict});
 				eval{
 					unlink ($document_root.$params{folder}.$params{pict});
+					unlink ($retina_path);
 				};
 				warn $@ if $@;
 			}
 		}
-	);	
-		
+	);
+
 	# Сохранение картинки с созданием mini из параметра ключа
 	$app->helper(
 		file_save_pict => sub {
@@ -70,25 +78,25 @@ sub register {
 					folder		=> 'folder',
 					pict		=> 'pict',
 					type_file	=> 'type_file',
-				}, 
+				},
 				@_
 			);
-			
-			$params{filename} ||= $self->send_params->{ $params{lfield} } if $self->send_params->{ $params{lfield} }; 
+
+			$params{filename} ||= $self->send_params->{ $params{lfield} } if $self->send_params->{ $params{lfield} };
 			$params{folder} ||= $self->lkey(name => $params{lfield}, setting => 'folder' );
-			
+
 			$params{filename} ||= $params{file} if $params{file};
 			my $table = delete $params{table};
 			my $fields_hashref = delete $params{fields};
-			
+
 			my ($pict_saved, $type_file, $pict_path);
-		
+
 			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
 						file	=> $pict_path,
 						fsize 	=> $MAX_IMAGE_SIZE,
 			);
-									
+
 			#unlink($ENV{'DOCUMENT_ROOT'}.$params{folder}.$pict_saved);
 			foreach (keys %$fields_hashref){
 				delete $fields_hashref->{$_} unless $self->dbi->exists_keys(from => $table, lkey => $fields_hashref->{$_} );
@@ -96,12 +104,13 @@ sub register {
 			my $values = {};
 			$values->{ $fields_hashref->{folder} } = $params{folder} if $fields_hashref->{folder};
 			$values->{ $fields_hashref->{pict} } = $pict_saved if $fields_hashref->{pict};
-			$values->{ $fields_hashref->{type_file} } = $type_file if $fields_hashref->{type_file}; 
+			$values->{ $fields_hashref->{type_file} } = $type_file if $fields_hashref->{type_file};
 
-						
+
 			$self->save_info(send_params => 0, table => $table, field_values => $values );
-			
+
 			if(my $mini = $self->lkey(name => $params{lfield}, setting => 'mini' )){
+
 				foreach my $d (split(/,/, $mini)) {
 					if($d =~ /([\d]+)x([\d]+)~([\w]+)/){
 						my ($w, $h) = ($1, $2);
@@ -110,32 +119,34 @@ sub register {
 						my ($path, $pict, $ext) = $self->file_save_from_tmp(filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
 
 						$self->resize_pict(
-										file	=> $path,
-										width	=> $w,
-										height	=> $h,
-										%type
+							file		=> $path,
+							width		=> $w,
+							height	=> $h,
+							%type
 						);
 					} elsif($d =~ /([\d]+)x([\d]+)/){
 						my ($w, $h) = ($1, $2);
 
 						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
-						
+
 						$self->resize_pict(
-										file	=> $path,
-										width	=> $w,
-										height	=> $h
+							file		=> $path,
+							width		=> $w,
+							height	=> $h
 						);
 					} else {
 						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $d );
 
 						$self->resize_pict(
-										file	=> $path,
-										fsize	=> $d,
-						);						
+							file	=> $path,
+							fsize	=> $d,
+						);
 					}
-					
+
 				}
 			}
+			unlink($self->file_tmpdir().'/'.$params{filename});
+
 			return 1;
 		}
 	);
@@ -150,7 +161,7 @@ sub register {
 				@_
 			);
 			#$params{from} = $self->global('tempory_dir').$params{filename};
-			$params{from} = $self->file_tmpdir().'/'.$params{filename};		
+			$params{from} = $self->file_tmpdir().'/'.$params{filename};
 
 			$self->file_save(%params);
 		}
@@ -160,13 +171,13 @@ sub register {
 		file_download => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $path =  $params{'abs_path'} || $ENV{'DOCUMENT_ROOT'}.$params{path};
-			
+
 			if(-f $path){
 				my ($filename, undef, $ext) = File::Basename::fileparse($path,qr/\.[^.]*/);
 				$ext =~ s{^\.}{};
-				
+
 				my $stat = stat($path);
         		my $modified = $stat->mtime;
         		my $size     = $stat->size;
@@ -178,10 +189,10 @@ sub register {
 				$rsh->content_disposition('attachment; filename='.$filename.'.'.$ext);
 				$rsh->content_length($size);
 				$rsh->content_encoding("Binary");
-				
+
 				my $mimeType = $self->app->types->type($ext);
 				$mimeType = 'application/vnd.ms-excel' if($ext eq 'xls');
-				
+
 				$rsh->content_type($mimeType || "application/octet-stream");
 				$rsh->last_modified(Mojo::Date->new($modified));
 
@@ -191,7 +202,7 @@ sub register {
 			}
 		}
 	);
-		
+
 	$app->helper(
 		file_save => sub {
 			my $self = shift;
@@ -202,11 +213,13 @@ sub register {
 				dest		=> '',
 				replace		=> 0,
 				from_tmp	=> 0,
-				prefix		=> '',			
+				prefix		=> '',
+				prefix_delimiter => '_',
+				to_abs_path => 1,
 				@_
 			);
-			
-			
+
+
 			my $from = delete $params{from};
 			my $to = delete $params{to} || $params{dest};
 
@@ -214,14 +227,15 @@ sub register {
 				$to  = $self->lkey(name => $params{lfield} )->{settings}->{folder};
 				$to .= $self->send_params->{ $params{lfield} };
 			}
-			
+
 			return unless $to;
-			
-			$from = $ENV{DOCUMENT_ROOT}.$from unless $params{from_tmp};
-			$to = $ENV{DOCUMENT_ROOT}.$to;
-			
-			unlink($to) if ($params{replace} && -f $to);
-			
+
+			if(delete $params{to_abs_path}){
+				$from = $ENV{DOCUMENT_ROOT}.$from unless $params{from_tmp};
+				$to = $ENV{DOCUMENT_ROOT}.$to;
+			}
+
+
 #			my($filename, $directories) = File::Basename::fileparse($from);
 #			my $ext = ($filename =~ m/([^.]+)$/)[0];
 #			$filename =~ s{\.$ext$}{}e;
@@ -231,9 +245,9 @@ sub register {
 #				my $current = 1;
 #				if($filename =~ /(\d)+$/){
 #					$current = $1;
-#					$filename =~ s/(\d)+$//;	
+#					$filename =~ s/(\d)+$//;
 #				}
-#				
+#
 #				foreach (1..1000){
 #					my $test_name = $filename;
 #					$test_name .= $_;
@@ -245,35 +259,36 @@ sub register {
 #				$to = $directories.$filename.'.'.$ext;
 #			}
 			my ($directories, $filename, $ext);
-			
+
 			if($params{prefix}){
 				($filename, $directories) = File::Basename::fileparse($to);
 				$ext = ($filename =~ m/([^.]+)$/)[0];
-				
-				$filename = $params{prefix}.'_'.$filename;
+
+				$filename = $params{prefix}.$params{prefix_delimiter}.$filename;
 				$to = $directories.$filename;
 			} else {
 				($directories, $filename, $ext) = $self->file_check_free_name($to);
-				$to = $directories.$filename;				
+				$to = $directories.$filename;
 			}
+			unlink($to) if ($params{replace} && -f $to);
 
 			eval{
 				File::Copy::copy($from, $to)
 			};
 			warn "file_save: Can't move file from '$from' to '$to': $@/" if $@;
-			
+
 			my $size = -s $to || 0;
-			
+
 			return wantarray ? ($to, $filename, $ext, $size) : $filename;
 		}
-	);	
-	
+	);
+
 	# Возвращает не занятое имя файла
 	$app->helper(
 		file_check_free_name => sub {
 			my $self = shift;
 			my $path = shift;
-			
+
 			return unless $path;
 
 			my($filename, $directories) = File::Basename::fileparse($path);
@@ -284,9 +299,9 @@ sub register {
 				my $current = 0;
 				if($filename =~ /(\d)+$/){
 					$current = $1;
-					$filename =~ s/(\d)+$//;	
+					$filename =~ s/(\d)+$//;
 				}
-				
+
 				my $sch = $current;
 ;
 				while(1){
@@ -304,38 +319,55 @@ sub register {
 			return wantarray ? ($directories, $filename, $ext) : $filename;
 		}
 	);
-	
+
 	$app->helper(
 		file_path_with_prefix => sub {
 			my $self = shift;
-			my %params = @_;
-			
+			my %params = (
+				prefix 	=> '',
+				prefix_delimiter => '_',
+				@_
+			);
+
 			my $path = delete $params{path};
 			my($filename, $directories) = File::Basename::fileparse($path);
 			my $ext = ($filename =~ m/([^.]+)$/)[0];
 			$filename =~ s{\.$ext$}{}e;
-			
-			$filename = $params{prefix}.'_'.$filename;
+
+			$filename = $params{prefix}.$params{prefix_delimiter}.$filename;
 			return $directories.$filename.".".$ext;
 		}
 	);
 
+	$app->helper(
+		file_path_retina => sub {
+			my $self = shift;
+			my $path = shift;
+
+			my $ext = ($path =~ m/([^.]+)$/)[0];
+			$path =~ s{\.$ext$}{}e;
+
+			$path .= '@2x.'.$ext;
+
+			return $path;
+		}
+	);
 
 	$app->helper(
 		file_tmpdir => sub {
 			my $self = shift;
 			return File::Spec->tmpdir().'/';
 		}
-	);	
+	);
 
 	$app->helper(
 		file_upload_tmp_thumbview => sub {
 			my $self = shift;
-			
+
 			my $filename = $self->param('pict');
 			my $dir = $self->file_tmpdir;
 			my $path;
-			
+
 			if(-f $dir.$filename){
 				$path = $dir.$filename;
 			} else {
@@ -343,21 +375,21 @@ sub register {
 			}
 
 			my $data;
-			open my $fh, '<', $path or $self->error( sprintf( "Ошибка чтения файла %s $!", $path, $! )); 
-	     	while(sysread($fh, my $buf, 1024)) { 
-	        	 $data .= $buf; 
-	     	} 
+			open my $fh, '<', $path or $self->error( sprintf( "Ошибка чтения файла %s $!", $path, $! ));
+	     	while(sysread($fh, my $buf, 1024)) {
+	        	 $data .= $buf;
+	     	}
 	     	close($fh);
 			my $size = -s $path;
-			
+
 			$self->res->headers->content_disposition('attachment; filename='.$filename);
 			$self->res->headers->content_length($size);
 			$self->res->headers->content_encoding("Binary");
 			$self->res->headers->content_type("application/octet-stream");
 			$self->render( data => $data);
 		}
-	);	
-			
+	);
+
 	$app->helper(
 		file_upload_tmp => sub {
 			my $self = shift;
@@ -394,30 +426,30 @@ sub register {
 				return $filename;
 			}
 			return;
-			
+
 		}
-	);		
+	);
 
 	$app->helper(
 		transliteration => sub {
 			my $self = shift;
 			my $name = shift || return '';
-			
+
 			my $tr = new Lingua::Translit("GOST 7.79 RUS");
-			
+
 			if ($name =~ m/[\\\/]/) {
 				$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
-				$name = $2;				
+				$name = $2;
 			}
 			$name =~ s{\s}{_}gi;
-			
+
 			if(my $name_tr = $tr->translit($name)){
 				$name = $name_tr;
-			
+
 			} else {
 				my $dec = new decoder;
 				my $name_tr;
-				
+
 				for my $i (0..length($name)-1) {
 					if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
 						if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
@@ -428,12 +460,12 @@ sub register {
 							$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
 						}
 					}
-				}				
+				}
 			}
 			$name =~ s/[`\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
 			$name =~ tr/\x20-\x7f//cd;
 			$name = lc($name);
-			
+
 			return $name;
 		}
 	);
@@ -451,16 +483,16 @@ sub register {
 
 			my (@textFileMembers, @filenamereturn);
 			my $avalaible_ext = $params{ext};
-			
+
 			# Распаковываем архив
 			my $zip = Archive::Zip -> new();
 			die 'read error' if $zip -> read( $params{path} ) != AZ_OK;
 			@textFileMembers = $zip -> memberNames( '.*' );
 			my $tmp_dir = $self->file_tmpdir();
 			foreach my $f (@textFileMembers) {
-				
+
 				next if ($f =~ /__MACOSX/i);
-				
+
 				my $ext = ($f =~ m/([^.]+)$/)[0];
 				$ext =~ s{^\.}{};
 				next unless (grep(/$ext/, @$avalaible_ext) );
@@ -468,36 +500,36 @@ sub register {
 				my ($filename, undef) = File::Basename::fileparse($f);
 				$filename = $self->transliteration($filename);
 
-				my $Upload = $zip -> contents( $f );								
-				
+				my $Upload = $zip -> contents( $f );
+
 				eval{
 					unlink($tmp_dir.$filename);
 					if(-f $tmp_dir.$filename){
 						# Если такой файл в папке tmp залит другим пользователем
 						$filename = $self->file_check_free_name($tmp_dir.$filename);
 					}
-				
+
 					open(FILE, ">${tmp_dir}$filename") or die("can't open ${tmp_dir}$filename: $!");
 					flock(FILE, 2);
 			    	binmode(FILE);
 					print FILE $Upload;
 					close FILE or die("can't close ${tmp_dir}$filename: $!");
 				};
-				
+
 				#die $@ if $@;
 				if($@){
 					warn $@;
-					next;	
+					next;
 				}
-				
+
 				next unless my $size = -s $tmp_dir.$filename;
 				my ($width, $height) = $self->image_set( file => $tmp_dir.$filename);
 				push @filenamereturn, { filename => $filename, ext => $ext, size => $size, oldfilename => $f, width => $width, height => $height};
 			}
 			return \@filenamereturn;
 		}
-	);		
-	
+	);
+
 	$app->helper(
 		file_read_data => sub {
 			my $self = shift;
@@ -506,16 +538,16 @@ sub register {
 				@_
 			);
 			return unless $params{path};
-			
+
 			my $code;
 			open( FILE, "<:utf8", $params{path});
 			while (<FILE>) {$code .= $_;}
-			close FILE;			
-			
+			close FILE;
+
 			return $code;
 		}
 	);
-	
+
 	$app->helper(
 		file_save_data => sub {
 			my $self = shift;
@@ -525,20 +557,20 @@ sub register {
 				@_
 			);
 			return unless $params{path};
-			
+
 			my $data = delete $params{data};
 			my $path = delete $params{path};
-			
+
 			open( FILE, '>:utf8', $path ) or die $!;
 			#binmode FILE;
-			
+
 			print FILE $data;
 			close( FILE );
-			
+
 			return 1;
 		}
-	);	
-		
+	);
+
 	$app->helper(
 		file_save_data_raw => sub {
 			my $self = shift;
@@ -548,21 +580,21 @@ sub register {
 				@_
 			);
 			return unless $params{path};
-			
+
 			my $path = delete $params{path};
 			_create($path);
-			
+
 			my $data = delete $params{data};
 			my $needed_bytes = length $data;
-			
+
 			open my $fh, '+<:raw', $path or die "Unable to open $path for write: $!";
 			my $current_bytes = ( stat $fh )[7];
-			
+
 			#shrink file if needed
 			if ( $needed_bytes < $current_bytes ) {
 				truncate $fh, $needed_bytes;
 			}
-			
+
 			# make sure we can expand the file to the needed size before we overwrite it
 			elsif ( $needed_bytes > $current_bytes ) {
 				my $padding = q{ } x ( $needed_bytes - $current_bytes );
@@ -580,21 +612,21 @@ sub register {
 			close $fh;
 			return 1;
 		}
-	);	
+	);
 
 	$app->helper(
 		file_convert_ext_to_mime => sub {
 			my $self = shift;
 			my $ext = shift;
-			
+
 			my $exts = {
 				'*.jpg'		=> 'image/jpeg',
 				'*.png'		=> 'image/png',
 				'*.gif'		=> 'image/gif',
-				
+
 				'*.*'		=> '',
 			};
-			
+
 			my @res;
 			foreach (split(';', $ext )){
 				push @res, $exts->{$_}	if $exts->{$_};
@@ -602,11 +634,11 @@ sub register {
 			return join(',', @res);
 		}
 	);
-	
+
 	$app->helper(
 		file_nice_size => sub {
 			my $self = shift;
-			
+
 			my $fs = $_[0];	# First variable is the size in bytes
 			my $dp = $_[1] || 0;	# Number of decimal places required
 			my @units = ('bytes','kB','MB','GB','TB','PB','EB','ZB','YB');
@@ -627,7 +659,7 @@ sub _create{
 	if (open(my $FILE,">",$file)) {
         print $FILE "\n";
         close($FILE);
-    } 
+    }
     else {
         warn "Can't write to config file ".$file;
     }
@@ -656,7 +688,7 @@ sub new {
 
 sub lc_rus {
 	my $self = shift();
-	my $value = shift() if (@_);	
+	my $value = shift() if (@_);
 
 	$value =~ tr/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/;
 	$value =~ tr/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/;
@@ -667,7 +699,7 @@ sub lc_rus {
 
 sub uc_rus {
 	my $self = shift();
-	my $value = shift() if (@_);	
+	my $value = shift() if (@_);
 
 	$value =~ tr/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/;
 	$value =~ tr/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/;
@@ -678,9 +710,9 @@ sub uc_rus {
 
 sub utfruslat {
 	my $self = shift();
-	my $value = shift() if (@_);	
+	my $value = shift() if (@_);
 
-	my $tabl1 = 
+	my $tabl1 =
 		'\x90\x91\x92\x93\x94\x95\x81\x96\x97'.
 		'\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f'.
 		'\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7'.
@@ -689,7 +721,7 @@ sub utfruslat {
 		'\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf'.
 		'\x80\xc1\x82\x83\x84\x85\x86\x87'.
 		'\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x20';
-	my $tabl2 = 
+	my $tabl2 =
 		'\x41\x42\x56\x47\x44\x45\x45\x47\x5a'.
 		'\x49\x49\x4b\x4c\x4d\x4e\x4f\x50'.
 		'\x52\x53\x54\x55\x46\x48\x43\x43'.
@@ -728,13 +760,13 @@ sub utfdecode {
 sub win2unicode {
 	my $self = shift();
 
-	my $value = shift() if (@_);	
+	my $value = shift() if (@_);
 
     if (!$value) {return "";}
     my $result = "";
     my $o_code = "";
     my $i_code = "";
-	
+
     for (my $I = 0; $I < length($value); $I++) {
         $i_code = ord(substr($value, $I, 1));
         if ($i_code == 184){
@@ -756,7 +788,7 @@ sub win2unicode {
             $o_code = $i_code;
         }
         $result = $result.chr($o_code) if ($o_code);
-    }                                                
+    }
     return $result;
 } # end of &win2unicode
 
@@ -764,9 +796,9 @@ sub win2unicode {
 
 sub urldecode {
 	my $self = shift();
-	
+
 	if (@_) {
-		my $value = shift();	
+		my $value = shift();
 		   $value =~ s/\+/ /g;
 		   $value =~ s/%([0-9A-H]{2})/pack('C',hex($1))/ge;
 		return $value;
@@ -778,7 +810,7 @@ sub urldecode {
 sub urlencode {
 	my $self = shift();
 
-	my $value = shift() if (@_);	
+	my $value = shift() if (@_);
 	   $value =~ s/([=\+&%\/\\|\0-\x1F\x80-\xFF])/sprintf("%%%02X", unpack('C', $1))/eg;
 	   $value =~ s/ /\+/g;
 	return $value;

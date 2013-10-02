@@ -8,29 +8,39 @@ use File::stat;
 sub register {
 	my ( $self, $app ) = @_;
 
-	
+	$app->helper( retina_src => sub {
+		my $self = shift;
+		my $src  = shift;
+
+		$self->stash->{'_retina_cookie'} = $self->cookie('device_pixel_ratio') unless defined $self->stash->{'_retina_cookie'};
+
+		return $src unless $self->stash->{'_retina_cookie'};
+
+		$self->file_path_retina($src);
+	});
+
 	$app->helper( host => sub {
-		return shift->req->headers->host() || '';	
+		return shift->req->headers->host() || '';
 	});
-		
+
 	$app->helper( cl => sub {
-		return shift->caselang(@_)	
+		return shift->caselang(@_)
 	});
-	
+
 	$app->helper( caselang => sub {
 		my $self   = shift;
-		my $values 	= ref $_[0] ? $_[0] : {@_};	
-		
+		my $values 	= ref $_[0] ? $_[0] : {@_};
+
 		my $lang = $self->lang;
 		return $values->{ $lang } || ''
 	});
 
-	$app->helper( return_url => sub { 
+	$app->helper( return_url => sub {
 		my $self = shift;
 		my $default = shift || '/';
 		my $referer = $self->req->headers->header('Referer');
 
-		return $referer && $referer !~ /login|logout|enter/ ? $referer : $default; 
+		return $referer && $referer !~ /login|logout|enter/ ? $referer : $default;
 	});
 
 	$app->helper( ip_to_number => sub {
@@ -38,7 +48,7 @@ sub register {
 		my $ip	  = shift || return undef;
 
 		$ip =~ s/\s//gs;
-		$ip =~ s/\,/\./g; 
+		$ip =~ s/\,/\./g;
 		if ($ip =~ /^((([01]?\d{1,2})|(2([0-4]\d|5[0-5])))\.){3}(([01]?\d{1,2})|(2([0-4]\d|5[0-5])))$/) {
 			my @bits = split /\./, $ip;
 			my $ADDRESS = $bits[0]*256*256*256 + $bits[1]*256*256 + $bits[2]*256 + $bits[3];
@@ -52,31 +62,31 @@ sub register {
 		seo_custom_tags => sub {
 			my $self   = shift;
 			my $reqUrl = '/'.$self->req->url;
-			
+
 			($reqUrl, undef) = split(/\?/, $reqUrl);
-			
+
 			# Собираем все где есть *
 			my $seoMeta = {};
 			my $found = 0;
 			for my $node  ($self->dbi->query('SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` REGEXP "[*]$" ')->hashes){
 				$node->{name} =~ s{\*$}{}gi;
-				
+
 				if($reqUrl =~ /$$node{name}.*/gi){
 					$seoMeta = $node;
 					$found = 1;
 					last;
 				}
 			}
-			
+
 			unless($found){
 				if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
 					$seoMeta = $node
 				}
-			}					
-			
+			}
+
 			return $self->stash->{header} = $seoMeta || {};
 	});
-			
+
 	$app->helper( ip => sub {
 		my $self = shift;
 		my $for  = $self->req->headers->header('X-Forwarded-For');
@@ -94,7 +104,7 @@ sub register {
 		my $ua = shift->tx->req->headers->user_agent;
 		return $ua && $ua =~ /(cfnetwork|iphone|ipod|ipad)/i ? $1 : 0;
 	});
-	
+
 	$app->helper(is_mobile_device => sub {
 		return shift->req->headers->user_agent =~
 			/(iPhone|iPod|iPad|Android|BlackBerry|Mobile|Palm)/
@@ -105,11 +115,11 @@ sub register {
 		my $self = shift;
 		return $self->is_mobile_device && $self->is_iphone ne 'iPad' ? 1 : 0;
 	});
-			
+
 	$app->helper( lang => sub {
 		shift->stash->{lang} || 'ru';
 	});
-	
+
 	$app->helper(
 		texts_year_navigator => sub {
 			my $self   = shift;
@@ -118,16 +128,16 @@ sub register {
 				where		=> "",
 				@_,
 			);
-			
+
 			my 	$where = " AND `viewtext`='1' AND YEAR(`tdate`) > 0";
 				$where .= $params{where} if $params{where};
-			
+
 			my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`tdate`) AS `year` FROM `texts_news_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`tdate`) ORDER BY `tdate` DESC")->hashes;
 
-			return $self->render( 
-							items	=> $items, 
+			return $self->render(
+							items	=> $items,
 							template => 'Texts/news_year_navigator',
-							partial	=> 1,);			
+							partial	=> 1,);
 
 		}
 	);
@@ -141,51 +151,51 @@ sub register {
 			return $self->stash->{text} = $item;
 		}
 	);
-			
+
 	$app->helper(
 		text_by_alias => sub {
 			my $self   = shift;
 			my $alias = shift || return;
-			
+
 			if(my $item = $self->app->dbi->query("SELECT `text` FROM `texts_main_".$self->lang."` WHERE `viewtext`='1' AND `alias`='$alias'")->hash){
 				return $item->{text};
 			}
 			return;
 		}
 	);
-	
+
 	$app->helper(
 		uncache => sub {
 			my $self   	= shift;
 			my $file 	= shift;
-			
+
 			return unless $file;
-				
-			my $ext = $file;	
+
+			my $ext = $file;
 			$ext =~ /.+\.(.+)$/;
-			$ext = $1;	
-			
+			$ext = $1;
+
 			if(my $fh = $self->app->static->paths->[0].$file){
-				$file .= "?t=".stat($fh)->mtime;	
+				$file .= "?t=".stat($fh)->mtime;
 			}
 
 			if ($ext eq 'css') {
 				return $self->stylesheet($file) if $file;
 				#return qq~<link href="$file" rel="stylesheet" type="text/css" media="all" />~;
-					
+
 			} elsif ($ext eq 'js') {
 				$self->js_files($file);
-				#return qq~<script src="$file" type="text/javascript" language="javascript"></script>~;	
+				#return qq~<script src="$file" type="text/javascript" language="javascript"></script>~;
 			}
 		}
 	);
-	
+
 	$app->helper(
 		js_files	=> sub {
 			my $self = shift;
  			my $file = shift;
  			my $template = shift || '';
- 			
+
  			if($file){
  				push @{ $self->stash->{_js_files} }, {
  					file		=> $file,
@@ -193,16 +203,16 @@ sub register {
  				};
  				return;
  			}
- 			
- 			my $js_files = $self->stash->{_js_files} || []; 
+
+ 			my $js_files = $self->stash->{_js_files} || [];
  			my $out = '';
  			foreach (@$js_files){
  				next unless $_->{file};
- 				
- 				$out .= '<!-- '.$_->{template}." -->\n" if $_->{template}; 
+
+ 				$out .= '<!-- '.$_->{template}." -->\n" if $_->{template};
  				$out .= $self->javascript($_->{file})."\n";
  			}
- 			
+
  			return $out;
 		}
 	);
@@ -211,13 +221,13 @@ sub register {
 	$app->helper( pluralize	=> sub {
 		return shift->declension( @_ );
 	});
-		
+
 	$app->helper(
 		declension	=> sub {
 			my $self = shift;
  			my $int = shift;
  			my $expressions = shift;
- 
+
     		my $count = $int % 100;
     		my $result;
 		    if ($count >= 5 && $count <= 20) {
@@ -235,7 +245,7 @@ sub register {
 		    return $result;
 		}
 	);
-	
+
 	$app->helper(
 		setLocalTime => sub {
 			my $c   = shift;
@@ -245,17 +255,17 @@ sub register {
 			else {
 				$value = sprintf ("%04d-%02d-%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]);
 			}
-		
+
 			return $value;
 		}
 	);
-	
+
 	$app->helper(
 		defCCK => sub {
 			my $c   = shift;
 			my @user_info = map { $ENV{$_} } grep { /USER|REMOTE/ } keys %ENV;
    			return Digest::MD5::md5_hex( rand() . join('', @user_info) );
-   			
+
 			#my $string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 			#my $b;
 
@@ -264,23 +274,23 @@ sub register {
 			#return Digest::MD5::md5_hex($string, $b);
 		}
 	);
-		
+
 	$app->helper(
 		load_controller => sub {
 			my $self   = shift;
 			my %params = @_;
-			
-			return $self->_load_controller(%params);			
+
+			return $self->_load_controller(%params);
 		}
 	);
-	
-	
-	
+
+
+
 	$app->helper(
 		metaHeader => sub {
 			my $self	= shift;
 			my $header = $self->stash->{header} ||= {};
-			
+
 			if($_[0]){
 				my $params	= ref $_[0] ? $_[0] : {@_};
 				foreach (keys %$params){
@@ -289,12 +299,12 @@ sub register {
 				$self->stash->{header} = $header;
 			} else {
 				$self->seo_custom_tags() if $self->stash->{seo_custom_tags};
-				
+
 				$header = $self->stash->{header};
-				
+
 				if(!$header->{title} && $self->stash->{alias}){
 					$header = $self->app->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
-				
+
 				} elsif(ref($header->{title}) eq 'ARRAY'){
 					$header->{title} = join(" » ", @{$header->{title}});
 				}
@@ -306,11 +316,11 @@ sub register {
 					template 	=> "header",
 					header	 	=> $header,
 					partial		=> 1,
-				);				
+				);
 			}
 		}
 	);
-	
+
 	$app->helper(
 		anons_list => sub {
 			my $self   = shift;
@@ -318,8 +328,8 @@ sub register {
 			$params{key_razdel} ||= 'main';
 			$params{template}   ||= $params{key_razdel} . '_list_anons';
 			$params{handler}	||= 'ep';
-			
-			my $rows = $self->dbi->query(" 
+
+			my $rows = $self->dbi->query("
 				SELECT *
 				FROM `texts_$params{key_razdel}_ru`
 				WHERE 1 ORDER BY `rdate` DESC LIMIT 0,3"
@@ -329,12 +339,12 @@ sub register {
 				template => "Texts/anons/$params{template}",
 				handler  => $params{handler},
 				rows     => $rows,
-				
+
 				partial  => 1,
 			);
 		}
 	);
-	
+
 	$app->helper(
 		cut => sub {
 			my $c      = shift;
@@ -344,7 +354,7 @@ sub register {
 				ends	=> " &hellip;",
 				@_
 			);
-			
+
 			my $string = delete $params{string};
 			my $size = delete $params{size};
 			if ( !$size )   { return $string; }
@@ -366,12 +376,12 @@ sub register {
 					}
 				}
 				else { $string = substr( $string, 0, $size ); }
-				
+
 				$string =~ s{\s$}{}gi;
-				
+
 				my $str_temp =
 				  substr( $string, length($string) - 1, 1 );
-				
+
 				# Проверка на знаки препинания в конце урезаной строки
 				if ( $str_temp !~ m/[\.\,\:\;\-\(\!\?]+/ ) {
 					$string .= $params{ends};
@@ -385,7 +395,7 @@ sub register {
 	$app->helper(shorty => sub { my $self = shift;
 		my $str    = shift || return;
 		my $length = shift || 20;
-		
+
 		for ($str) {
 			s/&nbsp;/ /sg;
 			s/&amp;/&/sg;
@@ -395,25 +405,25 @@ sub register {
 			s/&lquot;/«/sg;
 			s/&rquot;/»/sg;
 		}
-		
+
 		return length $str > $length ? substr($str, 0, $length) . '...' : $str;
 	});
-	
+
 	$app->helper(shorty_fix => sub { my $self = shift;
 		my $short = $self->shorty(@_) || return '';
-		
+
 		for my $tag (qw(strong span p div)) {
 			my $start = @{[ $short =~ m{<$tag[^>]*>}g ]};
 			my $end   = @{[ $short =~ m{</$tag>}g     ]};
-			
+
 			next unless my $c = $start - $end;
-			
+
 			$short .= join "\n", ( "</$tag>" ) x $c;
 		}
-		
+
 		return $short;
 	});
-		
+
 	$app->helper(
 		date_format => sub {
 			my $c      = shift;
@@ -424,19 +434,19 @@ sub register {
 				curdate	=> 0,
 				@_
 			);
-			
+
 			# для старой совместимости
 			$params{format} ||= $params{dateformat} if $params{dateformat};
-			
+
 			$params{curdate} = 1 unless $params{date};
 			if($params{curdate}){
 				$params{date} = sprintf( "%04d-%02d-%02d",
 					(localtime)[5] + 1900,
 					(localtime)[4] + 1,
-					(localtime)[3] );				
+					(localtime)[3] );
 			}
 
-			
+
 
 			my ( %month1, %month2 );
 
@@ -544,14 +554,14 @@ sub register {
 			$d += 0;
 			$m += 0;
 			my $month;
-			if ( $params{format} !~ m/dd/ ) { 
+			if ( $params{format} !~ m/dd/ ) {
 				$month = $month2{$m}; }
 			else {
 				$month = $month1{$m};
-			}    
+			}
 			# вариант с отсутствием даты
 			$month ||= '';
-			
+
 			$params{date} = $params{format};
 			$params{date} =~ s/month/$month/;
 			$params{date} =~ s/dd/sprintf("%02d", $d)/e;
@@ -567,7 +577,7 @@ sub register {
 			}
 			if($params{date} =~ /dow/){
 				my @DOW = ('Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье');
-				
+
 				require Date::Calc;
 				my $dow = Date::Calc::Day_of_Week($y,$m,$d);
 				$params{date} =~ s/dow/$DOW[$dow-1]/e;
@@ -576,17 +586,17 @@ sub register {
 			return $params{date};
 		}
 	);
-	
+
 	$app->helper(
 		numberformat => sub {
 			my $self = shift;
 			my $d    = shift;
 			my $sep  = shift || ' ';
-			
+
 			return unless defined $d;
-			
+
 			$d =~ s/(\d)(?=((\d{3})+)(\D|$))/$1$sep/g;
-			return $d;	
+			return $d;
 		}
 	);
 
@@ -594,25 +604,25 @@ sub register {
 		get_index_after => sub {
 			my $c      = shift;
 			my %params = @_;
-			
+
 			if (!$params{from})  {die "helper get_index_after. Отсутствует параметр FROM";}
-			
+
 			$params{index} 	||=	$c->stash('ID');
 			if (!$params{index}) {die "Не задан index";}
 			if (!$params{where}) {$params{where} = '';}
 			if (!$params{order}) {$params{order} = "ID";}
 
 			my $sql = qq/
-			SELECT `ID` 
-			FROM `$params{from}` 
-			WHERE 1 $params{where}  
+			SELECT `ID`
+			FROM `$params{from}`
+			WHERE 1 $params{where}
 			ORDER BY `$params{order}` ASC
 			/;
-			
+
 			$sql .= ", `ID` ASC" if($params{order} ne 'ID');
-			
+
 			my @IDs = $c->app->dbi->query($sql)->flat;
-			
+
 			foreach (0..$#IDs){
 				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'});
 			}
@@ -623,27 +633,27 @@ sub register {
 		get_index_befor => sub {
 			my $c      = shift;
 			my %params = @_;
-			
+
 			if (!$params{from})  {die "helper get_index_befor. Отсутствует параметр FROM";}
-			
+
 			$params{index} 	||=	$c->stash('ID');
 			if (!$params{index}) {die "Не задан index";}
 			if (!$params{where}) {$params{where} = '';}
 			if (!$params{order}) {$params{order} = "ID";}
-			
+
 			my $sql = qq/
-			SELECT `ID` 
-			FROM `$params{from}` 
-			WHERE 1 $params{where}  
+			SELECT `ID`
+			FROM `$params{from}`
+			WHERE 1 $params{where}
 			ORDER BY `$params{order}` desc
 			/;
 
 			$sql .= ", `ID` desc" if($params{order} ne 'ID');
-			
+
 			my @IDs = $c->app->dbi->query($sql)->flat;
-			
+
 			foreach (0..$#IDs){
-				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'}); 
+				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'});
 			}
 			return $params{ring} ? shift(@IDs) : 0;
 		}
@@ -653,10 +663,10 @@ sub register {
 		def_text_interval => sub {
 			my $c      = shift;
 			my %params = @_;
-			
+
 			$params{cur_page} ||= $c->stash('page') || 1;
 			$params{postfix} = $params{postfix} ? "_".$params{postfix} : '';
-			
+
 			my $total_page = int($params{total_vals} / $params{col_per_page});
 			$total_page++ if (int($params{total_vals} / $params{col_per_page}) != $params{total_vals} / $params{col_per_page});
 			$c->stash("total_page".$params{postfix}, $total_page);
@@ -666,10 +676,10 @@ sub register {
 			if ($total_page >= $params{cur_page}) {
 				$c->stash("first_index_page".$params{postfix}, ($params{cur_page} - 1) * $params{col_per_page});
 			}
-			
+
 		}
 	);
-		
+
 	$app->helper(
 		page_navigator => sub {
 			my $self   = shift;
@@ -679,12 +689,12 @@ sub register {
 				page		=> $self->stash->{page} || $self->param('page') || 1,
 				@_
 			);
-			
+
 			$params{postfix} 		= $params{postfix} ? "_".$params{postfix} : '';
-			
+
 			my $page = delete $params{page};
 			my $total_page = $self->stash("total_page".$params{postfix}) || 1;
-		
+
 			my ($first_page, $end_page) = ($page, $total_page);
 			if ($page <= 3) {
 				$first_page = 1;
@@ -712,10 +722,10 @@ sub register {
 				partial		=> 1,
 				%params
 			);
-				
+
 		}
 	);
-	
+
 }
 
 1;

@@ -23,39 +23,60 @@ sub register {
 		resize_pict => sub {
 			my $self = shift;
 			my %params = (
-				crop	=> 0,
+				crop		=> 0,
 				montage => 0,
-				fsize	=> '',	# максимальный размер одной из сторон
-				width	=> '',
+				fsize		=> '',	# максимальный размер одной из сторон
+				width		=> '',
 				height	=> '',
-				file	=> '',	# путь к картинке,
+				file		=> '',	# путь к картинке,
 				background	=> '#FFFFFF',
+				retina	=> 1,		# версия картинок для ретины
 				@_
 			);
-			
+
 			my $file = delete $params{file};
 			$file = $self->image_to_jpg( file	=> $file);
 			my ($width, $height) = $params{fsize} ? ($params{fsize}, $params{fsize}) : ($params{width}, $params{height});
-			
+
 			$params{background} = 'None' if( ($file =~ m/([^.]+)$/)[0] =~ /png/i );
-			
+
+			if(delete $params{retina}){
+				my $file_retina = $self->file_path_retina($file);
+
+				my ($retina_path, $retina_pict, $retina_ext) = $self->file_save(
+					from 		=> $file,
+					to 			=> $file_retina,
+					to_abs_path => 0,
+					replace => 1,
+				);
+
+				$self->resize_pict(
+					%params,
+					width 	=> $width * 2,
+					height 	=> $height * 2,
+					file   	=> $retina_path,
+					retina 	=> 0,
+				);
+			}
+
+
 			if ($params{crop} == 1){
 				$self->image_crop(file => $file, width => $width, height => $height);
-			
+
 			} elsif($params{montage}){
-				
+
 				my $images = Image::Magick->new();
-		   		my $m = $images -> ReadImage($file);
-		   		warn $m if $m;
-		   		$images->set(quality => $QUALITY);
+				my $m = $images -> ReadImage($file);
+				warn $m if $m;
+				$images->set(quality => $QUALITY);
 				$m = $images -> Montage(geometry=>  qq{$width x $height}, gravity => 'Center', background => $params{background});
 				warn $m if $m;
-		   		$m -> Write($file);
-		   		undef $images;
-		   					
+				$m -> Write($file);
+				undef $images;
+
 			} else {
 				my ($img_w, $img_h) = $self->image_set( file => $file);
-				
+
 				if ($img_w > $width || $img_h > $height) {
 					if ($img_w > $img_h) {
 						my $k = $img_w / $width;
@@ -68,8 +89,8 @@ sub register {
 					}
 					($width, $height) = $self->image_set( file => $file, width => $img_w, height => $img_h );
 				}
-			}			
-			
+			}
+
 			return ($width, $height);
 		}
 	);
@@ -83,7 +104,7 @@ sub register {
 				height	=> '',
 				@_
 			);
-			
+
 			my $image = Image::Magick->new();
 			my $x = $image -> Read($params{file});						# открываем файл
 			$image->set(quality => $QUALITY);
@@ -96,9 +117,9 @@ sub register {
 
 			if (($ox != $params{width}) || ($oy != $params{height})) {
 				$image -> Resize(geometry => "geometry", width => $params{width}, height => $params{height}); # Делаем resize
-				$x = $image -> Write($params{file});	
+				$x = $image -> Write($params{file});
 			}
-			
+
 			undef $image;
 			return ($params{width}, $params{height});
 		}
@@ -111,7 +132,7 @@ sub register {
 				file	=> '',
 				@_
 			);
-			
+
 			my $file = delete $params{file};
 			my $ext = ($file =~ m/([^.]+)$/)[0];
 			if(!grep(/$ext/,@EXT)){
@@ -122,20 +143,20 @@ sub register {
 					my $status = $image->Read( filename => $file );
     					warn "Error reading $file: $status" if $status;
 					 #	Write file as JPEG to STDOUT
-					
-					$file = $filename.'.jpg';					
-		
+
+					$file = $filename.'.jpg';
+
 		    		# Convert CMYK to RGB
     				$self->_CMYK_to_RGB(\$image);
-    		
+
     				$status = $image->Write( $file );
-    				
+
     				undef $image;
-		    		warn "Error writing $file: $status" if $status;					
+		    		warn "Error writing $file: $status" if $status;
 				};
 				if ($@){
 					warn $@;
-					return undef; 
+					return undef;
 				}
 			}
 			return $file;
@@ -152,13 +173,13 @@ sub register {
 				y		=> 0,
 				@_
 			);
-		
-			my $image = Image::Magick->new;             
+
+			my $image = Image::Magick->new;
 			my $x     = $image->Read( $params{file} );
 			warn $x if $x;
 
 			$image->set(quality => $QUALITY);
-			
+
 			$image -> Crop(
 				x => $params{'x'},
 				y => $params{'y'},
@@ -167,10 +188,10 @@ sub register {
 			);
 			$x = $image->Write( $params{file} );
 			undef $image;
-			
+
 			return $x ? 0 : 1;
 	});
-	
+
 	$app->helper(
 		image_crop => sub {
 			my $self = shift;
@@ -179,33 +200,33 @@ sub register {
 				height	=> 120,
 				@_
 			);
-			
+
 			if ( !$params{file} ) { die "Функция image_crop. Отсутствует параметр FILE"; }
-		
+
 			my ( $image, $image_new, $x, $H, $W );    # переменные
-		
+
 			$H = delete $params{height};
 			$W = delete $params{width};
-		
+
 			$image = Image::Magick->new;               # новый проект
 			$x     = $image->Read( $params{file} );    # открываем файл
 			$image->set(quality => $QUALITY);
-			
+
 			my ( $ox, $oy ) = $image->Get( 'width', 'height' ); 	# определяем ширину и высоту изображения
-		    
+
 		    unless ($ox == $W and  $oy == $H) {
-		    
+
 				my $nx = int( ( $ox / $oy ) * $H ); 	# вычисляем ширину, если высоту сделать $H
 				my $ny = int( ( $oy / $ox ) * $W ); 	# вычисляем высоту, если ширину сделать $W
-		
+
 				# Режем по высоте или по ширине
 				if ( $nx > $ny  ) {
-					_resize_x( \$image, $W, $H, $nx, $ny );    
+					_resize_x( \$image, $W, $H, $nx, $ny );
 				} else {
 					_resize_y( \$image, $W, $H, $nx, $ny );
 				}
 		    }
-		
+
 		    # Сохраняем изображение.
 			$x = $image -> Write( $params{file} );
 			undef $image;
@@ -227,7 +248,7 @@ sub register {
 			}
 			return $img;
 		}
-	);	
+	);
 }
 
 
@@ -254,7 +275,7 @@ sub _resize_x{
 		  ; # Задаем откуда будем резать, c того места вырезаем $Wx$H
 	} else {
 		_resize_y( \$image, $W, $H, $nx, $ny );
-	}	
+	}
 }
 
 sub _resize_y {
@@ -279,8 +300,8 @@ sub _resize_y {
 		);
 	} else {
 		_resize_x( \$image, $W, $H, $nx, $ny );
-	}	
-	
+	}
+
 }
 
 1;
