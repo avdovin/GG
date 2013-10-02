@@ -259,7 +259,8 @@ sub _resize_x{
 	$image -> Resize(
 		geometry => qq{$W x $H},
 		width    => $nx,
-		height   => $H
+		height   => $H,
+		blur		=> 1,
 	);    # Делаем resize
 
 	if ( $nx >= $W ) {     					# Если ширина получилась больше $W
@@ -286,6 +287,7 @@ sub _resize_y {
 		geometry => qq{$W x $H},
 		width    => $W,
 		height   => $ny
+		blur		=> 1,
 	);
 
 	if ( $ny >= $H ) {    	# Если ширина получилась больше $W
