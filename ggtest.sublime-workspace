@@ -1,0 +1,240 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"parse",
+				"parseInt"
+			],
+			[
+				"sh",
+				"shift"
+			],
+			[
+				"sl",
+				"sql"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "Packages/User/Perl.sublime-build",
+	"command_palette":
+	{
+		"height": 41.0,
+		"selected_items":
+		[
+			[
+				"Package Control: Ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: IN",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 457.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/aleksey/www/gg9.local/.gitignore",
+		"/Users/aleksey/www/kvexi.local/httpdocs/js/bids.js",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/ajax/update_bids.cgi",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/get_object.pm",
+		"/Users/aleksey/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/auth/lk.pm",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/auctions.pm",
+		"/Users/aleksey/www/kvexi.local/httpdocs/js/script.js",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/text.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojolicious.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojo/Message.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojo/Message/Response.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojo/Cookie.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojolicious/Renderer.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojo.pm",
+		"/Users/aleksey/www/gg9.local/cgi-bin/extlib/Mojolicious/Sessions.pm",
+		"/Users/aleksey/www/hall.local/cgi-bin/GG/get_object.pm",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/lists_a.cgi",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/CLS/shablon.pm",
+		"/Users/aleksey/Library/Application Support/Sublime Text 3/Packages/Default/Preferences.sublime-settings",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/content.cgi",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/ajax/set_bid.cgi",
+		"/Users/aleksey/www/kvexi.local/httpdocs/.htaccess",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/cron/check_new_auctions.pl",
+		"/Users/aleksey/www/kvexi.local/cgi-bin/GG/auth/active.pm",
+		"/Users/aleksey/Library/Application Support/Sublime Text 3/Packages/User/Perl.sublime-build",
+		"/private/etc/apache2/extra/httpd-vhosts.conf",
+		"/Users/aleksey/.bash_profile",
+		"/private/etc/apache2/httpd.conf",
+		"/Users/aleksey/Dropbox/configs/Apache2/sites-available/amg.local",
+		"/etc/apache2/extra/httpd-vhosts.conf",
+		"/Users/aleksey/.bash",
+		"/private/etc/apache2/extra/httpd-manual.conf",
+		"/etc/hosts",
+		"/opt/local/share/mysql55/support-files/port",
+		"/opt/local/share/mysql55/support-files/mysql.server",
+		"/opt/local/etc/mysql55/macports-default.cnf",
+		"/opt/local/etc/mysql55/my.cnf"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"succe",
+			"_rub",
+			"env",
+			"is_iteminfo_page",
+			".rub",
+			"flash",
+			"cookie",
+			"finance_log",
+			"auction_bids_log",
+			"dirFiles",
+			"dirFiles\\",
+			"save_file_pict",
+			"catalog_auctions_list",
+			"catalog_finished_auctions",
+			"catalog_auctions_list",
+			"auction_log",
+			"is_auction_hold_bid",
+			"set_timer_values",
+			"ставка",
+			"set_timer_values",
+			"Ставка",
+			");\n",
+			"\\\\",
+			"\\\\#",
+			"port",
+			"log",
+			"err"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"project": "ggtest.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 239.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

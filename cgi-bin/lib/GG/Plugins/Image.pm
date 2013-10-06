@@ -1,4 +1,4 @@
-package GG::Admin::Plugins::Image;
+package GG::Plugins::Image;
 
 use utf8;
 
@@ -286,7 +286,7 @@ sub _resize_y {
 	$image->Resize(
 		geometry => qq{$W x $H},
 		width    => $W,
-		height   => $ny
+		height   => $ny,
 		blur		=> 1,
 	);
 

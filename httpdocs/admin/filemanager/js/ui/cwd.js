@@ -255,7 +255,7 @@ $.fn.elfindercwd = function(fm, options) {
 					// !append && unselectAll();
 				} else {
 					// there are no selected file - select first/last one
-					n = cwd.find('[id]:not(.'+clDisabled+'):not(.elfinder-cwd-parent):'+(prev ? 'last' : 'first'))
+					n = cwd.find('[id]:not(.'+clDisabled+'):not(.elfinder-cwd-parent):'+(prev ? 'last' : 'first'));
 				}
 				
 				if (n && n.length && !n.is('.elfinder-cwd-parent')) {
@@ -285,7 +285,7 @@ $.fn.elfindercwd = function(fm, options) {
 				var phash = fm.cwd().hash;
 
 				cwd.find('[id]:not(.'+clSelected+'):not(.elfinder-cwd-parent)').trigger(evtSelect); 
-				selectedFiles = $.map(fm.files(), function(f) { return f.phash == phash ? f.hash : null });
+				selectedFiles = $.map(fm.files(), function(f) { return f.phash == phash ? f.hash : null ;});
 				trigger();
 			},
 			
@@ -397,7 +397,7 @@ $.fn.elfindercwd = function(fm, options) {
 								dirs = true;
 							}
 							if (f.tmb) {
-								f.tmb === 1 ? ltmb.push(f.hash) : (atmb[f.hash] = f.tmb)
+								f.tmb === 1 ? ltmb.push(f.hash) : (atmb[f.hash] = f.tmb);
 							} 
 							return itemhtml(f);
 						}
@@ -442,7 +442,7 @@ $.fn.elfindercwd = function(fm, options) {
 							cwd.removeClass(clDropActive);
 							return false;
 						}
-					})
+					});
 				}
 			}),
 			
@@ -508,7 +508,7 @@ $.fn.elfindercwd = function(fm, options) {
 							if (attachThumbnails(data.images||[]) && data.tmb) {
 								loadThumbnails();
 							}
-						})
+						});
 					return;
 				} 
 
@@ -661,7 +661,8 @@ $.fn.elfindercwd = function(fm, options) {
 					var parent = $.extend(true, {}, fm.file(phash), {name : '..', mime : 'directory'});
 					parent = $(itemhtml(parent))
 						.addClass('elfinder-cwd-parent')
-						.bind('mousedown click mouseup dblclick mouseenter', function(e) {
+						.bind('mousedown click mouseup touchstart touchmove touchend dblclick mouseenter', function(e) {
+						//.bind('mousedown click mouseup dblclick mouseenter', function(e) {
 							e.preventDefault();
 							e.stopPropagation();
 						})
@@ -699,8 +700,14 @@ $.fn.elfindercwd = function(fm, options) {
 					} else if (e.ctrlKey || e.metaKey) {
 						p.trigger(p.is('.'+clSelected) ? evtUnselect : evtSelect);
 					} else {
-						unselectAll();
-						p.trigger(evtSelect);
+						if ($(this).data('touching') && p.is('.'+clSelected)) {
+							$(this).data('touching', null);
+							fm.dblclick({file : this.id});
+							unselectAll();
+						} else {
+							unselectAll();
+							p.trigger(evtSelect);
+						}
 					}
 
 					trigger();
@@ -708,6 +715,25 @@ $.fn.elfindercwd = function(fm, options) {
 				// call fm.open()
 				.delegate(fileSelector, 'dblclick.'+fm.namespace, function(e) {
 					fm.dblclick({file : this.id});
+				})
+				// for touch device
+				.delegate(fileSelector, 'touchstart.'+fm.namespace, function(e) {
+					$(this).data('touching', true);
+					var p = this.id ? $(this) : $(this).parents('[id]:first'),
+					  sel = p.prevAll('.'+clSelected+':first').length +
+					        p.nextAll('.'+clSelected+':first').length;
+					$(this).data('longtap', setTimeout(function(){
+						// long tap
+						p.trigger(p.is('.'+clSelected) ? evtUnselect : evtSelect);
+						trigger();
+						if (sel == 0 && p.is('.'+clSelected)) {
+							p.trigger('click');
+							trigger();
+						} 
+					}, 500));
+				})
+				.delegate(fileSelector, 'touchmove.'+fm.namespace+' touchend.'+fm.namespace, function(e) {
+					clearTimeout($(this).data('longtap'));
 				})
 				// attach draggable
 				.delegate(fileSelector, 'mouseenter.'+fm.namespace, function(e) {
@@ -763,7 +789,7 @@ $.fn.elfindercwd = function(fm, options) {
 					target.is('.'+clDraggable) && target.draggable('enable');
 				})
 				.delegate(fileSelector, 'scrolltoview', function() {
-					scrollToView($(this))
+					scrollToView($(this));
 				})
 				.delegate(fileSelector, 'hover', function(e) {
 					fm.trigger('hover', {hash : $(this).attr('id'), type : e.type});
@@ -777,7 +803,7 @@ $.fn.elfindercwd = function(fm, options) {
 						if (!file.is('.'+clDisabled)) {
 							if (!file.is('.'+clSelected)) {
 								// cwd.trigger('unselectall');
-								unselectAll()
+								unselectAll();
 								file.trigger(evtSelect);
 								trigger();
 							}
@@ -922,7 +948,7 @@ $.fn.elfindercwd = function(fm, options) {
 			.add(function(e) {
 				var phash = fm.cwd().hash,
 					files = query
-						? $.map(e.data.added || [], function(f) { return f.name.indexOf(query) === -1 ? null : f })
+						? $.map(e.data.added || [], function(f) { return f.name.indexOf(query) === -1 ? null : f ;})
 						: $.map(e.data.added || [], function(f) { return f.phash == phash ? f : null; })
 						;
 				add(files);
@@ -939,7 +965,7 @@ $.fn.elfindercwd = function(fm, options) {
 							add([file]);
 							$.inArray(file.hash, sel) !== -1 && selectFile(file.hash);
 						}
-					})
+					});
 				} else {
 					$.each($.map(e.data.changed || [], function(f) { return f.phash == phash ? f : null; }), function(i, file) {
 						remove([file.hash]);
@@ -1014,7 +1040,7 @@ $.fn.elfindercwd = function(fm, options) {
 			.shortcut({
 				pattern     : 'left right up down shift+left shift+right shift+up shift+down',
 				description : 'selectfiles',
-				type        : 'keydown' , //$.browser.mozilla || $.browser.opera ? 'keypress' : 'keydown',
+				type        : 'keydown' , //fm.UA.Firefox || fm.UA.Opera ? 'keypress' : 'keydown',
 				callback    : function(e) { select(e.keyCode, e.shiftKey); }
 			})
 			.shortcut({
@@ -1022,7 +1048,7 @@ $.fn.elfindercwd = function(fm, options) {
 				description : 'selectffile',
 				callback    : function(e) { 
 					unselectAll();
-					scrollToView(cwd.find('[id]:first').trigger(evtSelect))
+					scrollToView(cwd.find('[id]:first').trigger(evtSelect));
 					trigger();
 				}
 			})

@@ -10,13 +10,13 @@ sub startup{
 
 #	Pluggins
 #----------------------------------------------------------------------------------------------------------
-	
+
 	# Register plugins namespace
 	$self->plugins->namespaces( [ 'GG::Plugins', 'Mojolicious::Plugin' ] );
 	$self->plugin( charset => { charset => 'UTF-8' } );
 	$self->plugin( PoweredBy => (name => 'GG 9.2'));
-	
-	
+
+
 	# Load config
 	my $config = $self->plugin('Config',{
         file      => 'config',
@@ -25,33 +25,33 @@ sub startup{
 
 	# DBI OO api
 	$self->plugin('dbi', $config );
-	
+
 	# Sys vars
 	$self->plugin('vars');
-	
-	# Lkeys 
+
+	# Lkeys
 	$self->plugin('keys');
 	$self->plugin('util_helpers');
 
 
 	# ADMIN ROUTES
 	$self->plugin('admin');
-	
+
 	# self
 	$self->plugin('menu');
 	$self->plugin('banners');
 	$self->plugin('content');
 	#$self->plugin('feedback');
 	#$self->plugin('captcha') ;
-	
+
 	$self->plugin('file');
 	$self->plugin('feedback');
-	#$self->plugin('crm');
-	
+	$self->plugin('image');
+
 # / Pluggins ----------------------------------------------------------------------------------------------
-	
+
 	$self->static->paths(['../../httpdocs/']);
-	
+
 	# Routes
 	my $r = $self->routes;
 	$r->namespaces(['GG::Content']);
@@ -65,7 +65,7 @@ sub startup{
 	    	type	 => 'text/html;charset=utf-8',
 	  	});
 	};
-	
+
 	# значения по умолчанию для маршрутов
 	my %routes_args = (
 		handler	=> 'ep',							# Тип шаблонозитора и соответсвенно файлов шаблона
@@ -79,21 +79,21 @@ sub startup{
 
 	$self->hook(before_dispatch => sub {
       	my $self = shift;
-		
+
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$ENV{MOJO_MODE} = $mode;
 			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
 		}
-		
+
 		$self->req->url->base( Mojo::URL->new(q{/}) );
-	
+
 		# --- SEO 301 redirect to none www domain ---------
 		my $url = $self->req->url->clone;
     	my $host = $url->base->host || '';
-		
+
         if($host =~ /^www\./){
         	$host =~ s{^www\.}{};
-							
+
         	$url->base->host($host);
         	my $res = $self->res;
 			$res->code(301);
@@ -102,18 +102,18 @@ sub startup{
 			$self->rendered;
         	return;
         }
-		
+
         #if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-		#	$self->session( cck => $cck );	        	
+		#	$self->session( cck => $cck );
         #}
     });
 
     $self->hook(after_dispatch => sub {
 	    my $tx = shift;
-	
+
 	    # Was the response dynamic?
 #	    return if $tx->res->headers->header('Expires');
-#	
+#
 #	    # If so, try to prevent caching
 #	    $tx->res->headers->header(
 #	        Expires => Mojo::Date->new(time-365*86400)
@@ -122,32 +122,32 @@ sub startup{
 #	        "Cache-Control" => "no-cache, max-age=0, must-revalidate, no-store"
 #	    );
 	});
-	    
-    
+
+
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
         my $self = shift;
-		
+
 		$self->stash->{lang} ||= 'ru';
         return 1;
     });
- 
+
     $routes->post("callback")->to( cb => sub {
         shift->callbackSend;
     });
-    
+
     my $routesCatalog = $routes->bridge('/catalog')->to(layout => 'default', cb => sub {
-    	
+
     	$self->stash->{catalog} = 1;
     	return 1;
     });
-    
+
     my $routesCatalogAjax = $routesCatalog->bridge('/ajax')->to(layout => '', cb => sub {
-    	
+
     	return 1;
     });
-    
+
     $routesCatalogAjax->any('/list_items')->to('Catalog#list_items', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
-    
+
     $routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_sub_category');
     $routesCatalog->any('/:category_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
 
@@ -161,9 +161,9 @@ sub startup{
     $routes->any("/images/:dir_alias")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')->name('gallery_items_list');
 
 	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
-	
+
 	$routes->any("/:alias")->to("Texts#text_main_item" )->name('text');
-	
+
 	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );
 	#$routeViaAlias->any('/subscribe/add_ajax')->to("Subscribe#add_ajax" );
 	#$routeViaAlias->any('/subscribe/unsubscribe')->to("Subscribe#unsubscribe" );

@@ -26,41 +26,40 @@ sub register {
 	$app->plugin('anket_form');
 	$app->plugin('init_json' );
 	$app->plugin('fields' );
-	$app->plugin('image' );
 
-    my %defaults = (
-        namespace   => 'GG::Admin',
-        controller  => 'global',
-        cb          => undef
-    );
+	my %defaults = (
+		namespace   => 'GG::Admin',
+		controller  => 'global',
+		cb          => undef
+	);
 
-    my $r = $app->routes;
+	my $r = $app->routes;
 
 	$r->route('/admin/nothing')->to(%defaults, cb => sub {
 		shift->render( data => '');
 	});
 
 	$r->route('/admin')->to(%defaults, cb => sub {
-        my $self = shift;
+		my $self = shift;
 
-   		$self->render(template	=> "Admin/page_start" );
-     })->name('login_form');
+		$self->render(template	=> "Admin/page_start" );
+	})->name('login_form');
 
 	$r->route('/admin/form_auth')->to(%defaults, cb => sub {
-        my $self = shift;
+		my $self = shift;
 
-       # Проверяем валидность сессии
-        if( $self->admin_getUser( updateAccess => 1, password => $self->param('authpassword') || '' ) ){
+		# Проверяем валидность сессии
+		if( $self->admin_getUser( updateAccess => 1, password => $self->param('authpassword') || '' ) ){
 
-        	# Просчитываем права
-        	$self->app->sessions->cookie_path('/admin/');
+			# Просчитываем права
+			$self->app->sessions->cookie_path('/admin/');
 
 			$self->render(template	=> "Admin/quick_auth_reload" );
-        } else{
+		} else{
 
 			$self->render(template	=> "Admin/form_auth" );
-        }
-    });
+		}
+	});
 
 
 	$r->route('/admin/logout')->to(%defaults, cb => sub {
@@ -71,29 +70,26 @@ sub register {
 		my $login = $self->cookie('admin_login');
 
 		if($login){
-		  	$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE login='$login'");
+			$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE login='$login'");
 
 			$self->cookie('admin_cck', '', {
-					path 	=> '/admin/',
-					expires	=> time-1000
-				}
-			);
+				path 	=> '/admin/',
+				expires	=> time-1000
+			});
 
 			$self->cookie('admin_login', '', {
-					path 	=> '/',
-					expires	=>  time-1000
-				}
-			);
+				path 	=> '/',
+				expires	=>  time-1000
+			});
 
 			$self->cookie('vfe', '', {
 					path 	=> '/',
 					expires	=>  time-1000
-				}
-			);
+			});
 		}
 
-	 	$self->redirect_to('login_form');
-    });
+		$self->redirect_to('login_form');
+	});
 
  	$app->helper( admin_logout => sub {
 			my $self   = shift;
