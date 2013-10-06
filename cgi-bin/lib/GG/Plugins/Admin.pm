@@ -299,10 +299,6 @@ sub register {
 				$self->admin_msg_errors(' Пожалуйста, введите верные логин и пароль. <br />Помните, оба поля чувствительны к регистру.') && return;
 			}
 
-
-			$self->app->sysuser->userinfo($user);
-			$self->app->sysuser->sys($user->{sys});
-
 			if ($user->{count} && ($user->{count} >= $params{count}) and ($user->{bhour} <= 3)) { # Проверка на количество неправильных попыток авторизации
 				$self->save_logs(name => 'Попытка подбора пароля. Доступ для данного аккаунта временно ограничен', comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth' );
 				$self->admin_msg_errors('Попытка подбора пароля. Доступ для данного аккаунта временно ограничен');
@@ -310,8 +306,8 @@ sub register {
 				# TODO: Send mail
 				eval{
 					$self->mail(
-				   		to      => $self->get_var('email_admin'),
-				   		subject => 'Попытка подбора пароля на сайте '.$self->get_var('site_name'),
+				   		to      => $self->get_var( name => 'email_admin', controller => 'global', raw => 1 ),
+				   		subject => 'Попытка подбора пароля на сайте '.$self->get_var( name => 'site_name', controller => 'global', raw => 1 ),
 				   		data    => "Логин: <b>$params{login}</b> <br />Пароль: <b>$params{password}</b>, IP: <b>$ip</b>",
 					);
 				};
@@ -332,6 +328,9 @@ sub register {
 				$self->save_logs(name => "Пожалуйста, введите верные логин и пароль #2. Попытка ($count из $params{count})", comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth');
 
 			} else {
+				$self->app->sysuser->userinfo($user);
+				$self->app->sysuser->sys($user->{sys});
+
 				my $cck = $self->defCCK($user->{login}, $user->{password});
 
 				$self->app->dbi->query(qq/
