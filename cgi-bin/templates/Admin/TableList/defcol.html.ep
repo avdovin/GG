@@ -12,11 +12,13 @@
     </table>
 <hr>
 <div id="mainContainer">
-%	my $flag_win = $self->stash->{flag_win} || 0; 
+%	my $flag_win = $self->stash->{flag_win} || 0;
 <% if(!$flag_win){ %>
 <form name="checkbox_defcol" id="checkbox_defcol">
 <div id="formResponsewin" style="overflow:scroll;width:670px;height:335px">
 <table id="anketka_win<%= $self->stash->{replaceme} %>" width="95%" align="center" style="border:solid 1px #ccc">
+  <tr>
+    <td>
 <% } %>
 <% if($flag_win){ %>
 <div id="" style="width:670px;height:335px;overflow:scroll;">
@@ -32,7 +34,7 @@
 		  <div class="sortable" style="float:left;background:url(/admin/js/jquery/ui/ui-icons_888888_dragndrop.png) 0 3px no-repeat; margin-left: -15px; padding-left: 20px;"><%= lkey (name => $field, setting => 'name') =%></div><div style="float:right;width:135px;height:18px;font-size:12px;">ширина: <input onClick="this.select();this.focus();" type="text" value="<% if($self->stash->{'check:'.$field}){ %><%= $self->stash->{'check:'.$field} %><% } else { %>100<% } %>" style="width:35px;margin:-2px 3px 0 0;text-align:center;" maxlength="3">px</div></li>
 		<% } %>
 %	}
-<% if(!$flag_win){ %></table></div></form><% } else { %>
+<% if(!$flag_win){ %></td></tr></table></div></form><% } else { %>
 </ul></div><% } %>
 
 <form name="form_win<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" id="form_win<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" method="post" enctype="multipart/form-data">
@@ -75,7 +77,7 @@ function save_defcol_sortable(form_name)
 	  if (form2.elements[i].name == "group") {form2.elements[i].value = 3}
 	}
 }
-	
+
 function get_checkbox() {
  var formel = document.getElementById("checkbox_defcol").length;
  form = document.getElementById("checkbox_defcol");
@@ -93,7 +95,7 @@ function get_checkbox() {
 }
 
 function closethiswin() { closeMessage(4); }
-  
+
 </script>
 <% } %>
 
@@ -106,34 +108,34 @@ function closethiswin() { closeMessage(4); }
     jQuery("ul#sortable li:first input").attr({
         disabled:   true,
         value: '',
-        placeholder: 'auto' 
+        placeholder: 'auto'
     });
-                
+
     jQuery('#sortable').sortable({
         start: function(event, ui) {
             jQuery("ul#sortable li input:not(:first)").each(function(){
                 jQuery(this).attr('data-backup', jQuery(this).val() );
             });
-            
+
             jQuery("ul#sortable li input").each(function(){
                 jQuery(this).val( jQuery(this).attr('data-backup') || '100' );
-            });            
+            });
         },
         update: function(event, ui) {
             jQuery("ul#sortable li input").attr({
                 disabled:   false,
-                placeholder: '' 
+                placeholder: ''
             });
             jQuery("ul#sortable li:first input").attr({
                 disabled:   true,
                 value: '',
-                placeholder: 'auto' 
+                placeholder: 'auto'
             });
-        }    
+        }
     }).trigger('sortupdate');
     jQuery('#sortable').disableSelection();
     jQuery('#form_win".$self->stash->{replaceme}.$self->stash->{index}." input[type=submit]').show();
-</script>    
-<% } %>  
+</script>
+<% } %>
 
 </div>
