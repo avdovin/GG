@@ -1,2 +1,0 @@
-Имя: <b><%= $vals->{callback_name} %></b><br />
-Телефон: <b><%= $vals->{callback_phone} %></b>

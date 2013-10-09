@@ -60,7 +60,7 @@ sub new
 			'write'  => 'true',
 			'rm'     => 'true'
 		},
-		'perms'        => [],           # individual folders/files permisions     
+		'perms'        => [],           # individual folders/files permisions
 		'debug'        => 'false',      # send debug to client
 		'archiveMimes' => [],           # allowed archive's mimetypes to create. Leave empty for all available types.
 		'archivers'    => [],           # info about archivers to use. See example below. Leave empty for auto detect
@@ -68,7 +68,7 @@ sub new
 	);
 	$self->{CONF} = { %{$self->{CONF}}, %cfg };     # Чтение файла конфигурации
 	$self->{app} = $self->{CONF}->{app};
-	
+
 	%{$self->{RES}} = ();
 
 	if (substr($self->{CONF}->{'root'}, -1) eq $DIRECTORY_SEPARATOR)
@@ -79,7 +79,7 @@ sub new
 	{
 		$self->{CONF}->{'URL'} = substr($self->{CONF}->{'URL'}, 0, -1); # Убираем последний /
 	}
-	
+
 #	%{$self->{CMD}} = (
 #		'open'      => '_open',
 #		'mkdir'     => '_mkdir',
@@ -105,7 +105,7 @@ sub new
 #		'ls'		=> '_ls',
 #		'paste'		=> '_paste',
 #		);
-	
+
 	%{$self->{REQUEST}} = ();
 
 	return $self;
@@ -129,9 +129,9 @@ sub run
 #		return;
 #	}
 	$self->{REQUEST} = { %request };
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
-		
+
 	my $cmd = $self->{REQUEST}->{'cmd'};
 	if (exists $self->{REQUEST}->{'init'}){
 		$self->{RES}->{'netDrivers'} = [];
@@ -152,7 +152,7 @@ sub run
 #				'create'	=> [qw(application/zip)],
 #				'extract'	=> [qw(application/zip)],
 #			},
-#			
+#
 ##			'dotFiles'   => $self->{CONF}->{'dotFiles'},
 #
 #		);
@@ -160,7 +160,7 @@ sub run
 #		#$self->{RES}->{'options'}->{tmbUrl} = $self->{CONF}->{URL}.$DIRECTORY_SEPARATOR.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR if $self->{CONF}->{tmbDir};
 #
 #		$self->{RES}->{'api'} = $VERSION;
-#		
+#
 #		## clean thumbnails dir
 ##		if ($self->{CONF}->{'tmbDir'} ne '')
 ##		{
@@ -178,7 +178,7 @@ sub run
 ##			}
 ##		}
 #	}
-	
+
 	given ($cmd){
 		when('open') 					{ $self->_open; }
 		when('tree') 					{ $self->_tree($path, 1); }
@@ -200,23 +200,23 @@ sub run
 		when('extract') 				{ $self->_extract; }
 		when('tmb') 					{ $self->_tmb; }
 		when('put') 					{ $self->_puttext; }
-		
+
 		default							{ $self->_open; }
 	}
 }
 
 sub _puttext{
 	my $self = shift;
-	
+
 	my $content = $self->{REQUEST}->{'content'};
-	
+
 	my $hash = shift || $self->{REQUEST}->{'target'};
 	my $path = $self->_hash_api2_decode($hash);
-	
+
 	$self->{RES}->{'changed'} = [];
 	if($self->{app}->file_save_data( data => $content, path => $path)){
 		return push @{ $self->{RES}->{'changed'} }, { $self->_info($path) };
-		
+
 	}
 	$self->{RES}->{'error'} = ('errSave', $path);
 }
@@ -227,18 +227,18 @@ sub _tmb{
 	if(!$self->{REQUEST}->{'targets[]'}){
 		return $self->{RES}->{'error'}.= 'Не задан целевой файл/папка';
 	}
-	
+
 	my $targets = [];
 	if(ref($self->{REQUEST}->{'targets[]'}) eq 'ARRAY'){
 		$targets = $self->{REQUEST}->{'targets[]'};
 	} else {
 		push @$targets, $self->{REQUEST}->{'targets[]'};
 	}
-	
+
 	$self->{RES}->{'images'} = {};
 	foreach my $target (@$targets){
 		my $dstpath = $self->_hash_api2_decode( $target );
-		
+
 		next unless $dstpath;
 
 #		my $filename = _basename($dstpath);
@@ -246,12 +246,12 @@ sub _tmb{
 #		if (substr($dir, -1) ne $DIRECTORY_SEPARATOR){
 #			$dir .= $DIRECTORY_SEPARATOR;
 #		}
-#		
+#
 #		unless(-d $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR){
 #			mkdir($dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR, $self->{CONF}->{'dirMode'});
 #		}
-#		
-#		
+#
+#
 #		File::Copy::Recursive::fcopy($dir.$filename, $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename) or die $!;
 #
 #		$self->{app}->resize_pict(
@@ -260,42 +260,43 @@ sub _tmb{
 #							height	=> 48,
 #		);
 		if(my ($dir, $filename) = $self->__create_tmp($dstpath)){
-			$self->{RES}->{'images'}->{ $target } = $filename;	
+			$self->{RES}->{'images'}->{ $target } = $filename;
 		}
-		
+
 	}
 }
 
 sub __create_tmp{
 	my $self = shift;
 	my $dstpath = shift;
-	
+
 	my $filename = _basename($dstpath);
-	
+
 	my $mime = $self->_mimetype($dstpath);
-	
+
 	if($mime && $mime =~ /image/){
-		
+
 		my $dir = substr($dstpath, 0, -length($filename));
 		if (substr($dir, -1) ne $DIRECTORY_SEPARATOR){
 			$dir .= $DIRECTORY_SEPARATOR;
 		}
-		
+
 		unless(-d $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR){
 			mkdir($dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR, $self->{CONF}->{'dirMode'});
 		}
-		
+
 		eval{
 			File::Copy::Recursive::fcopy($dir.$filename, $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename) or die $!;
 		};
-		
+
 		unless($@){
 			$self->{app}->resize_pict(
-								file	=> $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename,
-								width	=> 48,
-								height	=> 48,
+				file		=> $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename,
+				width		=> 48,
+				height	=> 48,
+				retina 	=> 0,
 			);
-			
+
 			return ($dir, $filename);
 		}
 
@@ -321,14 +322,14 @@ sub _isAllowed
 sub _basename
 {
 	my ($path) = @_;
-	
+
 	$path = decode 'UTF-8', $path;
 	if (rindex($path, $DIRECTORY_SEPARATOR) == -1){
 		return $path;
 	}
 	my @myDir = split('/', $path);
-	
-	return pop @myDir || '';	
+
+	return pop @myDir || '';
 	#return substr($path, rindex($path, $DIRECTORY_SEPARATOR) + 1);
 }
 
@@ -368,8 +369,8 @@ sub _parents{
 	if($path && $path ne $self->{CONF}->{root}){
 
 		my @parts = split($DIRECTORY_SEPARATOR, $path);
-		
-		pop @parts; 
+
+		pop @parts;
 		my $parent_path = join($DIRECTORY_SEPARATOR, @parts);
 		while($parent_path && $parent_path ne $self->{CONF}->{root}){
 			@$tree = (@$tree, @{ $self->__tree($parent_path, 1) } );
@@ -377,25 +378,25 @@ sub _parents{
 			$parent_path = join($DIRECTORY_SEPARATOR, @parts);
 		}
 		@$tree = (@$tree, @{ $self->__tree($parent_path, 1) } );
-		
+
 		$self->{RES}->{'tree'} = $tree;
 	} else {
 		push @$tree, { $self->_info($path) };
 	}
-	
+
 	$self->{RES}->{'tree'} = $tree;
 }
 
 sub _tree{
 	my $self = shift;
 	$self->{RES}->{'tree'} = $self->__tree(@_);
-	
+
 }
 
 sub __tree
 {
 	my ($self, $path, $depth) = @_;
-	
+
 	$path ||= $self->{CONF}->{root};
 
 
@@ -403,23 +404,23 @@ sub __tree
 
 	my $dirs = [];
 	push @$dirs, { $self->_info($path) };
-	
+
 	opendir(DIR, $path);
-	my @content = grep { !/^\.{1,2}$/ } sort readdir(DIR);  
+	my @content = grep { !/^\.{1,2}$/ } sort readdir(DIR);
 	closedir(DIR);
 	foreach my $subdir (grep { -d "$path/$_" } @content){
 		next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
-		
+
 		push @$dirs, { $self->_info("$path/$subdir") };
 		@$dirs = (@$dirs, @{ $self->__tree("$path/$subdir", $depth-1) } ) if $depth > 1;
 	}
 	return $dirs;
-	
+
 }
 
 sub _options{
 	my ($self, $path) = @_;
-	
+
 	%{$self->{RES}->{'options'}} = (
 		'path'			=> substr( $self->_path2relUrl($path), length $DIRECTORY_SEPARATOR) ,
 		'url'			=> $self->_path2baseUrl($path).$DIRECTORY_SEPARATOR,
@@ -432,7 +433,7 @@ sub _options{
 			'create'	=> [qw(application/zip)],
 			'extract'	=> [qw(application/zip)],
 		},
-	);	
+	);
 }
 
 sub _cwd
@@ -467,7 +468,7 @@ sub _cwd
 		$self->{RES}->{'cwd'}->{locked} = 1;
 		$self->{RES}->{'cwd'}->{volumeid} = $self->{CONF}->{volume_id},;
 	}
-	
+
 }
 
 sub _files
@@ -483,16 +484,16 @@ sub _files
 	#foreach my $subdir (grep {_isAccepted($self,"$path/$_") eq 'true'} sort {-f "$path/$a" cmp -f "$path/$b"} @content)
 	foreach my $subdir (sort {-f "$path/$a" cmp -f "$path/$b"} @content){
 		next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
-	
+
 		push @{$self->{RES}->{'files'}}, { $self->_info("$path/$subdir") };
-	}	
-	
+	}
+
 	#Если аргумент tree == true, то добавляются папки из дерева директорий на заданную глубину. Порядок файлов роли не играет
 	if($self->{REQUEST}->{'tree'}){
-		
+
 		#my @files = (@{ $self->{RES}->{'files'} }, @{ $self->__tree($path, $self->{REQUEST}->{'tree'}) } );
 		my @files = (@{ $self->{RES}->{'files'} }, @{ $self->__tree(undef, $self->{REQUEST}->{'tree'}) } );
-		
+
 		my $hashes = {};
 		foreach (0..$#files ){
 			my $hash = $files[$_]->{hash} || '';
@@ -502,13 +503,13 @@ sub _files
 				next;
 			}
 			$hashes->{$hash}++;
-		} 
-		$self->{RES}->{'files'} = \@files; 
-		
+		}
+		$self->{RES}->{'files'} = \@files;
+
 		#foreach ($self->__tree($path, $self->{REQUEST}->{'tree'})){
-		#	push @{$self->{RES}->{'files'}}, $_;	
+		#	push @{$self->{RES}->{'files'}}, $_;
 		#}
-	 
+
 	}
 }
 
@@ -516,7 +517,7 @@ sub _files
 sub _info
 {
 	my ($self, $path) = @_;
-	
+
 	my @stat = (-l $path) ? lstat($path) : stat($path);
 
 	my %info = (
@@ -529,23 +530,23 @@ sub _info
 		'read'  	=> 1, #_isAllowed($self, $path, 'read'),
 		'write' 	=> 1, #_isAllowed($self, $path, 'write'),
 	);
-	
+
 	$info{'date'} = localtime($info{'ts'});
-	
+
 	if ($info{mime} eq 'directory' && $self->{CONF}->{'root'} eq $path){
 		delete $info{phash};
 		$info{locked} = 1;
 	}
-	
+
 	if (-l $path)
 	{
 		$info{'link'} = 'cvzxv';
 	}
 	if ($info{'mime'} ne 'directory')
 	{
-		
+
 		if ($info{'mime'} =~ /image/)
-		{	
+		{
 			eval{
 				my $image = Image::Magick->new();
 				my $x = $image -> Read($path);
@@ -554,18 +555,18 @@ sub _info
 				if( $x ){
 					unlink $path;
 					die $x;
-					#die $path if $x;	
+					#die $path if $x;
 				}
-				
-				
+
+
 				my ($w, $h) = $image->Get('width', 'height');
 				$info{'dim'} = $w.'x'.$h;
-				
+
 				undef $image;
 			};
 			warn $@ if $@;
-			
-			
+
+
 			# check tmb
 			my $dir = substr($path, 0, -length($info{'name'}));
 
@@ -576,11 +577,11 @@ sub _info
 			} else {
 				$info{'tmb'} = 1;
 			}
-			
+
 			#$info{'tmb'} = _basename($path);
 			if ($info{'read'})
 			{
-				
+
 				#$info{'resize'} = (exists $info{'dim'});
 				#$tmb = _tmbPath($self,$path);
 				#if (-f $tmb) {$info{'tmb'} = _path2url($self,$tmb);}
@@ -591,7 +592,7 @@ sub _info
 		# (Number) Only for directories. Marks if directory has child directories inside it. 0 (or not set) - no, 1 - yes. Do not need to calculate amount.
 		$info{dirs} = &__has_subdir($path); #
 	}
-	
+
 	return %info;
 }
 
@@ -630,12 +631,12 @@ sub _mimetype
 	{
 		$name = $path;
 	}
-	
+
 	my $types = Mojolicious::Types->new;
 	my $mt = $types->type(lc($ext)) || 'application/octet-stream';
 	return $mt;
-	
-	
+
+
 	#my $mt = $self->{CTYPE}->{lc($ext)};
 	#$mt = ($mt ne '') ? $mt :'unknown;';
 	#return $mt;
@@ -651,15 +652,15 @@ sub _content
 
 sub _get{
 	my $self = shift;
-	
+
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не задан файл';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $data = $self->{app}->file_read_data(path => $path);
-	
-	$self->{'RES'}->{'content'} = $data || '';	
+
+	$self->{'RES'}->{'content'} = $data || '';
 }
 
 sub _rm{
@@ -668,18 +669,18 @@ sub _rm{
 	if(!$self->{REQUEST}->{'targets[]'}){
 		return $self->{RES}->{'error'}.= 'Не задан целевой файл/папка';
 	}
-	
+
 	my $targets = [];
 	if(ref($self->{REQUEST}->{'targets[]'}) eq 'ARRAY'){
 		$targets = $self->{REQUEST}->{'targets[]'};
 	} else {
 		push @$targets, $self->{REQUEST}->{'targets[]'};
 	}
-	
+
 	$self->{RES}->{'removed'} = [];
 	foreach my $target (@$targets){
 		my $dstpath = $self->_hash_api2_decode( $target );
-		
+
 		$self->__remove_node($dstpath);
 		push @{$self->{RES}->{'removed'}}, $target;
 	}
@@ -696,12 +697,12 @@ sub _rename{
 	if(!$new_name){
 		return $self->{RES}->{'error'}.= 'Не указано название';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 
 	my @parts = split($DIRECTORY_SEPARATOR, $path);
 	my $old_name = pop @parts;
-	
+
 	my $dir = join($DIRECTORY_SEPARATOR, @parts);
 	eval{
 		rename($dir.$DIRECTORY_SEPARATOR.$old_name, $dir.$DIRECTORY_SEPARATOR.$new_name);
@@ -717,18 +718,18 @@ sub _rename{
 		#$self->_tmb;
 		#delete $self->{RES}->{'images'};
 	}
-	
+
 	push @{ $self->{RES}->{'added'} }, { $self->_info($dir.$DIRECTORY_SEPARATOR.$new_name) };
-	$self->{RES}->{'removed'} = [$self->{REQUEST}->{'target'}];	
-	
+	$self->{RES}->{'removed'} = [$self->{REQUEST}->{'target'}];
+
 }
 
 sub __get_dir_from_path{
 	my $path = shift;
-	
+
 	if (substr($path, -1) eq $DIRECTORY_SEPARATOR){
-		$path = substr($path, 0, -1); 
-	}		
+		$path = substr($path, 0, -1);
+	}
 	my @parts = split($DIRECTORY_SEPARATOR, $path);
 	my $name = pop @parts;
 	return (join($DIRECTORY_SEPARATOR, @parts), $name);
@@ -740,17 +741,17 @@ sub _extract{
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не указан архив';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
-	
+
 	my $zip = Archive::Zip->new();
 	my ($dir, $foldername) = __get_dir_from_path($path);
-	
+
 	$foldername =~ s/(\.[^.]+)$//;
 	my $current = 1;
 	if($foldername =~ /(\d)+$/){
 		$current = $1;
-		$foldername =~ s/(\d)+$//;	
+		$foldername =~ s/(\d)+$//;
 	}
 
 	foreach (1..1000){
@@ -763,16 +764,16 @@ sub _extract{
 	}
 
     return $self->{RES}->{'error'}.= 'Ошибка распаковки архива' unless ( $zip->read( $path ) == AZ_OK );
-    
+
     mkdir($dir.$DIRECTORY_SEPARATOR.$foldername, $self->{CONF}->{'dirMode'});
 
    	my @members = $zip -> memberNames( '.*' );
 	foreach my $element(@members){
-		
+
 		my $filename = $self->{app}->transliteration($element);
 		my $Content = $zip -> contents( $element );
-		
-	
+
+
 		eval{
 			open(FILE, ">${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename") or die("can't open ${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename: $!");
 			flock(FILE, 2);
@@ -782,8 +783,8 @@ sub _extract{
 		};
 		warn $@ if $@;
 	}
-	
-	$self->{RES}->{'added'} = [ { $self->_info($dir.$DIRECTORY_SEPARATOR.$foldername) } ];	
+
+	$self->{RES}->{'added'} = [ { $self->_info($dir.$DIRECTORY_SEPARATOR.$foldername) } ];
 }
 
 sub _archive{
@@ -796,35 +797,35 @@ sub _archive{
 	if($self->{REQUEST}->{'type'} ne 'application/zip'){
 		return $self->{RES}->{'error'}.= 'Не поддерживаемый тип архива';
 	}
-		
+
 	my $targets = [];
 	if(ref($self->{REQUEST}->{'targets[]'}) eq 'ARRAY'){
 		$targets = $self->{REQUEST}->{'targets[]'};
 	} else {
 		push @$targets, $self->{REQUEST}->{'targets[]'};
 	}
-	
+
 	my $added = [];
 	my $zip = Archive::Zip->new();
 	my $dir = '';
 	foreach my $target (@$targets){
 		my $path = $self->_hash_api2_decode( $target );
-		
+
 		my (undef, $target_name) = __get_dir_from_path($path);
 		$zip->addFileOrDirectory( $path, $target_name );
-		
+
 		($dir, undef) = __get_dir_from_path($path) unless $dir;
 	}
-	
+
 	my $uniquename = $self->{app}->file_check_free_name($dir.$DIRECTORY_SEPARATOR.'Archive1.zip');
-				
+
 	unless ( $zip->writeToFileNamed($dir.$DIRECTORY_SEPARATOR.$uniquename) == AZ_OK ) {
     	return $self->{RES}->{'error'}.= 'Ошибка создания архива';
    	}
-   	
+
    	push @$added, { $self->_info($dir.$DIRECTORY_SEPARATOR.$uniquename) };
-   			
-	$self->{RES}->{'added'} = $added;	
+
+	$self->{RES}->{'added'} = $added;
 }
 
 sub _resize{
@@ -833,10 +834,10 @@ sub _resize{
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не указаны файлы для создания дубликатов';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $mode = $self->{REQUEST}->{'mode'};
-	
+
 	my $changed = [];
 
 	if($mode eq 'resize'){
@@ -844,23 +845,23 @@ sub _resize{
 
 		$self->{app}->image_set(file => $path, width => $w, height => $h);
 		push @$changed, { $self->_info($path) };
-	
+
 	} elsif($mode eq 'crop'){
 		my ($w, $h, $x, $y) = ($self->{REQUEST}->{'width'}, $self->{REQUEST}->{'height'}, $self->{REQUEST}->{'x'}, $self->{REQUEST}->{'y'});
 
 		$self->{app}->image_crop_raw(file => $path, width => $w, height => $h, x => $x, y => $y);
 		push @$changed, { $self->_info($path) };
-	
+
 	} elsif($mode eq 'rotate'){
 		my ($w, $h, $degree) = ($self->{REQUEST}->{'width'}, $self->{REQUEST}->{'height'}, $self->{REQUEST}->{'degree'});
-		
+
 		eval{
-			my $image = Image::Magick->new;             
+			my $image = Image::Magick->new;
 			my $x     = $image->Read( $path );
 			warn $x if $x;
-	
+
 			$image->set(quality => '80');
-				
+
 			$image -> Rotate(
 				degrees		=> $degree,
 				background	=> 'red',
@@ -887,32 +888,32 @@ sub _duplicate{
 	if(!$self->{REQUEST}->{'targets[]'}){
 		return $self->{RES}->{'error'}.= 'Не указаны файлы для создания дубликатов';
 	}
-	
+
 	my $targets = [];
 	if(ref($self->{REQUEST}->{'targets[]'}) eq 'ARRAY'){
 		$targets = $self->{REQUEST}->{'targets[]'};
 	} else {
 		push @$targets, $self->{REQUEST}->{'targets[]'};
 	}
-	
+
 	my $added = [];
 	foreach my $target (@$targets){
 		my $src_path = $self->_hash_api2_decode( $target );
-		
+
 		my ($dir, $name) = __get_dir_from_path($src_path);
-		
+
 		my $save_name = $name;
 		my $copyname = $name;
-		eval{	
+		eval{
 			# Копируем папку
 			if(-d $dir.$DIRECTORY_SEPARATOR.$name){
 				$copyname = $name.' copy 1';
 				my $current = 1;
 				if($copyname =~ /(\d)+$/){
 					$current = $1;
-					$copyname =~ s/(\d)+$//;	
+					$copyname =~ s/(\d)+$//;
 				}
-			
+
 				foreach (1..1000){
 					my $test_name = $copyname;
 					$test_name .= $_;
@@ -921,17 +922,17 @@ sub _duplicate{
 						last;
 					}
 				}
-				
+
 				File::Copy::Recursive::dircopy($dir.$DIRECTORY_SEPARATOR.$name, $dir.$DIRECTORY_SEPARATOR.$copyname)  or die $!
-			
+
 			} elsif(-f $dir.$DIRECTORY_SEPARATOR.$name){
 				my $ext = ($name =~ m/([^.]+)$/)[0];
 				$name =~ s{\.$ext$}{}e;
 				$copyname = $self->{app}->file_check_free_name($dir.$DIRECTORY_SEPARATOR.$name.' copy 1.'.$ext);
 				$name = $save_name;
-				
+
 				File::Copy::Recursive::fcopy($dir.$DIRECTORY_SEPARATOR.$name, $dir.$DIRECTORY_SEPARATOR.$copyname) or die $!;
-			} 
+			}
 		};
 		# Прекращаем выполнение если произошла ошибка
 		if($@){
@@ -939,10 +940,10 @@ sub _duplicate{
 			last;
 		} else {
 			push @$added, { $self->_info($dir.$DIRECTORY_SEPARATOR.$copyname) };
-		}			
+		}
 	}
-	
-	$self->{RES}->{'added'} = $added;	
+
+	$self->{RES}->{'added'} = $added;
 }
 
 sub _paste{
@@ -951,11 +952,11 @@ sub _paste{
 	if(!$self->{REQUEST}->{'targets[]'}){
 		return $self->{RES}->{'error'}.= 'Не указаны файлы для копирования/перемещения';
 	}
-	
+
 	my $src = $self->_hash_api2_decode( $self->{REQUEST}->{'src'} );
 	my $dst = $self->_hash_api2_decode( $self->{REQUEST}->{'dst'} );
 	my $cut = $self->{REQUEST}->{'cut'} || 0; # Флаг перемещения
-	
+
 	unless($src){
 		return $self->{RES}->{'error'}.= 'Не задана папка источник';
 	}
@@ -963,20 +964,20 @@ sub _paste{
 		return $self->{RES}->{'error'}.= 'Не задана папка приемник';
 	}
 
-		
+
 	my $targets = [];
 	if(ref($self->{REQUEST}->{'targets[]'}) eq 'ARRAY'){
 		$targets = $self->{REQUEST}->{'targets[]'};
 	} else {
 		push @$targets, $self->{REQUEST}->{'targets[]'};
 	}
-	
+
 	my $added = [];
-	my $removed = [];	
+	my $removed = [];
 	foreach my $target (@$targets){
 		my $src_path = $self->_hash_api2_decode( $target );
 		if (substr($src_path, -1) eq $DIRECTORY_SEPARATOR){
-			$src_path = substr($src_path, 0, -1); 
+			$src_path = substr($src_path, 0, -1);
 		}
 		my @parts = split($DIRECTORY_SEPARATOR, $src_path);
 		my $name = pop @parts;
@@ -984,14 +985,14 @@ sub _paste{
 		# Запрет перезаписи папок или файлов
 		#next if( (-d $src.$name && -d $dst.$name) or (-f $src.$name && -f $dst.$name) );
 
-		eval{		
+		eval{
 			# Копируем папку
 			if(-d $src.$DIRECTORY_SEPARATOR.$name){
 				File::Copy::Recursive::dircopy($src.$DIRECTORY_SEPARATOR.$name, $dst.$DIRECTORY_SEPARATOR.$name)  or die $!
-			
+
 			} elsif(-f $src.$DIRECTORY_SEPARATOR.$name){
 				File::Copy::Recursive::fcopy($src.$DIRECTORY_SEPARATOR.$name, $dst.$DIRECTORY_SEPARATOR.$name) or die $!;
-			} 
+			}
 		};
 		# Прекращаем выполнение если произошла ошибка
 		if($@){
@@ -1000,14 +1001,14 @@ sub _paste{
 		} else {
 			push @$added, { $self->_info($dst.$DIRECTORY_SEPARATOR.$name) };
 		}
-		
-		
+
+
 		if($cut){
 			$self->__remove_node($src.$DIRECTORY_SEPARATOR.$name);
-			push @$removed, $target;	
+			push @$removed, $target;
 		}
-	}	
-	
+	}
+
 	$self->{RES}->{'added'} = $added;
 	$self->{RES}->{'removed'} = $removed;
 }
@@ -1023,7 +1024,7 @@ sub __remove_node{
 			my $dir = substr($path, 0, -length($filename));
 			unlink($dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename);
 		}
-		
+
 	} elsif(-d $path){
 
 		File::Path::rmtree($path);
@@ -1036,18 +1037,18 @@ sub _ls{
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не задана целевая директория';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
-	
+
 	opendir(DIR, $path);
 	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 	closedir(DIR);
 
 	$self->{RES}->{'list'} = [];
 	foreach my $subdir (sort {-f "$path/$a" cmp -f "$path/$b"} @content){
-		
+
 		push @{$self->{RES}->{'list'}},  _basename($subdir);
-	}	
+	}
 }
 
 sub _mkfile{
@@ -1059,7 +1060,7 @@ sub _mkfile{
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $name = $self->{REQUEST}->{'name'} || 'untitled file.txt';
 	$name = $self->{app}->transliteration($name);
-	
+
 	eval{
 		open(FILE, ">${dstpath}${DIRECTORY_SEPARATOR}$name") or die("can't open ${dstpath}${DIRECTORY_SEPARATOR}$name: $!");
 		flock(FILE, 2);
@@ -1067,8 +1068,8 @@ sub _mkfile{
 		close FILE or die("can't close ${dstpath}${DIRECTORY_SEPARATOR}$name: $!");
 		chmod $self->{CONF}->{'fileMode'}, $dstpath.$DIRECTORY_SEPARATOR.$name;
 	};
-	
-	$self->{RES}->{'added'} = [ { $self->_info($dstpath.$DIRECTORY_SEPARATOR.$name) } ];	
+
+	$self->{RES}->{'added'} = [ { $self->_info($dstpath.$DIRECTORY_SEPARATOR.$name) } ];
 }
 
 sub _mkdir{
@@ -1080,9 +1081,9 @@ sub _mkdir{
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $name = $self->{REQUEST}->{'name'} || 'new folder';
 	$name = $self->{app}->transliteration($name);
-	
+
 	mkdir($dstpath.$DIRECTORY_SEPARATOR.$name, $self->{CONF}->{'dirMode'});
-	
+
 	$self->{RES}->{'added'} = [ { $self->_info($dstpath.$DIRECTORY_SEPARATOR.$name) } ]
 }
 
@@ -1092,7 +1093,7 @@ sub _upload{
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не задана целевая директория';
 	}
-	
+
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 
 	my $app = $self->{app};
@@ -1101,15 +1102,15 @@ sub _upload{
 	my @files =$app->req->upload('upload[]');
 	foreach my $upload (@files) {
 		return $self->{RES}->{'error'} .= 'Размер файла слишком большой' if $app->req->is_limit_exceeded;
-		
+
 		next unless $upload;
 
 		my $filename = $upload->filename;
 		$filename = $app->transliteration($filename);
 		$upload->move_to($dstpath.$DIRECTORY_SEPARATOR.$filename);
-		
+
 		chmod($dstpath.$DIRECTORY_SEPARATOR.$filename, $self->{CONF}->{'fileMode'});
-		
+
 		if(my $size = $app->get_var('filemanager_max_image_size')){
 			$app->resize_pict( fsize => $size, file => $dstpath.$DIRECTORY_SEPARATOR.$filename);
 		}
@@ -1119,39 +1120,39 @@ sub _upload{
 
 sub _search{
 	my $self = shift;
-	
+
 	my $path = $self->{CONF}->{'root'};
 	my $q = $self->{REQUEST}->{'q'};
 
 	my @Files = ();
 	@Files = @{ find($path, $q) } ;
-	
+
 	sub find{
 		my $path = shift;
 		my $q 	= shift;
-		
+
 		opendir(DIR, $path);
-		my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);  
+		my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 		closedir(DIR);
-		
+
 		my $files = [];
 		foreach my $node (@content){
 			if($node =~ /$q/i){
 				push @$files, $path.'/'.$node;
 			}
-			
+
 			if(-d $path.'/'.$node and $node ne $self->{CONF}->{tmbDir}){
 				@$files = (@$files, @{ find($path.'/'.$node, $q) } );
 			}
 		}
-		return $files;	
+		return $files;
 	}
-	
+
 	my $RES = [];
 	foreach (@Files){
 		push @$RES, { $self->_info($_) };
 	}
-	
+
 	$self->{RES}->{'files'} = $RES;
 }
 
@@ -1161,11 +1162,11 @@ sub _file{
 	if(!$self->{REQUEST}->{'target'}){
 		return $self->{RES}->{'error'}.= 'Не задана целевая директория';
 	}
-	
+
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $app = $self->{app};
-	
-	$app->file_download(abs_path => $path);	
+
+	$app->file_download(abs_path => $path);
 }
 
 sub _open
@@ -1178,7 +1179,7 @@ sub _open
 	if (exists $self->{REQUEST}->{'target'})
 	{
 		$p = _findDir($self, $self->{REQUEST}->{'target'});
-		
+
 		if ('false' eq $p)
 		{
 			if (! exists $self->{REQUEST}->{'init'})
@@ -1196,16 +1197,16 @@ sub _open
 		{
 			$path = $p;
 		}
-		
+
 	}
 
 	if (exists $self->{REQUEST}->{'current'})
 	{
 		$self->{RES}->{'error'} .= $self->{URL}->{current}."<br>"
 	}
-	
+
 	#$self->{RES}->{uplMaxSize} = $self->{CONF}->{uplMaxSize};
-	
+
 	_content($self, $path);
 }
 
@@ -1236,12 +1237,12 @@ sub _findDir
 	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 	#$_ = decode 'UTF-8', $_ for ( @content );
 	closedir(DIR);
-	
+
 	foreach my $subdir (grep {-d "$path/$_" } @content)
 	{
 		next unless $subdir;
 		$p = $path.'/'.$subdir;
-		
+
 		if ($self->_hash_api2_encode($p) eq $hash || ($p = _findDir($self, $hash, $p)) ne 'false')
 		{
 			last;
@@ -1255,25 +1256,25 @@ sub _findDir
 sub _abs_path{
 	my $self = shift;
 	my $path = shift;
-	
+
 	return $path eq $DIRECTORY_SEPARATOR ? $self->{CONF}{'root'} : $self->{CONF}{'root'}.$path;
 }
 
 sub _rel_path{
 	my $self = shift;
 	my $path = shift;
-	
+
 	return $path eq $self->{CONF}{'root'} ? '' : $DIRECTORY_SEPARATOR.substr($path, length($self->{CONF}{'root'})+1);
 }
 
 sub _phash{
 	my $self = shift;
 	my $path = shift;
-	
-	my @myDir = split('/', $path); 
-	pop @myDir; 
 
-	return $self->_hash_api2_encode( join( '/', @myDir) ); 	
+	my @myDir = split('/', $path);
+	pop @myDir;
+
+	return $self->_hash_api2_encode( join( '/', @myDir) );
 }
 
 sub __crypt{
@@ -1281,23 +1282,23 @@ sub __crypt{
 }
 
 sub __uncrypt{
-	return shift;	
+	return shift;
 }
 
 sub __has_subdir{
 	my $path = shift;
-	
+
 	if (grep -d, glob("$path/*")) {
 		return 1;
 	}
-	return 0;  
+	return 0;
 }
 
 
 sub _hash_api2_decode{
 	my $self = shift;
 	my $hash = shift;
-	
+
 	if(substr($hash, 0, length($self->{CONF}->{volume_id})) eq $self->{CONF}->{volume_id}){
 
 		$hash = substr($hash, length($self->{CONF}->{volume_id}) );
@@ -1314,23 +1315,23 @@ sub _hash_api2_encode{
 	my $self = shift;
 	my $path = shift;
 	my $safe = $path;
-	
+
 	if($path){
 		$path = encode 'UTF-8', $path;
 		$path = $self->_rel_path($path);
-		
+
 		$path ||= $DIRECTORY_SEPARATOR;
 		#die $path if ($safe eq '../../userfiles/123');
-		
+
 		my $hash = __crypt($path);
-		
+
 		$hash = b64_encode( $hash );
-		
+
 		$hash =~ tr{\+\/=}{-_.};
 		$hash =~ s/[\s\.]+$//;
 		$hash =~ s/[\s]+//;
 		#die $hash if ($safe eq '../../userfiles/123');
-		return $self->{CONF}->{volume_id}.$hash;		
+		return $self->{CONF}->{volume_id}.$hash;
 	}
 }
 

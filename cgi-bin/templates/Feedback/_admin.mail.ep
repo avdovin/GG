@@ -15,12 +15,12 @@
 	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
 		<tr>
 			<td>
-				<h2>Получен письмо с сайта <%= get_var 'site_name'%></h2><br />
-				
+				<h2>Получен письмо с сайта dakupi.ru</h2><br />
+
 				Имя: <b><%= $self->stash->{name} %></b><br />
 				Телефон: <b><%= $self->stash->{phone} %></b><br />
 				Email: <b><%= $self->stash->{email} %></b><br />
-				Вопрос:<br />
+				Текст сообщения:<br />
 				<%= $self->stash->{ftext} %>
 			</td>
 		</tr>

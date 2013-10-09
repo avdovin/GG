@@ -1,132 +1,124 @@
 % extends 'layouts/default';
 
+%	js_controller 'feedback';
+% js_files 'http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU';
+
 %= content body_default => begin
 
-<div id="body" class="clearfix">
-    <div class="block block-shadowed block-background block-margin block-padding clearfix">
-        <div class="centerCol content">
-            <h1>Контакты</h1>
-            <div id="contacts-list">
-            	
-                <div class="contacts-entry">
-                    <div class="contacts-entry-map">
+<div class="body">
+	<div class="block block_background block_margin block_border block_shadowed clearfix">
+		<div class="contacts clearfix">
+			<h1 class="contacts__title">Контакты</h1>
+			<h2 class="contacts__subtitle">Главный офис</h2>
+			<div class="contacts__info">
+				<div class="content">
+					<p class="info__entry info__entry_address"><span class="entry__title">Адрес</span> г. Санкт-Петербург, наб. Обводного канала, д. 136, корп. 1, оф. лит. «Б»</p>
+					<p class="info__entry info__entry_phone"><span class="entry__title">Телефон</span> +7 (812) 642-50-50</p>
+					<p class="info__entry info__entry_email"><span class="entry__title">Электронная почта</span> <a href="mailto:zakaz@krasarf.ru">zakaz@krasarf.ru</a></p>
+					<p class="info__entry info__entry_hours">
+						<span class="entry__title">Время работы в Санкт-Петербурге</span>
+						Будни с 10:00 до 18:00,<br/>
+						Сделать заказ можно круглосуточно<br/><br/>
+						Реквизиты:<br/>
+						ИП "Николаев"<br/>
+						ИНН: 470504062058<br/>
+						ОГРН: 311784715300198<br/>
+						Юридический адрес: 198303,<br/>
+						Санкт-Петербург Ленинский пр. д.104 кв.263
+					</p>
+				</div>
+			</div>
+			<div class="contacts__map">
+				<div id="Gmap"></div>
+			</div>
+		</div>
+	</div>
 
-                    </div>
-                    <p class="address">
-                        <span>Адрес</span>
-                        ул. Студенческая, д.10, ТК «Ланской», сек. В2а
-                    </p>
-                    <p class="phone">
-                        <span>Телефоны и факсы</span>
-                        (812) 332-41-57, 332-41-56
-                    </p>
-                    <p class="email">
-                        <span>Электронная почта</span>
-                        <a href="#">info@int-plus.ru</a>
-                    </p>
-                    <p class="hours">
-                        <span>Время работы</span>
-                        ежедневно с 10:00 до 20:00
-                    </p>
-                    <p class="transport">
-                        <span>Ближайший транспорт</span>
-                        Станция метро «Лесная» ~ 1,4 км.<br/>
-                        Станция метро «Чёрная речка» ~ 1,9 км.<br/>
-                        Ж/д платформа «Ланская» ~ 0,6 км.<br/>
-                        <b>Маршрутки:</b> К-240Б, К-367 - от м.«Лесная» до ТК «Ланской»
-                    </p>
-                </div>
-                <div class="contacts-entry">
-                    <div class="contacts-entry-map">
+	<div class="block block_background block_margin block_border block_shadowed clearfix">
+		<div class="content">
+			<div class="contacts__shops">
+				<h2 class="shops__title">Магазины</h2>
+				<div class="shops__list">
+					<div class="list__entry">
+						<h3 class="entry__title">ст. м. Электросила</h3>
+						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
+						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
+						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
+						<p class="entry__info entry__info_hours">
+							<span class="info__title">Время работы</span>
+							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
+						</p>
+					</div>
+					<div class="list__entry">
+						<h3 class="entry__title">ст. м. Электросила</h3>
+						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
+						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
+						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
+						<p class="entry__info entry__info_hours">
+							<span class="info__title">Время работы</span>
+							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
+						</p>
+					</div>
+					<div class="list__entry">
+						<h3 class="entry__title">ст. м. Электросила</h3>
+						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
+						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
+						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
+						<p class="entry__info entry__info_hours">
+							<span class="info__title">Время работы</span>
+							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
+						</p>
+					</div>
+					<div class="list__entry">
+						<h3 class="entry__title">ст. м. Электросила</h3>
+						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
+						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
+						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
+						<p class="entry__info entry__info_hours">
+							<span class="info__title">Время работы</span>
+							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-                    </div>
-                    <p class="address">
-                        <span>Адрес</span>
-                        ул. Студенческая, д.10, ТК «Ланской», сек. В2а
-                    </p>
-                    <p class="phone">
-                        <span>Телефоны и факсы</span>
-                        (812) 332-41-57, 332-41-56
-                    </p>
-                    <p class="email">
-                        <span>Электронная почта</span>
-                        <a href="#">info@int-plus.ru</a>
-                    </p>
-                    <p class="hours">
-                        <span>Время работы</span>
-                        ежедневно с 10:00 до 20:00
-                    </p>
-                    <p class="transport">
-                        <span>Ближайший транспорт</span>
-                        Станция метро «Лесная» ~ 1,4 км.<br/>
-                        Станция метро «Чёрная речка» ~ 1,9 км.<br/>
-                        Ж/д платформа «Ланская» ~ 0,6 км.<br/>
-                        <b>Маршрутки:</b> К-240Б, К-367 - от м.«Лесная» до ТК «Ланской»
-                    </p>
-                </div>
-                <div class="contacts-entry">
-                    <div class="contacts-entry-map">
+	<div class="block block_background block_margin block_border block_shadowed clearfix">
+		<div class="content">
+			<div class="contacts__form">
+				<div class="form__loading"></div>
+				<h2 class="form__title">Связаться с нами</h2>
 
-                    </div>
-                    <p class="address">
-                        <span>Адрес</span>
-                        ул. Студенческая, д.10, ТК «Ланской», сек. В2а
-                    </p>
-                    <p class="phone">
-                        <span>Телефоны и факсы</span>
-                        (812) 332-41-57, 332-41-56
-                    </p>
-                    <p class="email">
-                        <span>Электронная почта</span>
-                        <a href="#">info@int-plus.ru</a>
-                    </p>
-                    <p class="hours">
-                        <span>Время работы</span>
-                        ежедневно с 10:00 до 20:00
-                    </p>
-                    <p class="transport">
-                        <span>Ближайший транспорт</span>
-                        Станция метро «Лесная» ~ 1,4 км.<br/>
-                        Станция метро «Чёрная речка» ~ 1,9 км.<br/>
-                        Ж/д платформа «Ланская» ~ 0,6 км.<br/>
-                        <b>Маршрутки:</b> К-240Б, К-367 - от м.«Лесная» до ТК «Ланской»
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+				<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">
+					<div class="form__error">
+						<p>Пароли не совпадают. Проверьте правильность написания.</p>
+					</div>
+					<div class="form__wrapper">
+						<table class="form__container">
+							<tr>
+								<td class="form__cell form__cell_left">
+									<span class="field__title">Ваше имя</span> <input name="name" value="" class="field__input field__input_text" type="text" />
+									<span class="field__title">Номер телефона</span> <input name="phone" value="" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67" />
+									<span class="field__title">Электронная почта</span> <input name="email" value="" class="field__input field__input_text" type="email" />
+								</td>
+								<td class="form__cell form__cell_right">
+									<span class="field__title">Ваше сообщение</span>
+									<textarea name="ftext" class="field__input field__input_textarea"><%= $self->stash->{ftext} %></textarea>
+								</td>
+							</tr>
+							<tr>
+								<td class="form__cell" colspan="2">
+									<a href="#" class="form__send button button_red">Отправить</a>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</form>
 
-    <div class="block block-shadowed block-background block-padding clearfix">
-        <div class="centerCol content">
-            <h1>Связаться с нами</h1>
-            <div id="contacts-form">
-			<% if($self->stash->{success}) { %>
-				<h2>Ваше сообщение отправлено ... </h2>
-			<% 	} else { %>
-				<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">            	
-		            <table>
-		                <tr>
-		                    <td class="c1">
-					            <span>Имя</span><input type="text" name="name" id="name" value="<%= $self->stash->{name} %>"/>
-					            <% if($errors->{name}) { %><span style="color:red;"><%= $errors->{name} %></span><% } %>
-					            <span>Телефон</span><input type="text" name="phone" id="phone" value="<%= $self->stash->{phone} %>"/>
-					            <% if($errors->{phone}) { %><span style="color:red;"><%= $errors->{phone} %></span><% } %>
-					            <span>Электронная почта</span><input type="text" name="email" id="email" value="<%= $self->stash->{email} %>"/>
-					            <% if($errors->{email}) { %><span style="color:red;"><%= $errors->{email} %></span><% } %>		                    	
-		                    </td>
-		                    <td class="c2">
-		                        <span>Ваше сообщение</span>
-		                        <textarea name="ftext" id="ftext"><%= $self->stash->{ftext} %></textarea>
-		                        <% if($errors->{ftext}) { %><span style="color:red;"><%= $errors->{ftext} %></span><% } %>
-		                        <p class="right"><a href="javascript:document.getElementById('form-common').submit();" class="button button-blue">Отправить</a></p>
-		                    </td>
-		                </tr>
-		            </table>
-	           </form>
-	        <% } %>
-        	</div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </div>
 
 % end

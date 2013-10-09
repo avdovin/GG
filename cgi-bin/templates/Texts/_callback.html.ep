@@ -1,85 +1,35 @@
 <table class="popup" id="popup-callback">
-    <tr>
-        <td>
-            <div class="popup-container callback">
-                <a href="#" class="popup-close"></a>
-                <h2>Заказ обратного звонка</h2>
-                <form name="callback-form" id="callback-form">
-                    <div class="popup-error message"></div>
-                    <table>
-                        <tr>
-                            <td>
-                                <span>Имя</span>
-                                <input type="text" name="callback_name"/>
-                            </td>
-                            <td>
-                                <span>Телефон</span>
-                                <input type="text" name="callback_phone" id="callback_phone"/>
-                            </td>
-                        </tr>
-                    </table>
-                    <p class="right"><a href="#" class="button button-blue">Заказать звонок</a></p>
-                </form>
-            </div>
-        </td>
-    </tr>
+	<tr>
+		<td>
+			<div class="popup-container">
+				<a href="#" class="popup-close"></a>
+				<div class="popup__loading"></div>
+				<h2 class="popup__title">Заказ обратного звонка</h2>
+				<form class="callback__wrapper">
+					<div class="form__error popup-error"></div>
+					<table class="callback__container">
+						<tr>
+							<td class="callback__field">
+								<span class="field__title">Ваше имя</span>
+								<input class="field__input field__input_text" type="text" name="callback_name"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="callback__field">
+								<span class="field__title">Номер телефона</span>
+								<input class="field__input field__input_text field__input_phone" type="text" name="callback_phone" id="callback_phone" placeholder="+7 (123) 123-45-67"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="callback__field">
+								<span class="field__title">Город</span>
+								<input class="field__input field__input_text" type="text" name="callback_city" />
+							</td>
+						</tr>
+					</table>
+					<p class="right"><a href="#" class="callback__submit button button_red">Заказать звонок</a></p>
+				</form>
+			</div>
+		</td>
+	</tr>
 </table>
-
-
-<script type="text/javascript">
-$(document).ready(function(){
-	$(".contacts__callback").click(function(){
-		callbackWindow();
-		return false;
-	})
-	
-	$("#popup-callback a.button").click(function(){
-		callbackSend()
-		return false;
-	})
-	
-	$("#popup-callback .popup-close").click(function(){
-		callbackWindow();
-	})
-});
-
-function callbackWindow() {
-   if ($('#popup-callback').css("display") == 'table') {
-        $('#popup-callback').fadeOut("slow");
-        
-    } else {
-        $('#popup-callback').fadeIn("slow");
-    }
-}
-
-function callbackSend() {
-    var data = $("#callback-form").serialize();
-    var $container = $("#popup-callback");
-    var $msg = $("#popup-callback .popup-error");
-
-	$.ajax({
-		url: "/callback",
-		type: 'post',
-		beforeSend: function (){
-			$msg.hide().text('');
-			$container.css('cursor', 'progress');
-	 	}
-	}).done(function ( data ){
-        if(data.error){
-
-            if(data.error_field && $("#"+data.error_field).length){
-                $("#"+data.error_field).addClass("error");
-            } else {
-                //$container.find(".message").html(data.error).show();;
-            }
-            
-            $msg.text('Укажите контактный телефон').show();
-             
-        } else{
-            $container.find('form').html(data.html);
-        }
-	}).complete(function(){
-		$container.css('cursor', 'default');
-	});
-}
-</script>

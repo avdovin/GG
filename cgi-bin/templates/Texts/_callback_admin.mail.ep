@@ -1,0 +1,27 @@
+<html>
+<head>
+    <title><%= get_var 'site_name'%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      @media only screen and (max-width:600px) {
+        #wrapper {
+            width:100% !important;
+        }
+    }
+    </style>
+</head>
+<body>
+
+  <table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+    <tr>
+      <td>
+        <h2>Заказ обратного звонка с сайта dakupi.ru</h2><br />
+
+        Имя: <b><%= $self->stash->{name} %></b><br />
+        Телефон: <b><%= $self->stash->{phone} %></b><br />
+        Город: <b><%= $self->stash->{city} %></b><br />
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

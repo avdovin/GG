@@ -80,11 +80,12 @@ sub register {
 
 			unless($found){
 				if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
-					$seoMeta = $node
+					$seoMeta = $node;
+					$found = 1;
 				}
 			}
 
-			return $self->stash->{header} = $seoMeta || {};
+			return $self->stash->{header} = $seoMeta if $found;
 	});
 
 	$app->helper( ip => sub {
@@ -189,6 +190,14 @@ sub register {
 			}
 		}
 	);
+
+	$app->helper(
+		js_controller	=> sub {
+			my $self = shift;
+			return unless my $controller = shift || $self->stash->{controller};
+
+			return $self->js_files( '/js/controllers/'.$controller.'.js' );
+	});
 
 	$app->helper(
 		js_files	=> sub {
