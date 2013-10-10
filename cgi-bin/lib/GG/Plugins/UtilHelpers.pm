@@ -207,8 +207,8 @@ sub register {
 
  			if($file){
  				push @{ $self->stash->{_js_files} }, {
- 					file		=> $file,
- 					template	=> __FILE__,
+ 					file			=> $file,
+ 					template	=> $template,
  				};
  				return;
  			}
