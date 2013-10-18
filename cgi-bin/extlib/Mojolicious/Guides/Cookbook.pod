@@ -53,6 +53,20 @@ concurrent connections each worker is allowed to handle.
   $ ./script/myapp prefork -m production -w 10 -c 1
   Server available at http://127.0.0.1:3000.
 
+Your application is preloaded in the manager process during startup, to run
+code whenever a new worker process has been forked you can use L<Mojo::IOLoop>
+timers.
+
+  use Mojolicious::Lite;
+
+  Mojo::IOLoop->timer(0 => sub {
+    app->log->info("Worker $$ star...ALL GLORY TO THE HYPNOTOAD!");
+  });
+
+  get '/' => {text => 'Hello Wor...ALL GLORY TO THE HYPNOTOAD!'};
+
+  app->start;
+
 =head2 Morbo
 
 After reading the L<Mojolicious::Lite> tutorial, you should already be
@@ -110,9 +124,9 @@ L<Mojolicious::Plugin::JSONConfig> configuration file.
   };
 
 But one of its biggest advantages is the support for effortless zero downtime
-software upgrades. That means you can upgrade L<Mojolicious>, Perl or even
-system libraries at runtime without ever stopping the server or losing a
-single incoming connection, just by running the command above again.
+software upgrades (hot deployment). That means you can upgrade L<Mojolicious>,
+Perl or even system libraries at runtime without ever stopping the server or
+losing a single incoming connection, just by running the command above again.
 
   $ hypnotoad script/myapp
   Starting hot deployment for Hypnotoad server 31841.
@@ -124,19 +138,25 @@ C<X-Forwarded-For> and C<X-Forwarded-HTTPS> headers.
   # myapp.conf
   {hypnotoad => {proxy => 1}};
 
-Your application is preloaded in the manager process during startup, to run
-code whenever a new worker process has been forked you can use L<Mojo::IOLoop>
-timers.
+=head2 Zero downtime software upgrades
 
-  use Mojolicious::Lite;
+Hypnotoad makes zero downtime software upgrades (hot deployment) very simple,
+as you can see above, but on modern operating systems that support the
+C<SO_REUSEPORT> socket option, there is also another method available that
+works with all built-in web servers.
 
-  Mojo::IOLoop->timer(0 => sub {
-    app->log->info("Worker $$ star...ALL GLORY TO THE HYPNOTOAD!");
-  });
+  $ ./script/myapp prefork -P /tmp/first.pid -l http://*:8080?reuse=1
+  Server available at http://127.0.0.1:8080.
 
-  get '/' => {text => 'Hello Wor...ALL GLORY TO THE HYPNOTOAD!'};
+All you have to do is start a second web server listening to the same port and
+stop the first web server gracefully afterwards.
 
-  app->start;
+  $ ./script/myapp prefork -P /tmp/second.pid -l http://*:8080?reuse=1
+  Server available at http://127.0.0.1:8080.
+  $ kill -s TERM `cat /tmp/first.pid`
+
+Just remember that both web servers need to be started with the C<reuse>
+parameter.
 
 =head2 Nginx
 
@@ -273,7 +293,7 @@ deployment location of your application.
 
 From time to time you might want to reuse parts of L<Mojolicious> applications
 like configuration files, database connection or helpers for other scripts,
-with this little mock server you can just embed them.
+with this little L<Mojo::Server> based mock server you can just embed them.
 
   use Mojo::Server;
 
@@ -288,8 +308,9 @@ with this little mock server you can just embed them.
 
 =head2 Web server embedding
 
-You can also use the built-in web server to embed L<Mojolicious> applications
-into alien environments like foreign event loops.
+You can also use L<Mojo::IOLoop/"one_tick"> to embed the built-in web server
+L<Mojo::Server::Daemon> into alien environments like foreign event loops that
+for some reason can't just be integrated with a new reactor backend.
 
   use Mojolicious::Lite;
   use Mojo::IOLoop;
@@ -959,12 +980,12 @@ can keep many parallel connections active at the same time.
 
   # Parallel non-blocking requests
   my $ua = Mojo::UserAgent->new;
-  $ua->get('http://mojolicio.us' => sub {
-    my ($ua, $tx) = @_;
+  $ua->get('http://metacpan.org/search?q=mojo' => sub {
+    my ($ua, $mojo) = @_;
     ...
   });
-  $ua->get('http://mojolicio.us/perldoc' => sub {
-    my ($ua, $tx) = @_;
+  $ua->get('http://metacpan.org/search?q=mango' => sub {
+    my ($ua, $mango) = @_;
     ...
   });
 
@@ -981,15 +1002,15 @@ synchronize multiple non-blocking requests.
   use Mojo::UserAgent;
   use Mojo::IOLoop;
 
-  # Synchronize non-blocking requests and capture result
+  # Synchronize non-blocking requests and capture results
   my $ua    = Mojo::UserAgent->new;
   my $delay = Mojo::IOLoop->delay;
-  $ua->get('http://mojolicio.us'         => $delay->begin);
-  $ua->get('http://mojolicio.us/perldoc' => $delay->begin);
-  my ($tx, $tx2) = $delay->wait;
+  $ua->get('http://metacpan.org/search?q=mojo'  => $delay->begin);
+  $ua->get('http://metacpan.org/search?q=mango' => $delay->begin);
+  my ($mojo, $mango) = $delay->wait;
 
 The event L<Mojo::IOLoop::Delay/"finish"> can be used for code that needs to
-be able to work standalone as well as inside L<Mojolicious> applications.
+be able to work standalone as well as inside an already running event loop.
 
   use Mojo::UserAgent;
   use Mojo::IOLoop;
@@ -998,11 +1019,11 @@ be able to work standalone as well as inside L<Mojolicious> applications.
   my $ua    = Mojo::UserAgent->new;
   my $delay = Mojo::IOLoop->delay;
   $delay->on(finish => sub {
-    my ($delay, $tx, $tx2) = @_;
+    my ($delay, $mojo, $mango) = @_;
     ...
   });
-  $ua->get('http://mojolicio.us'         => $delay->begin);
-  $ua->get('http://mojolicio.us/perldoc' => $delay->begin);
+  $ua->get('http://metacpan.org/search?q=mojo'  => $delay->begin);
+  $ua->get('http://metacpan.org/search?q=mango' => $delay->begin);
   $delay->wait unless Mojo::IOLoop->is_running;
 
 =head2 Command line
@@ -1047,9 +1068,9 @@ This can be an invaluable tool for testing your applications.
 
   $ ./myapp.pl get /welcome 'head > title'
 
-=head2 Oneliners
+=head2 One-liners
 
-For quick hacks and especially testing, L<ojo> oneliners are also a great
+For quick hacks and especially testing, L<ojo> one-liners are also a great
 choice.
 
   $ perl -Mojo -E 'say g("mojolicio.us")->dom->html->head->title->text'
@@ -1082,7 +1103,7 @@ that they will be picked up automatically by the command line interface?
 
   1;
 
-There are many more useful methods and attributes in L<Mojolicious::Command>
+There are many more useful attributes and methods in L<Mojolicious::Command>
 that you can use or overload.
 
   $ mojo spy secret
@@ -1109,32 +1130,34 @@ namespace.
 
 =head2 Running code against your application
 
-Ever thought about running a quick oneliner against your L<Mojolicious>
+Ever thought about running a quick one-liner against your L<Mojolicious>
 application to test something? Thanks to the C<eval> command you can do just
 that, the application object itself can be accessed via C<app>.
 
-  $ mojo generate lite_app
+  $ mojo generate lite_app myapp.pl
   $ ./myapp.pl eval 'say for @{app->static->paths}'
 
-The C<verbose> option will automatically print the return value to C<STDOUT>.
+The C<verbose> options will automatically print the return value or returned
+data structure to C<STDOUT>.
 
   $ ./myapp.pl eval -v 'app->static->paths->[0]'
+  $ ./myapp.pl eval -V 'app->static->paths'
 
 =head2 Making your application installable
 
 Ever thought about releasing your L<Mojolicious> application to CPAN? It's
 actually much easier than you might think.
 
-  $ mojo generate app
-  $ cd my_mojolicious_app
-  $ mv public lib/MyMojoliciousApp/
-  $ mv templates lib/MyMojoliciousApp/
+  $ mojo generate app MyApp
+  $ cd my_app
+  $ mv public lib/MyApp/
+  $ mv templates lib/MyApp/
 
 The trick is to move the C<public> and C<templates> directories so they can
 get automatically installed with the modules.
 
   # Application
-  package MyMojoliciousApp;
+  package MyApp;
   use Mojo::Base 'Mojolicious';
 
   use File::Basename 'dirname';
@@ -1147,7 +1170,7 @@ get automatically installed with the modules.
     my $self = shift;
 
     # Switch to installable home directory
-    $self->home->parse(catdir(dirname(__FILE__), 'MyMojoliciousApp'));
+    $self->home->parse(catdir(dirname(__FILE__), 'MyApp'));
 
     # Switch to installable "public" directory
     $self->static->paths->[0] = $self->home->rel_dir('public');
@@ -1166,7 +1189,7 @@ get automatically installed with the modules.
 That's really everything, now you can package your application like any other
 CPAN module.
 
-  $ ./script/my_mojolicious_app generate makefile
+  $ ./script/my_app generate makefile
   $ perl Makefile.PL
   $ make test
   $ make manifest
@@ -1175,7 +1198,7 @@ CPAN module.
 And if you have a C<PAUSE> account (which can be requested at
 L<http://pause.perl.org>) even upload it.
 
-  $ mojo cpanify -u USER -p PASS MyMojoliciousApp-0.01.tar.gz
+  $ mojo cpanify -u USER -p PASS MyApp-0.01.tar.gz
 
 =head2 Hello World
 
@@ -1191,10 +1214,10 @@ rendering kicks in even if no actual code gets executed by the router. The
 renderer just picks up the C<text> value from the stash and generates a
 response.
 
-=head2 Hello World oneliners
+=head2 Hello World one-liners
 
 The C<Hello World> example above can get even a little bit shorter in an
-L<ojo> oneliner.
+L<ojo> one-liner.
 
   $ perl -Mojo -E 'a({text => "Hello World!"})->start' daemon
 

@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo';
 # "Fry: Shut up and take my money!"
 use Carp 'croak';
 use Mojo::Exception;
-use Mojo::Util 'decamelize';
+use Mojo::Util qw(decamelize deprecated);
 use Mojolicious::Commands;
 use Mojolicious::Controller;
 use Mojolicious::Plugins;
@@ -13,6 +13,7 @@ use Mojolicious::Routes;
 use Mojolicious::Sessions;
 use Mojolicious::Static;
 use Mojolicious::Types;
+use Mojolicious::Validator;
 use Scalar::Util qw(blessed weaken);
 use Time::HiRes 'gettimeofday';
 
@@ -36,12 +37,13 @@ has secret   => sub {
   # Default to moniker
   return $self->moniker;
 };
-has sessions => sub { Mojolicious::Sessions->new };
-has static   => sub { Mojolicious::Static->new };
-has types    => sub { Mojolicious::Types->new };
+has sessions  => sub { Mojolicious::Sessions->new };
+has static    => sub { Mojolicious::Static->new };
+has types     => sub { Mojolicious::Types->new };
+has validator => sub { Mojolicious::Validator->new };
 
 our $CODENAME = 'Top Hat';
-our $VERSION  = '4.17';
+our $VERSION  = '4.50';
 
 sub AUTOLOAD {
   my $self = shift;
@@ -69,10 +71,10 @@ sub new {
   my $r = $self->routes->namespaces([ref $self]);
 
   # Hide controller attributes/methods and "handler"
-  $r->hide(qw(AUTOLOAD DESTROY app cookie finish flash handler match on));
-  $r->hide(qw(param redirect_to render render_exception render_later));
-  $r->hide(qw(render_maybe render_not_found render_static rendered req res));
-  $r->hide(qw(respond_to send session signed_cookie stash tx url_for write));
+  $r->hide(qw(app continue cookie finish flash handler match on param));
+  $r->hide(qw(redirect_to render render_exception render_later render_maybe));
+  $r->hide(qw(render_not_found render_static rendered req res respond_to));
+  $r->hide(qw(send session signed_cookie stash tx url_for validation write));
   $r->hide(qw(write_chunk));
 
   # Check if we have a log directory
@@ -89,8 +91,12 @@ sub new {
   # Reduced log output outside of development mode
   $self->log->level('info') unless $mode eq 'development';
 
-  # Run mode before startup
-  if (my $sub = $self->can("${mode}_mode")) { $self->$sub(@_) }
+  # DEPRECATED in Top Hat!
+  if (my $sub = $self->can("${mode}_mode")) {
+    deprecated qq{"sub ${mode}_mode {...}" in application class is DEPRECATED};
+    $self->$sub(@_);
+  }
+
   $self->startup(@_);
 
   return $self;
@@ -163,7 +169,7 @@ sub handler {
 
   # Delayed response
   $self->log->debug('Nothing has been rendered, expecting delayed response.')
-    unless $stash->{'mojo.rendered'} || $tx->is_writing;
+    unless $tx->is_writing;
 }
 
 sub helper {
@@ -256,24 +262,10 @@ L<Mojolicious::Controller>.
   $app     = $app->mode('production');
 
 The operating mode for your application, defaults to a value from the
-MOJO_MODE and PLACK_ENV environment variables or C<development>. You can also
-add per mode logic to your application by defining methods named
-C<${mode}_mode> in the application class, which will be called right before
-C<startup>.
-
-  sub development_mode {
-    my $self = shift;
-    ...
-  }
-
-  sub production_mode {
-    my $self = shift;
-    ...
-  }
-
-Right before calling C<startup> and mode specific methods, L<Mojolicious>
-will pick up the current mode, name the log file after it and raise the log
-level from C<debug> to C<info> if it has a value other than C<development>.
+MOJO_MODE and PLACK_ENV environment variables or C<development>. Right before
+calling C<startup>, L<Mojolicious> will pick up the current mode, name the log
+file after it and raise the log level from C<debug> to C<info> if it has a
+value other than C<development>.
 
 =head2 moniker
 
@@ -375,6 +367,13 @@ L<Mojolicious::Types> object.
   # Add custom MIME type
   $app->types->type(twt => 'text/tweet');
 
+=head2 validator
+
+  my $validator = $app->validator;
+  $app          = $app->validator(Mojolicious::Validator->new);
+
+Validate form data, defaults to a L<Mojolicious::Validator> object.
+
 =head1 METHODS
 
 L<Mojolicious> inherits all methods from L<Mojo> and implements the following
@@ -414,9 +413,9 @@ request.
 
   $app->dispatch(Mojolicious::Controller->new);
 
-The heart of every Mojolicious application, calls the C<static> and C<routes>
-dispatchers for every request and passes them a L<Mojolicious::Controller>
-object.
+The heart of every L<Mojolicious> application, calls the C<static> and
+C<routes> dispatchers for every request and passes them a
+L<Mojolicious::Controller> object.
 
 =head2 handler
 
@@ -805,6 +804,8 @@ Hideki Yamamura
 Ilya Chesnokov
 
 James Duncan
+
+Jan Henning Thorsen
 
 Jan Jona Javorsek
 

@@ -1,4 +1,3 @@
-%# Last Modified 2012-03-12 12:17:50 by root 
 <!doctype html><html>
     <head><title>Not Found</title></head>
     <body>
@@ -6,4 +5,4 @@
         "<%= $self->req->url->path || '/' %>"
         could not be found.
     </body>
-</html>      
+</html>

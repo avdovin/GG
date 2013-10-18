@@ -1,9 +1,6 @@
 package Mojo::URL;
 use Mojo::Base -base;
-use overload
-  'bool'   => sub {1},
-  '""'     => sub { shift->to_string },
-  fallback => 1;
+use overload bool => sub {1}, '""' => sub { shift->to_string }, fallback => 1;
 
 use Mojo::Parameters;
 use Mojo::Path;
@@ -243,7 +240,6 @@ Mojo::URL - Uniform Resource Locator
   $url->host('example.com');
   $url->port(3000);
   $url->path('/foo/bar');
-  $url->path('baz');
   $url->query->param(foo => 'bar');
   $url->fragment(23);
   say "$url";
@@ -336,7 +332,7 @@ Host part of this URL in punycode format.
 
 =head2 is_abs
 
-  my $success = $url->is_abs;
+  my $bool = $url->is_abs;
 
 Check if URL is absolute.
 
@@ -417,14 +413,40 @@ appended, defaults to a L<Mojo::Parameters> object.
   my $abs = $url->to_abs;
   my $abs = $url->to_abs(Mojo::URL->new('http://example.com/foo'));
 
-Clone relative URL and turn it into an absolute one.
+Clone relative URL and turn it into an absolute one using C<base> or provided
+base URL.
+
+  # "http://example.com/foo/baz.xml?test=123"
+  Mojo::URL->new('baz.xml?test=123')
+    ->to_abs(Mojo::URL->new('http://example.com/foo/bar.html'));
+
+  # "http://example.com/baz.xml?test=123"
+  Mojo::URL->new('/baz.xml?test=123')
+    ->to_abs(Mojo::URL->new('http://example.com/foo/bar.html'));
+
+  # "http://example.com/foo/baz.xml?test=123"
+  Mojo::URL->new('//example.com/foo/baz.xml?test=123')
+    ->to_abs(Mojo::URL->new('http://example.com/foo/bar.html'));
 
 =head2 to_rel
 
   my $rel = $url->to_rel;
   my $rel = $url->to_rel(Mojo::URL->new('http://example.com/foo'));
 
-Clone absolute URL and turn it into a relative one.
+Clone absolute URL and turn it into a relative one using C<base> or provided
+base URL.
+
+  # "foo/bar.html?test=123"
+  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
+    ->to_rel(Mojo::URL->new('http://example.com'));
+
+  # "bar.html?test=123"
+  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
+    ->to_rel(Mojo::URL->new('http://example.com/foo/'));
+
+  # "//example.com/foo/bar.html?test=123"
+  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
+    ->to_rel(Mojo::URL->new('http://'));
 
 =head2 to_string
 

@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo::Cookie';
 use Mojo::Date;
 use Mojo::Util qw(quote split_header);
 
-has [qw(domain httponly max_age path secure)];
+has [qw(domain httponly max_age origin path secure)];
 
 sub expires {
   my $self = shift;
@@ -31,7 +31,8 @@ sub parse {
       # "expires" is a special case, thank you Netscape...
       if ($name =~ /^expires$/i) {
         push @$pairs, @{shift @$tree // []};
-        $value .= join ' ', ',', grep {defined} splice @$pairs, 0, 10;
+        my $len = ($pairs->[0] // '') =~ /-/ ? 6 : 10;
+        $value .= join ' ', ',', grep {defined} splice @$pairs, 0, $len;
       }
 
       # This will only run once
@@ -54,10 +55,9 @@ sub to_string {
   my $self = shift;
 
   # Name and value (Netscape)
-  return '' unless my $name = $self->name;
+  return '' unless length(my $name = $self->name // '');
   my $value = $self->value // '';
-  $value = $value =~ /[,;" ]/ ? quote($value) : $value;
-  my $cookie = "$name=$value";
+  my $cookie = join '=', $name, $value =~ /[,;" ]/ ? quote($value) : $value;
 
   # "expires" (Netscape)
   if (defined(my $e = $self->expires)) { $cookie .= "; expires=$e" }
@@ -69,13 +69,13 @@ sub to_string {
   if (my $path = $self->path) { $cookie .= "; path=$path" }
 
   # "secure" (Netscape)
-  if (my $secure = $self->secure) { $cookie .= "; secure" }
+  $cookie .= "; secure" if $self->secure;
 
   # "Max-Age" (RFC 6265)
-  if (defined(my $m = $self->max_age)) { $cookie .= "; Max-Age=$m" }
+  if (defined(my $max = $self->max_age)) { $cookie .= "; Max-Age=$max" }
 
   # "HttpOnly" (RFC 6265)
-  if (my $httponly = $self->httponly) { $cookie .= "; HttpOnly" }
+  $cookie .= "; HttpOnly" if $self->httponly;
 
   return $cookie;
 }
@@ -128,6 +128,13 @@ cookie.
   $cookie     = $cookie->max_age(60);
 
 Max age for cookie.
+
+=head2 origin
+
+  my $origin = $cookie->origin;
+  $cookie    = $cookie->origin('mojolicio.us');
+
+Origin of the cookie.
 
 =head2 path
 

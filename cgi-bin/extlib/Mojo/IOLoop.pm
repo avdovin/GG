@@ -32,8 +32,7 @@ $SIG{PIPE} = 'IGNORE';
 __PACKAGE__->singleton->reactor;
 
 sub acceptor {
-  my ($self, $acceptor) = @_;
-  $self = $self->singleton unless ref $self;
+  my ($self, $acceptor) = (_instance(shift), @_);
 
   # Find acceptor for id
   return $self->{acceptors}{$acceptor} unless ref $acceptor;
@@ -51,8 +50,7 @@ sub acceptor {
 }
 
 sub client {
-  my ($self, $cb) = (shift, pop);
-  $self = $self->singleton unless ref $self;
+  my ($self, $cb) = (_instance(shift), pop);
 
   # Make sure timers are running
   $self->_recurring;
@@ -82,8 +80,7 @@ sub client {
 }
 
 sub delay {
-  my $self = shift;
-  $self = $self->singleton unless ref $self;
+  my $self = _instance(shift);
 
   my $delay = Mojo::IOLoop::Delay->new;
   weaken $delay->ioloop($self)->{ioloop};
@@ -100,16 +97,14 @@ sub one_tick   { (ref $_[0] ? $_[0] : $_[0]->singleton)->reactor->one_tick }
 sub recurring { shift->_timer(recurring => @_) }
 
 sub remove {
-  my ($self, $id) = @_;
-  $self = $self->singleton unless ref $self;
+  my ($self, $id) = (_instance(shift), @_);
   my $c = $self->{connections}{$id};
   if ($c && (my $stream = $c->{stream})) { return $stream->close_gracefully }
   $self->_remove($id);
 }
 
 sub server {
-  my ($self, $cb) = (shift, pop);
-  $self = $self->singleton unless ref $self;
+  my ($self, $cb) = (_instance(shift), pop);
 
   my $server = Mojo::IOLoop::Server->new;
   weaken $self;
@@ -135,8 +130,7 @@ sub start {
 sub stop { (ref $_[0] ? $_[0] : $_[0]->singleton)->reactor->stop }
 
 sub stream {
-  my ($self, $stream) = @_;
-  $self = $self->singleton unless ref $self;
+  my ($self, $stream) = (_instance(shift), @_);
 
   # Find stream for id
   return ($self->{connections}{$stream} || {})->{stream} unless ref $stream;
@@ -182,6 +176,8 @@ sub _id {
     while $self->{connections}{$id} || $self->{acceptors}{$id};
   return $id;
 }
+
+sub _instance { ref $_[0] ? $_[0] : $_[0]->singleton }
 
 sub _not_accepting {
   my $self = shift;
@@ -242,8 +238,7 @@ sub _stream {
 }
 
 sub _timer {
-  my ($self, $method, $after, $cb) = @_;
-  $self = $self->singleton unless ref $self;
+  my ($self, $method, $after, $cb) = (_instance(shift), @_);
   weaken $self;
   return $self->reactor->$method($after => sub { $self->$cb });
 }
@@ -305,17 +300,17 @@ L<Mojo::IOLoop> is a very minimalistic event loop based on L<Mojo::Reactor>,
 it has been reduced to the absolute minimal feature set required to build
 solid and scalable non-blocking TCP clients and servers.
 
-For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
-support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
-L<IO::Socket::SSL> (1.75+) will be used automatically if they are installed.
-Individual features can also be disabled with the MOJO_NO_IPV6 and MOJO_NO_TLS
-environment variables.
-
 The event loop will be resilient to time jumps if a monotonic clock is
 available through L<Time::HiRes>. A TLS certificate and key are also built
 right in, to make writing test servers as easy as possible. Also note that for
 convenience the C<PIPE> signal will be set to C<IGNORE> when L<Mojo::IOLoop>
 is loaded.
+
+For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
+support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
+L<IO::Socket::SSL> (1.75+) will be used automatically if they are installed.
+Individual features can also be disabled with the MOJO_NO_IPV6 and MOJO_NO_TLS
+environment variables.
 
 See L<Mojolicious::Guides::Cookbook> for more.
 
@@ -485,8 +480,8 @@ Find a free TCP port, this is a utility function primarily used for tests.
 
 =head2 is_running
 
-  my $success = Mojo::IOLoop->is_running;
-  my $success = $loop->is_running;
+  my $bool = Mojo::IOLoop->is_running;
+  my $bool = $loop->is_running;
 
 Check if event loop is running.
 
@@ -499,6 +494,11 @@ Check if event loop is running.
 
 Run event loop until an event occurs. Note that this method can recurse back
 into the reactor, so you need to be careful.
+
+  # Don't block longer than 0.5 seconds
+  my $id = Mojo::IOLoop->timer(0.5 => sub {});
+  Mojo::IOLoop->one_tick;
+  Mojo::IOLoop->remove($id);
 
 =head2 recurring
 

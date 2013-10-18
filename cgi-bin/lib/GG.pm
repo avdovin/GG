@@ -14,7 +14,6 @@ sub startup{
 	# Register plugins namespace
 	$self->plugins->namespaces( [ 'GG::Plugins', 'Mojolicious::Plugin' ] );
 	$self->plugin( charset => { charset => 'UTF-8' } );
-	$self->plugin( PoweredBy => (name => 'GG 9.2'));
 
 
 	# Load config

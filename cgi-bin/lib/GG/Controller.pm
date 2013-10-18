@@ -54,9 +54,8 @@ sub _load_controller {
 sub render_not_found {
     my $self = shift;
 
+    delete $self->stash->{layout};
     $self->SUPER::render_not_found;
-
-    $self->finish;
 }
 
 sub save_info {

@@ -77,6 +77,12 @@ sub need_proxy {
 sub start {
   my ($self, $tx, $cb) = @_;
 
+  # Fork safety
+  unless (($self->{pid} //= $$) eq $$) {
+    $self->_cleanup;
+    delete @$self{qw(pid port)};
+  }
+
   # Non-blocking
   if ($cb) {
     warn "-- Non-blocking request (@{[$tx->req->url->to_abs]})\n" if DEBUG;
@@ -128,10 +134,9 @@ sub _cache {
   for my $cached (@$old) {
 
     # Search for id/name and remove corrupted connections
-    if (!$found && ($cached->[1] eq $name || $cached->[0] eq $name)) {
-      my $stream = $loop->stream($cached->[1]);
-      if ($stream && !$stream->is_readable) { $found = $cached->[1] }
-      else                                  { $loop->remove($cached->[1]) }
+    if (!$found && first { $_ eq $name } @$cached) {
+      next unless my $stream = $loop->stream($cached->[1]);
+      $stream->is_readable ? $stream->close : ($found = $cached->[1]);
     }
 
     # Requeue
@@ -196,19 +201,19 @@ sub _connect_proxy {
     $new => sub {
       my ($self, $tx) = @_;
 
-      # CONNECT failed
-      unless (($tx->res->code // '') eq '200') {
+      # CONNECT failed (connection needs to be kept alive)
+      unless ($tx->keep_alive && $tx->res->is_status_class(200)) {
         $old->req->error('Proxy connection failed');
         return $self->_finish($old, $cb);
       }
 
       # Prevent proxy reassignment and start real transaction
       $old->req->proxy(0);
-      return $self->_start($old->connection($tx->connection), $cb)
+      my $id = $tx->connection;
+      return $self->_start($old->connection($id), $cb)
         unless $tx->req->url->protocol eq 'https';
 
       # TLS upgrade
-      return unless my $id = $tx->connection;
       my $loop   = $self->_loop;
       my $handle = $loop->stream($id)->steal_handle;
       my $c      = delete $self->{connections}{$id};
@@ -282,15 +287,12 @@ sub _finish {
   my $res = $tx->res;
   if (my $err = $res->error) { $res->error($err) }
 
-  else {
+  # Premature connection close
+  elsif ($close && !$res->code) { $res->error('Premature connection close') }
 
-    # Premature connection close
-    if ($close && !$res->code) { $res->error('Premature connection close') }
-
-    # 400/500
-    elsif ($res->is_status_class(400) || $res->is_status_class(500)) {
-      $res->error($res->message, $res->code);
-    }
+  # 400/500
+  elsif ($res->is_status_class(400) || $res->is_status_class(500)) {
+    $res->error($res->message, $res->code);
   }
 
   $self->$cb($tx);
@@ -354,26 +356,21 @@ sub _remove {
 
   # Close connection
   my $tx = (delete($self->{connections}{$id}) || {})->{tx};
-  unless (!$close && $tx && $tx->keep_alive && !$tx->error) {
+  if ($close || !$tx || !$tx->keep_alive || $tx->error) {
     $self->_cache($id);
     return $self->_loop->remove($id);
   }
 
-  # Keep connection alive
+  # Keep connection alive (CONNECT requests get upgraded)
   $self->_cache(join(':', $self->transactor->endpoint($tx)), $id)
-    unless uc $tx->req->method eq 'CONNECT' && ($tx->res->code // '') eq '200';
+    unless uc $tx->req->method eq 'CONNECT';
 }
 
 sub _redirect {
   my ($self, $c, $old) = @_;
-
-  # Follow redirect unless the maximum has been reached already
   return undef unless my $new = $self->transactor->redirect($old);
-  my $redirects = delete $c->{redirects} || 0;
-  return undef unless $redirects < $self->max_redirects;
-  my $id = $self->_start($new, delete $c->{cb});
-
-  return $self->{connections}{$id}{redirects} = $redirects + 1;
+  return undef unless @{$old->redirects} < $self->max_redirects;
+  return $self->_start($new, delete $c->{cb});
 }
 
 sub _server {
@@ -501,7 +498,7 @@ Mojo::UserAgent - Non-blocking I/O HTTP and WebSocket user agent
   say $ua->get('www.perl.org')->res->dom->html->head->title->text;
 
   # Scrape the latest headlines from a news site
-  say $ua->get('perlnews.org')->res->dom('h2 > a')->pluck('text')->shuffle;
+  say $ua->get('perlnews.org')->res->dom('h2 > a')->text->shuffle;
 
   # IPv6 PUT request with content
   my $tx
@@ -559,6 +556,10 @@ L<Mojo::UserAgent> is a full featured non-blocking I/O HTTP and WebSocket user
 agent, with IPv6, TLS, SNI, IDNA, Comet (long polling), keep-alive, connection
 pooling, timeout, cookie, multipart, proxy, gzip compression and multiple
 event loop support.
+
+All connections will be reset automatically if a new process has been forked,
+this allows multiple processes to share the same L<Mojo::UserAgent> object
+safely.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
 support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
@@ -873,7 +874,7 @@ non-blocking.
 
 =head2 need_proxy
 
-  my $success = $ua->need_proxy('intranet.example.com');
+  my $bool = $ua->need_proxy('intranet.example.com');
 
 Check if request for domain would use a proxy server.
 

@@ -5,7 +5,7 @@ use Carp 'croak';
 use Mojo::Message::Request;
 use Mojo::Message::Response;
 
-has [qw(kept_alive local_address local_port previous remote_port)];
+has [qw(kept_alive local_address local_port remote_port)];
 has req => sub { Mojo::Message::Request->new };
 has res => sub { Mojo::Message::Response->new };
 
@@ -150,16 +150,6 @@ Local interface address.
 
 Local interface port.
 
-=head2 previous
-
-  my $previous = $tx->previous;
-  $tx          = $tx->previous(Mojo::Transaction->new);
-
-Previous transaction that triggered this followup transaction.
-
-  # Path of previous request
-  say $tx->previous->req->url->path;
-
 =head2 remote_port
 
   my $port = $tx->remote_port;
@@ -222,7 +212,7 @@ Error and code.
 
 =head2 is_finished
 
-  my $success = $tx->is_finished;
+  my $bool = $tx->is_finished;
 
 Check if transaction is finished.
 
@@ -234,7 +224,7 @@ False.
 
 =head2 is_writing
 
-  my $success = $tx->is_writing;
+  my $bool = $tx->is_writing;
 
 Check if transaction is writing.
 

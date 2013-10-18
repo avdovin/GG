@@ -14,7 +14,7 @@ use Mojo::Util 'decode';
 has content => sub { Mojo::Content::Single->new };
 has default_charset  => 'UTF-8';
 has max_line_size    => sub { $ENV{MOJO_MAX_LINE_SIZE} || 10240 };
-has max_message_size => sub { $ENV{MOJO_MAX_MESSAGE_SIZE} || 10485760 };
+has max_message_size => sub { $ENV{MOJO_MAX_MESSAGE_SIZE} // 10485760 };
 has version          => '1.1';
 
 sub body {
@@ -67,13 +67,8 @@ sub cookies { croak 'Method "cookies" not implemented by subclass' }
 
 sub dom {
   my $self = shift;
-
   return undef if $self->content->is_multipart;
-  my $html    = $self->body;
-  my $charset = $self->content->charset;
-  $html = decode($charset, $html) // $html if $charset;
-  my $dom = $self->{dom} ||= Mojo::DOM->new($html);
-
+  my $dom = $self->{dom} ||= Mojo::DOM->new($self->text);
   return @_ ? $dom->find(@_) : $dom;
 }
 
@@ -158,8 +153,9 @@ sub parse {
   my ($self, $chunk) = @_;
 
   # Check message size
+  my $max = $self->max_message_size;
   return $self->_limit('Maximum message size exceeded', 413)
-    if ($self->{raw_size} += length($chunk //= '')) > $self->max_message_size;
+    if $max && ($self->{raw_size} += length($chunk //= '')) > $max;
 
   $self->{buffer} .= $chunk;
 
@@ -192,6 +188,13 @@ sub parse {
 }
 
 sub start_line_size { length shift->build_start_line }
+
+sub text {
+  my $self    = shift;
+  my $body    = $self->body;
+  my $charset = $self->content->charset;
+  return $charset ? decode($charset, $body) // $body : $body;
+}
 
 sub to_string {
   my $self = shift;
@@ -390,10 +393,11 @@ MOJO_MAX_LINE_SIZE environment variable or C<10240>.
   $msg     = $msg->max_message_size(1024);
 
 Maximum message size in bytes, defaults to the value of the
-MOJO_MAX_MESSAGE_SIZE environment variable or C<10485760>. Note that
-increasing this value can also drastically increase memory usage, should you
-for example attempt to parse an excessively large message body with the
-C<body_params>, C<dom> or C<json> methods.
+MOJO_MAX_MESSAGE_SIZE environment variable or C<10485760>. Setting the value
+to C<0> will allow messages of indefinite size. Note that increasing this
+value can also drastically increase memory usage, should you for example
+attempt to parse an excessively large message body with the C<body_params>,
+C<dom> or C<json> methods.
 
 =head2 version
 
@@ -412,7 +416,8 @@ implements the following new ones.
   my $bytes = $msg->body;
   $msg      = $msg->body('Hello!');
 
-Slurp or replace C<content>.
+Slurp or replace C<content>, L<Mojo::Content::MultiPart> will be automatically
+downgraded to L<Mojo::Content::Single>.
 
 =head2 body_params
 
@@ -483,11 +488,11 @@ to be loaded into memory to parse it, so you have to make sure it is not
 excessively large.
 
   # Perform "find" right away
-  say $msg->dom('h1, h2, h3')->pluck('text');
+  say $msg->dom('h1, h2, h3')->text;
 
   # Use everything else Mojo::DOM has to offer
   say $msg->dom->at('title')->text;
-  say $msg->dom->html->body->children->pluck('type')->uniq;
+  say $msg->dom->html->body->children->type->uniq;
 
 =head2 error
 
@@ -500,7 +505,7 @@ Error and code.
 
 =head2 extract_start_line
 
-  my $success = $msg->extract_start_line(\$str);
+  my $bool = $msg->extract_start_line(\$str);
 
 Extract start line from string. Meant to be overloaded in a subclass.
 
@@ -549,13 +554,13 @@ Message headers, usually a L<Mojo::Headers> object.
 
 =head2 is_finished
 
-  my $success = $msg->is_finished;
+  my $bool = $msg->is_finished;
 
 Check if message parser/generator is finished.
 
 =head2 is_limit_exceeded
 
-  my $success = $msg->is_limit_exceeded;
+  my $bool = $msg->is_limit_exceeded;
 
 Check if message has exceeded C<max_line_size> or C<max_message_size>.
 
@@ -598,6 +603,13 @@ Parse message chunk.
   my $size = $msg->start_line_size;
 
 Size of the start line in bytes.
+
+=head2 text
+
+  my $str = $msg->text;
+
+Retrieve C<body> and try to decode it if a charset could be extracted with
+L<Mojo::Content/"charset">.
 
 =head2 to_string
 

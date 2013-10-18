@@ -2,7 +2,7 @@ package Mojo::Path;
 use Mojo::Base -base;
 use overload
   '@{}'    => sub { shift->parts },
-  'bool'   => sub {1},
+  bool     => sub {1},
   '""'     => sub { shift->to_string },
   fallback => 1;
 
@@ -67,7 +67,7 @@ sub merge {
 sub parse {
   my $self = shift;
   $self->{path} = shift;
-  delete $self->{$_} for qw(leading_slash parts trailing_slash);
+  delete @$self{qw(leading_slash parts trailing_slash)};
   return $self;
 }
 
@@ -189,6 +189,9 @@ Canonicalize path.
   # "/foo/baz"
   Mojo::Path->new('/foo/./bar/../baz')->canonicalize;
 
+  # "/../baz"
+  Mojo::Path->new('/foo/../bar/../../baz')->canonicalize;
+
 =head2 clone
 
   my $clone = $path->clone;
@@ -197,7 +200,7 @@ Clone path.
 
 =head2 contains
 
-  my $success = $path->contains('/i/♥/mojolicious');
+  my $bool = $path->contains('/i/♥/mojolicious');
 
 Check if path contains given prefix.
 
