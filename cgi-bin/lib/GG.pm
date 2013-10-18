@@ -18,8 +18,8 @@ sub startup{
 
 	# Load config
 	my $config = $self->plugin('Config',{
-        file      => 'config',
-        default   => {}
+		file      => 'config',
+		default   => {}
     });
 
 	# DBI OO api

@@ -4,14 +4,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use GG::Dbi;
 
-our $VERSION = '0.032';
-
-our $FORMATS = {
-	url_date       => '%Y%m%d',
-	url_datetime   => '%Y%m%d%H%M%S',
-	mysql_date     => '%Y-%m-%d',
-	mysql_datetime => '%Y-%m-%d %H:%M:%S'
-};
+our $VERSION = '0.033';
 
 sub register {
 	my ($self, $app, $args) = @_;
@@ -36,11 +29,11 @@ sub register {
 	$app->helper( dbi => sub {
 		return shift->app->dbi;
 	});
-	
+
 	$app->helper( dbh => sub {
 		return shift->app->dbi->dbh;
 	});
-					
+
 	$app->helper(
 		dbi_connect => sub {
 			my ($self) = @_;
@@ -64,6 +57,9 @@ sub register {
 			}
 
 			else {
+
+        		#make new connection
+        		$self->app->log->debug("start new DB connection to DB $args->{dsn}");
 
 				$dbi = GG::Dbi->connect(
 					'DBI:mysql:'
@@ -95,15 +91,16 @@ sub register {
 					$self->stash(rendered => 1);
 					return;
 				}
-				$dbi->lc_columns = 0;    # Lower Case column
-
-				#$dbi->encoding('utf8');								# Default utf8 encoding
+				$dbi->lc_columns = 0;    					# Lower Case column
 
 				$dbi->dbh->do("SET NAMES utf8");
 				$self->app->dbi($dbi);
 				$self->app->dbh($dbi->dbh);
 				$self->app->_dbh_requests_counter(1);
-			}			
+
+				# clear config access params
+				delete $self->stash->{config}->{$_} foreach (qw(db_host db_name db_password db_user));
+			}
 	});
 
 	unless ($args->{no_disconnect}) {
@@ -114,7 +111,7 @@ sub register {
 	        $self->app->dbi(0);
 	        $self->app->_dbh_requests_counter(0);
 	        if ($self->app->dbh) {
-	
+
 	         	$self->app->dbh->disconnect
 	            or $self->app->log->error("Disconnect error $DBI::errstr");
 	        }
@@ -122,7 +119,7 @@ sub register {
 	      }
 	    );
 	}
-  
+
 #	$app->hook(
 #		after_dispatch => sub {
 #			my ($self) = @_;
