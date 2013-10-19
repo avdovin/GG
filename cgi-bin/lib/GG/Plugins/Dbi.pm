@@ -99,7 +99,7 @@ sub register {
 				$self->app->_dbh_requests_counter(1);
 
 				# clear config access params
-				delete $self->stash->{config}->{$_} foreach (qw(db_host db_name db_password db_user));
+				#delete $self->stash->{config}->{$_} foreach (qw(db_password db_user));
 			}
 	});
 
