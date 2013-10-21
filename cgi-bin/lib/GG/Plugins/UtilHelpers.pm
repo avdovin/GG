@@ -610,27 +610,29 @@ sub register {
 	);
 
 	$app->helper(
-		get_index_after => sub {
-			my $c      = shift;
-			my %params = @_;
+		get_next_index => sub {
+			my $self    = shift;
+			my %params 	= (
+				from 	=> '',
+				index 	=> $self->stash->{ID},
+				where 	=> '',
+				order 	=> 'ID',
+				@_
+			);
 
-			if (!$params{from})  {die "helper get_index_after. Отсутствует параметр FROM";}
-
-			$params{index} 	||=	$c->stash('ID');
-			if (!$params{index}) {die "Не задан index";}
-			if (!$params{where}) {$params{where} = '';}
-			if (!$params{order}) {$params{order} = "ID";}
+			die "helper get_next_index. Отсутствует параметр FROM" unless $params{from};
+			die "Не задан index" unless $params{index};
 
 			my $sql = qq/
-			SELECT `ID`
-			FROM `$params{from}`
-			WHERE 1 $params{where}
-			ORDER BY `$params{order}` ASC
+				SELECT `ID`
+				FROM `$params{from}`
+				WHERE 1 $params{where}
+				ORDER BY `$params{order}` ASC
 			/;
 
 			$sql .= ", `ID` ASC" if($params{order} ne 'ID');
 
-			my @IDs = $c->app->dbi->query($sql)->flat;
+			my @IDs = $self->dbi->query($sql)->flat;
 
 			foreach (0..$#IDs){
 				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'});
@@ -639,27 +641,29 @@ sub register {
 		}
 	);
 	$app->helper(
-		get_index_befor => sub {
-			my $c      = shift;
-			my %params = @_;
+		get_prev_index => sub {
+			my $self    = shift;
+			my %params 	= (
+				from 	=> '',
+				index 	=> $self->stash->{ID},
+				where 	=> '',
+				order 	=> 'ID',
+				@_
+			);
 
-			if (!$params{from})  {die "helper get_index_befor. Отсутствует параметр FROM";}
-
-			$params{index} 	||=	$c->stash('ID');
-			if (!$params{index}) {die "Не задан index";}
-			if (!$params{where}) {$params{where} = '';}
-			if (!$params{order}) {$params{order} = "ID";}
+			die "helper get_prev_index. Отсутствует параметр FROM" unless $params{from};
+			die "Не задан index" unless $params{index};
 
 			my $sql = qq/
-			SELECT `ID`
-			FROM `$params{from}`
-			WHERE 1 $params{where}
-			ORDER BY `$params{order}` desc
+				SELECT `ID`
+				FROM `$params{from}`
+				WHERE 1 $params{where}
+				ORDER BY `$params{order}` desc
 			/;
 
 			$sql .= ", `ID` desc" if($params{order} ne 'ID');
 
-			my @IDs = $c->app->dbi->query($sql)->flat;
+			my @IDs = $self->app->dbi->query($sql)->flat;
 
 			foreach (0..$#IDs){
 				return $IDs[$_+1] if($IDs[$_+1] && $IDs[$_]==$params{'index'});
