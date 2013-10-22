@@ -55,7 +55,7 @@ sub register {
 			my $name = $$params{'name'};
 			my $type = $$params{'type'};
 			my $param = $$params{'param'} || 'name';
-			my $controller = delete $$params{'controller'} || $self->stash->{controller};
+			my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
 
 
 			return unless my $lkey = $self->lkey(name => $name, controller => $controller);
@@ -122,7 +122,7 @@ sub register {
 
 			my $name = delete $$params{'name'};
 			my $type = delete $$params{'type'};
-			my $controller = delete $$params{'controller'} || $self->stash->{'controller'};
+			my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
 
 			my $values //= $$params{'value'};
 			   $values //= $$params{'values'};
