@@ -196,7 +196,18 @@ sub register {
 			my $self = shift;
 			return unless my $controller = shift || $self->stash->{controller};
 
-			return $self->js_files( '/js/controllers/'.$controller.'.js' );
+			$self->js_files( '/js/controllers/'.$controller.'.js' );
+			if(-d $self->app->static->paths->[0].'/js/controllers/'.$controller){
+				opendir(DIR, $self->app->static->paths->[0].'/js/controllers/'.$controller);
+				while (my $file = readdir(DIR)) {
+					next if ($file =~ m/^\./);
+					my $ext = ($file =~ m/([^.]+)$/)[0];
+
+					$self->js_files('/js/controllers/'.$controller.'/'.$file)
+						if ($ext eq 'js');
+				}
+				closedir(DIR);
+			}
 	});
 
 	$app->helper(
