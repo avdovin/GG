@@ -35,6 +35,12 @@ sub register {
 		return $values->{ $lang } || ''
 	});
 
+	$app->helper( trim => sub {
+		my $str = $_[1];
+  		$str =~ s/^\s+|\s+$//g;
+  		return $str;
+	});
+
 	$app->helper( return_url => sub {
 		my $self = shift;
 		my $default = shift || '/';
