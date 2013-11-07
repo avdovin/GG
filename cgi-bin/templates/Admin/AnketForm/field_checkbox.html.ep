@@ -9,6 +9,6 @@
 	</td>
 	<td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
 	<td class="edit">
-		<input <% if($lkey->{settings}->{required}){%>required<% } %> type="checkbox" name='<%= $key %>' value='1' <% if($value){ %>checked="checked"<% } %>><%== $lkey->{settings}->{yes} %>
+		<input type="checkbox" name='<%= $key %>' value='1' <% if($value){ %>checked="checked"<% } %>><%== $lkey->{settings}->{yes} %>
 	</td>
 </tr>

@@ -12,6 +12,19 @@ $.GG = {
 	}
 };
 
+function setFilterInUrl(filter, title){
+	if(typeof(title) == 'undefined') title = document.title;
+
+	var pairs = [];
+	var filter = jQuery.extend({}, filter);
+	for (var key in filter)
+		if (filter.hasOwnProperty(key))
+			pairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(filter[key]));
+
+	History.pushState(filter, title, location.protocol + '//' + location.host + location.pathname + '?'+pairs.join('&'));
+}
+
+
 function addFormErrors($form, errors){
 	var errstr = buildErrorStr(errors);
 
