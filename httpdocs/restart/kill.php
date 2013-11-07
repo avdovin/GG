@@ -1,0 +1,1 @@
+<?php exec("killall -v -9 dispatch.fcgi 2>&1"); ?>

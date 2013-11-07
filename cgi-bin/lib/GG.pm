@@ -20,7 +20,7 @@ sub startup{
 	my $config = $self->plugin('Config',{
 		file      => 'config',
 		default   => {}
-    });
+	});
 
 	# DBI OO api
 	$self->plugin('dbi', $config );
@@ -57,12 +57,12 @@ sub startup{
 
 	eval{
 		$self->plugin(mail => {
-		    from     => 'no-reply@domain.com',
-		    encoding => 'base64',
-	    	how      => 'sendmail',
-	    	howargs  => [ '/usr/sbin/sendmail -t' ],
-	    	type	 => 'text/html;charset=utf-8',
-	  	});
+			from     => 'no-reply@domain.com',
+			encoding => 'base64',
+			how      => 'sendmail',
+			howargs  => [ '/usr/sbin/sendmail -t' ],
+			type	 => 'text/html;charset=utf-8',
+		});
 	};
 
 	# значения по умолчанию для маршрутов
@@ -77,7 +77,7 @@ sub startup{
 	);
 
 	$self->hook(before_dispatch => sub {
-      	my $self = shift;
+		my $self = shift;
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$ENV{MOJO_MODE} = $mode;
@@ -88,29 +88,29 @@ sub startup{
 
 		# --- SEO 301 redirect to none www domain ---------
 		my $url = $self->req->url->clone;
-    	my $host = $url->base->host || '';
+		my $host = $url->base->host || '';
 
-        if($host =~ /^www\./){
-        	$host =~ s{^www\.}{};
+		if($host =~ /^www\./){
+			$host =~ s{^www\.}{};
 
-        	$url->base->host($host);
-        	my $res = $self->res;
+			$url->base->host($host);
+			my $res = $self->res;
 			$res->code(301);
 			$res->headers->location($url->to_abs);
 			$res->headers->content_length(0);
 			$self->rendered;
-        	return;
-        }
+			return;
+		}
 
-        #if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
 		#	$self->session( cck => $cck );
-        #}
-    });
+		#}
+	});
 
-    $self->hook(after_dispatch => sub {
-	    my $tx = shift;
+	$self->hook(after_dispatch => sub {
+		my $tx = shift;
 
-	    # Was the response dynamic?
+		# Was the response dynamic?
 #	    return if $tx->res->headers->header('Expires');
 #
 #	    # If so, try to prevent caching
@@ -122,42 +122,46 @@ sub startup{
 #	    );
 	});
 
+	# check site availability
+	$r->any("/ping")->to(cb => sub{
+		return shift->render(text => 'pong');
+	});
 
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
-        my $self = shift;
+		my $self = shift;
 
 		$self->stash->{lang} ||= 'ru';
-        return 1;
-    });
+		return 1;
+	});
 
-    $routes->post("callback")->to( cb => sub {
-        shift->callbackSend;
-    });
+	$routes->post("callback")->to( cb => sub {
+		shift->callbackSend;
+	});
 
-    my $routesCatalog = $routes->bridge('/catalog')->to(layout => 'default', cb => sub {
+	my $routesCatalog = $routes->bridge('/catalog')->to(layout => 'default', cb => sub {
 
-    	$self->stash->{catalog} = 1;
-    	return 1;
-    });
+		$self->stash->{catalog} = 1;
+		return 1;
+	});
 
-    my $routesCatalogAjax = $routesCatalog->bridge('/ajax')->to(layout => '', cb => sub {
+	my $routesCatalogAjax = $routesCatalog->bridge('/ajax')->to(layout => '', cb => sub {
 
-    	return 1;
-    });
+		return 1;
+	});
 
-    $routesCatalogAjax->any('/list_items')->to('Catalog#list_items', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+	$routesCatalogAjax->any('/list_items')->to('Catalog#list_items', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
 
-    $routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_sub_category');
-    $routesCatalog->any('/:category_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+	$routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_sub_category');
+	$routesCatalog->any('/:category_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
 
 
-    $routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args )->name('main');
+	$routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args )->name('main');
 
 	$routes->any('/news/list')->to( "Texts#texts_list", alias => 'news', key_razdel => "news", admin_name => 'Новости' )->name('news_list');
 	$routes->any('/news/:list_item_alias')->to( "Texts#text_list_item", alias => 'news', key_razdel => "news" )->name('news_item');
 
 	$routes->any("/images")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery', admin_name => 'Фотогалерея')->name('gallery_dir_list');
-    $routes->any("/images/:dir_alias")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')->name('gallery_items_list');
+	$routes->any("/images/:dir_alias")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')->name('gallery_items_list');
 
 	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
 

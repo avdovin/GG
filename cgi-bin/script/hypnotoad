@@ -4,16 +4,15 @@ use strict;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
+BEGIN { unshift @INC, "$FindBin::Bin/../lib", "$FindBin::Bin/../extlib" }
 
 use Getopt::Long qw(GetOptions :config no_auto_abbrev no_ignore_case);
 
-GetOptions(
+GetOptions
   'f|foreground' => sub { $ENV{HYPNOTOAD_FOREGROUND} = 1 },
   'h|help'       => \my $help,
   's|stop'       => sub { $ENV{HYPNOTOAD_STOP}       = 1 },
-  't|test'       => sub { $ENV{HYPNOTOAD_TEST}       = 1 }
-);
+  't|test'       => sub { $ENV{HYPNOTOAD_TEST}       = 1 };
 
 die <<EOF if $help || !(my $app = shift || $ENV{HYPNOTOAD_APP});
 usage: $0 [OPTIONS] [APPLICATION]

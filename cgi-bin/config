@@ -1,11 +1,16 @@
 # GG.conf
 {
-    "db_host"			=> "localhost:3306",
-    "db_name" 			=> "gg9",
-    "db_user"			=> "root",
-    "db_password" 		=> "",
-    "db_no_disconnect" 	=> "0",
-    
-    "upload_maxchanksize"	=> "10000000",
-    "no_disconnect"		=> 1
+	"db_host"			=> "localhost:3306",
+	"db_name" 			=> "gg9",
+	"db_user"			=> "root",
+	"db_password" 		=> "",
+	"db_no_disconnect" 	=> "0",
+
+	"upload_maxchanksize"	=> "10000000",
+	"no_disconnect"		=> 1,
+
+	hypnotoad 			=> {
+		proxy 	=> 1,
+		listen 	=> ['http://*:9000']
+	},
 };

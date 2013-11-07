@@ -1,4 +1,4 @@
-<title><%= $self->stash->{'seo_title_sitename'} ? $self->get_var(name => 'site_name', controller => 'global', raw => 1).' » ' : '' %><%= $header->{title} %></title>
+<title><%= $header->{title} ? $header->{title}.' » ' : '' %><%= $self->stash->{'seo_title_sitename'} ? $self->get_var(name => 'site_name', controller => 'global', raw => 1) : '' %></title>
 <meta name="keywords" content="<%= $header->{keywords} %>"/>
 <meta name="description" content="<%= $header->{description} %>"/>
 <meta name="robots" content="index, follow">
