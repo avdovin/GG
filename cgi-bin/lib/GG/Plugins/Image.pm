@@ -24,13 +24,13 @@ sub register {
 			my $self = shift;
 			my %params = (
 				crop		=> 0,
-				montage => 0,
+				montage 	=> 0,
 				fsize		=> '',	# максимальный размер одной из сторон
 				width		=> '',
-				height	=> '',
+				height		=> '',
 				file		=> '',	# путь к картинке,
 				background	=> '#FFFFFF',
-				retina	=> 1,		# версия картинок для ретины
+				retina		=> 0,		# версия картинок для ретины
 				@_
 			);
 

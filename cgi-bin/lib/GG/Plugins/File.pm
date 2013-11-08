@@ -79,11 +79,14 @@ sub register {
 					pict		=> 'pict',
 					type_file	=> 'type_file',
 				},
+				retina		=> 0,
 				@_
 			);
 
 			$params{filename} ||= $self->send_params->{ $params{lfield} } if $self->send_params->{ $params{lfield} };
 			$params{folder} ||= $self->lkey(name => $params{lfield}, setting => 'folder' );
+			$params{retina} = 1 if $self->lkey(name => $params{lfield}, setting => 'retina' );
+
 
 			$params{filename} ||= $params{file} if $params{file};
 			my $table = delete $params{table};
@@ -93,8 +96,9 @@ sub register {
 
 			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
-						file	=> $pict_path,
-						fsize 	=> $MAX_IMAGE_SIZE,
+				file	=> $pict_path,
+				fsize 	=> $MAX_IMAGE_SIZE,
+				retina 	=> $params{retina},
 			);
 
 			#unlink($ENV{'DOCUMENT_ROOT'}.$params{folder}.$pict_saved);
@@ -121,7 +125,8 @@ sub register {
 						$self->resize_pict(
 							file		=> $path,
 							width		=> $w,
-							height	=> $h,
+							height		=> $h,
+							retina 		=> $params{retina},
 							%type
 						);
 					} elsif($d =~ /([\d]+)x([\d]+)/){
@@ -132,7 +137,8 @@ sub register {
 						$self->resize_pict(
 							file		=> $path,
 							width		=> $w,
-							height	=> $h
+							height		=> $h,
+							retina 	=> $params{retina},
 						);
 					} else {
 						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $d );
@@ -140,6 +146,7 @@ sub register {
 						$self->resize_pict(
 							file	=> $path,
 							fsize	=> $d,
+							retina 	=> $params{retina},
 						);
 					}
 

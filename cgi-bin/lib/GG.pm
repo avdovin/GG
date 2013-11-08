@@ -165,7 +165,7 @@ sub startup{
 
 	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
 
-	$routes->any("/:alias")->to("Texts#text_main_item" )->name('text');
+	$routes->any("/:alias")->to("Texts#text_main_item", redirect_to_url_for => 1 )->name('text');
 
 	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );
 	#$routeViaAlias->any('/subscribe/add_ajax')->to("Subscribe#add_ajax" );
