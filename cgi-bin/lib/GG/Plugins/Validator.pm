@@ -12,43 +12,43 @@ use Mojo::Util qw(url_escape trim squish);
 
 sub register {
 	my ( $self, $app, $args ) = @_;
-	
+
 	$args ||= {};
 
 	unless (ref($app)->can('send_params')){
 		ref($app)->attr('send_params');
 		$app->send_params( {} );
-	}	
+	}
 
 	$app->helper( send_params => sub {
 		return shift->app->send_params;
 	});
-		
+
 	$app->helper( validate => sub {
 			my $self = shift;
 			my %params = (
 				controller	=> '',
 				@_
 			);
-			
+
 			my $vals = $self->req->params->to_hash;
-			
+
 			my $valid_params = {};
 			my $lkeys = $self->lkey;
 			while (my ($k, $v) = each %$vals) {
 				my $type = 's';
 				my $settings = {};
 				$v = trim $v;
-				
+
 				if(my $lk = $self->lkey( name => $k, controller => $params{controller} )){
 					$type = $lk->{type} || next;
 					$settings = $lk->{settings};
 					$settings->{lkey} = $lk;
 				}
 				$settings->{controller} ||= $params{controller} || $self->stash->{controller};
-				
+
 				$k = "ID" if ($k eq 'id');
-				
+
 				   if($type eq 's') 			{ $valid_params->{$k} = $self->check_string( %$settings, value => $v)}
 				elsif($type eq 'pict') 			{ $valid_params->{$k} = $self->check_string( %$settings, value => $v)}
 				elsif($type eq 'file') 			{ $valid_params->{$k} = $self->check_string( %$settings, value => $v)}
@@ -66,7 +66,7 @@ sub register {
 				elsif($type eq 'datetime')		{ $valid_params->{$k} = $self->check_datetime( %$settings, value => $v)}
 				elsif($type eq 'time')			{ $valid_params->{$k} = $self->check_time( %$settings, value => $v)}
 				else 							{ $valid_params->{$k} = $self->check_string( %$settings, value => $v)}
-				
+
 				$self->stash->{$k} = $valid_params->{$k} unless(grep(/^$k$/, @SYSTEM_VALUES) ); # переменная text системная для mojo (генерация шаблонов)
 			}
 
@@ -81,7 +81,7 @@ sub register {
 	$app->helper(check_date       		=> \&_check_date);
 	$app->helper(check_site       		=> \&_check_site);
 	$app->helper(check_tlist       		=> \&_check_tlist);
-	$app->helper(check_list       		=> \&_check_list);	
+	$app->helper(check_list       		=> \&_check_list);
 	$app->helper(check_string      		=> \&_check_string);
 	$app->helper(check_decimal      	=> \&_check_decimal);
 	$app->helper(check_lat      		=> \&_check_lat);
@@ -96,16 +96,17 @@ sub _check_email{
 
 	my $value = delete $settings{value};
 	return '' unless $value;
-	
+
 	my @emails = ();
 	my $separator = undef;
 	if($value =~ /,/){
 		$separator = ','
-	} elsif ($value =~ /\S/){
-		$separator = ' ';
 	} elsif ($value =~ /;/){
 		$separator = ';';
+	} elsif ($value =~ /\S/){
+		$separator = ' ';
 	}
+
 	if(defined $separator){
 		@emails = split($separator, $value);
 	} else {
@@ -115,21 +116,22 @@ sub _check_email{
 		$emails[$_] =~ s{^\s+|\s+$}{}gi;
 	}
 	@emails = grep(/^([\w\.\-\_]+@[\w\.\-\_]+)$/, @emails);
-	return scalar(@emails) > 0 ? join(",", @emails) : '';	
+	return scalar(@emails) > 0 ? join(",", @emails) : '';
 }
+
 
 sub _check_checkbox{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	$settings{minimum} = 1;
 	if ($value =~ m/on/i) {$value = 1;}
 	if (($value =~ m/^TRUE/i) or ($value =~ m/ИСТИНА/i)) {$value = 1;}
 	if (($value =~ m/^FALSE/i) or ($value =~ m/ЛОЖЬ/i))  {$value = 0;}
-	
-	return $self -> check_decimal(minimum => 0, maximum => 1, value => $value);	
+
+	return $self -> check_decimal(minimum => 0, maximum => 1, value => $value);
 }
 
 sub _check_datetime{
@@ -137,7 +139,7 @@ sub _check_datetime{
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	my ($date, $time) = split(/ /, $value);
 
 	if ($date = $self -> check_date( %settings, value => $date)) {
@@ -158,8 +160,8 @@ sub _check_datetime{
 
 		return "$date $time";
 	}
-	
-	return '0000-00-00 00:00:00';	
+
+	return '0000-00-00 00:00:00';
 }
 
 sub _check_time{
@@ -167,7 +169,7 @@ sub _check_time{
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	if ($value) {
 		my ($hh, $mm, $sec) = split(/:/, $value);
 
@@ -183,7 +185,7 @@ sub _check_time{
 		$value = "00:00:00";
 	}
 
-	return $value;	
+	return $value;
 }
 
 sub _check_date{
@@ -191,7 +193,7 @@ sub _check_date{
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	my %month = (1 => 31, 2 => 28, 3 => 31, 4 => 30, 5 => 31, 6 => 30, 7 => 31, 8 => 31, 9 => 30, 10 => 31, 11 => 30, 12 => 31);
 
 	if (($value and (($value =~ m/0000-00-00/) or ($value !~ m/\d\d\d\d-\d\d-\d\d/))) or (!$value)) {return "0000-00-00";}
@@ -206,22 +208,22 @@ sub _check_date{
 
 	$d = $self -> check_decimal(minimum => 1, maximum => $month{$m}, value => $d);
 
-	return $value || '0000-00-00';	
+	return $value || '0000-00-00';
 }
 
 sub _check_site{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
-	
+
 	return '' unless my $value = delete $settings{value};
-	
+
 	if($value !~ m{^/} && $value !~ m/^http:\/\//){
 		# если ссылка не относительная добавляем протокол HTTP
-		$value = "http://$value";	
-	}			
-	
-	
-	return $value;	
+		$value = "http://$value";
+	}
+
+
+	return $value;
 }
 
 sub _check_tlist{
@@ -229,24 +231,24 @@ sub _check_tlist{
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	return unless $lkey;
 
 	unless($self->def_list(name => $lkey->{lkey}, controller => $settings{controller}, setting => 'list')){
-		$self->def_list(name => $lkey->{lkey}, controller => $settings{controller});						
+		$self->def_list(name => $lkey->{lkey}, controller => $settings{controller});
 	}
 	my $list = $self->lkey( name => $lkey->{lkey}, controller => $settings{controller}, setting => 'list' ) || {};
-	
+
 	my @list_validated = ();
-	
+
 	$value = join(',', @$value) if( ref($value) eq 'ARRAY');
 	foreach my $v (split(/,/, $value)) {
 		if($list->{$v}){
 			push @list_validated, $v;
 		}
 	}
-	
-	return join("=", sort @list_validated);	
+
+	return join("=", sort @list_validated);
 }
 
 sub _check_list{
@@ -254,15 +256,15 @@ sub _check_list{
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
 	my $lkey = $settings{lkey};
-	
+
 	return unless $lkey;
 
 	unless($self->def_list(name => $lkey->{lkey}, controller => $settings{controller}, setting => 'list')){
-		$self->def_list(name => $lkey->{lkey}, controller => $settings{controller});						
+		$self->def_list(name => $lkey->{lkey}, controller => $settings{controller});
 	}
 	my $list = $self->lkey( name => $lkey->{lkey}, controller => $settings{controller}, setting => 'list' ) || {};
 
-	
+
 	my @list_validated = ();
 	$value = join(',', @$value) if( ref($value) eq 'ARRAY');
 	foreach my $v (split(/,/, $value)) {
@@ -270,29 +272,29 @@ sub _check_list{
 			push @list_validated, $v;
 		}
 	}
-	
-	return join("=", sort @list_validated);	
+
+	return join("=", sort @list_validated);
 }
 
 sub _check_string{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
-	
+
 	if ($value) {
 		$value = squish $value;
-		
+
 		$value =~ s/\|/&brvbar;/g;
 		$value =~ s/\^/ /g;
 		$value = $self->check_no_tag( value => $value) if exists $settings{no_tag};
 		$value =~ s/[\r\n]+/ /g;
 	    $value =~ s/\t/ /g;
 	    $value =~ s/[\ ]+/ /g;
-	    
+
 		$value = $self->check_formatted_text(%settings, value => $value) unless exists($settings{no_format});
 	}
-	
-	return $value;		
+
+	return $value;
 }
 
 sub _check_decimal{
@@ -316,27 +318,27 @@ sub _check_decimal{
 	if ($settings{minimum} && $value && $value < $settings{minimum}) {$value = $settings{minimum}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{minimum}";}
 	if ($settings{maximum} && $value && $value > $settings{maximum}) {$value = $settings{maximum}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{minimum}";}
 
-    return $value;		
+    return $value;
 }
 
 sub _check_lat{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
-				
+
 	$settings{no_tag}=1;
 	$settings{no_format}=1;
 	$value = $self->check_string(%settings, value => $value);
 	$value = $self->transliteration($value);
 
-	return $value;		
+	return $value;
 }
 
 sub _check_formatted_text{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
-	
+
 	if ($value) {
 		my $posn  = 0;
 		my $poss  = 0;
@@ -370,7 +372,7 @@ sub _check_formatted_text{
 		    $value =~ s/'/"/g;
 		}
 	}
-	return $value;	
+	return $value;
 }
 
 sub _check_no_tag{
@@ -385,14 +387,14 @@ sub _check_no_tag{
 		$value =~ s/[\ ]+/ /g;
 	}
 
-	return $value;	
+	return $value;
 }
 
 sub _check_html{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};
-	
+
 	my $res = $value;
 	if ($value =~ m/class="FCK__Flash"/ or $value =~ m/class=FCK__Flash/) { # Заменяем псевдокартинку флеша на сам флеш
 
@@ -401,7 +403,7 @@ sub _check_html{
 		my $frag = $&;
 		my $stream = new HTML::TokeParser(\$frag);
 		my $flash_code;
-		
+
 			while (my $token = $stream -> get_token) {
 				if ($token->[0] eq "S" and $token->[1] eq "img" and $token->[2]{class} eq "FCK__Flash") {
 					my %params;
@@ -423,15 +425,15 @@ sub _check_html{
 					$flash_code .= $params{height} ? " height='$params{height}'" : " height='100'";
 					$flash_code .= " name='$params{id}'" if ($params{id});
 					$flash_code .= " allowScriptAccess='sameDomain' allowFullScreen='false' type='application/x-shockwave-flash' pluginspage='http://www.macromedia.com/go/getflashplayer' /></object>";
-						
+
 					$res =~ s/$frag/$flash_code/i;
 				}
 			} # end while
 		}
 	}
-	
+
 	$value = $self->check_formatted_text(%settings, value => $value);
-	return $value;	
+	return $value;
 }
 
 1;
