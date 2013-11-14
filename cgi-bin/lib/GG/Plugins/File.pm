@@ -177,9 +177,12 @@ sub register {
 	$app->helper(
 		file_download => sub {
 			my $self = shift;
-			my %params = @_;
+			my %params = (
+				content_type 	=> '',
+				@_
+			);
 
-			my $path =  $params{'abs_path'} || $ENV{'DOCUMENT_ROOT'}.$params{path};
+			my $path =  $params{'abs_path'} || $self->app->static->paths->[0].$params{path};
 
 			if(-f $path){
 				my ($filename, undef, $ext) = File::Basename::fileparse($path,qr/\.[^.]*/);
@@ -197,8 +200,14 @@ sub register {
 				$rsh->content_length($size);
 				$rsh->content_encoding("Binary");
 
-				my $mimeType = $self->app->types->type($ext);
-				$mimeType = 'application/vnd.ms-excel' if($ext eq 'xls');
+				my $mimeType;
+				if($params{content_type}){
+					$mimeType = $params{content_type};
+				}
+				else {
+					$mimeType = $self->app->types->type($ext);
+					$mimeType = 'application/vnd.ms-excel' if($ext eq 'xls');
+				}
 
 				$rsh->content_type($mimeType || "application/octet-stream");
 				$rsh->last_modified(Mojo::Date->new($modified));
