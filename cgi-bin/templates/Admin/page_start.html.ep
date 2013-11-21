@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
 <head>
-  <title>Панель управления. <%= get_var name => 'site_name', controller => 'global'  %></title>
-  <link rel="stylesheet" href="/admin/css/panel.css" media="screen" type="text/css">
+	<title>Панель управления. <%= get_var name => 'site_name', controller => 'global'	%></title>
+	<link rel="stylesheet" href="/admin/css/panel.css" media="screen" type="text/css">
 
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-  <script type="text/javascript">
-  if (typeof jQuery == 'undefined') {
-      document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
-  }
-  </script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script type="text/javascript">
+	if (typeof jQuery == 'undefined') {
+			document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
+	}
+	</script>
 
-  <script type="text/javascript" src="/admin/js/ajax.js"></script>
-  <script type="text/javascript">var DHTML_SUITE_THEME = 'gg'; // SPecifying gray theme</script>
-  <script type="text/javascript" src="/admin/js/dhtml-suite-for-applications-without-comments.js"></script>
-  <script type="text/javascript" src="/admin/js/yepnope.min.js"></script>
-  <script type="text/javascript" src="/admin/js/form-send.js"></script>
-    <script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
+	<script type="text/javascript" src="/admin/js/ajax.js"></script>
+	<script type="text/javascript">var DHTML_SUITE_THEME = 'gg'; // SPecifying gray theme</script>
+	<script type="text/javascript" src="/admin/js/dhtml-suite-for-applications-without-comments.js"></script>
+	<script type="text/javascript" src="/admin/js/yepnope.min.js"></script>
+	<script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
 
 
-  <link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui.css" type="text/css" />
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.js"></script>
-  <script type="text/javascript">
-  if (typeof jQuery.ui == 'undefined') {
-      document.write(unescape("%3Cscript src='/admin/js/jquery/ui/jquery-ui.min.js' type='text/javascript'%3E%3C/script%3E"));
-  }
-  </script>
+	<link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui.css" type="text/css" />
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.js"></script>
+	<script type="text/javascript">
+	if (typeof jQuery.ui == 'undefined') {
+			document.write(unescape("%3Cscript src='/admin/js/jquery/ui/jquery-ui.min.js' type='text/javascript'%3E%3C/script%3E"));
+	}
+	</script>
+	<script type="text/javascript" src="/admin/js/form-send.js"></script>
 
-  <script type="text/javascript" src="/admin/js/jquery/jtip.js"></script>
-  <link rel="stylesheet" href="/admin/css/pane-content-custom.css" type="text/css" />
+	<script type="text/javascript" src="/admin/js/jquery/jtip.js"></script>
+	<link rel="stylesheet" href="/admin/css/pane-content-custom.css" type="text/css" />
 </head>
 <body>
 <!-- начало. данные для панелей -->
 <div id="northContent">
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr style="display:none" id="header">
-      <td>
-        <div id="menuDiv" style="width:1900px"><div id="innerDiv"></div></div>
-        <div id="menuDiv" style="width:1900px"><div id="innerDiv2"></div></div>
-      </td>
-    </tr>
-  </table>
+	<table width="100%" cellpadding="0" cellspacing="0">
+		<tr style="display:none" id="header">
+			<td>
+				<div id="menuDiv" style="width:1900px"><div id="innerDiv"></div></div>
+				<div id="menuDiv" style="width:1900px"><div id="innerDiv2"></div></div>
+			</td>
+		</tr>
+	</table>
 </div>
 <div id="westContent"></div>
 <div id="center"></div>
@@ -87,14 +87,14 @@ var menuTopBar = new DHTMLSuite.menuBar();
 <div id="menuTop" style="display:none"></div>
 
 <table id="loading-layout" >
-    <tr>
-        <td>
-            <div>
-                Пожалуйста, подождите.<br/>
-                <span>Идет загрузка...</span>
-            </div>
-        </td>
-    </tr>
+		<tr>
+				<td>
+						<div>
+								Пожалуйста, подождите.<br/>
+								<span>Идет загрузка...</span>
+						</div>
+				</td>
+		</tr>
 </table>
 
 </body>

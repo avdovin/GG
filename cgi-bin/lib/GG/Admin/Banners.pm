@@ -314,7 +314,7 @@ sub save{
 				if(grep {$type_file eq $_}  @$img_ext){
 					$self->resize_pict(
 						crop 	=> 1,
-						file 	=> $ENV{DOCUMENT_ROOT}.$self->stash->{folder}.$docfile,
+						file 	=> $self->app->static->paths->[0].$self->stash->{folder}.$docfile,
 						width 	=> $self->send_params->{width},
 						height 	=> $self->send_params->{height},
 						retina 	=> $self->lkey(name => 'docfile', setting => 'retina' ),

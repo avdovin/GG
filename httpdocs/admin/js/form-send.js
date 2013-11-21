@@ -44,7 +44,7 @@ var log = function(message) {
 	}
 }
 
-$( document ).ready(function() {
+jQuery( document ).ready(function() {
 	jQuery('body').on('click', 'a', function(e){
 	  if( jQuery(this).attr('href') === '#' ) e.preventDefault();
 	})
