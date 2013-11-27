@@ -36,7 +36,10 @@ sub register {
 
 			my $file = delete $params{file};
 			$file = $self->image_to_jpg( file	=> $file);
-			my ($width, $height) = $params{fsize} ? ($params{fsize}, $params{fsize}) : ($params{width}, $params{height});
+			my ($width, $height) = (delete $params{width}, delete $params{height});
+			if(my $fsize = delete $params{fsize}){
+				($width, $height) = ($fsize, $fsize);
+			}
 
 			$params{background} = 'None' if( ($file =~ m/([^.]+)$/)[0] =~ /png/i );
 
