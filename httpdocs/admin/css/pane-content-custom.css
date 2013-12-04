@@ -5,8 +5,8 @@ body,textarea,div,iframe{scrollbar-3dlight-color:#999;scrollbar-arrow-color:#999
 #innerDiv2 .DHTMLSuite_menuBar_top{height:82px;}
 #innerDiv .DHTMLSuite_menuItem_top_regular,#innerDiv .DHTMLSuite_menuItem_top_over,#innerDiv .DHTMLSuite_menuItem_top_click,#innerDiv .DHTMLSuite_menuItem_top_disabled,#innerDiv .DHTMLSuite_menuItem_top_active{height:21px;}
 #innerDiv2 .DHTMLSuite_menuItem_top_regular,#innerDiv2 .DHTMLSuite_menuItem_top_over,#innerDiv2 .DHTMLSuite_menuItem_top_click,#innerDiv2 .DHTMLSuite_menuItem_top_disabled,#innerDiv2 .DHTMLSuite_menuItem_top_active{height:74px;width:74px;}
-#innerDiv .DHTMLSuite_menuItem_top_click div,#innerDiv .DHTMLSuite_menuItem_top_over div{text-align:center;font-size:12px;font-family:verdana;line-height:12px;letter-spacing:0;margin-left:5px;color:#000;}
-#innerDiv .DHTMLSuite_menuItem_top_active div,#innerDiv .DHTMLSuite_menuItem_top_disabled div,#innerDiv .DHTMLSuite_menuItem_top_regular div{text-align:center;font-size:12px;font-family:verdana;line-height:12px;letter-spacing:0;margin-left:5px;color:#FFF;}
+#innerDiv .DHTMLSuite_menuItem_top_click div,#innerDiv .DHTMLSuite_menuItem_top_over div{text-align:center;font-size:14px;font-family:verdana;line-height:14px;letter-spacing:0;margin-left:5px;color:#000;}
+#innerDiv .DHTMLSuite_menuItem_top_active div,#innerDiv .DHTMLSuite_menuItem_top_disabled div,#innerDiv .DHTMLSuite_menuItem_top_regular div{text-align:center;font-size:14px;font-family:verdana;line-height:14px;letter-spacing:0;margin-left:5px;color:#FFF;}
 #innerDiv .DHTMLSuite_menuBar_top img{float:left;margin-right:5px;}
 #innerDiv .DHTMLSuite_menuItem_textContent{float:left;}
 .dhtmlgoodies_tree ul{margin-left:20px;padding-left:0;display:none;}
@@ -29,7 +29,7 @@ body,textarea,div,iframe{scrollbar-3dlight-color:#999;scrollbar-arrow-color:#999
     background: #f9f9f9;
 }
     #zipimport_progress_items .loading {
-        opacity: 0.5;    
+        opacity: 0.5;
     }
         #zipimport_progress_items .loading .pic {
             background: #fff url(../img/loading_32.png) 50% 50% no-repeat;
@@ -55,7 +55,7 @@ body,textarea,div,iframe{scrollbar-3dlight-color:#999;scrollbar-arrow-color:#999
                 margin: 0;
             }
                 .zipimport_progress_items .info p span {
-                    font-weight: bold;            
+                    font-weight: bold;
                 }
                 .zipimport_progress_items .info .filename {
                     font-size: italic;
@@ -69,7 +69,7 @@ body,textarea,div,iframe{scrollbar-3dlight-color:#999;scrollbar-arrow-color:#999
                 .zipimport_progress_items .info .size {
                     position: absolute;
                     top: 40px;
-                    right: 2px;    
+                    right: 2px;
                 }
 
 
@@ -97,5 +97,5 @@ body,textarea,div,iframe{scrollbar-3dlight-color:#999;scrollbar-arrow-color:#999
         color: #999;
     }
         #loading-progress-stats b {
-            font-weight: normal;    
+            font-weight: normal;
         }
