@@ -10,8 +10,7 @@ BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
 BEGIN { unshift @INC, "$FindBin::Bin/../extlib" }
 
 # Mac os lib path
-use lib '/opt/local/lib/perl5/vendor_perl/5.12.4/darwin-thread-multi-2level/';
-use lib '/opt/local/lib/perl5/site_perl/5.12.4/darwin-thread-multi-2level';
+use lib '/System/Library/Perl/Extras/5.16';
 
 #$ENV{MOJO_APP} ||= 'GG';
 $ENV{MOJO_HOME} =  "../"; #'/www/gg9.local/cgi-bin';
