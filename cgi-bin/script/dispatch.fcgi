@@ -20,7 +20,7 @@ $ENV{MOJO_NO_TLS} = 1;
 $ENV{SCRIPT_NAME} = "/";
 $ENV{DOCUMENT_ROOT} = $ENV{DOCUMENT_ROOT} || '/www/gg9.local/httpdocs/';
 $ENV{MOJO_REVERSE_PROXY} = 1;
-
+$ENV{TZ} = 'Europe/Moscow';
 
 # Start command line interface for application
 require Mojolicious::Commands;
