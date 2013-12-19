@@ -4,7 +4,51 @@ use utf8;
 use Mojo::Base 'Mojolicious::Plugin';
 use Encode;
 
-our $VERSION = '0.05';
+our $VERSION = '1';
+
+sub _config{
+	my $self = shift;
+
+	my $hash_table = {
+		'texts_main_ru' => {
+				searchfields 	=> [qw(name text)],
+				primary_key 	=> [qw(ID)],
+				controller 		=> 'text',
+				route 			=> 'text',
+				linktmlp 		=> '',
+				mapfields 		=> {},
+			},
+		'texts_news_ru' => {
+				searchfields 	=> [qw(name text)],
+				primary_key 	=> [qw(ID)],
+				controller 		=> 'text',
+				route 			=> 'news_item',
+				linktmlp 		=> '',
+				mapfields 		=> {
+					alias 	=> 'list_item_alias',
+				},
+			},
+		'texts_events_ru' => {
+				searchfields 	=> [qw(name text)],
+				primary_key 	=> [qw(ID)],
+				controller 		=> 'text',
+				route 			=> 'events_item',
+				linktmlp 		=> '',
+				mapfields 		=> {
+					alias 	=> 'list_item_alias',
+				},
+			},
+		'data_catalog_items' => {
+				searchfields 	=> [qw(name article text)],
+				primary_key 	=> [qw(sync variantcode)],
+				controller 		=> 'catalog',
+				route 			=> '',
+				linktmlp 		=> '/catalog/item/%s~sync%_%s~variantcode%',
+			},
+	};
+
+	return $hash_table;
+}
 
 sub register {
 	my ($self, $app, $conf) = @_;
@@ -14,10 +58,11 @@ sub register {
 		my $self   = shift;
 		my %params = @_;
 
-		$params{page} = $self->stash('page') || 1;
+		$self->metaHeader({
+			title	=> 'Поиск',
+		});
 
-#        $self->app->sessions_check( $self->session('cck') );
-#        $self->session( cck => $self->app->user->{cck});
+		$params{page} = $self->stash('page') || 1;
 
 		my $ksearch = $self->param('qsearch');
 
@@ -143,11 +188,32 @@ sub print_search_result{
 			if( $node->{text} ) {
 				$node->{text} =~ s/<.*?>//gi;
 
-				if($node->{text} =~ /([\s\S]*)?$qsearch([\s\S]*)?/){
-					my $pref = substr($1, -200 );
-					my $post = substr($2, 200 );
+				my $cutSize = 300;
+				if($node->{text} =~ /([\s\S]*?)$qsearch([\s\S]*)/){
+					my $pref = $1;
+					my $post = $2;
 
-					$node->{text} = "...".$pref." <b style='font-style:italic;'>".$qsearch."</b> ".$post."...";
+					if( length($pref) > $cutSize ){
+						$pref = substr( $pref, length($pref) - $cutSize);
+
+						if ( $pref =~ m/ / ) {
+							while ( substr( $pref, 0, 1 ) ne ' ' ){
+								$pref = substr( $pref, 1);
+							}
+						}
+					}
+
+					if( length($post) > $cutSize ){
+						$post = substr( $post, 0, $cutSize - 1 );
+
+						if ( $post =~ m/ / ) {
+							while ( substr( $post, length($post) - 1, 1 ) ne ' ' ) {
+								$post = substr( $post, 0, length($post) - 1 );
+							}
+						}
+					}
+
+					$node->{text} = "...".$pref." <b style='color:black;'>".$qsearch."</b> ".$post."...";
 				}
 				else {
 					$node->{text} = $self->cut(string => $node->{text}, size => 1000);
@@ -191,250 +257,5 @@ sub print_search_result{
 	);
 }
 
-
-# sub print_search_result{
-# 	my $self = shift;
-# 	my %params = @_;
-
-# 	$params{limit} ||= 10;
-
-# 	my $index = delete $params{index};
-# 	my @result = ();
-# 	my $sch = 0;
-# 	if($index){
-# 		my $qsearch = $params{qsearch};
-
-# 		if(my $search_result = $self->app->dbi->query("SELECT * FROM `dtbl_search_results` WHERE `ID`='$index'")->hash){
-
-# 			my @result_search_index = split(/\n/, $search_result->{res_search_indx});
-# 			$params{count} = scalar(@result_search_index);
-# 			$params{total_pages}  = int($#result_search_index / $params{limit}) + 1;
-
-# 			my $npage = $params{limit} * ($params{page} - 1);
-
-# 			my $hash_table = _config($self);
-
-# 			foreach my $res (@result_search_index) {
-# 				my ($i, $table, $keyFields) = split(/\|/, $res);
-# 				#if ($i >= $npage and $i < $npage + $params{limit}) {
-# 					# build index
-
-# 					my $keyFieldSelect = _buildKeyFieldsSelect( $hash_table->{$table}->{selectfields} );
-# die $keyFields;
-# 					my @keysF = split('_', $keyFields);
-# 					my $whereIndex = '';
-# 					#foreach (split('_', $hash_table->{$table}->{linktmlp})){
-# 					#	$whereIndex .= " AND `$keysF[$i]`='$_' ";
-# 					#}
-
-# 					# if (my $node = $self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE 1 $whereIndex")->hash) {
-
-# 					# 	if( $node->{text} ) {
-# 					# 		$node->{text} =~ s/<.*?>//gi;
-
-# 					# 		if($find_node->{text} =~ /([\s\S]*)?$qsearch([\s\S]*)?/){
-# 					# 			my $pref = substr($1, -200 );
-# 					# 			my $post = substr($2, 200 );
-
-# 					# 			$node->{text} = "...".$pref." <b style='font-style:italic;'>".$qsearch."</b> ".$post."...";
-# 					# 		}
-# 					# 		else {
-# 					# 			$node->{text} = $self->cut(string => $node->{text}, size => 1000);
-# 					# 		}
-# 					# 	}
-# 					# 	$sch++
-# 					# 	my $vals = {
-# 					# 		%$node,
-# 					# 		name	=> $node->{name},
-# 					# 		index	=> $sch,
-# 					# 		text	=> $node->{text}
-# 					# 	};
-
-# 					# 	if($hash_table->{$table}->{route}){
-# 					# 		$vals->{'link'} = $self->route($hash_table->{$table}->{route}, %$node);
-# 					# 	}
-# 					# 	elsif(my $linktmlp = $hash_table->{$table}->{linktmlp}){
-# 					# 		while ($linktmlp =~ m/\%([\d\w~]+)\%/ig) {
-# 					# 			my $item = $1;
-# 					# 			my ($type, $val) = split("~", $item);
-
-
-# 					# 			if($type =~ /list/){
-# 					# 				$find_node->{$val} = $self->VALUES( name => $val, value => $node->{$val} ) || '';
-# 					# 			}
-# 					# 			$val = $node->{$val} || "";
-
-# 					# 			$linktmlp =~ s/\%([\d\w~]+)\%/$val/;
-# 					# 		}
-# 					# 		$vals->{'link'} = $linktmlp;
-# 					# 	}
-# 					# 	push @result, $vals;
-
-# 					# 	# $find_node->{text} =~ s/<.*?>//gi;
-
-# 					# 	# Encode::_utf8_on( $find_node->{text} );
-
-# 					# 	# if($find_node->{text} =~ /([\s\S]*)?$qsearch([\s\S]*)?/){
-# 					# 	# 	my $pref = substr($1, -200 );
-# 					# 	# 	my $post = substr($2, 200 );
-
-# 					# 	# 	$find_node->{text} = "...".$pref." <b style='font-style:italic;'>".$qsearch."</b> ".$post."...";
-# 					# 	# }
-# 					# 	# else {
-# 					# 	# 	$find_node->{text} = $self->cut(string => $find_node->{text}, size => 1000);
-# 					# 	# }
-
-# 					# 	# $sch++;
-# 					# 	# my $vals = {
-# 					# 	# 	%$find_node,
-# 					# 	# 	name	=> $find_node->{name},
-# 					# 	# 	index	=> $sch,
-# 					# 	# 	text	=> $find_node->{text} || $find_node->{name}
-# 					# 	# };
-
-
-# 					# 	# if ($links eq "free") {
-# 					# 	# 	if($find_node->{'link'}){
-# 					# 	# 		$vals->{'link'} = $find_node->{'link'};
-# 					# 	# 	} else {
-# 					# 	# 		die $vals->{route};
-# 					# 	# 		$vals->{'link'} = $self->url_for($vals->{route}, alias => $find_node->{alias});
-# 					# 	# 	}
-
-
-# 					# 	# } elsif($linktpl){
-# 					# 	# 	while ($linktpl =~ m/\%([\d\w~]+)\%/ig) {
-# 					# 	# 		my $item = $1;
-# 					# 	# 		my ($type, $val) = split("~", $item);
-
-
-# 					# 	# 		if($type =~ /list/){
-# 					# 	# 			$find_node->{$val} = $self->VALUES( name => $val, value => $find_node->{$val}) || '';
-# 					# 	# 		}
-
-
-# 					# 	# 		if($find_node->{$val}) {$val = $find_node->{$val}} else {$val = ""};
-# 					# 	# 		$linktpl =~ s/\%([\d\w~]+)\%/$val/;
-# 					# 	# 	}
-
-# 					# 	# 	$vals->{'link'} = $linktpl;
-# 					# 	# }
-# 					# 	#push @result, $vals;
-# 					# }
-# 				#}
-# 			}
-# 		}
-# 	}
-
-# 	$self->render(	%params,
-# 					items		=> \@result,
-# 					template	=> "Search/list" );
-# }
-
-
-sub _config{
-	my $self = shift;
-
-	my $hash_table = {
-		'texts_main_ru' => {
-				searchfields 	=> [qw(name text)],
-				primary_key 	=> [qw(ID)],
-				controller 		=> 'text',
-				route 			=> 'text',
-				linktmlp 		=> '',
-				mapfields 		=> {},
-			},
-		'texts_news_ru' => {
-				searchfields 	=> [qw(name text)],
-				primary_key 	=> [qw(ID)],
-				controller 		=> 'text',
-				route 			=> 'news_item',
-				linktmlp 		=> '',
-				mapfields 		=> {
-					alias 	=> 'list_item_alias',
-				},
-			},
-		'texts_events_ru' => {
-				searchfields 	=> [qw(name text)],
-				primary_key 	=> [qw(ID)],
-				controller 		=> 'text',
-				route 			=> 'events_item',
-				linktmlp 		=> '',
-				mapfields 		=> {
-					alias 	=> 'list_item_alias',
-				},
-			},
-		'data_catalog_items' => {
-				searchfields 	=> [qw(name article text)],
-				primary_key 	=> [qw(sync variantcode)],
-				controller 		=> 'catalog',
-				route 			=> '',
-				linktmlp 		=> '/catalog/item/%s~sync%_%s~variantcode%',
-			},
-	};
-
-	return $hash_table;
-}
-
-# sub def_search_tables {
-# 	my $self = shift;
-
-# 	my %hash_table;
-# 	foreach my $t ($self->app->dbi->getTablesSQL()) {
-# 		if ($t =~ m/^texts_/ ) {
-# 			my @keys_search = ();
-# 			my @keys_total = $self->app->dbi->getKeysSQL(from => $t);
-# 			my @searchkeys = ();
-
-# 			foreach my $k (@keys_total) {
-# 				if ($k eq "name") {
-# 					$hash_table{$t}{names} = "name";
-# 					push(@keys_search, $k);
-# 				} elsif ($k eq "text")    { push(@keys_search, $k);
-# 				} elsif ($k eq "alias")   { $hash_table{$t}{links} = "free";
-# 				} elsif ($k eq "docfile") { $hash_table{$t}{links} = "free";
-# 				}
-# 			}
-
-# 			if($t eq 'texts_main_ru'){
-# 				$hash_table{$t}{route} = 'text';
-# 			}
-# 			else {
-# 				$t =~ m/texts_([\w]+)_[\w]+/;
-# 				$hash_table{$t}{route} = $1.'_item';
-# 			}
-# 			# if (!$hash_table{$t}{links}) {
-# 			# 	$t =~ m/texts_([\w]+)_[\w]+/;
-# 			# 	$hash_table{$t}{links} = "id:$1";
-# 			# }
-
-
-# 			$hash_table{$t}{fields} = join(",", @keys_search);
-# 			$hash_table{$t}{keys}   = join(",", @keys_total);
-
-# 		} elsif($t eq 'data_catalog_items'){
-# 			my @keys_search = ();
-# 			my @keys_total = $self->app->dbi->getKeysSQL(from => $t);
-# 			my @searchkeys = ();
-
-# 			$self->get_keys( type => ['lkey'], controller => 'catalog');
-
-# 			if($t eq 'data_catalog_items'){
-# 				@searchkeys = qw(name sync article);
-# 				$hash_table{$t}{linktpl} = '/catalog/item/%s~sync%_%s~variantcode%';
-# 				$hash_table{$t}{keyField} = [qw(sync variantcode)];
-# 			} else{
-# 				next;
-# 			}
-
-# 			if($hash_table{$t}{linktpl}){
-# 				$hash_table{$t}{fields} = join(",", @searchkeys);
-# 				$hash_table{$t}{keys}   = join(",", @keys_total);
-# 				next;
-# 			};
-# 		}
-# 	}
-# 	return (%hash_table);
-# } # end of &def_search_tables
 
 1;
