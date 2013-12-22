@@ -37,7 +37,7 @@ sub register {
 
 			$params{folder} ||= $self->lkey(name => $params{lfield}, setting => 'folder' );
 
-			my $document_root = $ENV{DOCUMENT_ROOT};
+			my $document_root = $self->static_path;
 
 			if(my $mini = $self->lkey(name => $params{lfield}, setting => 'mini' )){
 
@@ -101,7 +101,6 @@ sub register {
 				retina 	=> $params{retina},
 			);
 
-			#unlink($ENV{'DOCUMENT_ROOT'}.$params{folder}.$pict_saved);
 			foreach (keys %$fields_hashref){
 				delete $fields_hashref->{$_} unless $self->dbi->exists_keys(from => $table, lkey => $fields_hashref->{$_} );
 			}
@@ -287,7 +286,6 @@ sub register {
 				$to = $directories.$filename;
 			}
 			unlink($to) if ($params{replace} && -f $to);
-
 			eval{
 				File::Copy::copy($from, $to)
 			};
@@ -387,7 +385,7 @@ sub register {
 			if(-f $dir.$filename){
 				$path = $dir.$filename;
 			} else {
-				$path = $ENV{'DOCUMENT_ROOT'}.'/admin/img/file_broken.png';
+				$path = $self->static_path.'/admin/img/file_broken.png';
 			}
 
 			my $data;

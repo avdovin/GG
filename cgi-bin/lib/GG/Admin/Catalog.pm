@@ -212,7 +212,11 @@ sub delete{
 		if($self->stash->{dop_table}){
 			if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index})){
 				if($self->stash->{anketa}->{pict}){
-					$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder}, pict => $self->stash->{anketa}->{pict});
+					$self->file_delete_pict(
+						lfield => 'pict',
+						folder => $self->lkey(name => 'pict' )->{settings}->{folder},
+						pict => $self->stash->{anketa}->{pict}
+					);
 				}
 
 				$self->restore_doptable;
@@ -223,7 +227,11 @@ sub delete{
 		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index} )){
 
 			if($self->stash->{anketa}->{pict}){
-				$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder}, pict => $self->stash->{anketa}->{pict});
+				$self->file_delete_pict(
+					lfield 	=> 'pict',
+					folder 	=> $self->lkey(name => 'pict' )->{settings}->{folder},
+					pict 	=> 	$self->stash->{anketa}->{pict}
+				);
 			}
 
 
