@@ -247,8 +247,8 @@ sub register {
 			return unless $to;
 
 			if(delete $params{to_abs_path}){
-				$from = $ENV{DOCUMENT_ROOT}.$from unless $params{from_tmp};
-				$to = $ENV{DOCUMENT_ROOT}.$to;
+				$from = $self->static_path.$from unless $params{from_tmp};
+				$to = $self->static_path.$to;
 			}
 
 

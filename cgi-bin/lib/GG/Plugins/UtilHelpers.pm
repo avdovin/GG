@@ -19,6 +19,10 @@ sub register {
 		$self->file_path_retina($src);
 	});
 
+	$app->helper( static_path => sub {
+		return shift->app->static->paths->[0];
+	});
+
 	$app->helper( host => sub {
 		return shift->req->headers->host() || '';
 	});
