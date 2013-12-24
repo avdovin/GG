@@ -13,6 +13,9 @@ use File::Copy ();
 use File::Spec ();
 use File::stat;
 
+use Encode qw( encode decode_utf8 );
+use Mojo::Util 'quote';
+
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 my $MAX_IMAGE_SIZE = 1000; # Максимальный размер картинки по большей стороне, px
@@ -176,45 +179,89 @@ sub register {
 	$app->helper(
 		file_download => sub {
 			my $self = shift;
-			my %params = (
-				content_type 	=> '',
+			my %args     = (
+				abs_path 	=> '', 			# полный путь к файлу
+				path 		=> '',			# относительный путь
+				filename 	=> '',			# имя файла (ОПЦИОНАЛЬНО)
+				status 		=> '', 			# код ответа (ОПЦИОНАЛЬНО)
+				content_disposition => '',
+				format 		=> '',			# формат файла (ОПЦИОНАЛЬНО)
+				data 		=> '',			# отдаваемый данные (ОПЦИОНАЛЬНО)
 				@_
 			);
 
-			my $path =  $params{'abs_path'} || $self->app->static->paths->[0].$params{path};
-
-			if(-f $path){
-				my ($filename, undef, $ext) = File::Basename::fileparse($path,qr/\.[^.]*/);
-				$ext =~ s{^\.}{};
-
-				my $stat = stat($path);
-        		my $modified = $stat->mtime;
-        		my $size     = $stat->size;
-
-				my $res = $self->res;
-				my $rsh = $res->headers;
-				$res->content->asset(Mojo::Asset::File->new(path => $path));
-        		$res->code(200);
-				$rsh->content_disposition('attachment; filename='.$filename.'.'.$ext);
-				$rsh->content_length($size);
-				$rsh->content_encoding("Binary");
-
-				my $mimeType;
-				if($params{content_type}){
-					$mimeType = $params{content_type};
-				}
-				else {
-					$mimeType = $self->app->types->type($ext);
-					$mimeType = 'application/vnd.ms-excel' if($ext eq 'xls');
-				}
-
-				$rsh->content_type($mimeType || "application/octet-stream");
-				$rsh->last_modified(Mojo::Date->new($modified));
-
-				$self->rendered;
-			} else {
-				$self->render( text => sprintf( "Ошибка чтения файла %s", $path) )
+			unless ($args{filepath}) {
+				$args{filepath} =  $args{'abs_path'} || $self->app->static->paths->[0].$args{path};
 			}
+			my $filename            = decode_utf8($args{filename});
+			my $status              = $args{status}               || 200;
+			my $content_disposition = $args{content_disposition}  || 'attachment';
+
+			# Content type based on format
+			my $content_type;
+			$content_type = $self->app->types->type( $args{format} ) if $args{format};
+			$content_type ||= 'application/x-download';
+
+			# Create asset
+			my $asset;
+
+			if ( my $filepath = decode_utf8($args{filepath}) ) {
+				unless ( -f $filepath && -r $filepath ) {
+					$self->app->log->error("Cannot read file [$filepath]. error [$!]");
+					return;
+				}
+
+				$filename ||= File::Basename::fileparse($filepath);
+				$asset = Mojo::Asset::File->new( path => $filepath );
+			} elsif ( $args{data} ) {
+				$filename ||= $self->req->url->path->parts->[-1] || 'download';
+				$asset = Mojo::Asset::Memory->new();
+				$asset->add_chunk( $args{data} );
+			} else {
+				$self->app->log->error('You must provide "data" or "filepath" option');
+				return;
+			}
+
+			# Create response headers
+			$filename = quote($filename); # quote the filename, per RFC 5987
+			$filename = encode("UTF-8", $filename);
+
+			my $headers = Mojo::Headers->new();
+			$headers->add( 'Content-Type', $content_type . ';name=' . $filename );
+			$headers->add( 'Content-Disposition', $content_disposition . ';filename=' . $filename );
+
+			# Range
+			# Partially based on Mojolicious::Static
+			if ( my $range = $self->req->headers->range ) {
+				my $start = 0;
+				my $size  = $asset->size;
+				my $end   = $size - 1 >= 0 ? $size - 1 : 0;
+
+				# Check range
+				if ( $range =~ m/^bytes=(\d+)-(\d+)?/ && $1 <= $end ) {
+					$start = $1;
+					$end = $2 if defined $2 && $2 <= $end;
+
+					$status = 206;
+					$headers->add( 'Content-Length' => $end - $start + 1 );
+					$headers->add( 'Content-Range'  => "bytes $start-$end/$size" );
+				} else {
+					# Not satisfiable
+					return $self->rendered(416);
+				}
+
+				# Set range for asset
+				$asset->start_range($start)->end_range($end);
+			} else {
+				$headers->add( 'Content-Length' => $asset->size );
+			}
+
+			# Set response headers
+			$self->res->content->headers($headers);
+
+			# Stream content directly from file
+			$self->res->content->asset($asset);
+			return $self->rendered($status);
 		}
 	);
 
@@ -390,10 +437,10 @@ sub register {
 
 			my $data;
 			open my $fh, '<', $path or $self->error( sprintf( "Ошибка чтения файла %s $!", $path, $! ));
-	     	while(sysread($fh, my $buf, 1024)) {
-	        	 $data .= $buf;
-	     	}
-	     	close($fh);
+			while(sysread($fh, my $buf, 1024)) {
+				 $data .= $buf;
+			}
+			close($fh);
 			my $size = -s $path;
 
 			$self->res->headers->content_disposition('attachment; filename='.$filename);
@@ -525,7 +572,7 @@ sub register {
 
 					open(FILE, ">${tmp_dir}$filename") or die("can't open ${tmp_dir}$filename: $!");
 					flock(FILE, 2);
-			    	binmode(FILE);
+					binmode(FILE);
 					print FILE $Upload;
 					close FILE or die("can't close ${tmp_dir}$filename: $!");
 				};
@@ -671,12 +718,12 @@ sub register {
 sub _create{
 	my $file = shift;
 	if (open(my $FILE,">",$file)) {
-        print $FILE "\n";
-        close($FILE);
-    }
-    else {
-        warn "Can't write to config file ".$file;
-    }
+		print $FILE "\n";
+		close($FILE);
+	}
+	else {
+		warn "Can't write to config file ".$file;
+	}
 }
 1;
 
@@ -776,34 +823,34 @@ sub win2unicode {
 
 	my $value = shift() if (@_);
 
-    if (!$value) {return "";}
-    my $result = "";
-    my $o_code = "";
-    my $i_code = "";
+	if (!$value) {return "";}
+	my $result = "";
+	my $o_code = "";
+	my $i_code = "";
 
-    for (my $I = 0; $I < length($value); $I++) {
-        $i_code = ord(substr($value, $I, 1));
-        if ($i_code == 184){
-            $o_code = 1105;
-        } elsif ($i_code == 168){
-            $o_code = 1025;
-        } elsif ($i_code > 191 && $i_code < 256){
+	for (my $I = 0; $I < length($value); $I++) {
+		$i_code = ord(substr($value, $I, 1));
+		if ($i_code == 184){
+			$o_code = 1105;
+		} elsif ($i_code == 168){
+			$o_code = 1025;
+		} elsif ($i_code > 191 && $i_code < 256){
 			if ($i_code == 194) {
 				my $i_code_l = ord(substr($value, $I+1, 1));
 				if ($i_code_l != 187 and $i_code_l != 171) {
 					$o_code = $i_code + 848;
 				} else {$o_code = "";}
 			} else {
-	            $o_code = $i_code + 848;
+				$o_code = $i_code + 848;
 			}
 		} elsif (($i_code == 151) or ($i_code == 150)) {
 			$o_code = ord('-');
-        } else {
-            $o_code = $i_code;
-        }
-        $result = $result.chr($o_code) if ($o_code);
-    }
-    return $result;
+		} else {
+			$o_code = $i_code;
+		}
+		$result = $result.chr($o_code) if ($o_code);
+	}
+	return $result;
 } # end of &win2unicode
 
 #== urldecode =================================================================#
