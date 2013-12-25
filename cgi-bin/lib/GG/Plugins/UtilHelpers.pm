@@ -357,7 +357,6 @@ sub register {
 			my %params = @_;
 			$params{key_razdel} ||= 'main';
 			$params{template}   ||= $params{key_razdel} . '_list_anons';
-			$params{handler}	||= 'ep';
 
 			my $rows = $self->dbi->query("
 				SELECT *
