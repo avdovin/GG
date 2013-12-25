@@ -44,7 +44,7 @@ sub register {
 			my $varSetting = $self->parse_keys_settings($var->{settings});
 			$varSetting->{type} ||= 's';
 
-			if($varSetting->{type} eq 's' or $varSetting->{type} eq 'd'){
+			if($raw or $varSetting->{type} eq 's' or $varSetting->{type} eq 'd'){
 				return $var->{envvalue};
 			}
 
