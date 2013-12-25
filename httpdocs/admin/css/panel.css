@@ -67,7 +67,7 @@ input.submit_save {
 hr{border:solid 1px #D3D3D3;width:98%;}
 select{border:solid 1px navy;border-top:solid 1px navy;border-left:solid 1px navy;font-size:13px;width-min:50%;padding:1px 1px 1px 3px;}
 td.read{border-bottom:solid 1px #ddd;}
-td.edit{border-bottom:solid 1px #ddd;border-right:solid 1px #ddd;text-shadow: 1px 1px 1px #DDDDDD;}
+td.edit{border-bottom:solid 1px #ddd;border-right:solid 1px #ddd;}
 .miniNav2 a{color:#fff;font:normal 11px Tahoma, Verdana, Arial;background-color:#069;border:1px solid navy;padding:3px 5px 4px;}
 .miniNav a{color:navy;font:normal 11px Tahoma, Verdana, Arial;background-color:#dae1ea;text-decoration:none;border:1px solid navy;margin-right:5px;padding:3px 5px;}
 table.tableview{width:200px;padding:3px;}
