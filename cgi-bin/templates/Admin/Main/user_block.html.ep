@@ -1,62 +1,72 @@
 <div width='80%' style="margin-top:15px;padding:5px;">
 <table border=0>
-  <tr>
-    <td width="16px" valign=top><img src="/admin/img/icons/menu/icon_user.gif" align="absMiddle"></td>
-    <td>Вы зашли под логином: <br><b><%= $self->sysuser->userinfo->{login} %></b>, (<%= $self->sysuser->userinfo->{name} %>)</td>
-  </tr>
-  <tr>
-    <td valign=top><img src="/admin/img/icons/menu/icon_clock.png" align="absMiddle"></td>
-    <td>Время Вашего последнего захода:<br><b><%= $self->sysuser->userinfo->{vdate} %></b></td>
-  </tr>
-  <tr>
-    <td valign=top><img src="/admin/img/icons/menu/icon_ip.gif" align="absMiddle"></td>
-    <td>Вы зашли с IP: <b><%= $self->tx->remote_address %></b></td>
-  </tr>
-  <tr>
-    <td width="16px" valign=top></td>
-    <td>Ваш браузер:<br><b><%= $self->req->headers->user_agent %></b></td>
-  </tr>
+	<tr>
+		<td width="16px" valign=top><img src="/admin/img/icons/menu/icon_user.gif" align="absMiddle"></td>
+		<td>Вы зашли под логином: <br><b><%= $self->sysuser->userinfo->{login} %></b>, (<%= $self->sysuser->userinfo->{name} %>)</td>
+	</tr>
+	<tr>
+		<td valign=top><img src="/admin/img/icons/menu/icon_clock.png" align="absMiddle"></td>
+		<td>Время Вашего последнего захода:<br><b><%= $self->sysuser->userinfo->{vdate} %></b></td>
+	</tr>
+	<tr>
+		<td valign=top><img src="/admin/img/icons/menu/icon_ip.gif" align="absMiddle"></td>
+		<td>Вы зашли с IP: <b><%= $self->tx->remote_address %></b></td>
+	</tr>
+	<tr>
+		<td width="16px" valign=top></td>
+		<td>Ваш браузер:<br><b><%= $self->req->headers->user_agent %></b></td>
+	</tr>
 </table>
 </div>
-<hr>
+<hr />
 
 <div width='98' style="margin-top:15px;padding:5px">
 <h2>Настройки интерфейса</h2>
 <br />
 <form name="settings_panel" method="post" style="margin-left:15px">
-      <input type="hidden" name="do" value="settings_panel">
-      <input type="checkbox" value="1" name="leftwin_hidden" <% if($self->sysuser->settings->{leftwin_hidden}){ %>checked="checked"<% } %>> Скрывать левую панель<br />
-      <input type="checkbox" value="1" name="rightwin_hidden" <% if($self->sysuser->settings->{rightwin_hidden}){ %>checked="checked"<% } %> > Скрывать правую панель<br />
-      
-      
-      <% my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 ); %>
-      <% if(is_sysuser_sys){ %>
-        <input type="checkbox" name="mode" value="development" <% if($mode eq 'development'){ %> checked="checked"<% } %> /> <span <% if($mode eq 'development'){ %>style="background-color:red;"<% } %>>Режим отладки</span><br />
-      <% } %>
-      <!-- <input type="checkbox" name="auth_rem" <% if($self->sysuser->settings->{auth_rem}){ %>checked="checked"<% } %> > Запоминать при входе<br /> -->
+			<input type="hidden" name="do" value="settings_panel">
+			<input type="checkbox" value="1" name="leftwin_hidden" <% if($self->sysuser->settings->{leftwin_hidden}){ %>checked="checked"<% } %>> Скрывать левую панель<br />
+			<input type="checkbox" value="1" name="rightwin_hidden" <% if($self->sysuser->settings->{rightwin_hidden}){ %>checked="checked"<% } %> > Скрывать правую панель<br />
+
+
+			<% my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 ); %>
+			<% if(is_sysuser_sys){ %>
+				<input type="checkbox" name="mode" value="development" <% if($mode eq 'development'){ %> checked="checked"<% } %> /> <span <% if($mode eq 'development'){ %>style="background-color:red;"<% } %>>Режим отладки</span><br />
+			<% } %>
+			<!-- <input type="checkbox" name="auth_rem" <% if($self->sysuser->settings->{auth_rem}){ %>checked="checked"<% } %> > Запоминать при входе<br /> -->
 <br />
 <br />
-      <input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class=submit_save style="width:200px; text-align: center;">
+			<input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class=submit_save style="width:200px; text-align: center;">
 </form>
 </div>
 <div width='80%' style="margin-top:15px;padding:5px">
-<form name="clear_settings" method="post" style="margin-left:15px">
-      <input type="hidden" name="do" value="clear_settings">
-      <input type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сбросить все настройки" class=submit_save style="width:200px">
-</form>
+	<form name="clear_settings" method="post" style="margin-left:15px">
+		<input type="hidden" name="do" value="clear_settings">
+		<input type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сбросить все настройки" class=submit_save style="width:200px">
+	</form>
 </div>
+
+% if($ENV{HYPNOTOAD_PID}){
+	<div width='80%' style="margin-top:15px;padding:5px">
+		<form name="form-restart-hypnotoad" id="form-restart-hypnotoad" method="post" style="margin-left:15px">
+			<input type="hidden" name="do" value="reload_settings">
+			<input type=button onClick="restart_hypnotoad();" value="Сбросить кэш" class=submit_save style="width:200px">
+		</form>
+	</div>
+% }
+
 <script type="text/javascript">
 	parse_json({
-		type	: 'collapsepane',
+		type  	: 'collapsepane',
 		position: 'west',
-		status	: '<%= $self->sysuser->settings->{leftwin_hidden} || 0 %>'
+		status  : '<%= $self->sysuser->settings->{leftwin_hidden} || 0 %>'
 	});
 	parse_json({
-		type	: 'collapsepane',
+		type  	: 'collapsepane',
 		position: 'east',
-		status	: '<%= $self->sysuser->settings->{rightwin_hidden} || 0 %>'
+		status  : '<%= $self->sysuser->settings->{rightwin_hidden} || 0 %>'
 	});
-	
+
 	<% if($mode eq 'development'){ %>
 		jQuery("#southContent").css('background-color', '#D60606').find("#debug-mode").show();
 	<% } else { %>

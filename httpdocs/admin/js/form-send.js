@@ -1318,4 +1318,19 @@ function set_route_alias(form) {
 
 	}
 }
+
+function restart_hypnotoad(){
+	$.ajax({
+		url: '/admin/main/body',
+		data: {do: 'restart_hypnotoad'},
+		beforeSend: function(){
+			$("form[name=form-restart-hypnotoad] input[type=submit]").val('Сбрасываю ...');
+		}
+	})
+	.always(function() {
+		$("form[name=form-restart-hypnotoad] input[type=submit]").val('Сбросить кэш');
+		do_submit(document.getElementById('form-restart-hypnotoad'), 'user_info', '/admin/main/body');
+	});
+	return false;
+}
 //function hidden_quick_view() { quick_view_div.style.display='none'; }
