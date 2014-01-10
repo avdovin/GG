@@ -17,33 +17,33 @@ sub register {
 		define_table_list => sub {
 			my $self = shift;
 			my %params = @_;
-	
+
 			$params{lkey} 	||= $self->stash->{replaceme};
 			$params{where} 	||= '';
-			
+
 			my $table = $params{table};
 			my $lkey = $params{lkey};
-	
+
 			$self->def_tablelist_param( key => "page", lkey => $lkey, default => 1);
 			$self->def_tablelist_param( key => "pcol", lkey => $lkey, default => 25);
 			$self->def_tablelist_param( key => "sfield", lkey => $lkey, default => 'ID');
 			$self->def_tablelist_param( key => "asc", lkey => $lkey, default => 'asc');
 			$self->def_tablelist_param( key => "qsearch", lkey => $lkey.'_filter', default => '');
-			
-			
-			
+
+
+
 			$self->stash->{table_from} = $table;
-			
+
 			$self->def_listfield_buttons( table => $table);
 			$self->def_listfield_groups_buttons( table => $table);
-			
+
 			$self->filter_take(lkey => $lkey);
 			$self->def_listfield( table => $table, lkey => $lkey);
 
 			my $where_filtered = $self->set_filter( lkey => $lkey, table => $table);
-		
+
 			my $items = [];
-			
+
 			if ($self->sysuser->access->{table}->{$table}->{r} || $self->sysuser->sys) {
 				$self->stash->{total} = $self->dbi->getCountCol( from => $table, where => "1 $params{where}");
 				$self->stash->{total_with_filter} = $self->dbi->getCountCol( from => $self->stash->{table_from}, where => "1 $params{where} $where_filtered");
@@ -57,11 +57,11 @@ sub register {
 				#$self->stash->{total_with_filter} = $self->dbi->getCountCol( from => $params{table}, where => "1 $params{where} $where_filtered");
 				$self->stash->{total_col_list}   += 2 + scalar(@{$self->stash->{listfield_buttons}}); # Кол-во колонок + 2 служебные + кол-во кнопок
 				$self->stash->{total_col_list}--  unless $self->app->program->{settings}->{qview};
-				
-				
-				
+
+
+
 				$self->def_text_interval( total_vals => $self->stash->{total_with_filter}, cur_page => $self->stash->{page}, col_per_page => $self->stash->{pcol} );
-				
+
 				if($self->stash->{total_page} < $self->stash->{page}){
 					$self->send_params->{page} = 1;
 					$self->def_tablelist_param( key => "page", lkey => $lkey, default => 1);
@@ -69,29 +69,29 @@ sub register {
 				}
 
 				unless($params{container}){
-						
+
 					$params{npage} = $self->stash->{pcol} * ($self->stash->{page} - 1);
-		
+
 					my $where_limit = " LIMIT $params{npage},".$self->stash->{pcol};
 					my $listfield = $self->stash->{listfield} ||= [];
 
 					$items = $self->getHashSQL(	select => join(",", @{$listfield}),
-												from   => $self->stash->{table_from}, 
+												from   => $self->stash->{table_from},
 												where  => "1 $params{where} $where_filtered ORDER BY `$table`.`".$self->stash->{sfield}."` ".$self->stash->{asc}." $where_limit",
 												sys    => 1,
 					);
-				}		
+				}
 			}
-			
+
 			if ($params{container}){
 
 				if(!$self->sysuser->access->{table}->{$table}->{r} and !$self->sysuser->sys){
 					$self->admin_msg_errors("Доступ к разделу запрещен");
 					$self->stash->{listfield_header} = [];
 				}
-				
+
 				my $body = $self->render(	template	=> 'Admin/TableList/tablelist_container', partial => 1);
-							
+
 				return $self->render( json => {
 					content	=> $body,
 					items	=> $self->get_init_items( init => 'init_modul'),
@@ -104,7 +104,7 @@ sub register {
 						data	=> [],
 						buttons_key => [],
 			};
-			
+
 			$Data->{settings}->{qview} = 1 if $self->app->program->{settings}->{qview};
 
 			#my $lkeys = $self->lkey;
@@ -118,7 +118,7 @@ sub register {
 				my $button = $self->button( name => $key );
 				push @{ $$Data{buttons_key} }, { lkey => $key, confirm => $button->{settings}->{confirm} || '' };
 			}
-						
+
 			my $mini_prefix = {};
 			my $folders = {};
 			my $data_items = [];
@@ -127,13 +127,13 @@ sub register {
 				foreach my $v (keys %$item){
 					my $lkey = $self->lkey( name => $v );
 					my $type = $lkey->{settings}->{type} || next;
-					
+
 					if($type eq 'chb'){
-						$item->{$v} = $item->{$v} ? $lkey->{settings}->{yes} : $lkey->{settings}->{no};  
-		
+						$item->{$v} = $item->{$v} ? $lkey->{settings}->{yes} : $lkey->{settings}->{no};
+
 					}elsif($type =~ /list/){
 						$item->{$v} = $self->VALUES( name => $v, type => 'list', value => $item->{$v}, value_split => "=", )
-		
+
 					}elsif($type eq 'pict' ){
 						if(!$item->{$v}){
 							$item->{$v} = '/admin/img/no_img.png';
@@ -147,23 +147,27 @@ sub register {
 									$folder .= $mini_prefix->{$v} = $first_mini[0].'_';
 								}
 
-								$folders->{$v} = $folder;						
+								$folders->{$v} = $folder;
 							}
 							$item->{$v} = $folders->{$v}.$item->{$v};
 						}
-						
+
 					}elsif($type eq 'site' ){
 						$item->{$v} = "<a href='$$item{$v}' target='_blank'>$$item{$v}</a>";
+
+					# размер файла
+					}elsif($v eq 'size'){
+						$item->{$v} = $self->file_nice_size($$item{$v});
 					}
 				}
 				push @$data_items, $item;
-			} 
+			}
 			$Data->{data} = $data_items;
-			
-			$self->render( json => $Data);	
+
+			$self->render( json => $Data);
 		}
 	);
-	
+
 	$app->helper(
 		defcol => sub {
 			my $self = shift;
@@ -171,36 +175,36 @@ sub register {
 
 			my %types = (table => 1, text => 1, html => 1, password => 1, code => 1, file => 1, filename => 1);
 			my @anketa_keys  = ();
-			
+
 			my $controller = $self->param('key_program');
 			my $list_table = $self->param('list_table');
-			
+
 			return unless $self->def_program($controller);
 
-							
+
 			$self->get_keys( type => ['lkey'], controller => $controller);
 
 			$self->stash->{controller} = $self->stash->{replaceme} = $controller;
 			$self->stash->{replaceme} .= "_".$list_table if $list_table;
-			
+
 			$self->stash->{group}++;
-			
+
 			if($self->param('clear')){
 				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => "");
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
-			
+
 			if($self->stash->{group} == 2){
 				my $lkeys = $self->lkey(controller => $controller);
 				my $lkeys_access = $self->sysuser->access->{lkeys};
 				my $user_sys = $self->sysuser->sys;
-				
+
 				my $defcol;
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
 					$defcol = $self->sysuser->settings->{$self->stash->{replaceme}."_defcol"};
 				} else {
 					no strict "refs";
-					
+
 					foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
 						if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
@@ -211,18 +215,18 @@ sub register {
 							my $size = $$lkeys{$k}{settings}{table_list_width} || 100;
 							$defcol .= $defcol ? ",$k~$size" : "$k~$size";
 						}
-					}					
+					}
 				}
-				
+
 				foreach my $item ( split(/,/, $defcol) ){
 					my ($lkey, undef) = split("~", $item);
 					$self->stash->{'check:'.$lkey} = 1;
 				}
-		
+
 				no strict "refs";
 
 				foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
-					
+
 					if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
 						&& !$$lkeys{$k}{settings}{sys}
@@ -230,11 +234,11 @@ sub register {
 						) {
 						push @anketa_keys, $k;
 					}
-					
+
 				}
-				
+
 				use strict "refs";
-				
+
 			} elsif($self->stash->{group} == 3){
 				my $lkeys = $self->lkey(controller => $controller);
 				my $lkeys_access = $self->sysuser->access->{lkeys};
@@ -242,14 +246,14 @@ sub register {
 
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
 					my $defcol = $self->sysuser->settings->{$self->stash->{replaceme}."_defcol"};
-		
+
 					foreach my $item ( split(/,/, $defcol) ){
 						my ($lkey, $size) = split("~", $item);
 						$self->stash->{'check:'.$lkey} = $size || 100;
-					}						
+					}
 				}
-				
-				
+
+
 				my $list_fields = $self->stash->{listfields};
 				foreach my $k (split(/,/, $list_fields)) {
 					if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
@@ -258,46 +262,46 @@ sub register {
 						&& !exists $types{ $$lkeys{$k}{settings}{type} }
 						) {
 						push @anketa_keys, $k;
-					}					
+					}
 				}
-			
+
 			} elsif($self->stash->{group} == 4){
-				
+
 				my $list_fields = $self->stash->{listfields};
 				my $result;
 				foreach my $item ( split(/,/, $list_fields) ){
 					my ($lkey, $size) = split("~", $item);
 					$size = 100 if ($size !~ /\d+/);
 					$result .= $result ? ",$lkey~$size" : "$lkey~$size";
-				}		
+				}
 				$self->stash->{listfields} = $result;
 
 				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
-				
+
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
-			
+
 			$self->stash->{listfield} = \@anketa_keys;
-			
-			
+
+
 			if($self->stash->{flag_win}){
 				$self->render( json => {
 						content	=> $self->render( template => "Admin/TableList/defcol", partial => 1),
 						items	=> $self->get_init_items(),
-				});				
+				});
 			} else {
 				$self->render( template => "Admin/TableList/defcol");
 			}
 
 		}
 	);
-	
+
 	$app->helper(
 		filter_form => sub {
 			my $self = shift;
 			my %params = @_;
-			
-			$self->define_anket_form(%params, access => 'f', render_html => 1);	
+
+			$self->define_anket_form(%params, access => 'f', render_html => 1);
 		}
 	);
 
@@ -305,15 +309,15 @@ sub register {
 		filter_save => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $table = $params{table} || $self->stash->{list_table};
 			die "Функция TableList::filter_save. Не определена таблица, по которой строить фильтры" unless $table;
 			my $lkey = $self->stash->{replaceme}.'_filter';
 			my $lkeys = $self->lkey;
-			
+
 			my %user_set = ();
 			no strict "refs";
-			
+
 			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$self->stash->{$k}){
@@ -335,11 +339,11 @@ sub register {
 					}
 				}
 			}
-		
+
 			use strict "refs";
-			
+
 			$self->sysuser->save_settings(%user_set);
-			
+
 			$self->render( json => {
 					content	=> "OK!",
 					items	=> $self->init_save_filter,
@@ -353,13 +357,13 @@ sub register {
 			my %params = @_;
 
 			my $table = $params{table} || $self->stash->{list_table};
-			die "Функция TableList::filter_save. Не определена таблица, по которой строить фильтры" unless $table;			
+			die "Функция TableList::filter_save. Не определена таблица, по которой строить фильтры" unless $table;
 			my $lkey = $self->stash->{replaceme}.'_filter';
 			my $lfield = $self->stash->{lfield};
 			my $lkeys = $self->lkey;
-			
+
 			no strict "refs";
-			
+
 			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$lfield or ($lfield and $lfield eq $k) ){
@@ -368,34 +372,34 @@ sub register {
 					}
 				}
 			}
-			
+
 			use strict "refs";
-	
+
 			$self->sysuser->save_settings();
-			
+
 		}
 	);
-		
+
 	$app->helper(
 		def_listfield_buttons => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $default_buttons = [qw(delete edit)];
 			$default_buttons = $self->stash->{listfield_buttons} if $self->stash->{listfield_buttons};
-			
+
 			# проверка прав ...
 			my $user_sys = $self->sysuser->sys;
 			foreach (0..$#{$default_buttons}){
 				if($default_buttons->[$_] eq 'edit' and !$self->sysuser->access->{table}->{$params{table}}->{w} and !$user_sys ){
 					delete $default_buttons->[$_];
-				
+
 				} elsif($default_buttons->[$_] eq 'delete' and !$self->sysuser->access->{table}->{$params{table}}->{d} and !$user_sys ){
 					delete $default_buttons->[$_];
 				}
-#				
+#
 			}
-			
+
 			$self->stash->{listfield_buttons} = $default_buttons;
 		}
 	);
@@ -404,84 +408,84 @@ sub register {
 		def_listfield_groups_buttons => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $default_groups_buttons = {delete => "удалить", hide => "скрыть", show => "показать"};
 			$default_groups_buttons = $self->stash->{listfield_groups_buttons} if $self->stash->{listfield_groups_buttons};
-			
+
 			# проверка прав ...
 			my $user_sys = $self->sysuser->sys;
 			foreach (keys %$default_groups_buttons){
 				if($_ eq 'delete' and !$self->sysuser->access->{table}->{$params{table}}->{d} and !$user_sys ){
 					delete $default_groups_buttons->{$_};
 				}
-			}		
-			
-			$self->stash->{listfield_groups_buttons} = $default_groups_buttons;			
+			}
+
+			$self->stash->{listfield_groups_buttons} = $default_groups_buttons;
 		}
 	);
-	
+
 	$app->helper(
 		filter_take => sub {
 			my $self  	 = shift;
 		    my %params = @_;
-		
+
 			my %filter_take = (0 => "не учитывать фильтры", 1 => "учитывать фильтры");
 			$params{lkey} = $self->stash->{replaceme} || $self->stash->{controller};
-			
+
 			my $value = $self->sysuser->settings->{$params{lkey}.'_filter_take'} || 0;
-			
+
 			if($params{render}){
 				$value = $value ? 0 : 1;
 				$self->sysuser->save_settings($params{lkey}.'_filter_take' => $value );
 			}
-		
+
 			$self->stash->{filter_take_text} = $filter_take{ $value };
-			
+
 			delete $self->stash->{text};
-			$self->render( text => $self->stash->{filter_take_text} ) if $params{render};			
+			$self->render( text => $self->stash->{filter_take_text} ) if $params{render};
 		}
-	);			
+	);
 
 	$app->helper(
 		set_filter => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $setting_key = $params{lkey}.'_filter';
 			my $lkeys = $self->lkey;
-		
+
 			my $filter_string    = "";
-			my $filter_string_qs = "";	
+			my $filter_string_qs = "";
 			my @current_filter = ();
-			
-			my $user_settings = $self->sysuser->settings; 
-			
+
+			my $user_settings = $self->sysuser->settings;
+
 			# задан быстрый поиск
 			if($user_settings->{$setting_key.'_qsearch'}){
 				my @filter; my %filter;
 				foreach my $key (@{$self->stash->{listfield_header}}) {
 					my $keyf = "$params{table}.`$key`";
-		
-					my $v = $user_settings->{$setting_key."_qsearch"}; 
+
+					my $v = $user_settings->{$setting_key."_qsearch"};
 					if (($lkeys->{$key}->{settings}->{type} eq "s") or ($lkeys->{$key}->{settings}->{type} eq "site") or
 					 	($lkeys->{$key}->{settings}->{type} eq "slat") or ($lkeys->{$key}->{settings}->{type} eq "text") or ($lkeys->{$key}->{settings}->{type} eq "html")) {
 						push(@filter, "$keyf LIKE '%$v%'");
-		
+
 					} elsif ($v =~ m/^[\d]+$/) {
 						push(@filter, "$keyf = $v");
-		
+
 					} elsif ($lkeys->{$key}->{settings}->{type} eq "tlist") {
-						push(@filter, "`".$self->stash->{tables}->{ $lkeys->{$key}->{settings}->{list} }."`.`name` LIKE '%$v%'") unless exists $filter{ $lkeys->{$key}->{settings}->{list}.".name" }; 
+						push(@filter, "`".$self->stash->{tables}->{ $lkeys->{$key}->{settings}->{list} }."`.`name` LIKE '%$v%'") unless exists $filter{ $lkeys->{$key}->{settings}->{list}.".name" };
 						$filter{$lkeys->{$key}->{settings}->{list}.".name"} = 1;
-		
+
 					}
-					
+
 					$filter_string_qs = join(" OR ", @filter);
 				}
 				if ($filter_string_qs) {$filter_string_qs = " AND ($filter_string_qs)";}
-			
+
 			}
-			
+
 			if(!$user_settings->{$setting_key.'_qsearch'} || ($user_settings->{$setting_key.'_qsearch'} and $user_settings->{$setting_key.'_take'})) {
 
 				foreach my $key (%$lkeys) {
@@ -494,68 +498,68 @@ sub register {
 						push @current_filter, $key;
 						if (($lkey->{settings}->{type} eq "s") or ($lkey->{settings}->{type} eq "site") or ($lkey->{settings}->{type} eq "text") or ($lkey->{settings}->{type} eq "html")) {
 							$filter_string .= " AND ($keyf LIKE '%$v%' OR $keyf='$v')";
-							
+
 						} elsif ($lkey->{settings}->{mult}) {
 							$filter_string .= " AND ($keyf='$v' OR $keyf LIKE '$v=%' OR $keyf LIKE '%=$v=%' OR $keyf LIKE '%=$v')";
-		
+
 		#				} elsif (($v =~ m/^[\d]+$/) and ($$self{lkeys}{$key}{type} ne "chb")) {
 		#					$filter_string .= " AND $keyf = $v";
-		
+
 						} elsif ($lkey->{settings}->{type} eq "chb" and $v =~ m/[\d]/) {
 							if ($v == -1) {$filter_string .= " AND $keyf = 0";}
 							else {$filter_string .= " AND $keyf = 1";}
-		
+
 						} elsif (($lkey->{settings}->{type} eq "date") or ($lkey->{settings}->{type} eq "time")) {
 							$filter_string .= " AND $keyf ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
-		
+
 						} elsif ($lkey->{settings}->{type} eq "d") {
 							$filter_string .= " AND $keyf ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." $v";
-		
+
 						} else {
 							$filter_string .= " AND $keyf='$v'";
 						}
 					}
 				}
-			
-			} 
-			
+
+			}
+
 			$self->stash('current_filter', \@current_filter);
-			
+
 			return $filter_string.$filter_string_qs;
 		}
-	);	
+	);
 
 	$app->helper(
 		def_tablelist_param => sub {
 			my $self = shift;
-		
+
 			my (%params) = @_;
 			my $send_params = $self->send_params->{ $params{key} };#$self->req->params->to_hash;
-			
+
 			my $key = $params{lkey}.'_'.$params{key};# $self->stash->{replaceme}.'_'.$params{key};
 			my $value = $params{default};
-			
+
 			if (!defined $send_params and $self->sysuser->settings->{$key}) {
 				$value = $self->sysuser->settings->{$key};
 			} elsif (defined $send_params) {
 				$value = $send_params;
 				$self->sysuser->save_settings($key => $value);
 			}
-		
-			$self->stash->{$params{key}} = $value;			
+
+			$self->stash->{$params{key}} = $value;
 		}
-	);	
-	
+	);
+
 	$app->helper(
 		def_listfield => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			$params{lkey} = $self->stash->{replaceme} || $self->stash->{controller};
-			
+
 			my @table_list_keys 		= ("`$params{table}`.`ID`");
 			my @table_list_keys_header  = ("ID") if (!$$self{program_table_noindex});
-			
+
 			my $sch = 1;
 			my %tables;
 			$tables{$params{table}} = 1;
@@ -565,12 +569,12 @@ sub register {
 			my @tmp;
 			if (!$self->app->sysuser->settings->{$params{lkey}."_defcol"}) {
 				foreach my $k (sort {($$lkeys{$a}{settings}{table_list}||0) <=> ($$lkeys{$b}{settings}{table_list}||0)} keys %$lkeys) {
-					
+
 					my $lkey = $self->lkey(name => $k);
 					if ($lkey->{settings}->{table_list} and $self->dbi->exists_keys(from => $params{table}, lkey => $k) and ($self->sysuser->access->{lkey}->{$k}->{r} || $self->app->sysuser->sys)){
 						push(@table_list_keys, "`$params{table}`.`$k`");
 						push(@table_list_keys_header, $k);
-	
+
 						if ($lkey->{settings}->{type} eq "pict") {
 							if ($self->dbi->exists_keys(table => $params{table}, lkey => "folder")) {
 								push(@table_list_keys, "`$params{table}`.`folder`");
@@ -592,7 +596,7 @@ sub register {
 							$tables{ $list } = "tb".$sch;
 							$sch++;
 						}
-			
+
 					}
 				}
 			} else {
@@ -600,12 +604,12 @@ sub register {
 				foreach my $item (split(/,/, $defcol)) {
 					my ($k, $size) = split("~", $item);
 					my $lkey = $self->lkey(name => $k);
-					
+
 					if (($self->dbi->exists_keys(table => $params{table}, lkey => $k)) and ($self->sysuser->access->{lkeys}->{$k}->{r} || $self->app->sysuser->sys)) {
 						$lkey->{settings}->{table_list_width} = $size || 100;
 						push(@table_list_keys, "`$params{table}`.`$k`");
 						push(@table_list_keys_header, $k);
-						
+
 						if ($lkey->{settings}->{type} eq "pict") {
 							if ($self->dbi->exists_keys(table => $params{table}, lkey => "folder")) {
 								push(@table_list_keys, "`$params{table}`.`folder`");
@@ -624,58 +628,58 @@ sub register {
 					}
 				}
 			}
-			
-			# 2 поле растягиваем на всю ширину			
+
+			# 2 поле растягиваем на всю ширину
 			if($table_list_keys_header[1]){
 				delete $self->lkeys->{ $table_list_keys_header[1] }->{settings}->{table_list_width};
-			}	
+			}
 
 			$self->stash->{tables} = \%tables;
 			$self->stash->{total_col_list} += $#table_list_keys;
 			$self->stash->{listfield} = \@table_list_keys;
 			$self->stash->{listfield_header} = \@table_list_keys_header;
 		}
-	);	
+	);
 
 	$app->helper(
 		quick_view => sub {
 			my $self = shift;
 			my %params = @_;
-			
+
 			my $list_table = $params{table} || $self->send_params->{list_table};
 			my $index = $self->send_params->{index};
-			
+
 			$self->stash->{item} = {};
 			if($list_table && $index){
-				
+
 				if(my $item = $self->getArraySQL(	from 	=> $list_table,
 													where	=> "`ID`='$index'")){
 					foreach (keys %$item){
 						my $lkey = $self->lkey( name => $_);
 						delete $item->{$_} unless $lkey->{settings}->{qview}
 					}
-					
-					$self->stash->{item} = $item;										
+
+					$self->stash->{item} = $item;
 				}
 			}
-			
-			$self->render( template => 'Admin/TableList/quick_view');			
+
+			$self->render( template => 'Admin/TableList/quick_view');
 		}
-	);	
+	);
 
 	$app->helper(
 		save_qedit => sub {
 			my $self = shift;
 			my $table = $self->stash->{list_table};
-			
+
 			my ($index, $sfield) = split(/__/, $self->send_params->{textEditElementId});
 			$index =~ s{\D+}{}gi;
-			
+
 			require URI::Escape::JavaScript;
 			my $value = URI::Escape::JavaScript::js_unescape( $self->send_params->{textEditValue} );
-			
+
 			if($self->lkeys->{ $sfield }->{settings}->{type} eq 'list'){
-				
+
 			}
 
 			if($self->update_hash($table, {$sfield => $value}, "`ID`='$index'")){
@@ -685,27 +689,27 @@ sub register {
 				);
 				return $self->render( text =>'OK');
 			}
-		
+
 			$self->render( text => "Ошибка - ".$self->admin_error('update_hash'));
 		}
-	);	
+	);
 
 	$app->helper(
 		set_qedit => sub {
 			my $self = shift;
 			my %params = @_;
-		
+
 			$params{info} = $params{info} ? "_i" : "";
 			#my $lkey = $self->{stash}->{lkey} || $self->stash->{controller};
 			my $replaceme = $self->stash->{replaceme};
 			my $controller = $self->stash->{controller};
 			my $script_link = $self->stash->{controller_url};
-			
+
 			if (!$self->sysuser->settings->{$controller.'_qedit'}) {
 				#$self->stash->{flag_reload} = 1;
 				#$self->stash->{key_reload}  = $params{info} ? "_i_".$lkey : $lkey;
 				$self->sysuser->save_settings($controller.'_qedit' => 1);
-		
+
 				$self->render( json => {
 					content	=> 'Выключить qedit',
 					items	=> [
@@ -718,7 +722,7 @@ sub register {
 			} else {
 				#$self->stash->{flag_reload} = 0;
 				$self->sysuser->save_settings($controller.'_qedit' => 0);
-		
+
 				$self->render( json => {
 					content	=> 'Включить qedit',
 					items	=> [
@@ -729,9 +733,9 @@ sub register {
 					]
 				})
 			}
-		
+
 		}
-	);	
+	);
 
 	$app->helper(
 		delete_list_items => sub {
@@ -745,21 +749,21 @@ sub register {
 			my $list_items = $self->stash->{listindex} || return;
 			foreach my $id (split(/,/, $list_items)) {
 				next unless $id;
-				
+
 				if($self->getArraySQL( from => $table, where => $id, stash => 'anketa')){
 
 					if($self->delete_info( from => $table, where => $id )){
 						$self->stash->{tree_reload} = 1;
-						
+
 						if($params{has_pict} && $self->stash->{anketa}->{pict}){
 							$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder} || '', pict => $self->stash->{anketa}->{pict});
 						}
-						
+
 						$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$params{table},
 										comment	=> "Удалена запись из таблицы [".$id."]. Таблица ".$params{table});
 					}
-					
-					delete $self->stash->{anketa};					
+
+					delete $self->stash->{anketa};
 				}
 			}
 		}
@@ -773,11 +777,11 @@ sub register {
 				value	=> 0,
 				@_,
 			);
-			
+
 			return $self->hide_list_items(%params, value => 1);
 		}
 	);
-	
+
 	$app->helper(
 		hide_list_items => sub {
 			my $self = shift;
