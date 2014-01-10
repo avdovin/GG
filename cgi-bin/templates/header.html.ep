@@ -12,3 +12,7 @@ if (typeof jQuery == 'undefined') {
 }
 </script>
 <%== javascript '/js/bundled/html4+html5/jquery.history.js' if $self->stash->{jquery_history} %>
+
+%	js_files('/js/core.js');
+%	js_files('/js/common.js');
+

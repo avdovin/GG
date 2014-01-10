@@ -25,11 +25,12 @@ function setFilterInUrl(filter, title){
 }
 
 
-function addFormErrors($form, errors){
+function addFormErrors($form, errors, $errors){
 	var errstr = buildErrorStr(errors);
 
-	$form.find('.popup-error').html(errstr).show();
+	if(typeof($errors) == 'undefined') $errors = $form.find('.popup-error');
 
+	$errors.html(errstr).show();
 	$form.find("[name]").removeClass('error');
 	for(var key in errors){
 		if( $form.find("[name='"+key+"']").length ) $form.find("[name='"+key+"']").addClass('error');

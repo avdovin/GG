@@ -122,11 +122,6 @@ sub startup{
 #	    );
 	});
 
-	# check site availability
-	$r->any("/ping")->to(cb => sub{
-		return shift->render(text => 'pong');
-	});
-
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
 		my $self = shift;
 
@@ -170,5 +165,10 @@ sub startup{
 	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );
 	#$routeViaAlias->any('/subscribe/add_ajax')->to("Subscribe#add_ajax" );
 	#$routeViaAlias->any('/subscribe/unsubscribe')->to("Subscribe#unsubscribe" );
+
+	# check site availability
+	$r->any("/ping")->to(cb => sub{
+		return shift->render(text => 'pong');
+	});
 }
 1;
