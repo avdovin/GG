@@ -343,7 +343,7 @@ sub register {
 				$header->{description} ||= $header->{title};
 
 				return $self->render(
-					template 	=> "header",
+					template 	=> '_header',
 					header	 	=> $header,
 					partial		=> 1,
 				);

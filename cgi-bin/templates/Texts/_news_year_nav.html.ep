@@ -1,0 +1,7 @@
+%	my $year = $self->param('year') || "";
+% 	my $sch = 0;
+<div class="news__dates">
+<a href="<%= url_for('news_item') %>" class="button news__date button_gray button_small <% unless($year){ %>current<% } %>"><%= cl ru => 'Все', en => 'all' %></a>
+<% foreach (reverse @$items){ $sch++; last if($sch==3); %><a href="<%= url_for('news_item') %>?year=<%= $_->{year} %>" class="button news__date button_gray button_small <% if($year == $_->{year}){ %>current<% } %>"><%= $_->{year} %></a><% } %>
+</div>
+

@@ -1,121 +1,55 @@
-% extends 'layouts/default';
-
 %	js_controller 'feedback';
 % js_files 'http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU';
 
-%= content body_default => begin
+% content wrapper => begin
 
 <div class="body">
-	<div class="block block_background block_margin block_border block_shadowed clearfix">
-		<div class="contacts clearfix">
-			<h1 class="contacts__title">Контакты</h1>
-			<h2 class="contacts__subtitle">Главный офис</h2>
-			<div class="contacts__info">
+	<div class="block block_margin clearfix">
+		<div class="col col_left" style="width: 300px;">
+			<div class="block block_background block_padding block_radius block_shadowed">
 				<div class="content">
-					<p class="info__entry info__entry_address"><span class="entry__title">Адрес</span> г. Санкт-Петербург, наб. Обводного канала, д. 136, корп. 1, оф. лит. «Б»</p>
-					<p class="info__entry info__entry_phone"><span class="entry__title">Телефон</span> +7 (812) 642-50-50</p>
-					<p class="info__entry info__entry_email"><span class="entry__title">Электронная почта</span> <a href="mailto:zakaz@krasarf.ru">zakaz@krasarf.ru</a></p>
-					<p class="info__entry info__entry_hours">
-						<span class="entry__title">Время работы в Санкт-Петербурге</span>
-						Будни с 10:00 до 18:00,<br/>
-						Сделать заказ можно круглосуточно<br/><br/>
-						Реквизиты:<br/>
-						ИП "Николаев"<br/>
-						ИНН: 470504062058<br/>
-						ОГРН: 311784715300198<br/>
-						Юридический адрес: 198303,<br/>
-						Санкт-Петербург Ленинский пр. д.104 кв.263
-					</p>
-				</div>
-			</div>
-			<div class="contacts__map">
-				<div id="Gmap"></div>
-			</div>
-		</div>
-	</div>
+					<h1>Контакты</h1>
 
-	<div class="block block_background block_margin block_border block_shadowed clearfix">
-		<div class="content">
-			<div class="contacts__shops">
-				<h2 class="shops__title">Магазины</h2>
-				<div class="shops__list">
-					<div class="list__entry">
-						<h3 class="entry__title">ст. м. Электросила</h3>
-						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
-						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
-						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
-						<p class="entry__info entry__info_hours">
-							<span class="info__title">Время работы</span>
-							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
-						</p>
-					</div>
-					<div class="list__entry">
-						<h3 class="entry__title">ст. м. Электросила</h3>
-						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
-						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
-						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
-						<p class="entry__info entry__info_hours">
-							<span class="info__title">Время работы</span>
-							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
-						</p>
-					</div>
-					<div class="list__entry">
-						<h3 class="entry__title">ст. м. Электросила</h3>
-						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
-						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
-						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
-						<p class="entry__info entry__info_hours">
-							<span class="info__title">Время работы</span>
-							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
-						</p>
-					</div>
-					<div class="list__entry">
-						<h3 class="entry__title">ст. м. Электросила</h3>
-						<div class="entry__map"><img src="http://static-maps.yandex.ru/1.x/?ll=29.717833,60.013785&z=8&l=map&size=450,115" alt=""/></div>
-						<p class="entry__info entry__info_address"><span class="info__title">Адрес</span> ст. м. «Электросила», ул. Решетникова, д. 5</p>
-						<p class="entry__info entry__info_phone"><span class="info__title">Телефон</span> +7 (812) 642-50-50</p>
-						<p class="entry__info entry__info_hours">
-							<span class="info__title">Время работы</span>
-							Будни с <b>10:00</b> до <b>18:00</b>, выходные с <b>11:00</b> до <b>17:00</b>
-						</p>
+					<div class="contacts__info">
+						<h3>Пресс-служба</h3>
+						<p style="font-style: italic; color: #949494;">для прессы, интервью, комментарии</p>
+						<br/>
+						<p class="info__entry info__entry_phone"><span class="entry__title">Телефон</span> +7 (962) 682-93-49</p>
+						<p class="info__entry info__entry_email"><span class="entry__title">Электронная почта</span> <a href="mailto:mail@email.ru">mail@email.ru</a></p>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="block block_background block_margin block_border block_shadowed clearfix">
-		<div class="content">
-			<div class="contacts__form">
-				<div class="form__loading"></div>
-				<h2 class="form__title">Связаться с нами</h2>
-
-				<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">
-					<div class="form__error">
-						<p>Пароли не совпадают. Проверьте правильность написания.</p>
-					</div>
-					<div class="form__wrapper">
-						<table class="form__container">
-							<tr>
-								<td class="form__cell form__cell_left">
-									<span class="field__title">Ваше имя</span> <input name="name" value="" class="field__input field__input_text" type="text" />
-									<span class="field__title">Номер телефона</span> <input name="phone" value="" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67" />
-									<span class="field__title">Электронная почта</span> <input name="email" value="" class="field__input field__input_text" type="email" />
-								</td>
-								<td class="form__cell form__cell_right">
-									<span class="field__title">Ваше сообщение</span>
-									<textarea name="ftext" class="field__input field__input_textarea"><%= $self->stash->{ftext} %></textarea>
-								</td>
-							</tr>
-							<tr>
-								<td class="form__cell" colspan="2">
-									<a href="#" class="form__send button button_red">Отправить</a>
-								</td>
-							</tr>
-						</table>
-					</div>
-				</form>
-
+		<div class="col col_right" style="width: 663px;">
+			<div class="block block_background block_padding block_radius block_shadowed content">
+				<div class="contacts__form content">
+					<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">
+						<div class="form__loading"></div>
+						<h2 class="form__title">Оставьте своё сообщение</h2>
+						<div class="form__error"></div>
+						<div class="form__wrapper">
+							<table class="form__container">
+								<tr>
+									<td class="form__cell form__cell_left">
+										<span class="field__title">Ваше имя*</span> <input name="name" value="" class="field__input field__input_text" type="text" />
+										<span class="field__title">Электронная почта*</span> <input name="email" value="" class="field__input field__input_text" type="email" />
+										<span class="field__title">Номер телефона</span> <input name="phone" value="" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67" />
+										<p><small>* &mdash; поля, обязательные для заполнения</small></p>
+									</td>
+									<td class="form__cell form__cell_right">
+										<span class="field__title">Ваше сообщение*</span> <textarea name="ftext" class="field__input field__input_textarea"><%= $self->stash->{ftext} %></textarea>
+									</td>
+								</tr>
+								<tr>
+									<td class="form__cell" colspan="2">
+										<a href="#" class="form__send button button_blue">Отправить сообщение</a>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>

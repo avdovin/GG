@@ -1,152 +1,54 @@
 <!DOCTYPE html>
-<html lang="ru-RU" xmlns="http://www.w3.org/1999/html">
+<html lang="ru-RU">
 <head>
-
 <%= metaHeader %>
 
-<link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
+	<link href="/css/style.css" rel="stylesheet" type="text/css" media="all" />
+	<link href="/js/prettyphoto/css/prettyPhoto.css" rel="stylesheet" type="text/css" media="all" />
 
-%	js_files('/js/jquery.galleryCarousel-1.1.js');
-%	js_files('/js/script.js');
-
-%# 	catalog
-%	js_files('/js/catalog.js') if ($self->stash->{alias} eq 'catalog');
+%   js_files('/js/jquery/plugins/jquery.mask.min.js');
+%   js_files('/js/prettyphoto/js/jquery.prettyPhoto.js');
 
 </head>
-<body>
+<body class="main">
 
-    <table class="popup" id="popup-login">
-        <tr>
-            <td>
-                <div class="popup-container">
-                    <a href="#" class="popup-close"></a>
-                    <h2>Вход</h2>
-                    <div class="popup-error">
-                        <p>Пароли не совпадают. Проверьте правильность написания.</p>
-                    </div>
-                    <table>
-                        <tr>
-                            <td>
-                                <span>Логин</span>
-                                <input type="text" class="error"/>
-                            </td>
-                            <td>
-                                <span>Пароль</span>
-                                <input type="password"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>
-                                <p class="right"><a href="#" class="button button-blue">Войти</a></p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </td>
-        </tr>
-    </table>
+	<div class="wrapper">
 
-    <table class="popup" id="popup-register">
-        <tr>
-            <td>
-                <div class="popup-container">
-                    <a href="#" class="popup-close"></a>
-                    <h2>Регистрация</h2>
-                    <div class="popup-error">
-                        <p>Пароли не совпадают. Проверьте правильность написания.</p>
-                    </div>
-                    <table>
-                        <tr>
-                            <td>
-                                <span>Логин</span>
-                                <input type="text"/>
-                            </td>
-                            <td>
-                                <span>Имя</span>
-                                <input type="password"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span>Пароль</span>
-                                <input type="password"/>
-                            </td>
-                            <td>
-                                <span>Повторите пароль</span>
-                                <input type="password" class="error"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>
-                                <p class="right"><a href="#" class="button button-blue">Регистрация</a></p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </td>
-        </tr>
-    </table>
+		<div class="wrapper__background"></div>
 
-    <!-- body -->
-    <div id="top">
+		<div class="header">
+			<div class="block">
+				<%== menu_track( template => 'top' ) =%>
 
-        <div class="block block-shadowed block-background">
-            
-            <%= include 'Texts/header' %>
+				<div class="header__lang">
+					<ul class="lang__list">
+						<li class="list__entry list__entry_ru list__entry_current"><a href="#" class="entry__link"></a></li>
+						<li class="list__entry list__entry_en"><a href="#" class="entry__link"></a></li>
+					</ul>
+				</div>
 
-            <div class="bar">
-            	<%== menu_track( template => 'top' ) =%>
-
-                <div id="bar-search">
-                    <div id="bar-search-text"><input type="text" placeholder="Поиск"/></div>
-                    <input id="bar-search-button" type="image" src="/img/search_button.png" />
-                </div>
-            </div>
-
-            <div id="secondmenu">
-                <table>
-                    <tr>
-                        <td><a href="#" class="sm1">Обои</a></td>
-                        <td class="sep"></td>
-                        <td><a href="#" class="sm2">Текстиль</a></td>
-                        <td class="sep"></td>
-                        <td><a href="#" class="sm3">Свет</a></td>
-                        <td class="sep"></td>
-                        <td><a href="#" class="sm4">Пункт пятый</a></td>
-                        <td class="sep"></td>
-                        <td><a href="#" class="sm5">Мебель</a></td>
-                        <td class="sep"></td>
-                        <td><a href="#" class="sm6">Шестой пункт меню</a></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-		
-		%= content body_default => begin
-		
-			<div id="body" class="clearfix">
-			    <div class="block block-shadowed block-background block-margin block-padding clearfix">
-			        <div class="centerCol content">
-		                <%== content %>
-			        </div>
-			    </div>
+				<div class="header__banner block_shadowed block_shadow">
+					<span>Академик</span>
+					<p>Виктор Иванович <b>Петрик</b></p>
+				</div>
 			</div>
-		
+		</div>
+
+		% content wrapper => begin
+			<div class="body">
+				<div class="block block_background block_margin block_padding block_shadowed">
+					<div class="content">
+						<%== content %>
+					</div>
+				</div>
+			</div>
 		% end
-		
-    </div>
 
-    <div class="block block-shadowed block-background">
-        <div id="bottom">
-        	<%== menu_track( template => 'bottom' ) =%>
-            
-            <%== include 'Texts/footer' =%>
-        </div>
-    </div>
+		%= content 'wrapper'
 
+	</div>
+
+	<%== include 'Texts/footer' =%>
 <%== js_files =%>
-
 </body>
 </html>

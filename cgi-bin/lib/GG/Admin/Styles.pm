@@ -291,11 +291,14 @@ sub _get_files {
 
 	my %dirs = ();
 	my %files = ();
-	foreach  (@templates){
-		if(-d $rel_dir.'/'.$_){
-			$dirs{$_} = 1;
+	foreach my $file (@templates){
+		if(-d $rel_dir.'/'.$file){
+			$dirs{ $file } = 1;
 		} else {
-			$files{$_} = 1;
+			my $ext = ($file =~ m/([^.]+)$/)[0];
+			next if ($ext ne 'css');
+
+			$files{ $file } = 1;
 		}
 	}
 

@@ -1,0 +1,8 @@
+<% my $year_qs = $self->param('year') ? '?year='.$self->param('year') : ''; %>
+<% foreach (@$items){ %>
+    <li class="list__entry <% if($self->stash->{list_item_alias} eq $_->{alias}){ %>current<% } %>">
+        <span><%= date_format( date => $_->{tdate}, format => 'dd month') %></span>
+        <p><%= $_->{name} %></p>
+        <a href="<%= url_for('news_item', list_item_alias => $_->{alias}) %><%= $year_qs %>" data-item-id="<%= $_->{ID} %>" class="link"></a>
+    </li>
+<% } %>
