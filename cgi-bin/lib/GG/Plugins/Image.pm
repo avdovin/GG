@@ -62,7 +62,6 @@ sub register {
 				);
 			}
 
-
 			if ($params{crop} == 1){
 				$self->image_crop(file => $file, width => $width, height => $height);
 
@@ -92,6 +91,13 @@ sub register {
 					}
 					($width, $height) = $self->image_set( file => $file, width => $img_w, height => $img_h );
 				}
+			}
+
+			if($params{watermark}){
+				$self->defWatermark(
+					file 		=> $file,
+					watermark 	=> $params{watermark}
+				);
 			}
 
 			return ($width, $height);
@@ -144,18 +150,18 @@ sub register {
 					$filename =~ s{\.$ext$}{}e;
 					my $image = new Image::Magick( format => $ext );
 					my $status = $image->Read( filename => $file );
-    					warn "Error reading $file: $status" if $status;
+						warn "Error reading $file: $status" if $status;
 					 #	Write file as JPEG to STDOUT
 
 					$file = $filename.'.jpg';
 
-		    		# Convert CMYK to RGB
-    				$self->_CMYK_to_RGB(\$image);
+					# Convert CMYK to RGB
+					$self->_CMYK_to_RGB(\$image);
 
-    				$status = $image->Write( $file );
+					$status = $image->Write( $file );
 
-    				undef $image;
-		    		warn "Error writing $file: $status" if $status;
+					undef $image;
+					warn "Error writing $file: $status" if $status;
 				};
 				if ($@){
 					warn $@;
@@ -217,7 +223,7 @@ sub register {
 
 			my ( $ox, $oy ) = $image->Get( 'width', 'height' ); 	# определяем ширину и высоту изображения
 
-		    unless ($ox == $W and  $oy == $H) {
+			unless ($ox == $W and  $oy == $H) {
 
 				my $nx = int( ( $ox / $oy ) * $H ); 	# вычисляем ширину, если высоту сделать $H
 				my $ny = int( ( $oy / $ox ) * $W ); 	# вычисляем высоту, если ширину сделать $W
@@ -228,9 +234,9 @@ sub register {
 				} else {
 					_resize_y( \$image, $W, $H, $nx, $ny );
 				}
-		    }
+			}
 
-		    # Сохраняем изображение.
+			# Сохраняем изображение.
 			$x = $image -> Write( $params{file} );
 			undef $image;
 		}
@@ -250,6 +256,54 @@ sub register {
 				);
 			}
 			return $img;
+		}
+	);
+
+	$app->helper(
+		defWatermark => sub {
+			my $self   = shift();
+			my %params = (
+				file 		=> '',
+				watermark 	=> '',
+				@_
+			);
+
+			if ( !$params{file} or !$params{watermark} ) { die "Функция pictures::defWatermark. Отсутствует параметр FILE или watermark";	}
+
+			$params{'x'} ||= 10;  						# Позиция логотипа на картинке
+			$params{'y'} ||= 10;
+			$params{'compose'} ||= 'Dissolve';    		# Эффект трансформации - расстворение
+			$params{'gravity'} ||= 'SouthEast';    		# позиция (left, top, …)
+			$params{'opacity'} ||= 25000;          		# Прозрачность лого
+
+
+			my $image = Image::Magick -> new;           # новый проект
+			my $water = Image::Magick -> new;
+			my $x     = $image->Read( $params{file} );  # открываем файл
+			my $xx    = $water->Read( $params{watermark} );
+			$image->Set( quality     => $QUALITY );
+			$water->Set( quality     => $QUALITY );
+			my ($image_w, $image_h) = $image -> Get('width', 'height');			# определяем ширину и высоту
+			my ($water_w, $water_h) = $water -> Get('width', 'height');			# определяем ширину и высоту
+
+			if($water_w > $image_w * 0.2){
+				my $new_water_w = $image_w * 0.2;
+				$water_h = int( ( $water_h / $water_w ) * $new_water_w );
+				$water_w = $new_water_w;
+
+				$water -> Resize(geometry => "geometry", width => $water_w, height => $water_h);
+			}
+
+			$image -> Composite(
+				image 	=> $water,                        # имидж для лого
+				x     	=> $params{'x'},
+				y     	=> $params{'y'},
+				compose =>  $params{'compose'},    				# растворить - opasity в Photoshop?
+				gravity => $params{'gravity'}, 			# позиция (left, top, …)
+				opacity => $params{'opacity'}  			# степень прозрачности
+			);
+
+			return $image->Write( $params{file} );    	# Сохраняем изображение
 		}
 	);
 }
@@ -306,7 +360,7 @@ sub _resize_y {
 	} else {
 		_resize_x( \$image, $W, $H, $nx, $ny );
 	}
-
 }
+
 
 1;

@@ -83,6 +83,7 @@ sub register {
 					type_file	=> 'type_file',
 				},
 				retina		=> 0,
+				watermark 	=> '',
 				@_
 			);
 
@@ -112,7 +113,6 @@ sub register {
 			$values->{ $fields_hashref->{pict} } = $pict_saved if $fields_hashref->{pict};
 			$values->{ $fields_hashref->{type_file} } = $type_file if $fields_hashref->{type_file};
 
-
 			$self->save_info(send_params => 0, table => $table, field_values => $values );
 
 			if(my $mini = $self->lkey(name => $params{lfield}, setting => 'mini' )){
@@ -129,6 +129,7 @@ sub register {
 							width		=> $w,
 							height		=> $h,
 							retina 		=> $params{retina},
+							watermark 	=> $params{watermark},
 							%type
 						);
 					} elsif($d =~ /([\d]+)x([\d]+)/){
@@ -141,6 +142,7 @@ sub register {
 							width		=> $w,
 							height		=> $h,
 							retina 	=> $params{retina},
+							watermark 	=> $params{watermark},
 						);
 					} else {
 						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $d );
@@ -149,6 +151,7 @@ sub register {
 							file	=> $path,
 							fsize	=> $d,
 							retina 	=> $params{retina},
+							watermark 	=> $params{watermark},
 						);
 					}
 
@@ -156,7 +159,7 @@ sub register {
 			}
 			unlink($self->file_tmpdir().'/'.$params{filename});
 
-			return 1;
+			return $pict_saved;
 		}
 	);
 
