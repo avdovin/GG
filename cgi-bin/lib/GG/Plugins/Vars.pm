@@ -13,6 +13,10 @@ sub register {
 		ref($app)->attr('vars');
 	}
 
+	$app->helper( site_name => sub {
+		return shift->get_var(name => 'site_name', controller => 'global', raw => 1);
+	});
+
 	$app->helper( global => sub {
 		return shift->get_var(@_);
 	});
@@ -41,12 +45,10 @@ sub register {
 
 		if(my $var = $self->app->vars->{ 'controller_'.$controller }->{$varName}){
 
+			return $var->{envvalue} if $raw;
+
 			my $varSetting = $self->parse_keys_settings($var->{settings});
 			$varSetting->{type} ||= 's';
-
-			if($raw or $varSetting->{type} eq 's' or $varSetting->{type} eq 'd'){
-				return $var->{envvalue};
-			}
 
 			my $lkey = $self->lkey(
 				tmp			=> 1,
