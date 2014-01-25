@@ -68,8 +68,8 @@ sub hot_link{
 sub restart_hypnotoad{
 	my $self = shift;
 
-	kill 'USR2', $ENV{HYPNOTOAD_PID};
-	say "restart hypnotoad from admin " and exit 0;
+	kill 'QUIT', $ENV{HYPNOTOAD_PID};
+	$self->render( text => 'restart hypnotoad from admin') and exit 0;
 }
 
 sub settings_panel{

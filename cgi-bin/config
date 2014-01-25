@@ -11,6 +11,7 @@
 
 	hypnotoad 			=> {
 		proxy 	=> 1,
-		listen 	=> ['http://*:9000']
+		listen 	=> ['http://*:9000'],
+		workers => 10
 	},
 };
