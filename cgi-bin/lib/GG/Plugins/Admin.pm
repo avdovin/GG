@@ -56,7 +56,6 @@ sub register {
 
 			$self->render(template	=> "Admin/quick_auth_reload" );
 		} else{
-
 			$self->render(template	=> "Admin/form_auth" );
 		}
 	});
@@ -65,40 +64,18 @@ sub register {
 	$r->route('/admin/logout')->to(%defaults, cb => sub {
 		my $self = shift;
 
-		#$self->app->sessions->cookie_path('/admin/');
-
-		my $login = $self->cookie('admin_login');
-
-		if($login){
-			$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE login='$login'");
-
-			$self->cookie('admin_cck', '', {
-				path 	=> '/admin/',
-				expires	=> time-1000
-			});
-
-			$self->cookie('admin_login', '', {
-				path 	=> '/',
-				expires	=>  time-1000
-			});
-
-			$self->cookie('vfe', '', {
-					path 	=> '/',
-					expires	=>  time-1000
-			});
-		}
+		$self->admin_logout();
 
 		$self->redirect_to('login_form');
 	});
 
  	$app->helper( admin_logout => sub {
 			my $self   = shift;
+			my $resetCck = shift || 1;
 
-			#$self->app->sessions->cookie_path('/admin/');
-			my $login = $self->cookie('admin_login');
+		   	if( $self->cookie('admin_login') ){
 
-		   	if($login){
-		    	$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE login='$login'");
+		    	$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE `login`='$login'") if $resetCck;
 
 				$self->cookie('admin_cck', '', {
 						path 	=> '/admin/',
@@ -123,7 +100,6 @@ sub register {
 				content	=> 'LOGOUT',
 				items 	=> [],
 			});
-			#$self->redirect_to('login_form');
 	});
 
 	my $admin_route = $r->bridge('/admin')->to(%defaults, cb => sub {
@@ -131,7 +107,8 @@ sub register {
 
         unless($self->admin_getUser){
 
-			return $self->admin_logout;
+			$self->admin_logout(0);
+			return;
         }
 		$self->stash->{document_root} = $self->app->home->rel_dir( "../" )."/";
 
