@@ -73,7 +73,7 @@ sub register {
 			my $self   = shift;
 			my $resetCck = shift || 1;
 
-		   	if( $self->cookie('admin_login') ){
+		   	if( my $login = $self->cookie('admin_login') ){
 
 		    	$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE `login`='$login'") if $resetCck;
 
