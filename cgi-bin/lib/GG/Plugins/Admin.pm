@@ -64,18 +64,22 @@ sub register {
 	$r->route('/admin/logout')->to(%defaults, cb => sub {
 		my $self = shift;
 
-		$self->admin_logout();
+		if($self->admin_getUser){
+			$self->admin_logout();
+		}
 
 		$self->redirect_to('login_form');
 	});
 
- 	$app->helper( admin_logout => sub {
+	$app->helper( admin_logout => sub {
 			my $self   = shift;
 			my $resetCck = shift || 1;
 
-		   	if( my $login = $self->cookie('admin_login') ){
+			if( my $login = $self->cookie('admin_login') ){
 
-		    	$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE `login`='$login'") if $resetCck;
+				#$self->app->dbi->query("UPDATE `sys_users` SET cck='' WHERE `login`='$login'") if $resetCck;
+				$self->dbi->dbh->do("DELETE FROM `sys_users_session` WHERE `id_user`=? AND `cck`=? ",
+					undef, $self->app->sysuser->userinfo->{ID}, $self->app->sysuser->userinfo->{cck} );
 
 				$self->cookie('admin_cck', '', {
 						path 	=> '/admin/',
@@ -94,7 +98,7 @@ sub register {
 						expires	=> time-1000
 					}
 				);
-		   	}
+			}
 
 			$self->render( json => {
 				content	=> 'LOGOUT',
@@ -103,20 +107,19 @@ sub register {
 	});
 
 	my $admin_route = $r->bridge('/admin')->to(%defaults, cb => sub {
-        my $self = shift;
+		my $self = shift;
 
-        unless($self->admin_getUser){
+		unless($self->admin_getUser){
 
-			$self->admin_logout(0);
-			return;
-        }
+			return $self->redirect_to('login_form');
+		}
 		$self->stash->{document_root} = $self->app->home->rel_dir( "../" )."/";
 
-    });
-    $admin_route->route('/auth')->to(%defaults, cb => sub{ shift->render(template	=> "Admin/form_auth" )});
+	});
+	$admin_route->route('/auth')->to(%defaults, cb => sub{ shift->render(template	=> "Admin/form_auth" )});
 
-    $admin_route->route('/:controller/body')->to(action => 'body')->name('admin_routes_to_body');
-    $admin_route->route('/:controller/:action')->name('admin_routes');
+	$admin_route->route('/:controller/body')->to(action => 'body')->name('admin_routes_to_body');
+	$admin_route->route('/:controller/:action')->name('admin_routes');
 
 
 	$app->hook(
@@ -142,9 +145,10 @@ sub register {
 
 			$self->app->sysuser->auth(0);
 
-	        if ($params{password}) {	# есть пароль и нет ключа сессии
+			if ($params{password}) {	# есть пароль и нет ключа сессии
 
-	        	return unless $self->admin_checklogin( %params);
+				return unless $self->admin_checklogin( %params);
+
 
 				$self->cookie('admin_cck', $self->app->sysuser->userinfo->{cck}, {
 						path 	=> '/admin/',
@@ -167,13 +171,16 @@ sub register {
 
 
 				# Очистка логов
-				if( my $days_count = $self->app->get_var('time_log') ){
+				if( my $days_count = $self->app->get_var(name => 'time_log', controller => 'global') ){
 					$self->app->dbh->do("DELETE FROM `sys_datalogs` WHERE TO_DAYS(NOW())-TO_DAYS(`rdate`)>$days_count");
 
 					# 	Очистка юзер хистори
 					$self->app->dbh->do("DELETE FROM `sys_history` WHERE TO_DAYS(NOW())-TO_DAYS(`rdate`)>$days_count");
 					$self->app->dbh->do("OPTIMIZE TABLE `sys_history`");
 				}
+				# очистка старых сессий
+				$self->app->dbh->do("DELETE FROM `sys_users_session` WHERE TO_DAYS(NOW())-TO_DAYS(`time`)>5");
+
 			} else {
 
 				return unless $self->admin_checkCCK(%params);
@@ -225,21 +232,21 @@ sub register {
 				$self->admin_msg_errors('Ошибка login и/или пароля') && return;
 			}
 
-			$self->app->sysuser->userinfo($user);
-			$self->app->sysuser->sys($user->{sys});
+			if(my $session = $self->dbi->query("SELECT * FROM `sys_users_session` WHERE `id_user`='$$user{ID}' AND `cck`='$params{cck}'")->hash ){
+				$self->dbi->dbh->do("UPDATE `sys_users_session` SET `time`=NOW() WHERE `id_user`='$$user{ID}' AND `cck`='$params{cck}' ");
 
-			if ($params{cck} and (!$user->{cck} or ($params{cck} ne $user->{cck})) ) {  # Неверный cck
+				$self->app->sysuser->userinfo($user);
+				$self->app->sysuser->sys($user->{sys});
 
-				$self->admin_msg_errors('Сессия прервана. Требуется повторная авторизация');
+				$self->app->sysuser->userinfo->{session} = $session;
 
-			} else {
 				$self->app->sysuser->set_settings($user->{settings});
 				$self->app->sysuser->userinfo->{cck} = $params{cck};
 				$self->app->sysuser->auth(1);
-				#$self->stash('user', $user);
-
 			}
-			$self->app->sysuser->auth(1) unless $self->has_errors;
+			else {
+				$self->admin_msg_errors('Сессия прервана. Требуется повторная авторизация');
+			}
 
 			return $self->app->sysuser->auth;
 		}
@@ -280,24 +287,24 @@ sub register {
 				$self->save_logs(name => 'Попытка подбора пароля. Доступ для данного аккаунта временно ограничен', comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth' );
 				$self->admin_msg_errors('Попытка подбора пароля. Доступ для данного аккаунта временно ограничен');
 
-				# TODO: Send mail
+				# TODO: Send wrong auth mail
 				eval{
 					$self->mail(
-				   		to      => $self->get_var( name => 'email_admin', controller => 'global', raw => 1 ),
-				   		subject => 'Попытка подбора пароля на сайте '.$self->get_var( name => 'site_name', controller => 'global', raw => 1 ),
-				   		data    => "Логин: <b>$params{login}</b> <br />Пароль: <b>$params{password}</b>, IP: <b>$ip</b>",
+						to      => $self->get_var( name => 'email_admin', controller => 'global', raw => 1 ),
+						subject => 'Попытка подбора пароля на сайте '.$self->get_var( name => 'site_name', controller => 'global', raw => 1 ),
+						data    => "Логин: <b>$params{login}</b> <br />Пароль: <b>$params{password}</b>, IP: <b>$ip</b>",
 					);
 				};
 
 				return;
 
 			} elsif ($user->{bhour} && ($user->{bhour} > 3)) { # Прошло больше трех часов с момента неправильной авторизации
-				$sql = "UPDATE `$params{from}` SET `count`=0,`btime`='0000-00-00 00:00:00',`cck`='',`bip`='$ip' WHERE `login` = '$$self{user}{login}'";
+				$sql = "UPDATE `$params{from}` SET `count`=0,`btime`='0000-00-00 00:00:00',`bip`='$ip' WHERE `login` = '$$self{user}{login}'";
 				$self->app->dbi->query($sql);
 			}
 
 			if ($user->{password} && $params{password} && $user->{password} ne $params{password}) {  # Неверный пароль
-				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`cck`='',`bip`='$ip' WHERE `login` = '$$user{login}'";
+				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`bip`='$ip' WHERE `login` = '$$user{login}'";
 				$self->app->dbi->query($sql);
 
 				my $count = $user->{count}+1;
@@ -312,9 +319,11 @@ sub register {
 
 				$self->app->dbi->query(qq/
 					UPDATE `$params{from}`
-					SET `cck`='$cck',`count`='0',`btime`='0000-00-00 00:00:00',`ip`='$ip'
-					WHERE `login` = '$params{login}'
+					SET `count`='0',`btime`='0000-00-00 00:00:00'
+					WHERE `ID`='$$user{ID}'
 				/);
+				$self->dbi->dbh->do("REPLACE `sys_users_session`(cck, time, host, ip, id_user) VALUES (?, NOW(), ?, ?, ?)", undef,
+					$cck, $self->host, $ip, $user->{ID} );
 
 				$self->app->sysuser->set_settings($user->{settings});
 				$self->app->sysuser->{userinfo}->{cck} = $cck;
@@ -474,10 +483,10 @@ sub register {
 		}
 	);
 
- 	# sysUser helpers
- 	$app->helper( is_sysuser_sys => sub {
- 		return shift->sysuser->sys;
- 	});
+	# sysUser helpers
+	$app->helper( is_sysuser_sys => sub {
+		return shift->sysuser->sys;
+	});
 
 
 
