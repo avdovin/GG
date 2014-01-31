@@ -59,6 +59,7 @@ sub register {
 				elsif($type eq 'html') 			{ $valid_params->{$k} = $self->check_html( %$settings, value => $v)}
 				elsif($type eq 'code') 			{ $valid_params->{$k} = $v}
 				elsif($type eq 'd') 			{ $valid_params->{$k} = $self->check_decimal( %$settings, value => $v)}
+				elsif($type eq 'float') 		{ $valid_params->{$k} = $self->check_float( %$settings, value => $v)}
 				elsif($type eq 'list') 			{ $valid_params->{$k} = $self->check_list( %$settings, value => $v)}
 				elsif($type eq 'tlist') 		{ $valid_params->{$k} = $self->check_tlist( %$settings, value => $v)}
 				elsif($type eq 'date') 			{ $valid_params->{$k} = $self->check_date( %$settings, value => $v)}
@@ -83,13 +84,26 @@ sub register {
 	$app->helper(check_tlist       		=> \&_check_tlist);
 	$app->helper(check_list       		=> \&_check_list);
 	$app->helper(check_string      		=> \&_check_string);
+	$app->helper(check_float      		=> \&_check_float);
 	$app->helper(check_decimal      	=> \&_check_decimal);
 	$app->helper(check_lat      		=> \&_check_lat);
 	$app->helper(check_formatted_text	=> \&_check_formatted_text);
 	$app->helper(check_no_tag			=> \&_check_no_tag);
 	$app->helper(check_html				=> \&_check_html);
 }
+sub _check_float{
+	my $self = shift;
+	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 
+	my $value = delete $settings{value};
+	return '' unless $value;
+	$value =~ s/,/./;
+	$value =~ s/б/./;
+	$value =~ s/ю/./;
+	$settings{minimum} ||= 2;
+
+	return sprintf("%.".$settings{minimum}."f", $value);
+}
 sub _check_email{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
