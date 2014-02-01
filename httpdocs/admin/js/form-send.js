@@ -1323,8 +1323,9 @@ function restart_hypnotoad(){
 	$.ajax({
 		url: '/admin/main/body',
 		data: {do: 'restart_hypnotoad'},
+		timeout: 2000,
 		beforeSend: function(){
-			$("form[name=form-restart-hypnotoad] input[type=submit]").val('Сбрасываю ...');
+			$("form[name=form-restart-hypnotoad] input[type=button]").val('Сбрасываю ...');
 		}
 	})
 	.always(function() {

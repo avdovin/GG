@@ -68,9 +68,11 @@ sub hot_link{
 sub restart_hypnotoad{
 	my $self = shift;
 
-	kill 'QUIT', $ENV{HYPNOTOAD_PID};
-	$self->render( text => 'restart hypnotoad from admin') and exit 0;
+	system("./hypnotoad ./dispatch.cgi");
+	#kill 'QUIT', $ENV{HYPNOTOAD_PID};
+	$self->render( text => 'restart hypnotoad from admin');
 }
+
 
 sub settings_panel{
 	my $self = shift;
