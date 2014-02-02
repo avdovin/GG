@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
 <head>
-<%= metaHeader %>
+	%== metaHeader
 
 	<link href="/css/style.css" rel="stylesheet" type="text/css" media="all" />
 	<link href="/js/prettyphoto/css/prettyPhoto.css" rel="stylesheet" type="text/css" media="all" />
@@ -38,7 +38,7 @@
 			<div class="body">
 				<div class="block block_background block_margin block_padding block_shadowed">
 					<div class="content">
-						<%== content %>
+						%== content
 					</div>
 				</div>
 			</div>
@@ -48,7 +48,7 @@
 
 	</div>
 
-	<%== include 'Texts/footer' =%>
-<%== js_files =%>
+	%== include 'Texts/footer'
+%== js_files
 </body>
 </html>

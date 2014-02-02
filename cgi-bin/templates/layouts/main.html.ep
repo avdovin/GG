@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
 <head>
-<%= metaHeader %>
+%== metaHeader
 
 %== uncache( '/css/style.css' )
 
@@ -24,7 +24,7 @@
                 </div>
             </div>
             <%== menu_track( template => 'top' ) =%>
- 			
+
 			<%== catalog_categorys_top %>
         </div>
 
@@ -32,15 +32,15 @@
             <div class="block block_background clearfix">
                 <div class="block_shadow">
                     <div class="banners">
-                    	<%== banner_place place => 1, count => 10, template => "Banners/slider" %>
- 						
- 						<%== banner_place 
- 							place 		=> 10, 
+                    	%== banner_place place => 1, count => 10, template => "Banners/slider"
+
+ 						<%== banner_place
+ 							place 		=> 10,
  							count 		=> 1,
  							before_html	=> qq{
  							<div class='banners__unit banners__unit_right'>
  							},
- 							after_html	=> qq{</div></div>} 
+ 							after_html	=> qq{</div></div>}
 						%>
                     </div>
                 </div>
@@ -182,7 +182,8 @@
 
     </div>
 
-    <%== include 'Texts/footer' =%>
+
+    %== include 'Texts/footer'
 %== js_files
 </body>
 </html>
