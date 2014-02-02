@@ -460,6 +460,20 @@ sub register {
 		}
 	);
 
+
+	# проверяем есть ли значение у позиции ( 1=3=5 )
+	$app->helper(
+		has_in_multilist => sub {
+			my $self         = shift;
+			return unless my $itemValues 	 = shift;
+			return unless my $checkValue 	 = shift;
+
+			my @itemValues = split('=', $itemValues);
+			return 1 if($checkValue ~~ @itemValues);
+			return;
+		}
+	);
+
 	$app->helper(
 		merge_keys_settings => sub {
 			my $self         = shift;
