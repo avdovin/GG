@@ -54,7 +54,18 @@ sub body{
 				controller	=> $self->app->program->{key_razdel},
 			); 
 		}
-		
+		when('upload') 					{
+
+			if(my $item = $self->getArraySQL(	from => $self->stash->{list_table}, where => "`ID`='".$self->stash->{'index'}."'") ){
+				my $lfield = $self->param($self->stash->{'lfield'});
+				my $folder = $self->lkey(name => $lfield, controller => 'catalog', setting => 'folder');
+
+				return $self->file_download( path => $folder.$item->{ $lfield });
+
+			}
+			return $self->render_not_found;
+		}
+		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
 		when('filter_take') 			{ $self->filter_take( render => 1); }
 		when('quick_view') 				{ $self->quick_view; }
 		
@@ -62,7 +73,7 @@ sub body{
 		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
 		when('save_qedit') 				{ $self->save_qedit; }
 		when('save_qedit_i') 			{ $self->save_qedit; }
-		
+		when('delete_pict') 			{ $self->field_delete_pict( render => 1, fields => [$self->send_params->{lfield}]); }
 		when('filter') 					{ $self->filter_form; }
 		when('filter_save') 			{ $self->filter_save; }
 		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
@@ -228,7 +239,10 @@ sub save{
 								comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
 			return $self->info;			
 		}
-		
+		$self->file_save_pict( 	filename 	=> $self->send_params->{pict},
+						lfield		=> 'pict',
+						fields		=> {pict => 'pict'},
+						) if $self->send_params->{pict};
 		if($self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
 			return $self->info;
 		}
