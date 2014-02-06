@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title><%= get_var 'site_name'%></title>
+    <title><%= site_name %></title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <style>
     	@media only screen and (max-width:600px) {
@@ -14,8 +14,8 @@
 
 	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
 		<tr>
-			<td>
-				<h2>Получен письмо с сайта dakupi.ru</h2><br />
+			<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
+				<h2>Получен письмо с сайта <%= site_name %></h2><br />
 
 				Имя: <b><%= $self->stash->{name} %></b><br />
 				Телефон: <b><%= $self->stash->{phone} %></b><br />
