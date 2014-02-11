@@ -111,6 +111,21 @@ sub register {
 		;
 	});
 
+	$app->helper(is_linux => sub {
+		my $ua = shift->tx->req->headers->user_agent;
+		return $ua && $ua =~ /(linux|ubuntu)/i ? $1 : 0;
+	});
+
+	$app->helper(is_mac => sub {
+		my $ua = shift->tx->req->headers->user_agent;
+		return $ua && $ua =~ /(mac|macintosh)/i ? $1 : 0;
+	});
+
+	$app->helper(is_win => sub {
+		my $ua = shift->tx->req->headers->user_agent;
+		return $ua && $ua =~ /(windows|win)/i ? $1 : 0;
+	});
+
 	$app->helper(is_iphone => sub {
 		my $ua = shift->tx->req->headers->user_agent;
 		return $ua && $ua =~ /(cfnetwork|iphone|ipod|ipad)/i ? $1 : 0;
