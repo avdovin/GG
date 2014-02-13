@@ -12,8 +12,8 @@
 %		} elsif($lkey->{settings}->{type} eq 'chb'){
 			<% if($self->sysuser->settings->{$replaceme.'_filter_'.$f}==1){ %><%== $lkey->{settings}->{yes}%><% }else{ %><%== $lkey->{settings}->{no}%><% } =%>
 
-%		} elsif($lkey->{settings}->{type} eq 'd' or $lkey->{settings}->{type} eq 'date'){
-			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'} %> <%= $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
+%		} elsif($lkey->{settings}->{type} eq 'd' or $lkey->{settings}->{type} eq 'date' or $lkey->{settings}->{type} eq 'datetime' or $lkey->{settings}->{type} eq 'time'){
+			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'} %>&nbsp;<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
 
 %		} elsif($lkey->{settings}->{type} eq 'tlist' or $lkey->{settings}->{type} eq 'list'){
 			<%= VALUES name=> $f, value => $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
@@ -23,6 +23,6 @@
     	<td width="25px" class=edit valign=top>
 		<a href ="#" title="Удалить фильтр" onClick="ld_content('<%= $self->stash->{replaceme} %>', '<%= $self->stash->{script_link} %>?do=filter_clear&lfield=<%= $f %><%= $self->stash->{param_default} %>')"> <img src="/admin/img/icons/menu/icon_close_win.gif" border=0 alt="Удалить фильтр"> </a>
     	</td>
-    </tr>		
+    </tr>
 %	}
 </table>
