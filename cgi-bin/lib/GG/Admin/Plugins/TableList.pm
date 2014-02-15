@@ -509,8 +509,11 @@ sub register {
 							if ($v == -1) {$filter_string .= " AND $keyf = 0";}
 							else {$filter_string .= " AND $keyf = 1";}
 
-						} elsif (($lkey->{settings}->{type} eq "date") or ($lkey->{settings}->{type} eq "time")) {
-							$filter_string .= " AND $keyf ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
+						} elsif (($lkey->{settings}->{type} eq "date") or ($lkey->{settings}->{type} eq "datetime") or ($lkey->{settings}->{type} eq "time")) {
+							# if datetime convert to date
+							$v = substr($v, 0, 10) if(length($v)>10);
+
+							$filter_string .= " AND DATE($keyf) ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
 
 						} elsif ($lkey->{settings}->{type} eq "d") {
 							$filter_string .= " AND $keyf ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." $v";
