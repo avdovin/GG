@@ -21,14 +21,14 @@ sub redirect_to_first_item{
 }
 
 sub events_item{
-    my $self = shift;
+	my $self = shift;
 	my %params = @_;
 
 	return $self->list_item( %params );
 }
 
 sub events_arhive_list{
-    my $self = shift;
+	my $self = shift;
 	my %params = @_;
 
 	$params{where} = " AND `tdate` <= NOW() ";
@@ -38,7 +38,7 @@ sub events_arhive_list{
 }
 
 sub events_list{
-    my $self = shift;
+	my $self = shift;
 	my %params = @_;
 
 	$params{where} = " AND `tdate` > NOW() ";
@@ -48,7 +48,7 @@ sub events_list{
 
 # This action will render a template
 sub texts_list{
-    my $self = shift;
+	my $self = shift;
 	my %params = (
 		key_razdel	=> $self->stash('key_razdel'),
 		date		=> $self->stash('date') || "tdate",
@@ -68,7 +68,10 @@ sub texts_list{
 	if($self->stash->{alias}){
 
 		if(my $mainPage = $self->dbi->query("SELECT `name`,`title`,`keywords`,`description` FROM `texts_main_ru` WHERE `alias`='".$self->stash->{alias}."' AND `viewtext`='1'")->hash){
-			$self->metaHeader( title => $mainPage->{title} || $mainPage->{name}, keywords => $mainPage->{keywords}, description	=>	$mainPage->{description} );
+
+			$self->meta_title( $mainPage->{title} || $mainPage->{name} );
+			$self->meta_keywords( $mainPage->{keywords} );
+			$self->meta_description( $mainPage->{description} );
 		}
 
 	}
@@ -99,7 +102,7 @@ sub texts_list{
 	my 	$where  = "`viewtext`='1' ";
 		$where .= " AND `dir`='0'" 												if $self->dbi->exists_keys(from => $table, lkey => 'dir');
 		$where .= " AND YEAR($params{order_field})='".$self->param('year')."' "	if $self->param('year');
-	  	$where .= " $params{where} " 											if $params{where};	# Дополнительные параметры выборки
+		$where .= " $params{where} " 											if $params{where};	# Дополнительные параметры выборки
 
 	# Список с учетом выбранной папки (по alias)
 	if($self->stash->{group_alias}){
@@ -123,8 +126,8 @@ sub texts_list{
 		WHERE $where
 	/)->hashes;
 
-    $self->render(	template	=> "Texts/$template",
-    				items		=> $items);
+	$self->render(	template	=> "Texts/$template",
+					items		=> $items);
 
 }
 
@@ -141,19 +144,22 @@ sub text_main_item{
 
 	#AJAX request
 	my $header = $self->req->headers->header('X-Requested-With');
-	return $self->render_text($text->{text}) if ($header && $header eq 'XMLHttpRequest');
+	return $self->render( text => $text->{text}) if ($header && $header eq 'XMLHttpRequest');
 
 	if($text->{url_for} && $self->stash->{redirect_to_url_for}){
 		my $href = $self->menu_item($text);
 		return $self->redirect_to_301($href);
 	}
 
-	$self->metaHeader(title => $$text{title} || $$text{name}, keywords => $$text{keywords}, description => $$text{description});
+	$self->meta_title( $text->{title} || $text->{name} );
+	$self->meta_keywords( $text->{keywords} );
+	$self->meta_description( $text->{description} );
 
-    $self->render(	info		=> $text,
-    				template	=> "Texts/body_default",
-    				layout		=> $text->{layout} || 'default',
-    );
+
+	$self->render(	info		=> $text,
+					template	=> "Texts/body_default",
+					layout		=> $text->{layout} || 'default',
+	);
 }
 
 
@@ -190,26 +196,21 @@ sub text_list_item{
 			WHERE `alias`='$alias' $where LIMIT 0,1/)->hash;
 
 	if($self->stash->{alias}){
-		$self->stash->{header}->{title} = [];
-		my $title = [];
-		if(my $mainPage = $self->dbi->query("SELECT `name`,`title` FROM `texts_main_ru` WHERE `alias`='".$self->stash->{alias}."' AND `viewtext`='1'")->hash){
-			push @$title, $mainPage->{title} || $mainPage->{name};
+		if(my $textSection = $self->dbi->query("SELECT `name`,`title` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' AND `viewtext`='1'")->hash){
+			$self->meta_title( $textSection->{title} || $textSection->{name} );
 		}
-
-		push @$title,  $item->{title} || $item->{name};
-		$self->metaHeader( title => $title, keywords => $item->{keywords}, description	=>	$item->{description} );
-
-	} else {
-
-		$self->metaHeader( title => $item->{title} || $item->{name}, keywords => $item->{keywords}, description	=>	$item->{description} );
 	}
+
+	$self->meta_title( $item->{title} || $item->{name} );
+	$self->meta_keywords( $item->{keywords} );
+	$self->meta_description( $item->{description} );
 
 
 	#$text->{index_after} = $self->get_index_after(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 	#$text->{index_befor} = $self->get_index_befor(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 
-    $self->render(	item		=> $item,
-    				template	=> $template);
+	$self->render(	item		=> $item,
+					template	=> $template);
 }
 
 

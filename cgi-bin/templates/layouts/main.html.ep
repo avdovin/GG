@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
 <head>
-%== metaHeader
+%== render_headers
 
 %== uncache( '/css/style.css' )
 

@@ -506,7 +506,7 @@ sub catalog_list{
 
 	} else {
 
-		$self->metaHeader( title => 'Каталог. Список товаров' );
+		$self->meta_title( 'Каталог. Список товаров' );
 
 		$self->stash('category_hash', { name => 'Весь каталог'} );
 		if($category_id){

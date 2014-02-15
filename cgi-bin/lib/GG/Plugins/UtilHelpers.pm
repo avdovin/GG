@@ -68,36 +68,6 @@ sub register {
 		}
 	});
 
-	$app->helper(
-		seo_custom_tags => sub {
-			my $self   = shift;
-			my $reqUrl = '/'.$self->req->url;
-
-			($reqUrl, undef) = split(/\?/, $reqUrl);
-
-			# Собираем все где есть *
-			my $seoMeta = {};
-			my $found = 0;
-			for my $node  ($self->dbi->query('SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` REGEXP "[*]$" ')->hashes){
-				$node->{name} =~ s{\*$}{}gi;
-
-				if($reqUrl =~ /$$node{name}.*/gi){
-					$seoMeta = $node;
-					$found = 1;
-					last;
-				}
-			}
-
-			unless($found){
-				if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
-					$seoMeta = $node;
-					$found = 1;
-				}
-			}
-
-			return $self->stash->{header} = $seoMeta if $found;
-	});
-
 	$app->helper( ip => sub {
 		my $self = shift;
 		my $for  = $self->req->headers->header('X-Forwarded-For');
@@ -326,43 +296,6 @@ sub register {
 			my %params = @_;
 
 			return $self->_load_controller(%params);
-		}
-	);
-
-
-
-	$app->helper(
-		metaHeader => sub {
-			my $self	= shift;
-			my $header = $self->stash->{header} ||= {};
-
-			if($_[0]){
-				my $params	= ref $_[0] ? $_[0] : {@_};
-				foreach (keys %$params){
-					$header->{$_} = $params->{$_};
-				}
-				$self->stash->{header} = $header;
-			} else {
-				$self->seo_custom_tags() if $self->stash->{seo_custom_tags};
-
-				$header = $self->stash->{header};
-
-				if(!$header->{title} && $self->stash->{alias}){
-					$header = $self->app->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
-
-				} elsif(ref($header->{title}) eq 'ARRAY'){
-					$header->{title} = join(" » ", @{$header->{title}});
-				}
-
-				$header->{keywords} ||= $header->{title};
-				$header->{description} ||= $header->{title};
-
-				return $self->render(
-					template 	=> '_header',
-					header	 	=> $header,
-					partial		=> 1,
-				);
-			}
 		}
 	);
 

@@ -30,6 +30,7 @@ sub startup{
 
 	# Lkeys
 	$self->plugin('keys');
+	$self->plugin('seo');
 	$self->plugin('util_helpers');
 
 

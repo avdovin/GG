@@ -1,9 +1,9 @@
-<title><%= $header->{title} ? $header->{title}.' » ' : '' %><%= $self->stash->{'seo_title_sitename'} ? $self->site_name : '' %></title>
-<meta name="keywords" content="<%= $header->{keywords} %>"/>
-<meta name="description" content="<%= $header->{description} %>"/>
+<title><%= meta_title %></title>
+<meta name="keywords" content="<%= meta_keywords %>"/>
+<meta name="description" content="<%= meta_description %>"/>
 <meta name="robots" content="index, follow">
 
-<%= content_for 'header' %>
+%= content_for 'headers'
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
