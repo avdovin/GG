@@ -17,6 +17,7 @@ sub _config{
 				route 			=> 'text',
 				linktmlp 		=> '',
 				mapfields 		=> {},
+				where 			=> " `viewtext`=1 ",
 			},
 		'texts_news_ru' => {
 				searchfields 	=> [qw(name text)],
@@ -27,6 +28,7 @@ sub _config{
 				mapfields 		=> {
 					alias 	=> 'list_item_alias',
 				},
+				where 			=> " `viewtext`=1 ",
 			},
 		'texts_events_ru' => {
 				searchfields 	=> [qw(name text)],
@@ -37,6 +39,7 @@ sub _config{
 				mapfields 		=> {
 					alias 	=> 'list_item_alias',
 				},
+				where 			=> " `viewtext`=1 ",
 			},
 		'data_catalog_items' => {
 				searchfields 	=> [qw(name article text)],
@@ -44,6 +47,7 @@ sub _config{
 				controller 		=> 'catalog',
 				route 			=> '',
 				linktmlp 		=> '/catalog/item/%s~sync%_%s~variantcode%',
+				where 			=> " `active`=1 ",
 			},
 	};
 
@@ -96,7 +100,9 @@ sub register {
 					push(@search_str, "`$f` LIKE '%$k%'");
 				}
 			}
-			$search_str = join(" OR ", @search_str);
+			$search_str = " ( ".join(" OR ", @search_str)." ) ";
+
+			$search_str .= $hash_table->{$table}->{where} if $hash_table->{$table}->{where};
 
 			if($search_str){
 				for my $row  ($self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE $search_str")->hashes){
