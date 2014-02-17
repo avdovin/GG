@@ -777,6 +777,7 @@ sub register {
 			my $self = shift;
 			my %params = (
 				table 	=> $self->stash->{list_table},
+				lfield 	=> 'active',
 				value	=> 0,
 				@_,
 			);
@@ -790,20 +791,19 @@ sub register {
 			my $self = shift;
 			my %params = (
 				table 	=> $self->stash->{list_table},
+				lfield 	=> 'active',
 				value	=> 0,
 				@_,
 			);
 			my $table = delete $params{table};
 			my $list_items = $self->stash->{listindex} || return;
-			my $field = 'viewtext';
-			if($self->dbi->exists_keys(from => $table, lkey => 'active')){
-				$field = 'active';
-			}
+			my $field = delete $params{'lfield'};
+
 			my @IDs = ();
 			foreach (split(/,/, $list_items)){
 				push @IDs, $_ if $_;
 			}
-			$self->update_hash($table, {$field => $params{value}}, "`ID` IN (".join(',', @IDs ).") " ) if (scalar(@IDs) > 0);
+			$self->dbi->update_hash($table, {$field => $params{value}}, "`ID` IN (".join(',', @IDs ).") " ) if (scalar(@IDs) > 0);
 		}
 	);
 }

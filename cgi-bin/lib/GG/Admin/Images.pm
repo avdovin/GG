@@ -423,6 +423,8 @@ sub list_container{
 	my %params = @_;
 
 	$self->delete_list_items(has_pict => 1) if $self->stash->{delete};
+	$self->hide_list_items( lfield => 'viewimg') 		if $self->param('hide');
+	$self->show_list_items( lfield => 'viewimg') 		if $self->param('show');
 
 	$self->stash->{enter} = 1 if ($params{enter});
 
@@ -432,7 +434,7 @@ sub list_container{
 		$self->def_context_menu( lkey => 'table_list');
 	}
 
-	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};
+	$self->stash->{listfield_groups_buttons} = {delete => "удалить", show => 'публиковать', hide => 'скрыть'};
 
 	return $self->list_items(%params, container => 1)
 }
