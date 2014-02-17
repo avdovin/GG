@@ -33,14 +33,10 @@
 <body>
 <!-- начало. данные для панелей -->
 <div id="northContent">
-	<table width="100%" cellpadding="0" cellspacing="0">
-		<tr style="display:none" id="header">
-			<td>
-				<div id="menuDiv" style="width:1900px"><div id="innerDiv"></div></div>
-				<div id="menuDiv" style="width:1900px"><div id="innerDiv2"></div></div>
-			</td>
-		</tr>
-	</table>
+	<div id="header">
+		<div id="menuDiv" style="width:4000px;"><div id="innerDiv"></div></div>
+		<div id="menuDiv" style="width:4000px"><div id="innerDiv2"></div></div>
+	</div>
 </div>
 <div id="westContent"></div>
 <div id="center"></div>
