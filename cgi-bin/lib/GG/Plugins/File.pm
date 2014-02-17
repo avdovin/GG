@@ -455,6 +455,26 @@ sub register {
 	);
 
 	$app->helper(
+		file_copy_tmp => sub {
+			my $self = shift;
+			my $filepath = shift;
+
+			my ($filename, undef, $ext) = File::Basename::fileparse($filepath,qr/\.[^.]*/);
+			$filename = $filename.$ext;
+
+			my $dir = $self->file_tmpdir;
+
+			unlink($dir.$filename);
+			if(-f $dir.$filename){
+				# Если такой файл в папке tmp залит другим пользователем
+				$filename = $self->file_check_free_name($dir.$filename);
+			}
+			File::Copy::copy($filepath, $dir.$filename) or die $!;
+
+			return wantarray ? ($dir, $filename) : $filename;
+	});
+
+	$app->helper(
 		file_upload_tmp => sub {
 			my $self = shift;
 			my %params = (
