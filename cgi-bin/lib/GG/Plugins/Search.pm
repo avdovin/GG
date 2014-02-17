@@ -58,7 +58,7 @@ sub register {
 	my ($self, $app, $conf) = @_;
 
 
-	$app->routes->route("search/result")->to( lang => 'ru', cb => sub{
+	$app->routes->route("search/result")->to( seo_title_sitename => 1, lang => 'ru', cb => sub{
 		my $self   = shift;
 		my %params = @_;
 
@@ -229,7 +229,8 @@ sub print_search_result{
 				%$node,
 				name	=> $node->{name},
 				index	=> $row->{idx},
-				text	=> $node->{text}
+				text	=> $node->{text},
+				table 	=> $table,
 			};
 
 			if($hash_table->{$table}->{route}){
