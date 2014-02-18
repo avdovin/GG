@@ -37,8 +37,7 @@
     <table width=95% align=center>
       <tr>
         <td align=left>
-        <input type=checkbox name="eexcel_key" id="checkbox_eexcel_key" checked="checked"> <label for="checkbox_eexcel_key" style="cursor:pointer;float:none;">ключ поля заменить на описание</label><br>
-        <input type=checkbox name="eexcel_field" id="checkbox_eexcel_field"> <label for="checkbox_eexcel_field" style="cursor:pointer;float:none;">индексы заменять на описание</label><br>
+          <input type=checkbox name="eexcel_key" id="checkbox_eexcel_key" checked="checked"> <label for="checkbox_eexcel_key" style="cursor:pointer;float:none;">ключ поля заменить на описание</label><br>
         </td>
         <td>
         <input type=text class=menu style="width:35px;margin-top:5px" name="pcol" id="checkbox_eexcel_pcol"> <label for="checkbox_eexcel_pcol" style="cursor:pointer;float:none;">количество записей</label><br>

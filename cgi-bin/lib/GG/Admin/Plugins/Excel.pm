@@ -160,7 +160,7 @@ sub register {
 			my $items = delete $params{items};
 			my $sheetname = $params{sheetname} || $self->stash->{controller_name};
 			my $listfield_headers = $self->stash->{listfield_header};
-			my $eexcel_key = $self->param('eexcel_key');
+			my $eexcel_key = $self->param('eexcel_key') ? 1 : 0; 		# ключ поля заменить на описание
 			my $lkeys = $self->lkey(controller => $controller);
 
 
@@ -182,7 +182,7 @@ sub register {
 			# записываем ключи в первую строку
 			foreach my $key (@{$listfield_headers}) {
 				next if($eexcel_key && $key eq 'ID');
-				$self -> export_excel_build_write_cell($oWs, (string => $lkeys->{$key}->{name}, rowN => 0, colN => 1, format => $formats->{'title'}));
+				$self -> export_excel_build_write_cell($oWs, (string => $eexcel_key ?  $lkeys->{$key}->{name} : $key, rowN => 0, colN => 1, format => $formats->{'title'}));
 			}
 			$self->export_excel_build_write_cell($oWs, (string => '', rowN => 1, colN => -1, format => $formats->{'title'}));
 
