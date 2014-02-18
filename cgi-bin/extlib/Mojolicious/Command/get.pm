@@ -10,31 +10,8 @@ use Mojo::UserAgent;
 use Mojo::Util qw(decode encode);
 use Scalar::Util 'weaken';
 
-has description => "Perform HTTP request.\n";
-has usage       => <<EOF;
-usage: $0 get [OPTIONS] URL [SELECTOR|JSON-POINTER] [COMMANDS]
-
-  mojo get /
-  mojo get mojolicio.us
-  mojo get -v -r google.com
-  mojo get -M POST -c 'trololo' mojolicio.us
-  mojo get -H 'X-Bender: Bite my shiny metal ass!' mojolicio.us
-  mojo get mojolicio.us 'head > title' text
-  mojo get mojolicio.us .footer all
-  mojo get mojolicio.us a attr href
-  mojo get mojolicio.us '*' attr id
-  mojo get mojolicio.us 'h1, h2, h3' 3 text
-  mojo get https://api.metacpan.org/v0/author/SRI /name
-
-These options are available:
-  -C, --charset <charset>     Charset of HTML/XML content, defaults to auto
-                              detection.
-  -c, --content <content>     Content to send with request.
-  -H, --header <name:value>   Additional HTTP header.
-  -M, --method <method>       HTTP method to use, defaults to "GET".
-  -r, --redirect              Follow up to 10 redirects.
-  -v, --verbose               Print request and response headers to STDERR.
-EOF
+has description => 'Perform HTTP request.';
+has usage => sub { shift->extract_usage };
 
 sub run {
   my ($self, @args) = @_;
@@ -57,7 +34,7 @@ sub run {
 
   # Detect proxy for absolute URLs
   my $ua = Mojo::UserAgent->new(ioloop => Mojo::IOLoop->singleton);
-  $url !~ m!^/! ? $ua->detect_proxy : $ua->app($self->app);
+  $url !~ m!^/! ? $ua->proxy->detect : $ua->server->app($self->app);
   $ua->max_redirects(10) if $redirect;
 
   my $buffer = '';
@@ -109,7 +86,7 @@ sub _json {
   say $json->encode($data);
 }
 
-sub _say { say encode('UTF-8', $_[0]) if length $_[0] }
+sub _say { length && say encode('UTF-8', $_) for @_ }
 
 sub _select {
   my ($buffer, $selector, $charset, @args) = @_;
@@ -117,33 +94,29 @@ sub _select {
   $buffer = decode($charset, $buffer) // $buffer if $charset;
   my $results = Mojo::DOM->new($buffer)->find($selector);
 
-  my $finished;
   while (defined(my $command = shift @args)) {
 
     # Number
-    if ($command =~ /^\d+$/) {
-      return unless ($results = [$results->[$command]])->[0];
-      next;
-    }
+    ($results = [$results->[$command]])->[0] ? next : return
+      if $command =~ /^\d+$/;
 
     # Text
-    elsif ($command eq 'text') { _say($_->text) for @$results }
+    return _say(map { $_->text } @$results) if $command eq 'text';
 
     # All text
-    elsif ($command eq 'all') { _say($_->all_text) for @$results }
+    return _say(map { $_->all_text } @$results) if $command eq 'all';
 
     # Attribute
-    elsif ($command eq 'attr') {
-      next unless my $name = shift @args;
-      _say($_->attr->{$name}) for @$results;
+    if ($command eq 'attr') {
+      return unless my $name = shift @args;
+      return _say(map { $_->attr->{$name} } @$results);
     }
 
     # Unknown
-    else { die qq{Unknown command "$command".\n} }
-    $finished++;
+    die qq{Unknown command "$command".\n};
   }
 
-  unless ($finished) { _say($_) for @$results }
+  _say(@$results);
 }
 
 1;
@@ -156,17 +129,39 @@ Mojolicious::Command::get - Get command
 
 =head1 SYNOPSIS
 
-  use Mojolicious::Command::get;
+  Usage: APPLICATION get [OPTIONS] URL [SELECTOR|JSON-POINTER] [COMMANDS]
 
-  my $get = Mojolicious::Command::get->new;
-  $get->run(@ARGV);
+    ./myapp.pl get /
+    mojo get mojolicio.us
+    mojo get -v -r google.com
+    mojo get -v -H 'Host: mojolicious.org' -H 'DNT: 1' mojolicio.us
+    mojo get -M POST -c 'trololo' mojolicio.us
+    mojo get mojolicio.us 'head > title' text
+    mojo get mojolicio.us .footer all
+    mojo get mojolicio.us a attr href
+    mojo get mojolicio.us '*' attr id
+    mojo get mojolicio.us 'h1, h2, h3' 3 text
+    mojo get https://api.metacpan.org/v0/author/SRI /name
+
+  Options:
+    -C, --charset <charset>     Charset of HTML/XML content, defaults to auto
+                                detection.
+    -c, --content <content>     Content to send with request.
+    -H, --header <name:value>   Additional HTTP header.
+    -M, --method <method>       HTTP method to use, defaults to "GET".
+    -r, --redirect              Follow up to 10 redirects.
+    -v, --verbose               Print request and response headers to STDERR.
 
 =head1 DESCRIPTION
 
-L<Mojolicious::Command::get> is a command interface to L<Mojo::UserAgent>.
+L<Mojolicious::Command::get> is a command line interface for
+L<Mojo::UserAgent>.
 
 This is a core command, that means it is always enabled and its code a good
 example for learning to build new commands, you're welcome to fork it.
+
+See L<Mojolicious::Commands/"COMMANDS"> for a list of commands that are
+available by default.
 
 =head1 ATTRIBUTES
 

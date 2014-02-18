@@ -12,7 +12,7 @@ has pattern    => sub { Mojolicious::Routes::Pattern->new };
 sub AUTOLOAD {
   my $self = shift;
 
-  my ($package, $method) = our $AUTOLOAD =~ /^([\w:]+)::(\w+)$/;
+  my ($package, $method) = split /::(\w+)$/, our $AUTOLOAD;
   croak "Undefined subroutine &${package}::$method called"
     unless blessed $self && $self->isa(__PACKAGE__);
 
@@ -23,8 +23,6 @@ sub AUTOLOAD {
 }
 
 sub DESTROY { }
-
-sub new { shift->SUPER::new->parse(@_) }
 
 sub add_child {
   my ($self, $route) = @_;
@@ -88,6 +86,8 @@ sub name {
   $self->{custom} = 1;
   return $self;
 }
+
+sub new { shift->SUPER::new->parse(@_) }
 
 sub options { shift->_generate_route(OPTIONS => @_) }
 
@@ -279,22 +279,22 @@ The children of this route, used for nesting routes.
 
 =head2 inline
 
-  my $inline = $r->inline;
-  $r         = $r->inline(1);
+  my $bool = $r->inline;
+  $r       = $r->inline($bool);
 
-Allow C<bridge> semantics for this route.
+Allow L</"bridge"> semantics for this route.
 
 =head2 parent
 
   my $parent = $r->parent;
   $r         = $r->parent(Mojolicious::Routes::Route->new);
 
-The parent of this route, used for nesting routes.
+The parent of this route, usually a L<Mojolicious::Routes::Route> object.
 
 =head2 partial
 
-  my $partial = $r->partial;
-  $r          = $r->partial(1);
+  my $bool = $r->partial;
+  $r       = $r->partial($bool);
 
 Route has no specific end, remaining characters will be captured in C<path>.
 
@@ -309,14 +309,6 @@ Pattern for this route, defaults to a L<Mojolicious::Routes::Pattern> object.
 
 L<Mojolicious::Routes::Route> inherits all methods from L<Mojo::Base> and
 implements the following new ones.
-
-=head2 new
-
-  my $r = Mojolicious::Routes::Route->new;
-  my $r = Mojolicious::Routes::Route->new('/:controller/:action');
-
-Construct a new L<Mojolicious::Routes::Route> object and <parse> pattern if
-necessary.
 
 =head2 add_child
 
@@ -345,7 +337,7 @@ also the L<Mojolicious::Lite> tutorial for more argument variations.
   my $bridge = $r->bridge('/:action', action => qr/\w+/);
   my $bridge = $r->bridge(format => 0);
 
-Generate bridge route.
+Generate bridge route with optional pattern and restrictive placeholders.
 
   my $auth = $r->bridge('/user')->to('user#auth');
   $auth->get('/show')->to('#show');
@@ -368,7 +360,7 @@ L<Mojolicious::Lite> tutorial for more argument variations.
   $r = $r->detour('MyApp', {foo => 'bar'});
 
 Set default parameters for this route and allow partial matching to simplify
-application embedding, takes the same arguments as C<to>.
+application embedding, takes the same arguments as L</"to">.
 
 =head2 find
 
@@ -428,6 +420,14 @@ the route pattern. Note that the name C<current> is reserved for referring to
 the current route.
 
   $r->get('/user')->to('user#show')->name('show_user');
+
+=head2 new
+
+  my $r = Mojolicious::Routes::Route->new;
+  my $r = Mojolicious::Routes::Route->new('/:controller/:action');
+
+Construct a new L<Mojolicious::Routes::Route> object and L</"parse"> pattern
+if necessary.
 
 =head2 options
 
@@ -519,7 +519,8 @@ The L<Mojolicious::Routes> object this route is an descendent of.
   my $route = $r->route('/:action', action => qr/\w+/);
   my $route = $r->route(format => 0);
 
-Generate route matching all HTTP request methods.
+Generate route matching all HTTP request methods with optional pattern and
+restrictive placeholders.
 
 =head2 to
 
@@ -577,10 +578,10 @@ L<Mojolicious::Lite> tutorial for more argument variations.
 
   $r->websocket('/echo')->to('example#echo');
 
-=head1 SHORTCUTS
+=head1 AUTOLOAD
 
-In addition to the attributes and methods above you can also call shortcuts
-on L<Mojolicious::Routes::Route> objects.
+In addition to the L</"ATTRIBUTES"> and L</"METHODS"> above you can also call
+shortcuts on L<Mojolicious::Routes::Route> objects.
 
   $r->root->add_shortcut(firefox => sub {
     my ($r, $path) = @_;
@@ -588,7 +589,7 @@ on L<Mojolicious::Routes::Route> objects.
   });
 
   $r->firefox('/welcome')->to('firefox#welcome');
-  $r->firefox('/bye')->to('firefox#bye);
+  $r->firefox('/bye')->to('firefox#bye');
 
 =head1 SEE ALSO
 

@@ -99,7 +99,7 @@ information across several HTTP requests.
 
   GET /protected HTTP/1.1
   Host: mojolicio.us
-  Cookie: $Version=1; sessionid=987654321
+  Cookie: sessionid=987654321
 
   HTTP/1.1 200 OK
   Set-Cookie: sessionid=987654321
@@ -109,7 +109,6 @@ information across several HTTP requests.
 Traditionally all session data was stored on the server-side and only session
 ids were exchanged between browser and web server in the form of cookies.
 
-  HTTP/1.1 200 OK
   Set-Cookie: session=hmac-sha1(base64(json($session)))
 
 In L<Mojolicious> however we are taking this concept one step further by
@@ -349,9 +348,9 @@ Or perform quick requests right from the command line.
 Sessions in L<Mojolicious> pretty much just work out of the box once you start
 using the method L<Mojolicious::Controller/"session">, there is no setup
 required, but we suggest setting a more secure passphrase with
-L<Mojolicious/"secret">.
+L<Mojolicious/"secrets">.
 
-  app->secret('Mojolicious rocks');
+  app->secrets(['Mojolicious rocks']);
 
 This passphrase is used by the C<HMAC-SHA1> algorithm to make signed cookies
 secure and can be changed at any time to invalidate all existing sessions.
@@ -392,7 +391,7 @@ like this.
   use MyUsers;
 
   # Make signed cookies secure
-  app->secret('Mojolicious rocks');
+  app->secrets(['Mojolicious rocks']);
 
   helper users => sub { state $users = MyUsers->new };
 
@@ -513,7 +512,7 @@ actual action code needs to be changed.
   sub startup {
     my $self = shift;
 
-    $self->secret('Mojolicious rocks');
+    $self->secrets(['Mojolicious rocks']);
     $self->helper(users => sub { state $users = MyUsers->new });
 
     my $r = $self->routes;
@@ -620,7 +619,7 @@ information.
   sub startup {
     my $self = shift;
 
-    $self->secret('Mojolicious rocks');
+    $self->secrets(['Mojolicious rocks']);
     $self->helper(users => sub { state $users = MyUsers->new });
 
     my $r = $self->routes;

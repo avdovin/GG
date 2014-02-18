@@ -4,7 +4,8 @@ use Mojo::Base 'Mojolicious::Plugin';
 use Mojo::Asset::File;
 use Mojo::ByteStream 'b';
 use Mojo::DOM;
-use Mojo::Util qw(slurp url_escape);
+use Mojo::URL;
+use Mojo::Util qw(slurp unindent url_escape);
 use Pod::Simple::HTML;
 use Pod::Simple::Search;
 
@@ -45,16 +46,17 @@ sub _html {
       if $attrs->{href} =~ s!^http://search\.cpan\.org/perldoc\?!$perldoc!;
   }
 
-  # Rewrite code blocks for syntax highlighting
+  # Rewrite code blocks for syntax highlighting and correct indentation
   for my $e ($dom->find('pre')->each) {
-    next if $e->all_text =~ /^\s*\$\s+/m;
+    $e->content(my $str = unindent $e->content);
+    next if $str =~ /^\s*(?:\$|Usage:)\s+/m || $str !~ /[\$\@\%]\w|-&gt;\w/m;
     my $attrs = $e->attr;
     my $class = $attrs->{class};
     $attrs->{class} = defined $class ? "$class prettyprint" : 'prettyprint';
   }
 
   # Rewrite headers
-  my $url = $self->req->url->clone;
+  my $toc = Mojo::URL->new->fragment('toc');
   my (%anchors, @parts);
   for my $e ($dom->find('h1, h2, h3')->each) {
 
@@ -68,10 +70,8 @@ sub _html {
 
     # Rewrite
     push @parts, [] if $e->type eq 'h1' || !@parts;
-    push @{$parts[-1]}, $text, $url->to_abs->fragment($anchor);
-    my $toc = $url->to_abs->fragment('toc');
-    $e->replace_content(
-      $self->link_to($text => $toc, class => 'mojoscroll', id => $anchor));
+    push @{$parts[-1]}, $text, Mojo::URL->new->fragment($anchor);
+    $e->content($self->link_to($text => $toc, id => $anchor));
   }
 
   # Try to find a title
@@ -149,6 +149,9 @@ L<Mojolicious::Plugin::PODRenderer> is a renderer for true Perl hackers, rawr!
 
 The code of this plugin is a good example for learning to build new plugins,
 you're welcome to fork it.
+
+See L<Mojolicious::Plugins/"PLUGINS"> for a list of plugins that are available
+by default.
 
 =head1 OPTIONS
 

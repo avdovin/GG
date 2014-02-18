@@ -77,7 +77,9 @@ the following new ones.
     ...
   });
 
-Emitted safely for exceptions caught in callbacks.
+Emitted for exceptions caught in callbacks, fatal if unhandled. Note that if
+this event is unhandled or fails it might kill your program, so you need to be
+careful.
 
   $reactor->on(error => sub {
     my ($reactor, $err) = @_;
@@ -165,7 +167,7 @@ Remove handle or timer. Meant to be overloaded in a subclass.
 
   $reactor->start;
 
-Start watching for I/O and timer events, this will block until C<stop> is
+Start watching for I/O and timer events, this will block until L</"stop"> is
 called. Note that some reactors stop automatically if there are no events
 being watched anymore. Meant to be overloaded in a subclass.
 

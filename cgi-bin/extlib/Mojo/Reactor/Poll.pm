@@ -82,7 +82,7 @@ sub remove {
 
 sub start {
   my $self = shift;
-  return if $self->{running}++;
+  $self->{running}++;
   $self->one_tick while $self->{running};
 }
 
@@ -105,8 +105,8 @@ sub watch {
 sub _poll { shift->{poll} ||= IO::Poll->new }
 
 sub _sandbox {
-  my ($self, $desc, $cb) = (shift, shift, shift);
-  eval { $self->$cb(@_); 1 } or $self->emit_safe(error => "$desc failed: $@");
+  my ($self, $event, $cb) = (shift, shift, shift);
+  eval { $self->$cb(@_); 1 } or $self->emit(error => "$event failed: $@");
 }
 
 sub _timer {
@@ -211,7 +211,7 @@ Remove handle or timer.
 
   $reactor->start;
 
-Start watching for I/O and timer events, this will block until C<stop> is
+Start watching for I/O and timer events, this will block until L</"stop"> is
 called or no events are being watched anymore.
 
 =head2 stop

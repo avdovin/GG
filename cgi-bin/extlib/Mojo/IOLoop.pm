@@ -10,7 +10,7 @@ use Mojo::IOLoop::Server;
 use Mojo::IOLoop::Stream;
 use Mojo::Reactor::Poll;
 use Mojo::Util qw(md5_sum steady_time);
-use Scalar::Util 'weaken';
+use Scalar::Util qw(blessed weaken);
 
 use constant DEBUG => $ENV{MOJO_IOLOOP_DEBUG} || 0;
 
@@ -22,7 +22,9 @@ has multi_accept    => 50;
 has reactor         => sub {
   my $class = Mojo::Reactor::Poll->detect;
   warn "-- Reactor initialized ($class)\n" if DEBUG;
-  return $class->new;
+  my $reactor = $class->new;
+  $reactor->on(error => sub { warn "@{[blessed $_[0]]}: $_[1]" });
+  return $reactor;
 };
 
 # Ignore PIPE signal
@@ -91,8 +93,8 @@ sub delay {
 
 sub generate_port { Mojo::IOLoop::Server->generate_port }
 
-sub is_running { (ref $_[0] ? $_[0] : $_[0]->singleton)->reactor->is_running }
-sub one_tick   { (ref $_[0] ? $_[0] : $_[0]->singleton)->reactor->one_tick }
+sub is_running { _instance(shift)->reactor->is_running }
+sub one_tick   { _instance(shift)->reactor->one_tick }
 
 sub recurring { shift->_timer(recurring => @_) }
 
@@ -124,10 +126,10 @@ sub singleton { state $loop = shift->SUPER::new }
 sub start {
   my $self = shift;
   croak 'Mojo::IOLoop already running' if $self->is_running;
-  (ref $self ? $self : $self->singleton)->reactor->start;
+  _instance($self)->reactor->start;
 }
 
-sub stop { (ref $_[0] ? $_[0] : $_[0]->singleton)->reactor->stop }
+sub stop { _instance(shift)->reactor->stop }
 
 sub stream {
   my ($self, $stream) = (_instance(shift), @_);
@@ -307,12 +309,12 @@ convenience the C<PIPE> signal will be set to C<IGNORE> when L<Mojo::IOLoop>
 is loaded.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
-support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
+support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
 L<IO::Socket::SSL> (1.75+) will be used automatically if they are installed.
 Individual features can also be disabled with the MOJO_NO_IPV6 and MOJO_NO_TLS
 environment variables.
 
-See L<Mojolicious::Guides::Cookbook> for more.
+See L<Mojolicious::Guides::Cookbook/"REAL-TIME WEB"> for more.
 
 =head1 ATTRIBUTES
 
@@ -359,7 +361,7 @@ randomly to improve load balancing between multiple server processes.
   my $max = $loop->max_connections;
   $loop   = $loop->max_connections(1000);
 
-The maximum number of parallel connections this event loop is allowed to
+The maximum number of concurrent connections this event loop is allowed to
 handle before stopping to accept new incoming connections, defaults to
 C<1000>. Setting the value to C<0> will make this event loop stop accepting
 new connections and allow it to shut down gracefully without interrupting
@@ -378,7 +380,8 @@ Number of connections to accept at once, defaults to C<50>.
   $loop       = $loop->reactor(Mojo::Reactor->new);
 
 Low level event reactor, usually a L<Mojo::Reactor::Poll> or
-L<Mojo::Reactor::EV> object.
+L<Mojo::Reactor::EV> object with a default subscriber to the event
+L<Mojo::Reactor/"error">.
 
   # Watch if handle becomes readable or writable
   $loop->reactor->io($handle => sub {
@@ -433,9 +436,11 @@ L<Mojo::IOLoop::Client/"connect">.
   my $delay = $loop->delay(sub {...});
   my $delay = $loop->delay(sub {...}, sub {...});
 
-Get L<Mojo::IOLoop::Delay> object to manage callbacks and control the flow of
-events. A single callback will be treated as a subscriber to the C<finish>
-event, and multiple ones as a chain of steps.
+Build L<Mojo::IOLoop::Delay> object to manage callbacks and control the flow
+of events, which can help you avoid deep nested closures that often result
+from continuation-passing style. A single callback will be treated as a
+subscriber to the event L<Mojo::IOLoop::Delay/"finish">, and multiple ones as
+a chain for L<Mojo::IOLoop::Delay/"steps">.
 
   # Synchronize multiple events
   my $delay = Mojo::IOLoop->delay(sub { say 'BOOM!' });
@@ -458,7 +463,7 @@ event, and multiple ones as a chain of steps.
       say 'Second step in 2 seconds.';
     },
 
-    # Second step (parallel timers)
+    # Second step (concurrent timers)
     sub {
       my $delay = shift;
       Mojo::IOLoop->timer(1 => $delay->begin);
@@ -554,8 +559,8 @@ loop object from everywhere inside the process.
   Mojo::IOLoop->start;
   $loop->start;
 
-Start the event loop, this will block until C<stop> is called. Note that some
-reactors stop automatically if there are no events being watched anymore.
+Start the event loop, this will block until L</"stop"> is called. Note that
+some reactors stop automatically if there are no events being watched anymore.
 
   # Start event loop only if it is not running already
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -566,7 +571,7 @@ reactors stop automatically if there are no events being watched anymore.
   $loop->stop;
 
 Stop the event loop, this will not interrupt any existing connections and the
-event loop can be restarted by running C<start> again.
+event loop can be restarted by running L</"start"> again.
 
 =head2 stream
 

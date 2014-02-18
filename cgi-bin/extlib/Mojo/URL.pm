@@ -4,12 +4,11 @@ use overload bool => sub {1}, '""' => sub { shift->to_string }, fallback => 1;
 
 use Mojo::Parameters;
 use Mojo::Path;
-use Mojo::Util qw(punycode_decode punycode_encode url_escape url_unescape);
+use Mojo::Util
+  qw(deprecated punycode_decode punycode_encode url_escape url_unescape);
 
 has base => sub { Mojo::URL->new };
 has [qw(fragment host port scheme userinfo)];
-
-sub new { shift->SUPER::new->parse(@_) }
 
 sub authority {
   my $self = shift;
@@ -45,8 +44,7 @@ sub clone {
 
   my $clone = $self->new;
   $clone->$_($self->$_) for qw(scheme userinfo host port fragment);
-  $clone->path($self->path->clone);
-  $clone->query($self->query->clone);
+  $clone->path($self->path->clone)->query($self->query->clone);
   $clone->base($self->base->clone) if $self->{base};
 
   return $clone;
@@ -72,9 +70,10 @@ sub ihost {
 
 sub is_abs { !!shift->scheme }
 
+sub new { @_ > 1 ? shift->SUPER::new->parse(@_) : shift->SUPER::new }
+
 sub parse {
   my ($self, $url) = @_;
-  return $self unless $url;
 
   # Official regex from RFC 3986
   $url =~ m!^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?!;
@@ -159,7 +158,9 @@ sub to_abs {
   return $abs;
 }
 
+# DEPRECATED in Top Hat!
 sub to_rel {
+  deprecated 'Mojo::URL::to_rel is DEPRECATED';
   my $self = shift;
 
   my $rel = $self->clone;
@@ -176,8 +177,7 @@ sub to_rel {
   my @base_parts = @{$base_path->parts};
   pop @base_parts unless $base_path->trailing_slash;
   while (@parts && @base_parts && $parts[0] eq $base_parts[0]) {
-    shift @parts;
-    shift @base_parts;
+    shift @$_ for \@parts, \@base_parts;
   }
   my $path = $rel->path(Mojo::Path->new)->path;
   $path->leading_slash(1) if $rel->authority;
@@ -246,8 +246,10 @@ Mojo::URL - Uniform Resource Locator
 
 =head1 DESCRIPTION
 
-L<Mojo::URL> implements a subset of RFC 3986 and RFC 3987 for Uniform
-Resource Locators with support for IDNA and IRIs.
+L<Mojo::URL> implements a subset of
+L<RFC 3986|http://tools.ietf.org/html/rfc3986> and
+L<RFC 3987|http://tools.ietf.org/html/rfc3987> for Uniform Resource Locators
+with support for IDNA and IRIs.
 
 =head1 ATTRIBUTES
 
@@ -258,7 +260,7 @@ L<Mojo::URL> implements the following attributes.
   my $base = $url->base;
   $url     = $url->base(Mojo::URL->new);
 
-Base of this URL.
+Base of this URL, defaults to a L<Mojo::URL> object.
 
 =head2 fragment
 
@@ -300,13 +302,6 @@ Userinfo part of this URL.
 L<Mojo::URL> inherits all methods from L<Mojo::Base> and implements the
 following new ones.
 
-=head2 new
-
-  my $url = Mojo::URL->new;
-  my $url = Mojo::URL->new('http://127.0.0.1:3000/foo?f=b&baz=2#foo');
-
-Construct a new L<Mojo::URL> object and C<parse> URL if necessary.
-
 =head2 authority
 
   my $authority = $url->authority;
@@ -335,6 +330,13 @@ Host part of this URL in punycode format.
   my $bool = $url->is_abs;
 
 Check if URL is absolute.
+
+=head2 new
+
+  my $url = Mojo::URL->new;
+  my $url = Mojo::URL->new('http://127.0.0.1:3000/foo?f=b&baz=2#foo');
+
+Construct a new L<Mojo::URL> object and L</"parse"> URL if necessary.
 
 =head2 parse
 
@@ -374,7 +376,7 @@ defaults to a L<Mojo::Path> object.
 
   my $proto = $url->protocol;
 
-Normalized version of C<scheme>.
+Normalized version of L</"scheme">.
 
   # "http"
   Mojo::URL->new('HtTp://example.com')->protocol;
@@ -413,8 +415,8 @@ appended, defaults to a L<Mojo::Parameters> object.
   my $abs = $url->to_abs;
   my $abs = $url->to_abs(Mojo::URL->new('http://example.com/foo'));
 
-Clone relative URL and turn it into an absolute one using C<base> or provided
-base URL.
+Clone relative URL and turn it into an absolute one using L</"base"> or
+provided base URL.
 
   # "http://example.com/foo/baz.xml?test=123"
   Mojo::URL->new('baz.xml?test=123')
@@ -428,32 +430,27 @@ base URL.
   Mojo::URL->new('//example.com/foo/baz.xml?test=123')
     ->to_abs(Mojo::URL->new('http://example.com/foo/bar.html'));
 
-=head2 to_rel
-
-  my $rel = $url->to_rel;
-  my $rel = $url->to_rel(Mojo::URL->new('http://example.com/foo'));
-
-Clone absolute URL and turn it into a relative one using C<base> or provided
-base URL.
-
-  # "foo/bar.html?test=123"
-  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
-    ->to_rel(Mojo::URL->new('http://example.com'));
-
-  # "bar.html?test=123"
-  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
-    ->to_rel(Mojo::URL->new('http://example.com/foo/'));
-
-  # "//example.com/foo/bar.html?test=123"
-  Mojo::URL->new('http://example.com/foo/bar.html?test=123')
-    ->to_rel(Mojo::URL->new('http://'));
-
 =head2 to_string
 
   my $str = $url->to_string;
-  my $str = "$url";
 
 Turn URL into a string.
+
+=head1 OPERATORS
+
+L<Mojo::URL> overloads the following operators.
+
+=head2 bool
+
+  my $bool = !!$url;
+
+Always true.
+
+=head2 stringify
+
+  my $str = "$url";
+
+Alias for L</to_string>.
 
 =head1 SEE ALSO
 

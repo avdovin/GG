@@ -99,8 +99,8 @@ Mojo::Cookie::Response - HTTP response cookie
 
 =head1 DESCRIPTION
 
-L<Mojo::Cookie::Response> is a container for HTTP response cookies as
-described in RFC 6265.
+L<Mojo::Cookie::Response> is a container for HTTP response cookies based on
+L<RFC 6265|http://tools.ietf.org/html/rfc6265>.
 
 =head1 ATTRIBUTES
 
@@ -116,8 +116,8 @@ Cookie domain.
 
 =head2 httponly
 
-  my $httponly = $cookie->httponly;
-  $cookie      = $cookie->httponly(1);
+  my $bool = $cookie->httponly;
+  $cookie  = $cookie->httponly($bool);
 
 HttpOnly flag, which can prevent client-side scripts from accessing this
 cookie.
@@ -145,8 +145,8 @@ Cookie path.
 
 =head2 secure
 
-  my $secure = $cookie->secure;
-  $cookie    = $cookie->secure(1);
+  my $bool = $cookie->secure;
+  $cookie  = $cookie->secure($bool);
 
 Secure flag, which instructs browsers to only send this cookie over HTTPS
 connections.

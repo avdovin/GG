@@ -6,7 +6,7 @@ use Mojo::Util qw(decode slurp);
 
 sub load {
   my ($self, $file, $conf, $app) = @_;
-  $app->log->debug(qq{Reading config file "$file".});
+  $app->log->debug(qq{Reading configuration file "$file".});
   return $self->parse(decode('UTF-8', slurp $file), $file, $conf, $app);
 }
 
@@ -18,7 +18,7 @@ sub parse {
     = eval 'package Mojolicious::Plugin::Config::Sandbox; no warnings;'
     . "sub app; local *app = sub { \$app }; use Mojo::Base -strict; $content";
   die qq{Couldn't load configuration from file "$file": $@} if !$config && $@;
-  die qq{Config file "$file" did not return a hash reference.\n}
+  die qq{Configuration file "$file" did not return a hash reference.\n}
     unless ref $config eq 'HASH';
 
   return $config;
@@ -45,7 +45,7 @@ sub register {
 
   # Check for default and mode specific config file
   elsif (!$conf->{default} && !$mode) {
-    die qq{Config file "$file" missing, maybe you need to create it?\n};
+    die qq{Configuration file "$file" missing, maybe you need to create it?\n};
   }
 
   # Merge everything
@@ -97,12 +97,15 @@ L<Mojolicious::Plugin::Config> is a Perl-ish configuration plugin.
 
 The application object can be accessed via C<$app> or the C<app> function,
 L<strict>, L<warnings>, L<utf8> and Perl 5.10 features are automatically
-enabled. You can extend the normal configuration file C<myapp.conf> with
-C<mode> specific ones like C<myapp.$mode.conf>. A default configuration
+enabled. You can extend the normal configuration file C<$moniker.conf> with
+C<mode> specific ones like C<$moniker.$mode.conf>. A default configuration
 filename will be generated from the value of L<Mojolicious/"moniker">.
 
 The code of this plugin is a good example for learning to build new plugins,
 you're welcome to fork it.
+
+See L<Mojolicious::Plugins/"PLUGINS"> for a list of plugins that are available
+by default.
 
 =head1 OPTIONS
 
@@ -129,7 +132,7 @@ File extension for generated configuration filenames, defaults to C<conf>.
   plugin Config => {file => '/etc/foo.stuff'};
 
 Full path to configuration file, defaults to the value of the MOJO_CONFIG
-environment variable or C<myapp.conf> in the application home directory.
+environment variable or C<$moniker.conf> in the application home directory.
 
 =head1 METHODS
 
@@ -140,7 +143,7 @@ L<Mojolicious::Plugin> and implements the following new ones.
 
   $plugin->load($file, $conf, $app);
 
-Loads configuration file and passes the content to C<parse>.
+Loads configuration file and passes the content to L</"parse">.
 
   sub load {
     my ($self, $file, $conf, $app) = @_;

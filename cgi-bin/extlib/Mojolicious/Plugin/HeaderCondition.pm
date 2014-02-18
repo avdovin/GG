@@ -15,7 +15,7 @@ sub _check {
   my ($value, $pattern) = @_;
   return 1
     if $value && $pattern && ref $pattern eq 'Regexp' && $value =~ $pattern;
-  return $value && defined $pattern && $pattern eq $value ? 1 : undef;
+  return $value && defined $pattern && $pattern eq $value;
 }
 
 sub _headers {
@@ -68,6 +68,9 @@ routes.
 
 This is a core plugin, that means it is always enabled and its code a good
 example for learning to build new plugins, you're welcome to fork it.
+
+See L<Mojolicious::Plugins/"PLUGINS"> for a list of plugins that are available
+by default.
 
 =head1 METHODS
 

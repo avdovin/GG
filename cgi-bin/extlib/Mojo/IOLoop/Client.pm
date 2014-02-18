@@ -9,12 +9,12 @@ use Socket qw(IPPROTO_TCP SO_ERROR TCP_NODELAY);
 # IPv6 support requires IO::Socket::IP
 use constant IPV6 => $ENV{MOJO_NO_IPV6}
   ? 0
-  : eval 'use IO::Socket::IP 0.16 (); 1';
+  : eval 'use IO::Socket::IP 0.20 (); 1';
 
 # TLS support requires IO::Socket::SSL
-use constant TLS => $ENV{MOJO_NO_TLS} ? 0
-  : eval(IPV6 ? 'use IO::Socket::SSL 1.75 (); 1'
-  : 'use IO::Socket::SSL 1.75 "inet4"; 1');
+use constant TLS => $ENV{MOJO_NO_TLS}
+  ? 0
+  : eval 'use IO::Socket::SSL 1.75 (); 1';
 use constant TLS_READ  => TLS ? IO::Socket::SSL::SSL_WANT_READ()  : 0;
 use constant TLS_WRITE => TLS ? IO::Socket::SSL::SSL_WANT_WRITE() : 0;
 
@@ -55,12 +55,12 @@ sub _connect {
     $options{LocalAddr} = $args->{local_address} if $args->{local_address};
     $options{PeerAddr} =~ s/[\[\]]//g if $options{PeerAddr};
     my $class = IPV6 ? 'IO::Socket::IP' : 'IO::Socket::INET';
-    return $self->emit_safe(error => "Couldn't connect: $@")
+    return $self->emit(error => "Couldn't connect: $@")
       unless $self->{handle} = $handle = $class->new(%options);
 
     # Timeout
     $self->{timer} = $reactor->timer($args->{timeout} || 10,
-      sub { $self->emit_safe(error => 'Connect timeout') });
+      sub { $self->emit(error => 'Connect timeout') });
   }
   $handle->blocking(0);
 
@@ -88,18 +88,17 @@ sub _try {
 
   # Retry or handle exceptions
   my $handle = $self->{handle};
-  return $! == EINPROGRESS ? undef : $self->emit_safe(error => $!)
-    if IPV6 && !$handle->connect;
-  return $self->emit_safe(error => $! = $handle->sockopt(SO_ERROR))
-    if !IPV6 && !$handle->connected;
+  return $! == EINPROGRESS ? undef : $self->emit(error => $!)
+    if $handle->isa('IO::Socket::IP') && !$handle->connect;
+  return $self->emit(error => $! = $handle->sockopt(SO_ERROR))
+    unless $handle->connected;
 
   # Disable Nagle's algorithm
   setsockopt $handle, IPPROTO_TCP, TCP_NODELAY, 1;
 
   return $self->_cleanup->emit_safe(connect => $handle)
     if !$args->{tls} || $handle->isa('IO::Socket::SSL');
-  return $self->emit_safe(
-    error => 'IO::Socket::SSL 1.75 required for TLS support')
+  return $self->emit(error => 'IO::Socket::SSL 1.75 required for TLS support')
     unless TLS;
 
   # Upgrade
@@ -108,7 +107,7 @@ sub _try {
     SSL_ca_file => $args->{tls_ca}
       && -T $args->{tls_ca} ? $args->{tls_ca} : undef,
     SSL_cert_file       => $args->{tls_cert},
-    SSL_error_trap      => sub { $self->_cleanup->emit_safe(error => $_[1]) },
+    SSL_error_trap      => sub { $self->_cleanup->emit(error => $_[1]) },
     SSL_hostname        => $args->{address},
     SSL_key_file        => $args->{tls_key},
     SSL_startHandshake  => 0,
@@ -118,7 +117,7 @@ sub _try {
   );
   my $reactor = $self->reactor;
   $reactor->remove($handle);
-  return $self->emit_safe(error => 'TLS upgrade failed')
+  return $self->emit(error => 'TLS upgrade failed')
     unless $handle = IO::Socket::SSL->start_SSL($handle, %options);
   $reactor->io($handle => sub { $self->_tls })->watch($handle, 0, 1);
 }
@@ -175,7 +174,7 @@ Emitted safely once the connection is established.
     ...
   });
 
-Emitted safely if an error occurs on the connection.
+Emitted if an error occurs on the connection, fatal if unhandled.
 
 =head1 ATTRIBUTES
 
@@ -199,7 +198,7 @@ implements the following new ones.
   $client->connect(address => '127.0.0.1', port => 3000);
 
 Open a socket connection to a remote host. Note that TLS support depends on
-L<IO::Socket::SSL> (1.75+) and IPv6 support on L<IO::Socket::IP> (0.16+).
+L<IO::Socket::SSL> (1.75+) and IPv6 support on L<IO::Socket::IP> (0.20+).
 
 These options are currently available:
 

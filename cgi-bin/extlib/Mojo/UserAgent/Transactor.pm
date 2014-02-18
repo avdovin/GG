@@ -13,12 +13,8 @@ use Mojo::Transaction::WebSocket;
 use Mojo::URL;
 use Mojo::Util 'encode';
 
-has generators => sub { {} };
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  return $self->add_generator(form => \&_form)->add_generator(json => \&_json);
-}
+has generators => sub { {form => \&_form, json => \&_json} };
+has name => 'Mojolicious (Perl)';
 
 sub add_generator {
   my ($self, $name, $cb) = @_;
@@ -84,16 +80,20 @@ sub redirect {
   $location = $location->base($old->req->url)->to_abs unless $location->is_abs;
 
   # Clone request if necessary
-  my $new    = Mojo::Transaction::HTTP->new;
-  my $req    = $old->req;
-  my $method = uc $req->method;
-  if ($code eq 301 || $code eq 307 || $code eq 308) {
-    return undef unless my $req = $req->clone;
-    $new->req($req);
-    $req->headers->remove('Host')->remove('Cookie')->remove('Referer');
+  my $new = Mojo::Transaction::HTTP->new;
+  my $req = $old->req;
+  if ($code eq 307 || $code eq 308) {
+    return undef unless my $clone = $req->clone;
+    $new->req($clone);
   }
-  elsif ($method ne 'HEAD') { $method = 'GET' }
-  $new->req->method($method)->url($location);
+  else {
+    my $method = uc $req->method;
+    my $headers = $new->req->method($method eq 'POST' ? 'GET' : $method)
+      ->content->headers($req->headers->clone)->headers;
+    $headers->remove($_) for grep {/^content-/i} @{$headers->names};
+  }
+  my $headers = $new->req->url($location)->headers;
+  $headers->remove($_) for qw(Authorization Cookie Host Referer);
   return $new->previous($old);
 }
 
@@ -107,8 +107,11 @@ sub tx {
   $url = "http://$url" unless $url =~ m!^/|://!;
   ref $url ? $req->url($url) : $req->url->parse($url);
 
-  # Headers
-  $req->headers->from_hash(shift) if ref $_[0] eq 'HASH';
+  # Headers (we identify ourselves and accept gzip compression)
+  my $headers = $req->headers;
+  $headers->from_hash(shift) if ref $_[0] eq 'HASH';
+  $headers->user_agent($self->name) unless $headers->user_agent;
+  $headers->accept_encoding('gzip') unless $headers->accept_encoding;
 
   # Generator
   if (@_ > 1) {
@@ -290,19 +293,21 @@ L<Mojo::UserAgent::Transactor> implements the following attributes.
   my $generators = $t->generators;
   $t             = $t->generators({foo => sub {...}});
 
-Registered content generators.
+Registered content generators, by default only C<form> and C<json> are already
+defined.
+
+=head2 name
+
+  my $name = $t->name;
+  $t       = $t->name('Mojolicious');
+
+Value for C<User-Agent> request header of generated transactions, defaults to
+C<Mojolicious (Perl)>.
 
 =head1 METHODS
 
 L<Mojo::UserAgent::Transactor> inherits all methods from L<Mojo::Base> and
 implements the following new ones.
-
-=head2 new
-
-  my $t = Mojo::UserAgent::Transactor->new;
-
-Construct a new transactor and register C<form> and C<json> content
-generators.
 
 =head2 add_generator
 
@@ -379,9 +384,9 @@ requests, with support for content generators.
   my $tx = $t->tx(
     POST => 'http://example.com' => form => {a => 'b', c => 'd'});
 
-  # PUT request with UTF-8 encoded form values
+  # PUT request with Shift_JIS encoded form values
   my $tx = $t->tx(
-    PUT => 'http://example.com' => form => {a => 'b'} => charset => 'UTF-8');
+    PUT => 'example.com' => form => {a => 'b'} => charset => 'Shift_JIS');
 
   # POST request with form values sharing the same name
   my $tx = $t->tx(POST => 'http://example.com' => form => {a => [qw(b c d)]});

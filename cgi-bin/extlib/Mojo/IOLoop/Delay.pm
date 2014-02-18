@@ -23,12 +23,14 @@ sub wait {
   my $self = shift;
 
   my @args;
-  $self->once(error => sub { shift->ioloop->stop });
+  $self->once(error => \&_die);
   $self->once(finish => sub { shift->ioloop->stop; @args = @_ });
   $self->ioloop->start;
 
   return wantarray ? @args : $args[0];
 }
+
+sub _die { $_[0]->has_subscribers('error') ? $_[0]->ioloop->stop : die $_[1] }
 
 sub _step {
   my ($self, $id) = (shift, shift);
@@ -82,7 +84,7 @@ Mojo::IOLoop::Delay - Manage callbacks and control the flow of events
       say 'Second step in 2 seconds.';
     },
 
-    # Second step (parallel timers)
+    # Second step (concurrent timers)
     sub {
       my ($delay, @args) = @_;
       Mojo::IOLoop->timer(1 => $delay->begin);
@@ -101,7 +103,8 @@ Mojo::IOLoop::Delay - Manage callbacks and control the flow of events
 =head1 DESCRIPTION
 
 L<Mojo::IOLoop::Delay> manages callbacks and controls the flow of events for
-L<Mojo::IOLoop>.
+L<Mojo::IOLoop>, which can help you avoid deep nested closures that often
+result from continuation-passing style.
 
 =head1 EVENTS
 
@@ -115,7 +118,8 @@ emit the following new ones.
     ...
   });
 
-Emitted if an error occurs in one of the steps, breaking the chain.
+Emitted if an error occurs in one of the steps, breaking the chain, fatal if
+unhandled.
 
 =head2 finish
 
@@ -151,8 +155,8 @@ implements the following new ones.
 
 Increment active event counter, the returned callback can be used to decrement
 the active event counter again. Arguments passed to the callback are queued in
-the right order for the next step or C<finish> event and C<wait> method, the
-first argument will be ignored by default.
+the right order for the next step or L</"finish"> event and L</"wait"> method,
+the first argument will be ignored by default.
 
   # Capture all arguments
   my $delay = Mojo::IOLoop->delay;
@@ -173,8 +177,8 @@ event counter or an error occurs in a callback.
   my $arg  = $delay->wait;
   my @args = $delay->wait;
 
-Start C<ioloop> and stop it again once an C<error> or C<finish> event gets
-emitted, only works when C<ioloop> is not running already.
+Start L</"ioloop"> and stop it again once an L</"error"> or L</"finish"> event
+gets emitted, only works when L</"ioloop"> is not running already.
 
   # Use the "finish" event to synchronize portably
   $delay->on(finish => sub {

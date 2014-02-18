@@ -2,7 +2,8 @@ package Mojolicious::Plugin::DefaultHelpers;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::ByteStream;
-use Mojo::Util 'dumper';
+use Mojo::Collection;
+use Mojo::Util qw(dumper sha1_sum steady_time);
 
 sub register {
   my ($self, $app) = @_;
@@ -25,14 +26,23 @@ sub register {
     );
   }
 
+  $app->helper(accepts => \&_accepts);
+  $app->helper(b       => sub { shift; Mojo::ByteStream->new(@_) });
+  $app->helper(c       => sub { shift; Mojo::Collection->new(@_) });
   $app->helper(config => sub { shift->app->config(@_) });
   $app->helper(content       => \&_content);
   $app->helper(content_for   => \&_content_for);
+  $app->helper(csrf_token    => \&_csrf_token);
   $app->helper(current_route => \&_current_route);
   $app->helper(dumper        => sub { shift; dumper(@_) });
   $app->helper(include       => \&_include);
   $app->helper(ua => sub { shift->app->ua });
   $app->helper(url_with => \&_url_with);
+}
+
+sub _accepts {
+  my $self = shift;
+  return $self->app->renderer->accepts($self, @_);
 }
 
 sub _content {
@@ -41,7 +51,7 @@ sub _content {
 
   # Set (first come)
   my $c = $self->stash->{'mojo.content'} ||= {};
-  $c->{$name} ||= ref $content eq 'CODE' ? $content->() : $content
+  $c->{$name} //= ref $content eq 'CODE' ? $content->() : $content
     if defined $content;
 
   # Get
@@ -55,6 +65,12 @@ sub _content_for {
   return $c->{$name} .= ref $content eq 'CODE' ? $content->() : $content;
 }
 
+sub _csrf_token {
+  my $self = shift;
+  $self->session->{csrf_token}
+    ||= sha1_sum($self->app->secrets->[0] . steady_time . rand 999);
+}
+
 sub _current_route {
   return '' unless my $endpoint = shift->match->endpoint;
   return $endpoint->name unless @_;
@@ -62,20 +78,15 @@ sub _current_route {
 }
 
 sub _include {
-  my $self     = shift;
-  my $template = @_ % 2 ? shift : undef;
-  my $args     = {@_};
-  $args->{template} = $template if defined $template;
+  my $self = shift;
 
-  # "layout" and "extends" can't be localized
-  my $layout  = delete $args->{layout};
-  my $extends = delete $args->{extends};
+  # Template may be first argument
+  my ($template, $args) = (@_ % 2 ? shift : undef, {@_});
+  $args->{template} = $template if $template;
 
   # Localize arguments
-  my @keys = keys %$args;
-  local @{$self->stash}{@keys} = @{$args}{@keys};
-
-  return $self->render(partial => 1, layout => $layout, extend => $extends);
+  local @{$self->stash}{keys %$args};
+  return $self->render(partial => 1, %$args);
 }
 
 sub _url_with {
@@ -107,15 +118,53 @@ L<Mojolicious>.
 This is a core plugin, that means it is always enabled and its code a good
 example for learning to build new plugins, you're welcome to fork it.
 
+See L<Mojolicious::Plugins/"PLUGINS"> for a list of plugins that are available
+by default.
+
 =head1 HELPERS
 
 L<Mojolicious::Plugin::DefaultHelpers> implements the following helpers.
 
+=head2 accepts
+
+  %= accepts->[0] // 'html'
+  %= accepts('html', 'json', 'txt') // 'html'
+
+Select best possible representation for resource from C<Accept> request
+header, C<format> stash value or C<format> GET/POST parameter with
+L<Mojolicious::Renderer/"accepts">, defaults to returning the first extension
+if no preference could be detected.
+
+  # Check if JSON is acceptable
+  $self->render(json => {hello => 'world'}) if $self->accepts('json');
+
+  # Check if JSON was specifically requested
+  $self->render(json => {hello => 'world'}) if $self->accepts('', 'json');
+
+  # Unsupported representation
+  $self->render(data => '', status => 204)
+    unless my $format = $self->accepts('html', 'json');
+
+  # Detected representations to select from
+  my @formats = @{$self->accepts};
+
 =head2 app
 
-  %= app->secret
+  %= app->secrets->[0]
 
 Alias for L<Mojolicious::Controller/"app">.
+
+=head2 b
+
+  %= b('test 123')->b64_encode
+
+Turn string into a L<Mojo::ByteStream> object.
+
+=head2 c
+
+  %= c(qw(a b c))->shuffle->join
+
+Turn list into a L<Mojo::Collection> object.
 
 =head2 config
 
@@ -133,7 +182,10 @@ Alias for L<Mojo/"config">.
   %= content 'bar'
   %= content
 
-Store partial rendered content in named buffer and retrieve it.
+Store partial rendered content in named buffer and retrieve it, defaults to
+retrieving the named buffer C<content>, which is commonly used for the
+renderers C<layout> and C<extends> features. Note that new content will be
+ignored if the named buffer is already in use.
 
 =head2 content_for
 
@@ -142,7 +194,8 @@ Store partial rendered content in named buffer and retrieve it.
   % end
   %= content_for 'foo'
 
-Append partial rendered content to named buffer and retrieve it.
+Append partial rendered content to named buffer and retrieve it. Note that
+named buffers are shared with the L</"content"> helper.
 
   % content_for message => begin
     Hello
@@ -151,6 +204,12 @@ Append partial rendered content to named buffer and retrieve it.
     world!
   % end
   %= content_for 'message'
+
+=head2 csrf_token
+
+  %= csrf_token
+
+Get CSRF token from L</"session">, and generate one if none exists.
 
 =head2 current_route
 
@@ -172,7 +231,7 @@ Dump a Perl data structure with L<Mojo::Util/"dumper">.
   % extends 'blue';
   % extends 'blue', title => 'Blue!';
 
-Extend a template. All additional values get merged into the C<stash>.
+Extend a template. All additional values get merged into the L</"stash">.
 
 =head2 flash
 
@@ -194,7 +253,7 @@ only available in the partial template.
   % layout 'green', title => 'Green!';
 
 Render this template with a layout. All additional values get merged into the
-C<stash>.
+L</"stash">.
 
 =head2 param
 
@@ -223,7 +282,7 @@ Alias for L<Mojolicious::Controller/"stash">.
   % title 'Welcome!', foo => 'bar';
   %= title
 
-Page title. All additional values get merged into the C<stash>.
+Page title. All additional values get merged into the L</"stash">.
 
 =head2 ua
 
@@ -241,7 +300,7 @@ Alias for L<Mojolicious::Controller/"url_for">.
 
   %= url_with 'named', controller => 'bar', action => 'baz'
 
-Does the same as C<url_for>, but inherits query parameters from the current
+Does the same as L</"url_for">, but inherits query parameters from the current
 request.
 
   %= url_with->query([page => 2])

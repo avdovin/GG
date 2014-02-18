@@ -25,10 +25,12 @@
       pre {
         background: url(<%= url_for '/mojo/stripes.png' %>);
         border: 1px solid #d1d1d1;
+        border-radius: 3px;
         box-shadow: 0 1px #fff, inset -1px 1px 4px rgba(0, 0, 0, 0.1);
         color: #4d4d4c;
         font: 0.9em Consolas, Menlo, Monaco, Courier, monospace;
         line-height: 1.5em;
+        padding: 1em;
         padding-bottom: 1.5em;
         padding-top: 1.5em;
         text-align: left;
@@ -59,9 +61,6 @@
   </head>
   <body>
     %= include inline => app->renderer->_bundled('mojobar')
-    % my $link = begin
-      %= link_to shift, shift, class => "mojoscroll"
-    % end
     <div id="wrapperlicious">
       <div id="perldoc">
         <div id="source">
@@ -77,11 +76,11 @@
         <ul>
           % for my $part (@$parts) {
             <li>
-              %= $link->(splice @$part, 0, 2)
+              %= link_to splice(@$part, 0, 2)
               % if (@$part) {
                 <ul>
                   % while (@$part) {
-                    <li><%= $link->(splice @$part, 0, 2) %></li>
+                    <li><%= link_to splice(@$part, 0, 2) %></li>
                   % }
                 </ul>
               % }

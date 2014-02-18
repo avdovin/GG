@@ -19,7 +19,7 @@ my %ESCAPE = (
   '"'     => '"',
   '\\'    => '\\',
   '/'     => '/',
-  'b'     => "\x07",
+  'b'     => "\x08",
   'f'     => "\x0c",
   'n'     => "\x0a",
   'r'     => "\x0d",
@@ -28,7 +28,7 @@ my %ESCAPE = (
   'u2029' => "\x{2029}"
 );
 my %REVERSE = map { $ESCAPE{$_} => "\\$_" } keys %ESCAPE;
-for (0x00 .. 0x1f, 0x7f) { $REVERSE{pack 'C', $_} //= sprintf '\u%.4X', $_ }
+for (0x00 .. 0x1f) { $REVERSE{pack 'C', $_} //= sprintf '\u%.4X', $_ }
 
 # Unicode encoding detection
 my $UTF_PATTERNS = {
@@ -96,10 +96,7 @@ sub decode {
   return $res;
 }
 
-sub encode {
-  my ($self, $ref) = @_;
-  return Mojo::Util::encode 'UTF-8', _encode_value($ref);
-}
+sub encode { Mojo::Util::encode 'UTF-8', _encode_value($_[1]) }
 
 sub false {$FALSE}
 
@@ -262,7 +259,7 @@ sub _encode_object {
 
 sub _encode_string {
   my $str = shift;
-  $str =~ s!([\x00-\x1f\x7f\x{2028}\x{2029}\\"/\b\f\n\r\t])!$REVERSE{$1}!gs;
+  $str =~ s!([\x00-\x1f\x{2028}\x{2029}\\"/])!$REVERSE{$1}!gs;
   return "\"$str\"";
 }
 
@@ -308,7 +305,7 @@ sub _exception {
   my $context = 'Malformed JSON: ' . shift;
   if (m/\G\z/gc) { $context .= ' before end of data' }
   else {
-    my @lines = split /\n/, substr($_, 0, pos);
+    my @lines = split "\n", substr($_, 0, pos);
     $context .= ' at line ' . @lines . ', offset ' . length(pop @lines || '');
   }
 
@@ -329,8 +326,9 @@ Mojo::JSON - Minimalistic JSON
 
 =head1 SYNOPSIS
 
-  # Encode and decode JSON
   use Mojo::JSON;
+
+  # Encode and decode JSON
   my $json  = Mojo::JSON->new;
   my $bytes = $json->encode({foo => [1, 2], bar => 'hello!', baz => \1});
   my $hash  = $json->decode($bytes);
@@ -347,9 +345,8 @@ Mojo::JSON - Minimalistic JSON
 
 =head1 DESCRIPTION
 
-L<Mojo::JSON> is a minimalistic and relaxed implementation of RFC 4627. While
-it is possibly the fastest pure-Perl JSON parser available, you should not use
-it for validation.
+L<Mojo::JSON> is a minimalistic and possibly the fastest pure-Perl
+implementation of L<RFC 4627|http://tools.ietf.org/html/rfc4627>.
 
 It supports normal Perl data types like C<Scalar>, C<Array> reference, C<Hash>
 reference and will try to call the C<TO_JSON> method on blessed references, or
@@ -381,7 +378,8 @@ C<u2028> and C<u2029> will always be escaped to make JSONP easier.
 
 =head1 FUNCTIONS
 
-L<Mojo::JSON> implements the following functions.
+L<Mojo::JSON> implements the following functions, which can be imported
+individually.
 
 =head2 j
 

@@ -182,11 +182,11 @@ sub _spawn {
           my $old = Time::HiRes::ualarm $self->lock_timeout * 1000000;
           $lock = flock $handle, LOCK_EX;
           Time::HiRes::ualarm $old;
-        };
-        if ($@) { $lock = $@ eq "alarm\n" ? 0 : die($@) }
+          1;
+        } or $lock = $@ eq "alarm\n" ? 0 : die $@;
       }
 
-      # Non blocking
+      # Non-blocking
       else { $lock = flock $handle, LOCK_EX | LOCK_NB }
 
       return $lock;
@@ -260,53 +260,46 @@ loop support. Note that the server uses signals for process management, so you
 should avoid modifying signal handlers in your applications.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
-support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
+support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
 L<IO::Socket::SSL> (1.75+) will be used automatically by L<Mojo::IOLoop> if
 they are installed. Individual features can also be disabled with the
 MOJO_NO_IPV6 and MOJO_NO_TLS environment variables.
 
-See L<Mojolicious::Guides::Cookbook> for more.
+See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
-=head1 SIGNALS
+=head1 MANAGER SIGNALS
 
-L<Mojo::Server::Prefork> can be controlled at runtime with the following
-signals.
+The L<Mojo::Server::Prefork> manager process can be controlled at runtime with
+the following signals.
 
-=head2 Manager
-
-=over 2
-
-=item INT, TERM
+=head2 INT, TERM
 
 Shutdown server immediately.
 
-=item QUIT
+=head2 QUIT
 
 Shutdown server gracefully.
 
-=item TTIN
+=head2 TTIN
 
 Increase worker pool by one.
 
-=item TTOU
+=head2 TTOU
 
 Decrease worker pool by one.
 
-=back
+=head1 WORKER SIGNALS
 
-=head2 Worker
+L<Mojo::Server::Prefork> worker processes can be controlled at runtime with
+the following signals.
 
-=over 2
-
-=item INT, TERM
+=head2 INT, TERM
 
 Stop worker immediately.
 
-=item QUIT
+=head2 QUIT
 
 Stop worker gracefully.
-
-=back
 
 =head1 EVENTS
 
@@ -469,7 +462,10 @@ Full path of process id file, defaults to a random temporary path.
   $prefork    = $prefork->workers(10);
 
 Number of worker processes, defaults to C<4>. A good rule of thumb is two
-worker processes per CPU core.
+worker processes per CPU core for applications that perform mostly
+non-blocking operations, blocking operations often require more and benefit
+from decreasing the number of concurrent L<Mojo::Server::Daemon/"clients">
+(often as low as C<1>).
 
 =head1 METHODS
 
@@ -480,8 +476,8 @@ implements the following new ones.
 
   my $pid = $prefork->check_pid;
 
-Get process id for running server from C<pid_file> or delete it if server is
-not running.
+Get process id for running server from L</"pid_file"> or delete it if server
+is not running.
 
   say 'Server is not running' unless $prefork->check_pid;
 

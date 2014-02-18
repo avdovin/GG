@@ -15,30 +15,31 @@ has log  => sub { Mojo::Log->new };
 has ua   => sub {
   my $self = shift;
 
-  my $ua = Mojo::UserAgent->new->app($self);
+  my $ua = Mojo::UserAgent->new;
+  weaken $ua->server->app($self)->{app};
   weaken $self;
   $ua->on(error => sub { $self->log->error($_[1]) });
-  weaken $ua->{app};
 
   return $ua;
 };
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-
-  # Check if we have a log directory
-  my $home = $self->home->detect(ref $self);
-  $self->log->path($home->rel_file('log/mojo.log'))
-    if -w $home->rel_file('log');
-
-  return $self;
-}
 
 sub build_tx { Mojo::Transaction::HTTP->new }
 
 sub config { shift->_dict(config => @_) }
 
 sub handler { croak 'Method "handler" not implemented in subclass' }
+
+sub new {
+  my $self = shift->SUPER::new(@_);
+
+  # Check if we have a log directory
+  my $home = $self->home;
+  $home->detect(ref $self) unless @{$home->parts};
+  $self->log->path($home->rel_file('log/mojo.log'))
+    if -w $home->rel_file('log');
+
+  return $self;
+}
 
 sub _dict {
   my ($self, $name) = (shift, shift);
@@ -139,13 +140,6 @@ interfere with new blocking ones.
 L<Mojo> inherits all methods from L<Mojo::Base> and implements the following
 new ones.
 
-=head2 new
-
-  my $app = Mojo->new;
-
-Construct a new L<Mojo> application. Will automatically detect your home
-directory and set up logging to C<log/mojo.log> if there's a C<log> directory.
-
 =head2 build_tx
 
   my $tx = $app->build_tx;
@@ -178,6 +172,14 @@ be overloaded in a subclass.
     my ($self, $tx) = @_;
     ...
   }
+
+=head2 new
+
+  my $app = Mojo->new;
+
+Construct a new L<Mojo> application. Will automatically detect your home
+directory if necessary and set up logging to C<log/mojo.log> if there's a
+C<log> directory.
 
 =head1 SEE ALSO
 

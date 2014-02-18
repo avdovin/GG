@@ -29,17 +29,17 @@ sub load {
 }
 
 sub search {
-  my ($self, $namespace) = @_;
+  my ($self, $ns) = @_;
 
   my (@modules, %found);
   for my $directory (@INC) {
-    next unless -d (my $path = catdir $directory, split(/::|'/, $namespace));
+    next unless -d (my $path = catdir $directory, split(/::|'/, $ns));
 
     # List "*.pm" files in directory
     opendir(my $dir, $path);
     for my $file (grep /\.pm$/, readdir $dir) {
       next if -d catfile splitdir($path), $file;
-      my $class = "${namespace}::" . fileparse $file, qr/\.pm/;
+      my $class = "${ns}::" . fileparse $file, qr/\.pm/;
       push @modules, $class unless $found{$class}++;
     }
   }
@@ -50,12 +50,10 @@ sub search {
 sub _all {
   my $class = shift;
 
-  # Refresh or use cached data
   my $handle = do { no strict 'refs'; \*{"${class}::DATA"} };
-  return $CACHE{$class} || {} unless fileno $handle;
+  return $CACHE{$class} || {} if $CACHE{$class} || !fileno $handle;
   seek $handle, 0, 0;
   my $data = join '', <$handle>;
-  close $handle;
 
   # Ignore everything before __DATA__ (Windows will seek to start of file)
   $data =~ s/^.*\n__DATA__\r?\n/\n/s;
@@ -64,8 +62,7 @@ sub _all {
   $data =~ s/\n__END__\r?\n.*$/\n/s;
 
   # Split files
-  my @files = split /^@@\s*(.+?)\s*\r?\n/m, $data;
-  shift @files;
+  (undef, my @files) = split /^@@\s*(.+?)\s*\r?\n/m, $data;
 
   # Find data
   my $all = $CACHE{$class} = {};

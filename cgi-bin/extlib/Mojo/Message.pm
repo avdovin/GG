@@ -28,7 +28,7 @@ sub body {
   # Get
   return $content->asset->slurp unless @_;
 
-  # Set raw content
+  # Set
   $content->asset(Mojo::Asset::Memory->new->add_chunk(@_));
 
   return $self;
@@ -277,9 +277,9 @@ sub _parse_formdata {
     }
 
     next unless my $disposition = $part->headers->content_disposition;
-    my ($filename) = $disposition =~ /[; ]filename\s*=\s*"?([^"]*)"?/;
+    my ($filename) = $disposition =~ /[; ]filename\s*=\s*"?((?:\\"|[^"])*)"?/i;
     next if ($upload && !defined $filename) || (!$upload && defined $filename);
-    my ($name) = $disposition =~ /[; ]name\s*=\s*"?([^";]+)"?/;
+    my ($name) = $disposition =~ /[; ]name\s*=\s*"?((?:\\"|[^";])+)"?/i;
     if ($charset) {
       $name     = decode($charset, $name)     // $name     if $name;
       $filename = decode($charset, $filename) // $filename if $filename;
@@ -315,8 +315,9 @@ Mojo::Message - HTTP message base class
 
 =head1 DESCRIPTION
 
-L<Mojo::Message> is an abstract base class for HTTP messages as described in
-RFC 2616 and RFC 2388.
+L<Mojo::Message> is an abstract base class for HTTP messages based on
+L<RFC 2616|http://tools.ietf.org/html/rfc2616> as well as
+L<RFC 2388|http://tools.ietf.org/html/rfc2388>.
 
 =head1 EVENTS
 
@@ -396,8 +397,8 @@ Maximum message size in bytes, defaults to the value of the
 MOJO_MAX_MESSAGE_SIZE environment variable or C<10485760>. Setting the value
 to C<0> will allow messages of indefinite size. Note that increasing this
 value can also drastically increase memory usage, should you for example
-attempt to parse an excessively large message body with the C<body_params>,
-C<dom> or C<json> methods.
+attempt to parse an excessively large message body with the L</"body_params">,
+L</"dom"> or L</"json"> methods.
 
 =head2 version
 
@@ -416,8 +417,8 @@ implements the following new ones.
   my $bytes = $msg->body;
   $msg      = $msg->body('Hello!');
 
-Slurp or replace C<content>, L<Mojo::Content::MultiPart> will be automatically
-downgraded to L<Mojo::Content::Single>.
+Slurp or replace L</"content">, L<Mojo::Content::MultiPart> will be
+automatically downgraded to L<Mojo::Content::Single>.
 
 =head2 body_params
 
@@ -481,11 +482,11 @@ Access message cookies. Meant to be overloaded in a subclass.
   my $collection = $msg->dom('a[href]');
 
 Turns message body into a L<Mojo::DOM> object and takes an optional selector
-to perform a C<find> on it right away, which returns a L<Mojo::Collection>
-object. Note that this method caches all data, so it should not be called
-before the entire message body has been received. The whole message body needs
-to be loaded into memory to parse it, so you have to make sure it is not
-excessively large.
+to call the method L<Mojo::DOM/"find"> on it right away, which returns a
+L<Mojo::Collection> object. Note that this method caches all data, so it
+should not be called before the entire message body has been received. The
+whole message body needs to be loaded into memory to parse it, so you have to
+make sure it is not excessively large.
 
   # Perform "find" right away
   say $msg->dom('h1, h2, h3')->text;
@@ -562,7 +563,7 @@ Check if message parser/generator is finished.
 
   my $bool = $msg->is_limit_exceeded;
 
-Check if message has exceeded C<max_line_size> or C<max_message_size>.
+Check if message has exceeded L</"max_line_size"> or L</"max_message_size">.
 
 =head2 json
 
@@ -608,7 +609,7 @@ Size of the start line in bytes.
 
   my $str = $msg->text;
 
-Retrieve C<body> and try to decode it if a charset could be extracted with
+Retrieve L</"body"> and try to decode it if a charset could be extracted with
 L<Mojo::Content/"charset">.
 
 =head2 to_string

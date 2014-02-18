@@ -169,7 +169,9 @@ loop and hot deployment support that just works. Note that the server uses
 signals for process management, so you should avoid modifying signal handlers
 in your applications.
 
-To start applications with it you can use the L<hypnotoad> script.
+To start applications with it you can use the L<hypnotoad> script, for
+L<Mojolicious> and L<Mojolicious::Lite> applications it will default to
+C<production> mode.
 
   $ hypnotoad myapp.pl
   Server available at http://127.0.0.1:8080.
@@ -179,43 +181,39 @@ You can run the same command again for automatic hot deployment.
   $ hypnotoad myapp.pl
   Starting hot deployment for Hypnotoad server 31841.
 
-For L<Mojolicious> and L<Mojolicious::Lite> applications it will default to
-C<production> mode.
+This second invocation will load the application again, detect the process id
+file with it, and send a L</"USR2"> signal to the already running server.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
-support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.16+) and
+support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
 L<IO::Socket::SSL> (1.75+) will be used automatically by L<Mojo::IOLoop> if
 they are installed. Individual features can also be disabled with the
 MOJO_NO_IPV6 and MOJO_NO_TLS environment variables.
 
-See L<Mojolicious::Guides::Cookbook> for more.
+See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
-=head1 SIGNALS
+=head1 MANAGER SIGNALS
 
-L<Mojo::Server::Hypnotoad> can be controlled at runtime with the following
-signals.
+The L<Mojo::Server::Hypnotoad> manager process can be controlled at runtime
+with the following signals.
 
-=head2 Manager
-
-=over 2
-
-=item INT, TERM
+=head2 INT, TERM
 
 Shutdown server immediately.
 
-=item QUIT
+=head2 QUIT
 
 Shutdown server gracefully.
 
-=item TTIN
+=head2 TTIN
 
 Increase worker pool by one.
 
-=item TTOU
+=head2 TTOU
 
 Decrease worker pool by one.
 
-=item USR2
+=head2 USR2
 
 Attempt zero downtime software upgrade (hot deployment) without losing any
 incoming connections.
@@ -231,24 +229,21 @@ incoming connections.
      |- Worker [3]
      +- Worker [4]
 
-The new manager will automatically send a C<QUIT> signal to the old manager
+The new manager will automatically send a L</"QUIT"> signal to the old manager
 and take over serving requests after starting up successfully.
 
-=back
+=head1 WORKER SIGNALS
 
-=head2 Worker
+L<Mojo::Server::Hypnotoad> worker processes can be controlled at runtime with
+the following signals.
 
-=over 2
-
-=item INT, TERM
+=head2 INT, TERM
 
 Stop worker immediately.
 
-=item QUIT
+=head2 QUIT
 
 Stop worker gracefully.
-
-=back
 
 =head1 SETTINGS
 
@@ -283,9 +278,10 @@ Listen backlog size, defaults to C<SOMAXCONN>.
 
   clients => 100
 
-Maximum number of parallel client connections per worker process, defaults to
-C<1000>. Note that depending on how much your application may block, you might
-want to decrease this value and increase C<workers> instead for better
+Maximum number of concurrent client connections per worker process, defaults
+to C<1000>. Note that high concurrency works best with applications that
+perform mostly non-blocking operations, to optimize for blocking operations
+you can decrease this value and increase L</"workers"> instead for better
 performance.
 
 =head2 graceful_timeout
@@ -390,7 +386,9 @@ Username for worker processes.
   workers => 10
 
 Number of worker processes, defaults to C<4>. A good rule of thumb is two
-worker processes per CPU core.
+worker processes per CPU core for applications that perform mostly
+non-blocking operations, blocking operations often require more and benefit
+from decreasing the number of concurrent L</"clients"> (often as low as C<1>).
 
 =head1 METHODS
 

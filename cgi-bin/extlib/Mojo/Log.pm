@@ -17,17 +17,13 @@ has handle => sub {
   # STDERR
   return \*STDERR;
 };
+has history => sub { [] };
 has level => 'debug';
+has max_history_size => 10;
 has 'path';
 
 # Supported log level
 my $LEVEL = {debug => 1, info => 2, warn => 3, error => 4, fatal => 5};
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  $self->on(message => \&_message);
-  return $self;
-}
 
 sub debug { shift->log(debug => @_) }
 sub error { shift->log(error => @_) }
@@ -55,12 +51,23 @@ sub is_warn { shift->is_level('warn') }
 
 sub log { shift->emit('message', lc(shift), @_) }
 
+sub new {
+  my $self = shift->SUPER::new(@_);
+  $self->on(message => \&_message);
+  return $self;
+}
+
 sub warn { shift->log(warn => @_) }
 
 sub _message {
   my ($self, $level) = (shift, shift);
 
   return unless $self->is_level($level) && (my $handle = $self->handle);
+
+  my $max     = $self->max_history_size;
+  my $history = $self->history;
+  push @$history, [time, $level, @_];
+  shift @$history while @$history > $max;
 
   flock $handle, LOCK_EX;
   $handle->print($self->format($level, @_)) or croak "Can't write to log: $!";
@@ -125,51 +132,44 @@ L<Mojo::Log> implements the following attributes.
   my $handle = $log->handle;
   $log       = $log->handle(IO::Handle->new);
 
-Log filehandle used by default C<message> event, defaults to opening C<path>
-or C<STDERR>.
+Log filehandle used by default L</"message"> event, defaults to opening
+L</"path"> or C<STDERR>.
+
+=head2 history
+
+  my $history = $log->history;
+  $log        = $log->history([[time, 'debug', 'That went wrong.']]);
+
+The last few logged messages.
 
 =head2 level
 
   my $level = $log->level;
   $log      = $log->level('debug');
 
-Active log level, defaults to C<debug>. Note that the MOJO_LOG_LEVEL
-environment variable can override this value.
+Active log level, defaults to C<debug>. Available log levels are C<debug>,
+C<info>, C<warn>, C<error> and C<fatal>, in that order. Note that the
+MOJO_LOG_LEVEL environment variable can override this value.
 
-These levels are currently available:
+=head2 max_history_size
 
-=over 2
+  my $size = $log->max_history_size;
+  $log     = $log->max_history_size(5);
 
-=item debug
-
-=item info
-
-=item warn
-
-=item error
-
-=item fatal
-
-=back
+Maximum number of logged messages to store in L</"history">, defaults to
+C<10>.
 
 =head2 path
 
   my $path = $log->path
   $log     = $log->path('/var/log/mojo.log');
 
-Log file path used by C<handle>.
+Log file path used by L</"handle">.
 
 =head1 METHODS
 
 L<Mojo::Log> inherits all methods from L<Mojo::EventEmitter> and implements
 the following new ones.
-
-=head2 new
-
-  my $log = Mojo::Log->new;
-
-Construct a new L<Mojo::Log> object and subscribe to C<message> event with
-default logger.
 
 =head2 debug
 
@@ -247,7 +247,14 @@ Check for warn log level.
   $log = $log->log(debug => 'This should work.');
   $log = $log->log(debug => 'This', 'too!');
 
-Emit C<message> event.
+Emit L</"message"> event.
+
+=head2 new
+
+  my $log = Mojo::Log->new;
+
+Construct a new L<Mojo::Log> object and subscribe to L</"message"> event with
+default logger.
 
 =head2 warn
 

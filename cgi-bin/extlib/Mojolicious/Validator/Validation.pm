@@ -4,13 +4,13 @@ use Mojo::Base -base;
 use Carp 'croak';
 use Scalar::Util 'blessed';
 
+has [qw(csrf_token topic validator)];
 has [qw(input output)] => sub { {} };
-has [qw(topic validator)];
 
 sub AUTOLOAD {
   my $self = shift;
 
-  my ($package, $method) = our $AUTOLOAD =~ /^([\w:]+)::(\w+)$/;
+  my ($package, $method) = split /::(\w+)$/, our $AUTOLOAD;
   croak "Undefined subroutine &${package}::$method called"
     unless blessed $self && $self->isa(__PACKAGE__);
 
@@ -31,15 +31,27 @@ sub check {
   my $input = $self->input->{$name};
   for my $value (ref $input eq 'ARRAY' ? @$input : $input) {
     next unless my $result = $self->$cb($name, $value, @_);
-    delete $self->output->{$name};
-    $self->{error}{$name} = [$check, $result, @_];
-    last;
+    return $self->error($name => [$check, $result, @_]);
   }
 
   return $self;
 }
 
-sub error { shift->{error}{shift()} }
+sub csrf_protect {
+  my $self  = shift;
+  my $token = $self->input->{csrf_token};
+  $self->error(csrf_token => ['csrf_protect'])
+    unless $token && $token eq ($self->csrf_token // '');
+  return $self;
+}
+
+sub error {
+  my ($self, $name) = (shift, shift);
+  return $self->{error}{$name} unless @_;
+  $self->{error}{$name} = shift;
+  delete $self->output->{$name};
+  return $self;
+}
 
 sub has_data { !!keys %{shift->input} }
 
@@ -74,8 +86,8 @@ sub param {
 
 sub required {
   my ($self, $name) = @_;
-  $self->{error}{$name} = ['required'] unless $self->optional($name)->is_valid;
-  return $self;
+  return $self if $self->optional($name)->is_valid;
+  return $self->error($name => ['required']);
 }
 
 1;
@@ -106,6 +118,13 @@ validation checks.
 =head1 ATTRIBUTES
 
 L<Mojolicious::Validator::Validation> implements the following attributes.
+
+=head2 csrf_token
+
+  my $token   = $validation->token;
+  $validation = $validation->token('fa6a08...');
+
+CSRF token.
 
 =head2 input
 
@@ -144,15 +163,22 @@ and implements the following new ones.
 
   $validation = $validation->check('size', 2, 7);
 
-Perform validation check on all values of the current C<topic>, no more checks
-will be performend on them after the first one failed.
+Perform validation check on all values of the current L</"topic">, no more
+checks will be performed on them after the first one failed.
+
+=head2 csrf_protect
+
+  $validation = $validation->csrf_protect;
+
+Validate C<csrf_token> and protect from cross-site request forgery.
 
 =head2 error
 
-  my $err = $validation->error('foo');
+  my $err     = $validation->error('foo');
+  $validation = $validation->error(foo => ['custom_check']);
 
-Return details about failed validation check, at any given time there can only
-be one per field.
+Get or set details for failed validation check, at any given time there can
+only be one per field.
 
   my ($check, $result, @args) = @{$validation->error('foo')};
 
@@ -160,7 +186,7 @@ be one per field.
 
   my $bool = $validation->has_data;
 
-Check if C<input> is available for validation.
+Check if L</"input"> is available for validation.
 
 =head2 has_error
 
@@ -175,13 +201,13 @@ Check if validation resulted in errors, defaults to checking all fields.
   my $bool = $validation->is_valid('foo');
 
 Check if validation was successful and field has a value, defaults to checking
-the current C<topic>.
+the current L</"topic">.
 
 =head2 optional
 
   $validation = $validation->optional('foo');
 
-Change validation C<topic>.
+Change validation L</"topic">.
 
 =head2 param
 
@@ -196,14 +222,14 @@ Access validated parameters, similar to L<Mojolicious::Controller/"param">.
 
   $validation = $validation->required('foo');
 
-Change validation C<topic> and make sure a value is present and not an empty
-string.
+Change validation L</"topic"> and make sure a value is present and not an
+empty string.
 
-=head1 CHECKS
+=head1 AUTOLOAD
 
-In addition to the methods above, you can also call validation checks provided
-by L<Mojolicious::Validator> on L<Mojolicious::Validator::Validation> objects,
-similar to C<check>.
+In addition to the L</"ATTRIBUTES"> and L</"METHODS"> above, you can also call
+validation checks provided by L<Mojolicious::Validator> on
+L<Mojolicious::Validator::Validation> objects, similar to L</"check">.
 
   $validation->required('foo')->size(2, 5)->like(qr/^[A-Z]/);
   $validation->optional('bar')->equal_to('foo');
