@@ -8,6 +8,9 @@ use utf8;
 sub startup{
 	my $self = shift;
 
+	# Add new MIME type
+	$self->types->type(xls => 'application/vnd.ms-excel');
+
 #	Pluggins
 #----------------------------------------------------------------------------------------------------------
 

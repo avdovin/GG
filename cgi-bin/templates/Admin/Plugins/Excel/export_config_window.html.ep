@@ -1,3 +1,4 @@
+% my $controller = $self->param('key_program');
 <div id="replaceme_exportexcel">
     <table width="95%" align=center>
       <tr>
@@ -16,18 +17,19 @@
     <form name="checkbox_exportexcel" id="checkbox_exportexcel">
       <div id="formResponsewin" style="overflow:scroll;width:670px;height:300px">
         <table id="anketka_win<%= $replaceme %>" width="95%" align="center" style="border:solid 1px #ccc"><tr><td>
-%	my $lkeys = $self->app->lkeys;
-        <% foreach (@{$listfields}){ %>
-        	<input class="checkbox_exportexcel" type="checkbox" id="checkbox_<%= $_ %>" name="<%= $_ %>" value="<%= $_ %>"> <label for="checkbox_<%= $_ %>" style="cursor:pointer;float:none;"><%= $lkeys->{ $_ }->{name} %></label><br />
-		<% } %>
+
+        % my $lkeys = $self->app->lkeys;
+        % foreach my $lkey (@{$listfields}){
+          <input class="checkbox_exportexcel" type="checkbox" id="checkbox_<%= $lkey %>" name="<%= $lkey %>" value="<%= $lkey %>"> <label for="checkbox_<%= $lkey %>" style="cursor:pointer;float:none;"><%= lkey(name =>$lkey, controller => $controller )->{name} %></label><br />
+        % }
         </td></tr>
         </table>
       </div>
     </form>
   </IF>
 <form name="form_win<%= $replaceme %>" id="form_win<%= $replaceme %>" method="post" enctype="multipart/form-data">
-	<input type="hidden" name="key_program" value="<%= $self->stash->{key_program} %>">
-	<input type="hidden" name="list_table" value="<%= $self->stash->{list_table} %>">
+  <input type="hidden" name="key_program" value="<%= $self->stash->{key_program} %>">
+  <input type="hidden" name="list_table" value="<%= $self->stash->{list_table} %>">
     <input type="hidden" name="do" value="excel">
     <input type="hidden" name="flag_win" value="1">
     <input type="hidden" name="group" value="<%= ++$group %>">
@@ -61,7 +63,7 @@ function get_checkbox() {
     if (form.elements[i].type == "checkbox" && form.elements[i].checked) {
       if (list_fields.length > 0) {list_fields += ",";}
       list_fields += form.elements[i].name;
-	}
+  }
  }
  form2 = document.getElementById("form_win<%= $replaceme %>");
  for (i = 0; i < form2.length; i++) {
@@ -69,13 +71,13 @@ function get_checkbox() {
  }
 }
 function exportexcel_selectall() {
-	var elem = document.getElementsByTagName("input");
-	for(i = 0; i < elem.length; i++) {
-		class_name = document.getElementsByTagName("input")[i].className;
-		if ((class_name == "checkbox_exportexcel")) {
-			document.getElementsByTagName("input")[i].checked = document.getElementById("checkbox_exportexcel_selectall").checked;
-		}
-	}
+  var elem = document.getElementsByTagName("input");
+  for(i = 0; i < elem.length; i++) {
+    class_name = document.getElementsByTagName("input")[i].className;
+    if ((class_name == "checkbox_exportexcel")) {
+      document.getElementsByTagName("input")[i].checked = document.getElementById("checkbox_exportexcel_selectall").checked;
+    }
+  }
 }
 function closethiswin() { closeMessage(4); }
 </script>
