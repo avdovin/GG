@@ -118,7 +118,11 @@ sub body{
 		when('link') 					{ $self->render('/Admin/getlink'); }
 		when(/list(s)?_select/) 		{ $self->lists_select; }
 		when('print') 					{ $self->print_choose; }
-		when('print_anketa') 			{ $self->print_anketa; }
+		when('print_anketa') 			{
+			$self->print_anketa(
+				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
+			);
+		}
 		when('upload') 					{
 
 			if(my $item = $self->getArraySQL(	from => $self->stash->{list_table}, where => "`ID`='".$self->stash->{index}."'") ){

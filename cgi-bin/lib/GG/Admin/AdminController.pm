@@ -55,15 +55,24 @@ sub print_choose{
 
 sub print_anketa{
 	my $self = shift;
+	my %params = (
+		table 	=> $self->stash->{list_table} || '',
+		id 		=> $self->stash->{index} || 0,
+		title 	=> '',
+		@_
+	);
 
-	my $table = $self->stash->{list_table};
+	my $table = delete $params{'table'};
+	my $id = delete $params{'id'};
+	my $title = delete $params{'title'};
+
 	return unless $self->sysuser->access->{table}->{$table}->{r};
 
-
 	if($self->getArraySQL(	from 	=> 	$table,
-							where	=>	"`ID`='".$self->stash->{index}."'",
+							where	=>	"`ID`='$id'",
 							stash	=>  "print"
 							)){
+
 		my $values = $self->stash->{'print'};
 		my $filename = 	sprintf("%s.pdf", $values->{alias} ? $values->{alias} : 'page');
 		$values->{text} = $values->{url_for} ? "Данный раздел формируется динамически" : $values->{text};
@@ -85,7 +94,7 @@ sub print_anketa{
 HEAD
 		$HTML .= "
 			<tr>
-				<th colspan='2'>Раздел <b>".$self->stash->{name_razdel}."</b></th>
+				<th colspan='2'>$title</th>
 			</tr>
 		" if $self->stash->{name_razdel};
 
@@ -117,8 +126,8 @@ HEAD
 			}
 			$HTML .=
 			"<tr>
-				<td bgcolor=\"#dddddd\">".($lkey ? $lkey->{name} : $key)."</td>
-				<td bgcolor=\"".($i&1? '#eeeeee':'')."\">".$value."</td>
+				<td bgcolor='".($i&1? '#eeeeee':'')."'>".($lkey ? $lkey->{name} : $key)."</td>
+				<td bgcolor='".($i&1? '#eeeeee':'')."'>".$value."</td>
 			</tr>";
 			$i++;
 		}
@@ -126,29 +135,12 @@ HEAD
 		$HTML .= "</table></body></html>";
 
 		eval("require PDF::FromHTML;");
-		if ($@ or ($self->stash->{lfield} eq 'html') ) {
-			$self->render( text => $HTML)
+		if (($self->stash->{lfield} eq 'html') or $@ ){
+			return $self->render( text => $HTML)
 
 		} else {
 
 		}
-
-#		eval("require GG::MDL::PDF;");
-#		if ($@ or ($$GG{lfield} eq 'html') ) {
-#			print "Content-Type: text/html; charset=utf-8\n\n";
-#
-#			print $HTML;
-#		} else {
-#			my $PDF = GG::MDL::PDF -> new();
-#			print "Content-Type: application/pdf\n";
-#			print "Content-disposition: attachment; filename=$filename\n";
-#			print "Content-Transfer-Encoding: binary\n\n";
-#
-#			print $PDF->generate_pdf( 	content => $HTML,
-#										file => $GG -> {tmpDIR}.$filename,
-#										title => $GG->{vals}->{pdf}->{title}
-#									);
-#		}
 	}
 	$self->render( text => "У Вас нет доступа к данной записи");
 }
@@ -543,7 +535,7 @@ sub getArraySQL{ # Получение массива значений из ба�
 	if (!$params{from}) {die "Функция getArraySQL. Отсутствует параметр FROM";}
 
 	if ($params{where} && ($params{where} =~ m/^([\d]+)/)) {
-		$params{where} = "WHERE `ID` = $1";
+		$params{where} = "WHERE `ID`=$1 ";
 	} elsif ($params{where}) {
 		$params{where} = "WHERE $params{where}";
 	} else {
@@ -560,10 +552,7 @@ sub getArraySQL{ # Получение массива значений из ба�
 		return;
 	}
 
-
-	#warn $sql;
-	if(my $row = $self->app->dbi->query($sql)->hash){
-
+	if(my $row = $self->dbi->query($sql)->hash){
 		my $result = {};
 		foreach (keys %$row) {
 			if ($params{sys} ||
@@ -579,6 +568,7 @@ sub getArraySQL{ # Получение массива значений из ба�
 		} elsif( defined $params{stash}){
 			$self->stash->{$_} = $result->{$_} foreach (keys %$result)
 		}
+
 		return $result;
 	}
 	return;
