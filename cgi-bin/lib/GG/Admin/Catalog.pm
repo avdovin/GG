@@ -57,6 +57,13 @@ sub body{
 		when('enter') 					{ $self->list_container( enter => 1); }
 		when('list_items') 				{ $self->list_items; }
 
+		when('print') 					{ $self->print_choose; }
+		when('print_anketa') 			{
+			$self->print_anketa(
+				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
+			);
+		}
+
 		when('delete_pict') 			{ $self->field_delete_pict( render => 1, fields => [$self->send_params->{lfield}]); }
 		when('field_upload_swf') 		{ $self->field_upload_swf; }
 		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
@@ -449,6 +456,8 @@ sub list_items{
 
 	my $list_table = $self->stash->{list_table};
 	$self->render_not_found unless $list_table;
+
+	$self->stash->{listfield_buttons} =  [qw(delete edit print)];
 
 	$params{table} = $list_table;
 

@@ -122,6 +122,13 @@ sub body{
 			);
 		}
 
+		when('print') 					{ $self->print_choose; }
+		when('print_anketa') 			{
+			$self->print_anketa(
+				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
+			);
+		}
+
 		when('chrazdel') 				{
 			$self->changeRazdel;
 		}
@@ -445,6 +452,8 @@ sub list_items{
 
 	my $list_table = $self->stash->{list_table};
 	$self->render_not_found unless $list_table;
+
+	$self->stash->{listfield_buttons} =  [qw(delete edit print)];
 
 	$params{table} = $list_table;
 

@@ -100,7 +100,7 @@ HEAD
 
 		my $i = 1;
 		my $lkeys = $self->lkey;
-		foreach my $key (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+		foreach my $key (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
 			next unless defined $values->{ $key };
 			next if( (!$self->sysuser->sys && !$self->sysuser->access->{lkey}->{$key}->{r}) or ($key eq 'folder'));
 
@@ -121,8 +121,15 @@ HEAD
 
 			} elsif($type eq 'chb'){
 				$value = $value ?  $lkey->{settings}->{yes} :  $lkey->{settings}->{'no'};
+
 			} elsif($type =~ /list/){
 				$value = $self->VALUES( name => $key, value => $value );
+
+			} elsif($type eq 'date' ){
+				$value = 'не указана' if ($value eq '0000-00-00');
+
+			} elsif($type eq 'datetime' or $type eq 'time' ){
+				$value = 'не указана' if ($value eq '0000-00-00 00:00:00');
 			}
 			$HTML .=
 			"<tr>
