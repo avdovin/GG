@@ -66,7 +66,7 @@ sub register {
 			title	=> 'Поиск',
 		});
 
-		$params{page} = $self->stash('page') || 1;
+		$params{page} = $self->param('page') || 1;
 
 		my $ksearch = $self->param('qsearch');
 
@@ -162,7 +162,7 @@ sub _buildKeyFieldsValue{
 sub print_search_result{
 	my $self = shift;
 	my %params = (
-		limit 	=> 0,
+		limit 	=> 10,
 		qsearch => '',
 		index 	=> 0,
 		@_
@@ -170,7 +170,15 @@ sub print_search_result{
 
 	my $qsearch = $params{qsearch};
 
-	my $search_items = $self->dbi->query("SELECT * FROM `dtbl_search_results` WHERE `qsearch`='$qsearch' ORDER BY `idx`")->hashes || [];
+	my $where = " `qsearch`='$qsearch' ORDER BY `idx` ";
+	if($params{limit}){
+		my $count = $self->stash->{total_count} = $self->dbi->getCountCol(from => 'dtbl_search_results', where => $where);
+		$self->def_text_interval( total_vals => $count, cur_page => $params{page}, col_per_page => $params{limit} );
+		$params{npage} = $params{limit} * ($params{page} - 1);
+		$where .= " LIMIT $params{npage},$params{limit} ";
+	}
+
+	my $search_items = $self->dbi->query("SELECT * FROM `dtbl_search_results` WHERE $where")->hashes || [];
 
 	my $hash_table = _config($self);
 
