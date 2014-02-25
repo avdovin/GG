@@ -90,7 +90,16 @@ sub register {
 			);
 
 			my 	$where = " `viewtext`='1' ";
-				$where .= " AND YEAR(tdate)='".$self->param('year')."' "	if $self->param('year');
+				if(my $year = $self->param('year')){
+					if($year =~ /\-/){
+						my ($y1, $y2) = split('-', $year);
+						$where .= " AND (YEAR(tdate)>=$y1 AND YEAR(tdate)<=$y2) "	;
+					}
+					else {
+						$where .= " AND YEAR(tdate)='$year' ";
+					}
+
+				}
 				$where .= " ORDER BY `tdate` DESC ";
 
 			if($params{limit}){
