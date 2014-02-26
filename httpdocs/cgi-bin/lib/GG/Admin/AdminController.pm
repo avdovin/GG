@@ -672,7 +672,6 @@ sub def_menu_button{
 		@_
 	);
 	my $key_menu = $params{key_menu} || $params{key} || "menu_button";
-
 	$self->get_keys(controller => $params{controller}, validator => 0) if ($key_menu eq 'menu_button');
 
 	my $buttons = $self->app->buttons->{ $params{controller} };
