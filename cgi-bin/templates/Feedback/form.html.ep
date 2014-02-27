@@ -1,58 +1,67 @@
-%	js_controller 'feedback';
+% js_controller 'feedback';
 % js_files 'http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU';
 
 % content wrapper => begin
-
-<div class="body">
-	<div class="block block_margin clearfix">
-		<div class="col col_left" style="width: 300px;">
-			<div class="block block_background block_padding block_radius block_shadowed">
-				<div class="content">
-					<h1>Контакты</h1>
-
-					<div class="contacts__info">
-						<h3>Пресс-служба</h3>
-						<p style="font-style: italic; color: #949494;">для прессы, интервью, комментарии</p>
-						<br/>
-						<p class="info__entry info__entry_phone"><span class="entry__title">Телефон</span> +7 (962) 682-93-49</p>
-						<p class="info__entry info__entry_email"><span class="entry__title">Электронная почта</span> <a href="mailto:mail@email.ru">mail@email.ru</a></p>
-					</div>
-				</div>
+<div class="body clearfix">
+	<div class="block block_background block_padding contacts clearfix">
+		<div class="contacts__info">
+			<div class="content">
+				<h1 class="contacts__title">Контакты</h1>
+				<p class="info__entry info__entry_address"><span class="entry__title">Адрес</span> 191025, Санкт-Петербург,<br/>ул. Марата, д. 11</p>
+				<p class="info__entry info__entry_phone"><span class="entry__title">Телефон</span> +7 (812) 571 88 30</p>
+				<p class="info__entry info__entry_fax"><span class="entry__title">Факс</span> +7 (812) 571 88 30</p>
+				<p class="info__entry info__entry_email"><span class="entry__title">Электронная почта</span> <a href="mailto:info@rustravel.spb.ru">info@rustravel.spb.ru</a></p>
 			</div>
 		</div>
+		<div class="contacts__map">
+			<div id="Gmap"></div>
+		</div>
+	</div>
 
-		<div class="col col_right" style="width: 663px;">
-			<div class="block block_background block_padding block_radius block_shadowed content">
-				<div class="contacts__form content">
+	<div class="block block_background block_margin block_padding clearfix">
+		<div class="content">
+			<div class="contacts__form">
+				<h2 class="form__title">Связаться с нами</h2>
+				<div class="form__wrapper">
 					<form method="POST" id="form-common" action="<%= url_for ('feedback') %>">
 						<div class="form__loading"></div>
-						<h2 class="form__title">Оставьте своё сообщение</h2>
-						<div class="form__error"></div>
-						<div class="form__wrapper">
-							<table class="form__container">
-								<tr>
-									<td class="form__cell form__cell_left">
-										<span class="field__title">Ваше имя*</span> <input name="name" value="" class="field__input field__input_text" type="text" />
-										<span class="field__title">Электронная почта*</span> <input name="email" value="" class="field__input field__input_text" type="email" />
-										<span class="field__title">Номер телефона</span> <input name="phone" value="" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67" />
-										<p><small>* &mdash; поля, обязательные для заполнения</small></p>
-									</td>
-									<td class="form__cell form__cell_right">
-										<span class="field__title">Ваше сообщение*</span> <textarea name="ftext" class="field__input field__input_textarea"><%= $self->stash->{ftext} %></textarea>
-									</td>
-								</tr>
-								<tr>
-									<td class="form__cell" colspan="2">
-										<a href="#" class="form__send button button_blue">Отправить сообщение</a>
-									</td>
-								</tr>
-							</table>
-						</div>
+						<div class="form__error" style="display: none;"></div>
+						<table class="form__container">
+							<tr>
+								<td class="form__cell form__cell_left">
+									<span class="field__title">Ваше имя*</span> <input name="name" value="" class="field__input field__input_text" type="text" />
+									<span class="field__title">Электронная почта*</span> <input name="email" value="" class="field__input field__input_text" type="email" />
+									<span class="field__title">Номер телефона</span> <input name="phone" value="" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67" />
+								</td>
+								<td class="form__cell form__cell_right">
+									<span class="field__title">Ваше сообщение*</span> <textarea name="body" class="field__input field__input_textarea"><%= $self->stash->{body} || 'Добрый день!' %></textarea>
+								</td>
+							</tr>
+							<tr>
+								<td class="form__cell">
+									* — поля, обязательные для заполнения
+								</td>
+								<td class="form__cell">
+									<a href="#" class="form__send button button_red">Отправить сообщение</a>
+								</td>
+							</tr>
+						</table>
 					</form>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
+	<div class="block">
+		<table class="logos">
+			<tr>
+				<td><img src="/img/logotype_1.png" alt="" /></td>
+				<td><img src="/img/logotype_2.png" alt="" /></td>
+				<td><img src="/img/logotype_3.png" alt="" /></td>
+				<td><img src="/img/logotype_4.png" alt="" /></td>
+				<td><img src="/img/logotype_5.png" alt="" /></td>
+			</tr>
+		</table>
+	</div>
+</div>
 % end

@@ -21,7 +21,7 @@
 				Телефон: <b><%= $self->stash->{phone} %></b><br />
 				Email: <b><%= $self->stash->{email} %></b><br />
 				Текст сообщения:<br />
-				<%= $self->stash->{ftext} %>
+				<%= $self->stash->{body} %>
 			</td>
 		</tr>
 	</table>

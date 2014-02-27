@@ -27,7 +27,12 @@ sub register {
 				@_
 			);
 
-			$self->metaHeader( title => 'Контакты' );
+			my $alias = $self->stash->{'alias'};
+			my $page = $self->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='$alias'")->hash;
+
+			$self->meta_title( $page->{title} || $page->{name} );
+			$self->meta_keywords( $page->{keywords} );
+			$self->meta_description( $page->{description} );
 
 			my $method = $self->req->method;
 
@@ -56,10 +61,10 @@ sub register {
 						required 		=> 1,
 						error_text 	=> 'Укажите электронную почту',
 					},
-					ftext 		=> {
+					body 		=> {
 						label 			=> 'Ваше сообщение',
 						required 		=> 1,
-						error_text 	=> 'Укажите текст сообщения',
+						error_text 		=> 'Укажите текст сообщения',
 					},
 				};
 
@@ -100,7 +105,8 @@ sub register {
 
 			$self->render(
 				errors		=> $self->stash->{errors} || {},
-				template	=> $params{template}
+				template	=> $params{template},
+				page 		=> $page,
 			);
 
 		}
