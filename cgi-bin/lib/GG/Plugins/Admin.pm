@@ -18,7 +18,6 @@ sub register {
 	$app->sessions->default_expiration(3600*24*7*48);
 	$app->sessions->cookie_name("GG");
 	#$app->sessions->cookie_path('/admin/');
-	$app->secret('google');
 
 	push @{$app->plugins->namespaces}, 'GG::Admin::Plugins';
 

@@ -2,53 +2,33 @@
 <html lang="ru-RU">
 <head>
 	%== render_headers
-
 	<link href="/css/style.css" rel="stylesheet" type="text/css" media="all" />
 	<link href="/js/prettyphoto/css/prettyPhoto.css" rel="stylesheet" type="text/css" media="all" />
 
-%   js_files('/js/jquery/plugins/jquery.mask.min.js');
-%   js_files('/js/prettyphoto/js/jquery.prettyPhoto.js');
+	% js_files('/js/prettyphoto/js/jquery.prettyPhoto.js');
+	% js_files('/js/prettyphoto/js/jquery/plugins/jquery.galleryCarousel.js');
+	% js_files('/js/prettyphoto/js/jquery/plugins/jquery.mask.min.js');
 
 </head>
 <body class="main">
 
 	<div class="wrapper">
+		%== include 'Texts/_header'
 
-		<div class="wrapper__background"></div>
-
-		<div class="header">
-			<div class="block">
-				<%== menu_track( template => 'top' ) =%>
-
-				<div class="header__lang">
-					<ul class="lang__list">
-						<li class="list__entry list__entry_ru list__entry_current"><a href="#" class="entry__link"></a></li>
-						<li class="list__entry list__entry_en"><a href="#" class="entry__link"></a></li>
-					</ul>
-				</div>
-
-				<div class="header__banner block_shadowed block_shadow">
-					<span>Академик</span>
-					<p>Виктор Иванович <b>Петрик</b></p>
-				</div>
-			</div>
-		</div>
+		%== menu_track template => 'top'
 
 		% content wrapper => begin
-			<div class="body">
-				<div class="block block_background block_margin block_padding block_shadowed">
-					<div class="content">
-						%== content
-					</div>
+			<div class="body clearfix">
+				<div class="block block_background block_padding content clearfix">
+					%== content
 				</div>
 			</div>
 		% end
 
 		%= content 'wrapper'
-
 	</div>
 
-	%== include 'Texts/footer'
+	%== include 'Texts/_footer'
 %== js_files
 </body>
 </html>

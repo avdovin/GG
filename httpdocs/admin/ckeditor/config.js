@@ -20,7 +20,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.filebrowserWindowWidth = '1200';
 	config.filebrowserWindowHeight = '700';
 
-	config.contentsCss = '/admin/ckeditor/contentstyle/content.css';
+	config.contentsCss = '/admin/ckeditor/contentstyle/contents.css';
 	config.bodyClass = 'body';
 
 	config.stylesSet = [];

@@ -10,6 +10,9 @@ sub startup{
 
 	# Add new MIME type
 	$self->types->type(xls => 'application/vnd.ms-excel');
+	# Add secret
+	$self->secrets(['It is a good day to die ...']);
+
 
 #	Pluggins
 #----------------------------------------------------------------------------------------------------------

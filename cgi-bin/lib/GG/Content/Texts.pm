@@ -156,9 +156,10 @@ sub text_main_item{
 	$self->meta_description( $text->{description} );
 
 
-	$self->render(	info		=> $text,
-					template	=> "Texts/body_default",
-					layout		=> $text->{layout} || 'default',
+	$self->render(
+		item		=> $text,
+		template	=> "Texts/_body_default",
+		layout		=> $text->{'layout'} || 'default',
 	);
 }
 
