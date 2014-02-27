@@ -9,24 +9,24 @@ CKEDITOR.editorConfig = function( config ) {
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
 	config.language = 'ru';
 
-	config.filebrowserImageBrowseUrl = '/admin/filemanager/elfinder.html?mode=image';
+	config.filebrowserImageBrowseUrl = '/admin/filemanager/body?do=elfinder_popup&mode=image';
 	//config.filebrowserBrowseUrl = '/admin/texts/body?do=link';
-	config.filebrowserBrowseUrl = '/admin/filemanager/elfinder.html?mode=file';
-	config.filebrowserFlashBrowseUrl = '/admin/filemanager/elfinder.html?mode=flash';
+	config.filebrowserBrowseUrl = '/admin/filemanager/body?do=elfinder_popup&mode=file';
+	config.filebrowserFlashBrowseUrl = '/admin/filemanager/body?do=elfinder_popup&mode=flash';
 
 	config.filebrowserImageWindowWidth = '1200';
 	config.filebrowserImageWindowHeight = '700';
-	
+
 	config.filebrowserWindowWidth = '1200';
 	config.filebrowserWindowHeight = '700';
 
 	config.contentsCss = '/admin/ckeditor/contentstyle/content.css';
 	config.bodyClass = 'body';
-	
+
 	config.stylesSet = [];
-	
+
 	config.stylesSet = 'content_styles:/admin/ckeditor/contentstyle/ckeditor_styles.js';
-				
+
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
 	    { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
@@ -62,11 +62,11 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'clipboard', items : [ 'Cut','Copy','Paste','PasteText','PasteFromWord','Undo','Redo' ] },
 		{ name: 'editing', items : [ 'Find','Replace','SelectAll' ] },
 		{ name: 'basicstyles', items : [ 'Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat','NumberedList','BulletedList'] },
-		
+
 		'/',
-		
+
 		{ name: 'paragraph', items : [ 'JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock' ] },
-		
+
 		{ name: 'links', items : [ 'Link','Unlink','Anchor' ] },
 		{ name: 'insert', items : [ 'Image','Flash','Table','HorizontalRule','SpecialChar','PageBreak' ] },
 		//'/',
@@ -76,8 +76,8 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'About', items : [ 'About' ] }
 	];
 
-	
-		
+
+
 	// Remove some buttons, provided by the standard plugins, which we don't
 	// need to have in the Standard(s) toolbar.
 	//config.removeButtons = 'Underline,Subscript,Superscript';

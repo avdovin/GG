@@ -53,7 +53,7 @@ sub startup{
 
 # / Pluggins ----------------------------------------------------------------------------------------------
 
-	$self->static->paths(['../../httpdocs/']);
+	$self->static->paths(['../../']);
 
 	# Routes
 	my $r = $self->routes;
@@ -71,10 +71,10 @@ sub startup{
 
 	# значения по умолчанию для маршрутов
 	my %routes_args = (
-		handler	=> 'ep',							# Тип шаблонозитора и соответсвенно файлов шаблона
+		handler				=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
 		controller_class	=> 'GG::Controller',	# Папка с модулями
-		layout	=> 'default',						# Скелет (layout) страниц
-		seo_custom_tags => 1,						# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
+		layout				=> 'default',			# Скелет (layout) страниц
+		seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
 		seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
 		jquery_history		=> 0,					# Загрузить jQuery плагин - history
 	#	lang	=> 'ru',							# языковая версия сайта
