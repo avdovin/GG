@@ -24,7 +24,8 @@ sub register {
 	});
 
 	$app->helper( host => sub {
-		return shift->req->headers->host() || '';
+		my $self = shift;
+		return $self->req->headers->host() || $self->stash->{'config'}->{'http_host'} || '';
 	});
 
 	$app->helper( cl => sub {

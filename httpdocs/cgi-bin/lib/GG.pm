@@ -166,9 +166,10 @@ sub startup{
 
 	$routes->any("/:alias")->to("Texts#text_main_item", redirect_to_url_for => 1 )->name('text');
 
-	#$routeViaAlias->any('/subscribe/cronsend')->to("Subscribe#cron_send" );
-	#$routeViaAlias->any('/subscribe/add_ajax')->to("Subscribe#add_ajax" );
-	#$routeViaAlias->any('/subscribe/unsubscribe')->to("Subscribe#unsubscribe" );
+	# subscribe
+	$routes->any('/ajax/subscribe/add')->to("Subscribe#add_ajax" );
+	$routes->any('/subscribe/unsubscribe')->to("Subscribe#unsubscribe" );
+
 
 	# check site availability
 	$r->any("/ping")->to(cb => sub{

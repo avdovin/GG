@@ -1,25 +1,22 @@
 package GG::Content::Subscribe;
 
-use strict;
-use warnings;
 use utf8;
 
 use Mojo::Base 'GG::Content::Controller';
 
-my $DB_USERS = 'dtbl_subscribe_users';
-my $DB_STATS = 'dtbl_subscribe_stat';
-my $Host = 'tandem.ru';
+my $DB_USERS = 'data_subscribe_users';
+my $DB_STATS = 'data_subscribe_stat';
 
 sub unsubscribe{
 	my $self = shift;
-	
+
 	my ($cck, $user_id) = ($self->param('cck'), $self->param('user_id'));
-	
+
 	my $message = '';
 	if($self->dbi->query("SELECT `ID` FROM `$DB_USERS` WHERE `ID`='$user_id' AND `cck`='$cck'")->hash){
-		
-		$self->dbi->dbh->do("DELETE FROM `$DB_USERS` WHERE `ID`='$user_id' AND `cck`='$cck'");
-		
+
+		$self->dbi->dbh->do("UPDATE `$DB_USERS` SET `active`=0, `cck`='' WHERE `ID`='$user_id'");
+
 		$message = '<span style="color:green;">Вы успешно отписаны от рассылки</span>';
 	} else {
 		$message = '<span style="color:red;">Данные для отписки аккаунта некорректны...</span>';
@@ -30,79 +27,113 @@ sub unsubscribe{
 		template	=> 'Subscribe/unsubscribe_result'
 	);
 }
-
 sub add_ajax{
 	my $self = shift;
-	
-	my $email = $self->check_email( value => $self->param('email') );
-	
-	my $message = 'Некорректный емайл';
-	my $inserted = 0;
-	if($email){
-		$inserted = $self->insert_hash($DB_USERS, {
-			email	=> $email,
-			cck		=> '',
-			rdate	=> $self->setLocalTime(1),
-		});
-		$message = $inserted ? 'Спасибо за доверие!' : 'Вы уже подписаны на рассылку!';
-	}
-	
-	$self->render_json({message => $message});
-}
 
-sub cron_send{
+	my $email = $self->param('email');
+
+	my $inDB = $self->dbi->query("SELECT `ID` FROM `data_subscribe_users` WHERE `email`='$email'")->list;
+	my $json = {};
+	if ($inDB){
+		$json->{message} = "<h3>Вы уже подписаны на рассылку!</h3>";
+		return $self->render(
+			json => $json,
+		)
+	}
+	$self->dbi->query("INSERT INTO `data_subscribe_users` (`email`) VALUES ('$email')");
+
+	$json->{message} = "<h3> Вы успешно подписались на рассылку</h3>";
+
+	return $self->render(
+		json	=> $json,
+	)
+
+
+};
+
+sub cron_send_refs{
 	my $self = shift;
 
 	$self->app->plugin(mail => {
-	    from     => 'no-reply@'.$Host,
-	    encoding => 'base64',
-    	how      => 'sendmail',
-    	howargs  => [ '/usr/sbin/sendmail -t' ],
-    	type	 => 'text/html;charset=utf-8',
-  	});	
-			  		
-	my $dbh = $self->dbi->dbh;
-	foreach (1..10){
-		my $sql = qq/
-			SELECT a.`ID`, b.`subject`, b.`text`, b.`soffers`, c.`ID` AS `user_id`, c.`email`, a.`id_data_subscribe`
-			FROM `$DB_STATS` a LEFT JOIN `data_subscribe` b ON a.`id_data_subscribe` = b.`ID` LEFT JOIN $DB_USERS c ON a.`id_user` = c.`ID`
-			WHERE a.`send_date` = '0000-00-00 00:00:00'
-		/;
+		from     => 'no-reply@'.$self->host,
+		encoding => 'base64',
+		how      => 'sendmail',
+		howargs  => [ '/usr/sbin/sendmail -t' ],
+		type	 => 'text/html;charset=utf-8',
+	});
 
-		if(my $letters = $self->dbi->query($sql)->hashes){
-			
-			#Добавляем к письму спецпредложения
-			my $soffers = $self->dbi->query("SELECT * FROM `texts_soffers_ru` WHERE `viewtext`='1'")->hashes;
-			my $offers_text = $self->render_partial(
-					soffers		=> $soffers,
-					template	=> 'Subscribe/mail_part_soffers'
-			);
-						
-			foreach my $l (@$letters){
-				$l->{cck} = int(rand(10000000000));
-				$dbh->do("UPDATE `$DB_USERS` SET `cck`=? WHERE `ID`=?", undef, $l->{cck}, $l->{user_id} );
-				$dbh->do("UPDATE `$DB_STATS` SET `send_date`=NOW() WHERE `id_user`=? AND `id_data_subscribe`=?", undef, $l->{user_id}, $l->{id_data_subscribe});
-				
-				
-				
-				my $email_body = $self->render_partial(
-					offers_text	=> $offers_text,
-					letter		=> $l,
-					template	=> 'Subscribe/mail'
-				);
-				
-		  	   												
-				$self->mail(
-			    	to      => $l->{email},
-			    	subject => $l->{subject},
-			    	data    => $email_body,
-			  	);		
-			}
-			
+	# кол-во отсылаемых писем за раз
+
+	my $total_at_once = 50;
+	my @arrIDSubscribes = ();
+	my @arrIDUsers = ();
+	my $subscribes;
+	my $users;
+	my $letters = $self->dbi->query("SELECT * FROM `$DB_STATS` WHERE `send_date`='0000-00-00 00:00:00' LIMIT 0,$total_at_once")->hashes;
+
+	if (scalar @$letters){
+
+		foreach (@$letters){
+			if (!($_->{id_data_subscribe} ~~ @arrIDSubscribes)){
+				push @arrIDSubscribes, $_->{id_data_subscribe};
+			};
+		};
+		foreach (@$letters){
+			push @arrIDUsers, $_->{id_user};
 		}
+	}else{
+
+		$self->render(data => 'no avalible users for subscribe');
+
 	}
-	
-	$self->render(data => 'success');
+	$subscribes = $self->dbi->query("SELECT `ID`,`text`,`name`,`subject` FROM `data_subscribe` WHERE `ID` IN (".join(',',@arrIDSubscribes).")")->map_hashes('ID');
+	$users = $self->dbi->query("SELECT `ID`,`email` FROM `$DB_USERS` WHERE `ID` IN (".join(',',@arrIDUsers).")")->map_hashes('ID');
+	foreach (@$letters){
+		$subscribes->{$_->{id_data_subscribe}}->{text} = $self->_convert_rel_to_abs_src ($subscribes->{$_->{id_data_subscribe}}->{text});
+		$self->_send_letter($_,$subscribes->{$_->{id_data_subscribe}}->{text},$subscribes->{$_->{id_data_subscribe}}->{subject},$users->{$_->{id_user}}->{email});
+	}
+	$self->render(data=>"success");
 }
+
+sub _convert_rel_to_abs_src{
+	my $self = shift;
+	my $text = shift;
+	my $host = $self->host;
+	$text =~ s{src="\/([\s\S]+)"}{src="$host\/$1"}gi;
+
+	return $text;
+}
+
+sub _send_letter{
+	my $self=shift;
+	my $l = shift;
+	my $text = shift;
+	my $subj = shift;
+	my $email = shift;
+	$l->{cck} = int(rand(10000000000));
+	$self->dbi->dbh->do("UPDATE `$DB_USERS` SET `cck`=? WHERE `ID`=?", undef, $l->{cck}, $l->{id_user} );
+
+	$self->dbi->query("UPDATE `$DB_STATS` SET `send_date`=NOW() WHERE `ID`='$l->{ID}'");
+
+	$self->stash->{cck} = $l->{cck};
+	$self->stash->{letter_text} = $text;
+	$self->stash->{user_id} = $l->{id_user};
+	$self->stash->{host} = $self->host;
+
+	$self->loadVars();
+	$self->stash->{sitename} = $self->site_name;
+
+	my $email_body = $self->render_mail(
+		template	=> 'Subscribe/subscribe_mail',
+	);
+
+	$self->mail(
+		to		=> $email,
+		subject	=> $subj,
+		data 	=> $email_body,
+	);
+
+}
+
 
 1;

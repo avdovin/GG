@@ -88,6 +88,9 @@ sub register {
 		$self->app->vars->{ 'controller_'.$params{controller} }->{ $params{key} }->{envvalue} = $params{value};
 	});
 
+	$app->helper( loadVars => sub {
+		return _loadVars(shift);
+	});
 
 	$app->hook( before_dispatch => sub {
 		return _loadVars(shift);

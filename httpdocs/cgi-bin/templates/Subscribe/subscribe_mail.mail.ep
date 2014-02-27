@@ -1,0 +1,26 @@
+<html>
+<head>
+    <title><%== $self->stash->{sitename} %></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+    	@media only screen and (max-width:600px) {
+    		#wrapper {
+      			width:100% !important;
+    		}
+		}
+    </style>
+</head>
+<body>
+
+	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+		<tr>
+			<td>
+
+				<%== $self->stash->{letter_text} %>
+				<br />
+				<p>Если вы больше не хотите получать информационные письма, пожалуйста, нажмите на <a href="http://<%= $self->stash->{host} %>/subscribe/unsubscribe?cck=<%= $self->stash->{cck} %>&user_id=<%= $self->stash->{user_id} %>">отписаться от рассылки</a></p>
+
+		</tr>
+	</table>
+</body>
+</html>

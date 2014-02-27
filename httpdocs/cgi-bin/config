@@ -6,6 +6,8 @@
 	"db_password" 		=> "root",
 	"db_no_disconnect" 	=> "0",
 
+	"http_host" 		=> 'domain.com',
+
 	"upload_maxchanksize"	=> "10000000",
 	"no_disconnect"		=> 1,
 
