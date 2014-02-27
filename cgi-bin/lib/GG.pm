@@ -56,7 +56,7 @@ sub startup{
 
 # / Pluggins ----------------------------------------------------------------------------------------------
 
-	$self->static->paths(['../../']);
+	$self->static->paths(['../../httpdocs/']);
 
 	# Routes
 	my $r = $self->routes;

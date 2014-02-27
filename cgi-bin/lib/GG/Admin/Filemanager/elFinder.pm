@@ -480,6 +480,7 @@ sub _files
 	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 	closedir(DIR);
 
+
 	$self->{RES}->{'files'} = [];
 	#foreach my $subdir (grep {_isAccepted($self,"$path/$_") eq 'true'} sort {-f "$path/$a" cmp -f "$path/$b"} @content)
 	foreach my $subdir (sort {-f "$path/$a" cmp -f "$path/$b"} @content){
@@ -1273,6 +1274,7 @@ sub _phash{
 
 	my @myDir = split('/', $path);
 	pop @myDir;
+	#pop @myDir if(-f $path);
 
 	return $self->_hash_api2_encode( join( '/', @myDir) );
 }

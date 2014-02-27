@@ -183,6 +183,8 @@ elFinder.prototype._options = {
 				// }
 			]
 		},
+		// "info" command options.
+		info : {nullUrlDirLinkSelf : true},
 		
 
 		help : {view : ['about', 'shortcuts', 'help']}
@@ -388,6 +390,14 @@ elFinder.prototype._options = {
 	 * @default  true
 	 */
 	rememberLastDir : true,
+	
+	/**
+	 * Use browser native history with supported browsers
+	 *
+	 * @type Boolean
+	 * @default  true
+	 */
+	useBrowserHistory : true,
 	
 	/**
 	 * Lazy load config.

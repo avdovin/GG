@@ -791,8 +791,9 @@ $.fn.elfindercwd = function(fm, options) {
 				.delegate(fileSelector, 'scrolltoview', function() {
 					scrollToView($(this));
 				})
-				.delegate(fileSelector, 'hover', function(e) {
+				.delegate(fileSelector, 'mouseenter.'+fm.namespace+' mouseleave.'+fm.namespace, function(e) {
 					fm.trigger('hover', {hash : $(this).attr('id'), type : e.type});
+					$(this).toggleClass('ui-state-hover');
 				})
 				.bind('contextmenu.'+fm.namespace, function(e) {
 					var file = $(e.target).closest('.'+clFile);
@@ -821,11 +822,16 @@ $.fn.elfindercwd = function(fm, options) {
 					
 					
 				})
+				// unselect all on cwd click
+				.bind('click.'+fm.namespace, function(e) {
+					!e.shiftKey && !e.ctrlKey && !e.metaKey && unselectAll();
+				})
 				
 				// make files selectable
 				.selectable({
 					filter     : fileSelector,
 					stop       : trigger,
+					delay      : 250,
 					selected   : function(e, ui) { $(ui.selected).trigger(evtSelect); },
 					unselected : function(e, ui) { $(ui.unselected).trigger(evtUnselect); }
 				})

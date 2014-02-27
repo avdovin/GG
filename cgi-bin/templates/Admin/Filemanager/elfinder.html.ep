@@ -25,10 +25,6 @@
 	    document.write(unescape("%3Cscript src='/admin/filemanager/jquery/jquery-ui-1.10.1.custom.min.js' type='text/javascript'%3E%3C/script%3E"));
 	}
 	</script>
-
-	<!-- <link rel="stylesheet" href="jquery/ui-themes/smoothness/jquery-ui-1.8.21.custom.css" type="text/css"> -->
-
-
 	<link rel="stylesheet" href="css/common.css"      type="text/css">
 	<link rel="stylesheet" href="css/dialog.css"      type="text/css">
 	<link rel="stylesheet" href="css/toolbar.css"     type="text/css">
@@ -104,14 +100,6 @@
 	<!-- elfinder languages -->
 	<script src="js/i18n/elfinder.ru.js"></script>
 
-	<!-- elfinder dialog -->
-	<script src="js/jquery.dialogelfinder.js"></script>
-
-	<!-- elfinder 1.x connector API support -->
-	<script src="js/proxy/elFinderSupportVer1.js"></script>
-
-	<!-- elfinder custom extenstions -->
-	<script src="extensions/jplayer/elfinder.quicklook.jplayer.js"></script>
 
 	<style type="text/css">
 		body { font-family:arial, verdana, sans-serif;}
@@ -147,47 +135,24 @@
 	<script>
 		$(function(){
 			var $window = $(window);
-			var funcNum = window.location.search.replace(/^.*CKEditorFuncNum=(\d+).*$/, "$1");
 
 			$('#finder').elfinder({
 				// requestType : 'post',
 
 				url : '/admin/filemanager/body',
- 				getfile : {
- 					onlyURL : true,
-    				multiple : false
- 				},
-
-				editorCallback : function(url) {
-			  	window.opener.CKEDITOR.tools.callFunction(funcNum, url);
-	        window.close();
-			  },
-				getFileCallback : function(url) {
-        	window.opener.CKEDITOR.tools.callFunction(funcNum, '/'+url.path);
-        	window.close();
-        },
+				getfile : {
+					onlyURL : true,
+					multiple : false
+				},
 				lang: 'ru',
 				resizable: false,
 				height:  $window.height() - 15
-				//height: 650,
-				//width: 1180,
 			});
+
 		});
 	</script>
 </head>
 <body>
-	<!-- <div id="close"  class="button">close</div>
-	<div id="dock" class="button">dock</div>
-	<div id="undock" class="button">undock</div>-->
-	<!-- <div style="width:670px; float:left"> -->
-		<div id="finder">finder <span>here</span></div>
-	<!-- </div> -->
-	<!-- <div style="width:670px; float:left">
-		<div id="finder2">finder</div>
-	</div> -->
-
-	<!-- <div><input type="text" id="i1"></div> -->
-	<!-- <div><input type="text" id="i2"></div> -->
-
+	<div id="finder">finder <span>here</span></div>
 </body>
 </html>
