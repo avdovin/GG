@@ -530,18 +530,17 @@ sub register {
 			$d += 0;
 			$m += 0;
 			my $month;
-			if ( $params{format} !~ m/dd/ ) {
-				$month = $month2{$m}; }
-			else {
+
+			if ($params{format} =~ m/dd|day/){
 				$month = $month1{$m};
-			}
+			};
+
 			# вариант с отсутствием даты
 			$month ||= '';
 
 			$params{date} = $params{format};
 			$params{date} =~ s/month/$month/;
-			$params{date} =~ s/dd/sprintf("%02d", $d)/e;
-			$params{date} =~ s/day/$d/e;
+			$params{date} =~ s/dd|day/$d/e;
 			$params{date} =~ s/yyyy/sprintf("%04d", $y)/e;
 			$params{date} =~ s/yy/sprintf("%02d", $ys)/e;
 			$params{date} =~ s/mm/sprintf("%02d", $m)/e;
