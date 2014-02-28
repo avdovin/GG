@@ -16,3 +16,6 @@ if (typeof jQuery == 'undefined') {
 %	js_files('/js/core.js');
 %	js_files('/js/common.js');
 
+% if( $self->stash->{'vfe'} && $self->stash->{'vfe_enabled'} ){
+	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>
+% }

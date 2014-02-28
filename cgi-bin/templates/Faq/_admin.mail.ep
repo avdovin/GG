@@ -17,10 +17,11 @@
 			<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
 				<h2>Получен новый вопрос с сайта<%= site_name %></h2><br />
 
-					Имя: <b><%= $form->{author_name}->{value} %></b><br />
-					E-mail: <b><%= $form->{email}->{value} %></b><br />
+					Имя: <b><%= stash 'author_name' %></b><br />
+					Электронная почта: <b><%= stash 'email' %></b><br />
+					Номер телефона: <b><%= stash 'phone' %></b><br />
 					Вопрос:<br />
-					<%= $form->{name}->{value} %>
+					<%= stash 'body' %>
 			</td>
 		</tr>
 	</table>

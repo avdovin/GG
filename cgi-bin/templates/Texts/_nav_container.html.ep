@@ -1,0 +1,11 @@
+% if($end_page>1){
+	<div class="pagenav noautocurrent">
+		<a href="<%= $prefix %>?page=<%= $page-1 %>" class="pagenav__button pagenav__button_prev <% if($page==1){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
+		% foreach my $i ($first_page..$end_page){
+			<a href="<%= $prefix %>?page=<%= $i %>" class="pagenav__button <% if($i == $page){ %>pagenav__button_current<% } %>"><%= $i %></a>
+		% }
+		<a href="<%= $prefix %>?page=<%= $page < $total_page ? $page+1 : $total_page %>" class="pagenav__button pagenav__button_next <% if($page==$total_page){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
+	</div>
+% }
+
+

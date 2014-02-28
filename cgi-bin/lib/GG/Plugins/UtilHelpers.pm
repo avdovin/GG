@@ -117,27 +117,25 @@ sub register {
 		shift->stash->{lang} || 'ru';
 	});
 
-	$app->helper(
-		texts_year_navigator => sub {
-			my $self   = shift;
-			my %params = (
-				key_razdel	=> "news",
-				where		=> "",
-				@_,
-			);
+	$app->helper( texts_year_navigator => sub {
+		my $self   = shift;
+		my %params = (
+			key_razdel	=> "news",
+			where		=> "",
+			@_,
+		);
 
-			my 	$where = " AND `viewtext`='1' AND YEAR(`tdate`) > 0";
-				$where .= $params{where} if $params{where};
+		my 	$where = " AND `viewtext`='1' AND YEAR(`tdate`) > 0";
+			$where .= $params{where} if $params{where};
 
-			my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`tdate`) AS `year` FROM `texts_news_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`tdate`) ORDER BY `tdate` DESC")->hashes;
+		my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`tdate`) AS `year` FROM `texts_".$params{key_razdel}."_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`tdate`) ORDER BY `tdate` DESC")->hashes;
 
-			return $self->render(
-							items	=> $items,
-							template => 'Texts/news_year_navigator',
-							partial	=> 1,);
-
-		}
-	);
+		return $self->render(
+			items	=> $items,
+			template => 'Texts/_'.$params{key_razdel}.'_year_nav',
+			partial	=> 1
+		);
+	});
 
 	$app->helper(
 		text_page_by_alias => sub {

@@ -1,41 +1,64 @@
-<div id="leftCol" style="float: right">
-	<div class="content">
-		<% if($self->stash->{success}){ %><h3>Спасибо, Ваш вопрос отправлен</h3><% } else { %>
-			<form id="faq-form" method="post">
-	            <h1>Задать вопрос</h1>
-	            <span><label for="author_name">Имя*</label></span>
-	            <input type="text" class="text" name="author_name" id="author_name" value="<%= $self->stash->{author_name} %>"/>
-	            <% if($form->{author_name}->{error}) { %><span style="color:red;"><%= $form->{author_name}->{error} %></span><% } %>
-	            <span><label for="email">Телефон</label></span>
-	            <input type="text" class="text" name="phone" id="phone" value="<%= $self->stash->{phone} %>"/>
-	            <% if($form->{phone}->{error}) { %><span style="color:red;"><%= $form->{phone}->{error} %></span><% } %>
-	            <span><label for="email">E-mail</label></span>
-	            <input type="email" class="text" name="email" id="email" value="<%= $self->stash->{email} %>"/>
-	            <% if($form->{email}->{error}) { %><span style="color:red;"><%= $form->{email}->{error} %></span><% } %>
-	            <br/><br/>
-	            <span><label for="name">Ваш вопрос*</label></span>
-	            <textarea  name="name" id="name"><%= $self->stash->{name} %></textarea>
-	            <% if($form->{name}->{error}) { %><span style="color:red;"><%= $form->{name}->{error} %></span><% } %>
-	            <br/><br/>
-	            <p class="right"><a href="javascript:void(0);" onClick="document.getElementById('faq-form').submit();" class="button button-blue">Отправить</a></p>
-			</form>
-	  <% } %>
-    </div>
-</div>
 
-<div id="rightCol" style="float: left;">
-    <div class="faq-list">
-        <div class="content">
-            <h1>F.A.Q.</h1>
-            
-            <% foreach (@$items){ %>
-            <div class="faq-entry">
-                <span class="question"><%== $_->{name} %></span>
-                <p class="answer"><%== $_->{answer} %></p>
-            </div>
-            <% } %>
-        </div>
-    </div>
-		
-	<%== page_navigator( url => '/faq') %>
-</div>             
+% content wrapper => begin
+<div class="body clearfix">
+		<div class="block clearfix">
+			<div class="col col_left col_nosidebg col_left_big block_background block_padding content">
+				<div class="faq">
+					<h1>Клиенты о нас</h1>
+					<ul class="faq__list">
+						% foreach (@$items){
+						<li class="list__entry">
+							<p class="entry__question"><b><%= $_->{author_name} %></b></p>
+							<p class="entry__text">&mdash; <%= $_->{name} %></p>
+						</li>
+						% }
+					</ul>
+				</div>
+
+				%== page_navigator( prefix => '/faq')
+			</div>
+			<div class="col col_right col_right_small block_padding">
+				<div class="faq content">
+					<div class="faq__form">
+						<h2 class="form__title">Задайте свой вопрос</h2>
+						<div class="form__wrapper">
+							% if(flash 'faq_form_success'){
+								<h3>Спасибо, Ваш вопрос отправлен</h3>
+							% } else {
+								<div class="form__loading"></div>
+								% if(keys $self->stash->{'faq_form_errors'}){
+									<div class="form__error">
+										% my $errors = stash 'faq_form_errors';
+										% foreach (keys %$errors){
+											<p><%= $errors->{$_} %></p>
+										% }
+									</div>
+								% }
+								<form class="form__container" id="faq-form" method="post">
+									<span class="field__title">Ваше имя*</span>
+									<input class="field__input field__input_text <% if($self->stash->{'faq_form_errors'}->{author_name}){ %>error<% } %>" type="text" name="author_name" value="<%= stash 'author_name' %>"  />
+
+									<span class="field__title">Электронная почта*</span>
+									<input class="field__input field__input_text <% if($self->stash->{'faq_form_errors'}->{email}){ %>error<% } %>" type="email"  name="email" value="<%= stash 'email' %>" />
+
+									<span class="field__title">Номер телефона</span>
+									<input class="field__input field__input_text field__input_phone <% if($self->stash->{'faq_form_errors'}->{phone}){ %>error<% } %>" type="text"  name="phone" value="<%= stash 'phone' %>"/>
+
+									<span class="field__title">Ваш вопрос*</span>
+									<textarea class="field__input field__input_textarea <% if($self->stash->{'faq_form_errors'}->{name}){ %>error<% } %>"  name="name"><%= stash 'name' %></textarea>
+
+									<span class="field__title">Вы человек? Сложите 24 и 7*</span>
+									<input class="field__input field__input_text <% if($self->stash->{'faq_form_errors'}->{captcha}){ %>error<% } %>" name="captcha" />
+
+									<p class="field__help">* – поля, обязательные для заполнения</p>
+									<p class="right"><a  href="javascript:void(0);" onClick="document.getElementById('faq-form').submit();" class="form__send button button_red">Задать вопрос</a></p>
+								</form>
+							% }
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+% end

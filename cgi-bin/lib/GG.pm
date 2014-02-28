@@ -80,8 +80,11 @@ sub startup{
 		seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
 		seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
 		jquery_history		=> 0,					# Загрузить jQuery плагин - history
+		vfe_enabled			=> 0,					# Загружать vfe
 	#	lang	=> 'ru',							# языковая версия сайта
 	);
+
+	$self->plugin('vfe') if $routes_args{'vfe_enabled'};
 
 	$self->hook(before_dispatch => sub {
 		my $self = shift;

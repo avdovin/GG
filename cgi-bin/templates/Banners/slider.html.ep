@@ -1,0 +1,9 @@
+% if(scalar(@$banners)){
+	<div class="banners__block">
+	% my $rand = rand();
+	% foreach my $banner (@$banners){
+		% my $banner_link = url_for('banner', id_banner => $$banner{ID})."?$rand";
+		<img src="/image/bb/<%= retina_src $banner->{pict} %>" <% if($banner->{link}){ %>data-href="<%= $banner_link %>"<% } %> <% if($banner->{targetblank}){ %>data-target="_blank"<% } %> alt="<%= $banner->{name} %>"/>
+	% }
+	</div>
+<% } %>

@@ -17,11 +17,11 @@
 			<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
 				<h2>Получен письмо с сайта <%= site_name %></h2><br />
 
-				Имя: <b><%= $self->stash->{name} %></b><br />
-				Телефон: <b><%= $self->stash->{phone} %></b><br />
-				Email: <b><%= $self->stash->{email} %></b><br />
+				Имя: <b><%= stash 'name' %></b><br />
+				Телефон: <b><%= stash 'phone' %></b><br />
+				Email: <b><%= stash 'email' %></b><br />
 				Текст сообщения:<br />
-				<%= $self->stash->{body} %>
+				%= stash 'body'
 			</td>
 		</tr>
 	</table>

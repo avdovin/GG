@@ -1,28 +1,26 @@
 % content wrapper => begin
 
-<div class="body">
-	<div class="block block_margin clearfix">
-		<div class="col col_left" style="width: 300px;">
-			<div class="news block block_background block_padding block_radius block_shadowed">
+<div class="body clearfix">
+	<div class="block clearfix">
+		<div class="col col_left col_nosidebg col_left_small block_padding">
+			<div class="news">
 				<div class="content">
+					%== texts_year_navigator
+
 					<h1>Новости</h1>
 
-					<%== texts_year_navigator %>
-
 					<ul class="news__list">
-						<%== news_list %>
+						%== content__news_list
 					</ul>
 				</div>
 			</div>
 		</div>
+		<div class="col col_right col_right_big block_padding">
+			<div class="block news content">
+				<h2 class="news__title"><%= $item->{name} =%></h2>
+				<p class="news__date"><%= date_format( date => $item->{tdate}, format => 'dd month yyyy') %> г.</p>
 
-		<div class="col col_right" style="width: 663px;">
-
-			<div class="block block_background block_padding block_radius block_shadowed content">
-				<h2><%= $item->{name} =%></h2>
-				<p style="font-weight: bold; font-size: 14px; color: #238cd6;"><%= date_format( date => $item->{tdate}, format => 'dd month yyyy') %> г.</p>
-				<hr/>
-				<%== $item->{text} =%>
+				%== $item->{text}
 			</div>
 		</div>
 	</div>
