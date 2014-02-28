@@ -662,51 +662,49 @@ sub register {
 		}
 	);
 
-	$app->helper(
-		page_navigator => sub {
-			my $self   = shift;
-			my %params = (
-				url			=> '',
-				template	=> 'Texts/nav_container',
-				page		=> $self->stash->{page} || $self->param('page') || 1,
-				@_
-			);
+	$app->helper( page_navigator => sub {
+		my $self   = shift;
+		my %params = (
+			prefix		=> '',
+			postfix 	=> '',
+			template	=> 'Texts/_nav_container',
+			page		=> $self->stash->{page} || $self->param('page') || 1,
+			@_
+		);
 
-			$params{postfix} 		= $params{postfix} ? "_".$params{postfix} : '';
+		$params{postfix} 		= $params{postfix} ? "_".$params{postfix} : '';
 
-			my $page = delete $params{page};
-			my $total_page = $self->stash("total_page".$params{postfix}) || 1;
+		my $page = delete $params{page};
+		my $total_page = $self->stash("total_page".$params{postfix}) || 1;
 
-			my ($first_page, $end_page) = ($page, $total_page);
-			if ($page <= 3) {
-				$first_page = 1;
-				if($total_page <= $page+6){
-					$end_page = $total_page;
-				} else {
-					$end_page = $page+6;
-				}
+		my ($first_page, $end_page) = ($page, $total_page);
+		if ($page <= 3) {
+			$first_page = 1;
+			if($total_page <= $page+6){
+				$end_page = $total_page;
 			} else {
-				$first_page = $page - 3;
-				if($first_page + 6 > $total_page){
-					$end_page = $total_page;
-
-				} elsif($first_page + 6 <= $total_page){
-					$end_page = $first_page + 6;
-				} else {
-					$end_page = $total_page;
-				}
+				$end_page = $page+6;
 			}
-			return $self->render(
-				first_page 	=> $first_page,
-				end_page	=> $end_page,
-				page		=> $page,
-				total_page  => $total_page,
-				partial		=> 1,
-				%params
-			);
+		} else {
+			$first_page = $page - 3;
+			if($first_page + 6 > $total_page){
+				$end_page = $total_page;
 
+			} elsif($first_page + 6 <= $total_page){
+				$end_page = $first_page + 6;
+			} else {
+				$end_page = $total_page;
+			}
 		}
-	);
+		return $self->render(
+			first_page 	=> $first_page,
+			end_page	=> $end_page,
+			page		=> $page,
+			total_page  => $total_page,
+			partial		=> 1,
+			%params
+		);
+	});
 
 }
 
