@@ -92,7 +92,6 @@
     % end
   </head>
   <body>
-    %= include inline => app->renderer->_bundled('mojobar')
     <div id="wrapperlicious">
       <div id="nothing" class="box spaced"></div>
       % my $cv = begin
@@ -210,11 +209,6 @@
         </div>
         <div class="tap">tap for more</div>
       </div>
-    </div>
-    <div id="footer">
-      %= link_to 'http://mojolicio.us' => begin
-        %= image '/mojo/logo-black.png', alt => 'Mojolicious logo'
-      % end
     </div>
     %= javascript begin
       $('#more').click(function() {

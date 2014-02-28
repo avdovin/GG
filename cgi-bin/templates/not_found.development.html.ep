@@ -67,7 +67,6 @@
     % end
   </head>
   <body>
-    %= include inline => app->renderer->_bundled('mojobar')
     <div id="wrapperlicious">
       <div id="routes">
         <h1>Page not found... yet!</h1>
@@ -106,11 +105,6 @@
           %= $walk->($walk, $_, 0) for @{app->routes->children};
         </table>
       </div>
-    </div>
-    <div id="footer">
-      %= link_to 'http://mojolicio.us' => begin
-        %= image '/mojo/logo-black.png', alt => 'Mojolicious logo'
-      % end
     </div>
   </body>
 </html>
