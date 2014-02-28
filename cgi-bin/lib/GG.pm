@@ -54,6 +54,13 @@ sub startup{
 	$self->plugin('feedback');
 	$self->plugin('image');
 
+	# языковые версии сайта
+	# $self->plugin('I18N' =>  {
+	# 	support_url_langs 	=> [qw(ru en)],
+	# 	default 			=> 'ru',
+	# 	namespace 			=> 'GG::I18N',
+	# 	no_header_detect 	=> 1
+	# });
 # / Pluggins ----------------------------------------------------------------------------------------------
 
 	$self->static->paths(['../../httpdocs/']);

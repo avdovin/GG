@@ -8,13 +8,13 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
 if (typeof jQuery == 'undefined') {
-    document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
+	document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
 }
 </script>
-<%== javascript '/js/bundled/html4+html5/jquery.history.js' if $self->stash->{jquery_history} %>
+%== javascript '/js/bundled/html4+html5/jquery.history.js' if $self->stash->{'jquery_history'}
+%== javascript '/js/gg.core-2.js'
 
-%	js_files('/js/core.js');
-%	js_files('/js/common.js');
+% js_files('/js/common.js');
 
 % if( $self->stash->{'vfe'} && $self->stash->{'vfe_enabled'} ){
 	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>

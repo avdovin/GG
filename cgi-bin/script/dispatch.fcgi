@@ -21,6 +21,8 @@ $ENV{'DOCUMENT_ROOT'} ||= '/www/gg9.local/httpdocs/';
 $ENV{'MOJO_REVERSE_PROXY'} = 1;
 $ENV{'TZ'} = 'Europe/Moscow';
 
+$ENV{'MOJO_I18N_DEBUG'} = 1;
+
 # Start command line interface for application
 require Mojolicious::Commands;
 Mojolicious::Commands->start_app('GG');
