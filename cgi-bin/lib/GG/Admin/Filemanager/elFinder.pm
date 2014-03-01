@@ -18,9 +18,15 @@ use Mojo::Util qw(decode encode b64_decode b64_encode url_escape url_unescape);
 
 use utf8;
 
+# JSON serializer
+my $JSON = Mojo::JSON->new;
 
 $VERSION = "2.0"; # Версия движка и API
 $DIRECTORY_SEPARATOR = '/';
+
+use Mojo::Cache;
+my $cache = Mojo::Cache->new(max_keys => 1000);
+my $cache_live_time = 3;		# кол-во дней кэша
 
 sub new
 { # Создание нового класса. Отсюда начинается класс
@@ -77,6 +83,9 @@ sub new
 	{
 		$self->{CONF}->{'URL'} = substr($self->{CONF}->{'URL'}, 0, -1); # Убираем последний /
 	}
+
+	# по умолчанию считаем что кэш включен (есть доступ к таблице sys_filemanager_cache)
+	$self->{cache_on} = 1;
 
 	%{$self->{REQUEST}} = ();
 
@@ -414,7 +423,7 @@ sub _cwd
 	my ($self, $path) = @_;
 
 	%{$self->{RES}->{'cwd'}} = (
-	    #'path'      => substr($path, 6),
+		#'path'      => substr($path, 6),
 		'hash'      => $self->_hash_api2_encode($path), #_hash($path),
 		'phash'		=> $self->_phash($path),
 		'name'      => _basename($path),
@@ -440,10 +449,6 @@ sub _files
 	opendir(DIR,$path);
 	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 	closedir(DIR);
-
-	#if($self->{cached}->{files}->{ $path }){
-	#	return $self->{RES}->{'files'} = $self->{cached}->{files}->{ $path };
-	#}
 
 	$self->{RES}->{'files'} = [];
 	#foreach my $subdir (grep {_isAccepted($self,"$path/$_") eq 'true'} sort {-f "$path/$a" cmp -f "$path/$b"} @content)
@@ -477,8 +482,6 @@ sub _files
 		#	push @{$self->{RES}->{'files'}}, $_;
 		#}
 	}
-
-	#$self->{app}->{'_filemanager'}->{'cache'}->{ $path } = $self->{RES}->{'files'};
 }
 
 
@@ -486,10 +489,42 @@ sub _info
 {
 	my ($self, $path) = @_;
 
-	my @stat = (-l $path) ? lstat($path) : stat($path);
+	my $hash = $self->_hash_api2_encode($path) || '';
 
-	my %info = (
-		'hash'  	=> $self->_hash_api2_encode($path) || '',
+	my %info = ();
+	# проверяем в кэше
+	if($self->{'cache_on'}){
+		# файл есть в кэше
+		if(my $hashCache = $cache->get($hash)){
+			#warn 'cache exist!';
+			return %{$hashCache};
+		}
+		else {
+			if( my $sth = $self->{'app'}->dbi->dbh->prepare("SELECT `hash`,`info` FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)<$cache_live_time") ){
+				$sth->execute();
+				while(my $row = $sth->fetchrow_hashref){
+					$row->{info} =~ s/\-/\=/g;
+					if(my $hashData = $JSON->decode(b64_decode $row->{info})){
+						$cache->set( $row->{hash}  => $hashData);
+						#$CACHE->{ $row->{hash} } = $hashData
+					}
+				}
+				$sth->finish();
+
+				if(my $hashCache = $cache->get($hash)){
+					return %{$hashCache};
+				}
+			}
+			else {
+				$self->{'cache_on'} = 0;
+			}
+		}
+
+	}
+
+	my @stat = (-l $path) ? lstat($path) : stat($path);
+	%info = (
+		'hash'  	=> $hash,
 		'mime'  	=> is_dir($path) ? 'directory' : $self->_mimetype($path),
 		'ts'		=> $stat[9] || '',
 		'phash'		=> $self->_phash($path), #(String) hash of parent directory. Required except roots dirs.
@@ -559,6 +594,14 @@ sub _info
 	} else {
 		# (Number) Only for directories. Marks if directory has child directories inside it. 0 (or not set) - no, 1 - yes. Do not need to calculate amount.
 		$info{dirs} = &__has_subdir($path); #
+	}
+
+	if($self->{'cache_on'}){
+		my $data = \%info;
+		my $encodeData = b64_encode $JSON->encode($data), '';
+		$encodeData =~ s/\=/\-/g;
+
+		$self->{'app'}->dbi->dbh->do("REPLACE INTO `sys_filemanager_cache`(`hash`,`info`, `updated`) VALUES (?, ?, NOW()) ", undef, $hash, $encodeData);
 	}
 
 	return %info;
@@ -731,11 +774,11 @@ sub _extract{
 		}
 	}
 
-    return $self->{RES}->{'error'}.= 'Ошибка распаковки архива' unless ( $zip->read( $path ) == AZ_OK );
+	return $self->{RES}->{'error'}.= 'Ошибка распаковки архива' unless ( $zip->read( $path ) == AZ_OK );
 
-    mkdir($dir.$DIRECTORY_SEPARATOR.$foldername, $self->{CONF}->{'dirMode'});
+	mkdir($dir.$DIRECTORY_SEPARATOR.$foldername, $self->{CONF}->{'dirMode'});
 
-   	my @members = $zip -> memberNames( '.*' );
+	my @members = $zip -> memberNames( '.*' );
 	foreach my $element(@members){
 
 		my $filename = $self->{app}->transliteration($element);
@@ -745,7 +788,7 @@ sub _extract{
 		eval{
 			open(FILE, ">${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename") or die("can't open ${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename: $!");
 			flock(FILE, 2);
-		   	binmode(FILE);
+			binmode(FILE);
 			print FILE $Content;
 			close FILE or die("can't close ${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename: $!");
 		};
@@ -788,10 +831,10 @@ sub _archive{
 	my $uniquename = $self->{app}->file_check_free_name($dir.$DIRECTORY_SEPARATOR.'Archive1.zip');
 
 	unless ( $zip->writeToFileNamed($dir.$DIRECTORY_SEPARATOR.$uniquename) == AZ_OK ) {
-    	return $self->{RES}->{'error'}.= 'Ошибка создания архива';
-   	}
+		return $self->{RES}->{'error'}.= 'Ошибка создания архива';
+	}
 
-   	push @$added, { $self->_info($dir.$DIRECTORY_SEPARATOR.$uniquename) };
+	push @$added, { $self->_info($dir.$DIRECTORY_SEPARATOR.$uniquename) };
 
 	$self->{RES}->{'added'} = $added;
 }
@@ -1032,7 +1075,7 @@ sub _mkfile{
 	eval{
 		open(FILE, ">${dstpath}${DIRECTORY_SEPARATOR}$name") or die("can't open ${dstpath}${DIRECTORY_SEPARATOR}$name: $!");
 		flock(FILE, 2);
-	   	binmode(FILE);
+		binmode(FILE);
 		close FILE or die("can't close ${dstpath}${DIRECTORY_SEPARATOR}$name: $!");
 		chmod $self->{CONF}->{'fileMode'}, $dstpath.$DIRECTORY_SEPARATOR.$name;
 	};
@@ -1144,15 +1187,17 @@ sub _open
 	my $p;
 
 	# try to load dir
-	if (exists $self->{REQUEST}->{'target'})
-	{
+	if (exists $self->{REQUEST}->{'target'}){
 		$p = _findDir($self, $self->{REQUEST}->{'target'});
 
-		if ('false' eq $p)
-		{
-			if (! exists $self->{REQUEST}->{'init'})
-			{
+		if ('false' eq $p){
+
+			if (! exists $self->{REQUEST}->{'init'}){
 				$self->{RES}->{'error'} .= 'Invalid parameters'. $p;
+
+
+				# очищяем кэш
+				$self->dbh->dbh->do("DELETE FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)>$cache_live_time LIMIT 100")
 			}
 		}
 #		elsif (_isAllowed($self, $p, 'read') eq 'false')
@@ -1161,15 +1206,13 @@ sub _open
 #				$self->{RES}->{'error'} .= 'Access denied';
 #			}
 #		}
-		else
-		{
+		else{
 			$path = $p;
 		}
 
 	}
 
-	if (exists $self->{REQUEST}->{'current'})
-	{
+	if (exists $self->{REQUEST}->{'current'}){
 		$self->{RES}->{'error'} .= $self->{URL}->{current}."<br>"
 	}
 

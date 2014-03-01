@@ -4,13 +4,14 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use utf8;
 
-use Mojo::Cache;
+
 
 use List::Util 'first';
 
 our $VERSION = '0.05';
 
-my $cache = Mojo::Cache->new(max_keys => 50);
+#use Mojo::Cache;
+#my $cache = Mojo::Cache->new(max_keys => 50);
 
 sub register {
 	my ( $self, $app, $args ) = @_;
