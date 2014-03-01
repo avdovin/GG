@@ -10,18 +10,17 @@
 # Ignore all logfiles and tempfiles.
 /cgi-bin/log/*.log
 
-.externalToolBuilders
 /subdomains
 *.tar.gz
 gg.sublime-project
 gg.sublime-workspace
+httpdocs/userfiles/*
 
 # OS generated files #
 ######################
 .DS_Store
 ._*
 .Trashes
-ehthumbs.db
 Thumbs.db
 
 

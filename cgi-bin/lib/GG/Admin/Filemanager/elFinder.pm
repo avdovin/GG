@@ -7,11 +7,9 @@ use v5.10;
 use vars qw/$VERSION $DIRECTORY_SEPARATOR/;
 
 use Digest::MD5 qw(md5_hex);
-#use MIME::Base64 ();
 use File::Basename qw();
 use File::Find qw();
 use File::Path qw();
-#use File::Copy ();
 use File::Copy::Recursive ();
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
@@ -79,32 +77,6 @@ sub new
 	{
 		$self->{CONF}->{'URL'} = substr($self->{CONF}->{'URL'}, 0, -1); # Убираем последний /
 	}
-
-#	%{$self->{CMD}} = (
-#		'open'      => '_open',
-#		'mkdir'     => '_mkdir',
-#		'mkfile'    => '_mkfile',
-#		'rename'    => '_rename',
-#		'upload'    => '_upload',
-#		'paste'     => '_paste',
-#		'rm'        => '_rm',
-#		'duplicate' => '_duplicate',
-#		'read'      => '_fread',
-#		'edit'      => '_edit',
-#		'archive'   => '_archive',
-#		'extract'   => '_extract',
-#		'resize'    => '_resize',
-#		'tmb'       => '_thumbnails',
-#		'ping'      => '_ping',
-#		'parents'	=> '_parents',
-#		'search'	=> '_search',
-#		'upload'	=> '_upload',
-#		'get'		=> '_get',
-#		'mkdir'		=> '_mkdir',
-#		'rm'		=> '_rm',
-#		'ls'		=> '_ls',
-#		'paste'		=> '_paste',
-#		);
 
 	%{$self->{REQUEST}} = ();
 
@@ -409,7 +381,8 @@ sub __tree
 	my @content = grep { !/^\.{1,2}$/ } sort readdir(DIR);
 	closedir(DIR);
 	foreach my $subdir (grep { -d "$path/$_" } @content){
-		next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
+		#next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
+		next if (substr($subdir, 0, 1) eq '.');
 
 		push @$dirs, { $self->_info("$path/$subdir") };
 		@$dirs = (@$dirs, @{ $self->__tree("$path/$subdir", $depth-1) } ) if $depth > 1;
@@ -423,7 +396,7 @@ sub _options{
 
 	%{$self->{RES}->{'options'}} = (
 		'path'			=> substr( $self->_path2relUrl($path), length $DIRECTORY_SEPARATOR) ,
-		'url'			=> $self->_path2baseUrl($path).$DIRECTORY_SEPARATOR,
+		'url'			=> $self->{CONF}->{URL}.$DIRECTORY_SEPARATOR,# $self->_path2baseUrl($path).$DIRECTORY_SEPARATOR,
 		'tmbUrl'		=> $self->_path2baseUrl($path).$DIRECTORY_SEPARATOR.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR,
 		#'tmbUrl'		=> $self->{CONF}->{tmbDir} ? $self->{CONF}->{URL}.$DIRECTORY_SEPARATOR.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR : 'False',
 		'disabled'		=> [],
@@ -439,18 +412,7 @@ sub _options{
 sub _cwd
 {
 	my ($self, $path) = @_;
-#	my $rel = $self->{CONF}->{'rootAlias'} ne '' ? $self->{CONF}->{'rootAlias'} : _basename($self->{CONF}->{'root'});
-#	my $name;
-#	if ($path eq $self->{CONF}->{'root'})
-#	{
-#		$name = $rel;
-#	}
-#	else
-#	{
-#		$name = _basename($path);
-#		$rel .= $DIRECTORY_SEPARATOR.substr($path, length($self->{CONF}->{'root'}) + 1);
-#	}
-	#my $name = _basename($path);
+
 	%{$self->{RES}->{'cwd'}} = (
 	    #'path'      => substr($path, 6),
 		'hash'      => $self->_hash_api2_encode($path), #_hash($path),
@@ -475,16 +437,20 @@ sub _files
 {
 	my ($self,$path) = @_;
 
-	$path = $path;
 	opendir(DIR,$path);
 	my @content = grep {!/^\.{1,2}$/} sort readdir(DIR);
 	closedir(DIR);
 
+	#if($self->{cached}->{files}->{ $path }){
+	#	return $self->{RES}->{'files'} = $self->{cached}->{files}->{ $path };
+	#}
 
 	$self->{RES}->{'files'} = [];
 	#foreach my $subdir (grep {_isAccepted($self,"$path/$_") eq 'true'} sort {-f "$path/$a" cmp -f "$path/$b"} @content)
 	foreach my $subdir (sort {-f "$path/$a" cmp -f "$path/$b"} @content){
-		next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
+		#next if (substr($subdir, -length($self->{CONF}->{tmbDir})) eq  $self->{CONF}->{tmbDir});
+		# пропускаем скрытые директории
+		next if (substr($subdir, 0, 1) eq '.');
 
 		push @{$self->{RES}->{'files'}}, { $self->_info("$path/$subdir") };
 	}
@@ -510,8 +476,9 @@ sub _files
 		#foreach ($self->__tree($path, $self->{REQUEST}->{'tree'})){
 		#	push @{$self->{RES}->{'files'}}, $_;
 		#}
-
 	}
+
+	#$self->{app}->{'_filemanager'}->{'cache'}->{ $path } = $self->{RES}->{'files'};
 }
 
 
@@ -1274,8 +1241,6 @@ sub _phash{
 
 	my @myDir = split('/', $path);
 	pop @myDir;
-	#pop @myDir if(-f $path);
-
 	return $self->_hash_api2_encode( join( '/', @myDir) );
 }
 

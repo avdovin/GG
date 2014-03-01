@@ -70,8 +70,8 @@ elFinder.prototype.commands.quicklook = function() {
 				opacity : 0,
 				width   : 20,//node.width(),
 				height  : fm.view == 'list' ? 1 : 20,
-				top     : node.offset().top+'px', 
-				left    : node.offset().left+'px' 
+				top     : node.offset().top+'px',
+				left    : node.offset().left+'px'
 			}
 		},
 		/**
@@ -89,44 +89,44 @@ elFinder.prototype.commands.quicklook = function() {
 				left   : parseInt((win.width() - width)/2 + win.scrollLeft())
 			}
 		},
-		
+
 		support = function(codec) {
 			var media = document.createElement(codec.substr(0, codec.indexOf('/'))),
 				value = false;
-			
+
 			try {
 				value = media.canPlayType && media.canPlayType(codec);
 			} catch (e) {
-				
+
 			}
-			
+
 			return value && value !== '' && value != 'no';
 		},
-		
+
 		/**
 		 * Opened window width (from config)
 		 *
 		 * @type Number
 		 **/
-		width, 
+		width,
 		/**
 		 * Opened window height (from config)
 		 *
 		 * @type Number
 		 **/
-		height, 
+		height,
 		/**
 		 * elFinder node
 		 *
 		 * @type jQuery
 		 **/
-		parent, 
+		parent,
 		/**
 		 * elFinder current directory node
 		 *
 		 * @type jQuery
 		 **/
-		cwd, 
+		cwd,
 		title   = $('<div class="elfinder-quicklook-title"/>'),
 		icon    = $('<div/>'),
 		info    = $('<div class="elfinder-quicklook-info"/>'),//.hide(),
@@ -136,18 +136,18 @@ elFinder.prototype.commands.quicklook = function() {
 					full    = win.is('.'+fullscreen),
 					scroll  = 'scroll.'+fm.namespace,
 					$window = $(window);
-					
+
 				e.stopPropagation();
-				
+
 				if (full) {
 					win.css(win.data('position')).unbind('mousemove');
 					$window.unbind(scroll).trigger(self.resize).unbind(self.resize);
 					navbar.unbind('mouseenter').unbind('mousemove');
 				} else {
 					win.data('position', {
-						left   : win.css('left'), 
-						top    : win.css('top'), 
-						width  : win.width(), 
+						left   : win.css('left'),
+						top    : win.css('top'),
+						width  : win.width(),
 						height : win.height()
 					})
 					.css({
@@ -166,12 +166,12 @@ elFinder.prototype.commands.quicklook = function() {
 					})
 					.trigger(scroll)
 					.trigger(self.resize);
-					
+
 					win.bind('mousemove', function(e) {
 						navbar.stop(true, true).show().delay(3000).fadeOut('slow');
 					})
 					.mousemove();
-					
+
 					navbar.mouseenter(function() {
 						navbar.stop(true, true).show();
 					})
@@ -184,7 +184,7 @@ elFinder.prototype.commands.quicklook = function() {
 				$(this).toggleClass(navicon+'-fullscreen-off');
 				$.fn.resizable && parent.add(win).resizable(full ? 'enable' : 'disable').removeClass('ui-state-disabled');
 			}),
-			
+
 		navbar  = $('<div class="elfinder-quicklook-navbar"/>')
 			.append($('<div class="'+navicon+' '+navicon+'-prev"/>').mousedown(function() { navtrigger(37); }))
 			.append(fsicon)
@@ -197,7 +197,7 @@ elFinder.prototype.commands.quicklook = function() {
 	this.info = $('<div class="elfinder-quicklook-info-wrapper"/>')
 		.append(icon)
 		.append(info);
-		
+
 	this.preview = $('<div class="elfinder-quicklook-preview ui-helper-clearfix"/>')
 		// clean info/icon
 		.bind('change', function(e) {
@@ -219,7 +219,7 @@ elFinder.prototype.commands.quicklook = function() {
 				self.window.data('hash', file.hash);
 				self.preview.unbind('changesize').trigger('change').children().remove();
 				title.html(fm.escape(file.name));
-				
+
 				info.html(
 						tpl.replace(/\{value\}/, file.name)
 						+ tpl.replace(/\{value\}/, fm.mime2kind(file))
@@ -238,14 +238,15 @@ elFinder.prototype.commands.quicklook = function() {
 						})
 						.attr('src', (tmb = fm.tmb(file.hash)));
 				}
+
 				self.info.delay(100).fadeIn(10);
-			} else { 
+			} else {
 				e.stopImmediatePropagation();
 			}
 		});
-		
 
-	
+
+
 
 	this.window = $('<div class="ui-helper-reset ui-widget elfinder-quicklook" style="position:absolute"/>')
 		.click(function(e) { e.stopPropagation();  })
@@ -261,7 +262,7 @@ elFinder.prototype.commands.quicklook = function() {
 		.append(self.info.hide())
 		.draggable({handle : 'div.elfinder-quicklook-titlebar'})
 		.bind('open', function(e) {
-			var win  = self.window, 
+			var win  = self.window,
 				file = self.value,
 				node;
 
@@ -287,9 +288,9 @@ elFinder.prototype.commands.quicklook = function() {
 					win.hide();
 					preview.children().remove();
 					self.update(0, self.value);
-					
+
 				};
-				
+
 			if (self.opened()) {
 				state = animated;
 				win.is('.'+fullscreen) && fsicon.mousedown()
@@ -305,25 +306,25 @@ elFinder.prototype.commands.quicklook = function() {
 	 * @type Boolean
 	 **/
 	this.alwaysEnabled = true;
-	
+
 	/**
 	 * Selected file
 	 *
 	 * @type Object
 	 **/
 	this.value = null;
-	
+
 	this.handlers = {
 		// save selected file
 		select : function() { this.update(void(0), this.fm.selectedFiles()[0]); },
 		error  : function() { self.window.is(':visible') && self.window.data('hash', '').trigger('close'); },
 		'searchshow searchhide' : function() { this.opened() && this.window.trigger('close'); }
 	}
-	
+
 	this.shortcuts = [{
 		pattern     : 'space'
 	}];
-	
+
 	this.support = {
 		audio : {
 			ogg : support('audio/ogg; codecs="vorbis"'),
@@ -334,11 +335,11 @@ elFinder.prototype.commands.quicklook = function() {
 		video : {
 			ogg  : support('video/ogg; codecs="theora"'),
 			webm : support('video/webm; codecs="vp8, vorbis"'),
-			mp4  : support('video/mp4; codecs="avc1.42E01E"') || support('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') 
+			mp4  : support('video/mp4; codecs="avc1.42E01E"') || support('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
 		}
 	}
-	
-	
+
+
 	/**
 	 * Return true if quickLoock window is visible and not animated
 	 *
@@ -347,7 +348,7 @@ elFinder.prototype.commands.quicklook = function() {
 	this.closed = function() {
 		return state == closed;
 	}
-	
+
 	/**
 	 * Return true if quickLoock window is hidden
 	 *
@@ -356,7 +357,7 @@ elFinder.prototype.commands.quicklook = function() {
 	this.opened = function() {
 		return state == opened;
 	}
-	
+
 	/**
 	 * Init command.
 	 * Add default plugins and init other plugins
@@ -364,12 +365,12 @@ elFinder.prototype.commands.quicklook = function() {
 	 * @return Object
 	 **/
 	this.init = function() {
-		var o       = this.options, 
+		var o       = this.options,
 			win     = this.window,
 			preview = this.preview,
 			i, p;
-		
-		width  = o.width  > 0 ? parseInt(o.width)  : 450;	
+
+		width  = o.width  > 0 ? parseInt(o.width)  : 450;
 		height = o.height > 0 ? parseInt(o.height) : 300;
 
 		fm.one('load', function() {
@@ -377,48 +378,48 @@ elFinder.prototype.commands.quicklook = function() {
 			cwd    = fm.getUI('cwd');
 
 			win.appendTo('body').zIndex(100 + parent.zIndex());
-			
+
 			// close window on escape
 			$(document).keydown(function(e) {
 				e.keyCode == 27 && self.opened() && win.trigger('close')
 			})
-			
+
 			if ($.fn.resizable) {
-				win.resizable({ 
-					handles   : 'se', 
-					minWidth  : 350, 
-					minHeight : 120, 
-					resize    : function() { 
+				win.resizable({
+					handles   : 'se',
+					minWidth  : 350,
+					minHeight : 120,
+					resize    : function() {
 						// use another event to avoid recursion in fullscreen mode
 						// may be there is clever solution, but i cant find it :(
-						preview.trigger('changesize'); 
+						preview.trigger('changesize');
 					}
 				});
 			}
-			
+
 			self.change(function() {
 				if (self.opened()) {
 					self.value ? preview.trigger($.Event('update', {file : self.value})) : win.trigger('close');
 				}
 			});
-			
+
 			$.each(fm.commands.quicklook.plugins || [], function(i, plugin) {
 				if (typeof(plugin) == 'function') {
 					new plugin(self)
 				}
 			});
-			
+
 			preview.bind('update', function() {
 				self.info.show();
 			});
 		});
-		
+
 	}
-	
+
 	this.getstate = function() {
 		return this.fm.selected().length == 1 ? state == opened ? 1 : 0 : -1;
 	}
-	
+
 	this.exec = function() {
 		this.enabled() && this.window.trigger(this.opened() ? 'close' : 'open');
 	}
