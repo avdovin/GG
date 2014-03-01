@@ -12,14 +12,14 @@ sub register {
 	$opts ||= {};
 
 	$app->log->debug("register GG::Admin::Plugins::InitJson");
-	
+
 	$app->hook(
 		before_dispatch => sub {
 			my $self = shift;
 			$self->stash->{_init_items} = [];
 		}
 	);
-		
+
 	$app->helper(
 		init_items => sub {
 			my $self = shift;
@@ -31,30 +31,30 @@ sub register {
 			}
 		}
 	);
-	
+
 	$app->helper(
 		get_init_items => sub {
 			my $self   = shift;
 			my $params	= ref $_[0] ? $_[0] : {@_};
-			
+
 			my $items = [];
 			if($params->{init} && !$self->stash->{not_init}){
 				my $init = delete $params->{init};
 				$items = $self->$init,
 			}
-			
+
 			my $init_items = delete $self->stash->{_init_items} || [];
 			push @$items, $_ foreach (@$init_items);
 
 			return $items;
-			
+
 		}
 	);
-	
+
 	$app->helper(
 		init_main => sub {
 			my $self   = shift;
-			
+
 			my $items = [
 			{
 				type		=> 'addcontent',
@@ -79,25 +79,25 @@ sub register {
 			{
 				type		=> 'showpane',
 				position	=> 'east'
-			},		
+			},
 			{
 				type		=> 'showpane',
 				position	=> 'west'
-			},		
+			},
 			{
 				type		=> 'collapsepane',
 				position	=> 'west',
 				status		=> $self->sysuser->settings->{leftwin_hidden} ? 1 : 0,
-			},		
+			},
 			{
 				type		=> 'collapsepane',
 				position	=> 'east',
 				status		=> $self->sysuser->settings->{rightwin_hidden} ? 1 : 0,
-			},						
+			},
 			{
 				type		=> 'topmenu',
 				display		=> 'block'
-			},	
+			},
 			{
 				type		=> 'loadjson',
 				divid		=> 'menuButton',
@@ -111,10 +111,6 @@ sub register {
 				type		=> 'showcontent',
 				id			=> 'center'
 			},
-			{
-				type		=> 'showcontent',
-				id			=> 'center'
-			},					
 			{
 				type		=> 'eval',
 				value		=> "load_script('/admin/ckeditor/ckeditor.js');"
@@ -150,36 +146,36 @@ sub register {
 				pantitle	=> 'Информация о пользователе',
 				tabtitle	=> 'Инфо'
 			},
-			]; 
-			
+			];
+
 			if(!$self->sysuser->settings->{leftwin_hidden}){
 				push @$items, {
 					type		=> 'expandPane',
 					position	=> 'west',
 					status		=> 1,
-				};	
+				};
 			} else {
 				push @$items, {
 					type		=> 'collapsepane',
 					position	=> 'west',
 					status		=> 1,
-				};				
-			}			
+				};
+			}
 
 			if(!$self->sysuser->settings->{rightwin_hidden}){
 				push @$items, {
 					type		=> 'expandPane',
 					position	=> 'east',
 					status		=> 1,
-				};	
+				};
 			} else {
 				push @$items, {
 					type		=> 'collapsepane',
 					position	=> 'east',
 					status		=> 1,
-				};				
-			}	
-						
+				};
+			}
+
 			return $items;
 		}
 	);
@@ -188,25 +184,25 @@ sub register {
 		init_modul => sub {
 			my $self   = shift;
 			my %params = @_;
-			
+
 			my $stash = $self->stash;
 			$params{$_} ||= $stash->{$_} foreach keys %$stash;
-					
+
 			my $items = [
 				{
 					type		=> 'eval',
 					value		=> "load_data('$params{replaceme}', '/admin/$params{controller}/body?do=list_items&$params{param_default}&table_flag=1&page=$$stash{page}')",
-	
+
 				},
 				{
 					type		=> 'eval',
 					value		=> "load_css('/admin/css/tooltip.css');",
-	
+
 				},
 				{
 					type		=> 'eval',
 					value		=> "load_script('/admin/js/jquery/jtip.js');",
-	
+
 				},
 #				{
 #					type		=> 'showcontent',
@@ -225,22 +221,22 @@ sub register {
 				{
 					type		=> 'eval',
 					value		=> "load_script('/admin/js/mselectboxes.js');",
-	
+
 				},
 				{
 					type		=> 'eval',
 					value		=> "load_css('/admin/css/calendar.css');",
 				},
-			]; 
-			
+			];
+
 			if($self->app->program->{settings}->{tree} and !$self->sysuser->settings->{leftwin_hidden}){
-				
+
 				push @$items, {
 					type		=> 'expandPane',
 					position	=> 'west',
 					status		=> 1,
-				};	
-		
+				};
+
 				push @$items, {
 					type		=> 'addcontent',
 					position	=> 'west',
@@ -248,7 +244,7 @@ sub register {
 					contenturl	=> $stash->{script_link}.'?do=tree',
 					pantitle	=> $stash->{controller_name},
 					tabtitle	=> $stash->{controller_name}
-				};				
+				};
 				push @$items, {
 					type		=> 'showcontent',
 					id			=> $params{controller}.'_tree',
@@ -257,12 +253,12 @@ sub register {
 			} else {
 				my $status = $self->sysuser->settings->{leftwin_hidden} || 0;
 				$status = 1 unless $self->app->program->{settings}->{tree};
-				
+
 				push @$items, {
 					type		=> 'collapsepane',
 					position	=> 'west',
 					status		=> $status,
-				};				
+				};
 			}
 
 			if($stash->{tree_reload} && !$self->sysuser->settings->{leftwin_hidden}){
@@ -278,33 +274,34 @@ sub register {
 					type		=> 'expandPane',
 					position	=> 'east',
 					status		=> 1,
-				};	
+				};
 			} else {
 				push @$items, {
 					type		=> 'collapsepane',
 					position	=> 'east',
 					status		=> 1,
-				};				
+				};
 			}
-						
+
 #			push @$items, {
 #				type		=> 'collapsepane',
 #				position	=> 'east',
 #				status		=> $self->sysuser->settings->{rightwin_hidden} ? 1 : 0,
 #			};
-						
 			if($stash->{enter}){
 				push @$items, {
 					type		=> 'loadjson',
 					divid		=> 'menuButton',
 					url			=> $stash->{script_link}.'?do=menu_button'
 				};
-				push @$items, {
-					type		=> 'showcontent',
-					id			=> 'center',
-				};
 			}
-			return $items;				
+
+			# показываем первую вкладку
+			push @$items, {
+				type		=> 'showcontent',
+				id			=> 'center',
+			};
+			return $items;
 		}
 	);
 
@@ -312,14 +309,14 @@ sub register {
 		init_anketa_edit => sub {
 			my $self   = shift;
 			my %params = @_;
-			
+
 			no warnings;
-			
+
 			my $stash = $self->stash;
 			#$params{$_} ||= $stash->{$_} foreach keys %$stash;
-					
+
 			my $items = [];
-			
+
 			#if($stash->{anketa_ok} eq 'ok'){
 			#}
 
@@ -339,15 +336,15 @@ sub register {
 					value		=> "document.getElementById('link".$stash->{multiselect_flag}."').onclick = function() { if (document.getElementById('helpmultilist".$stash->{multiselect_flag}."').style.display=='none') { document.getElementById('link".$stash->{multiselect_flag}."').innerHTML='выключить подсказку по клику'; } else { document.getElementById('link".$stash->{multiselect_flag}."').innerHTML='включить подсказку по клику'; } swich_visible('helpmultilist".$stash->{multiselect_flag}."'); }",
 				},
 			}
-			
+
 			if($stash->{group} == 1){
 				push @$items, {
 					type		=> 'eval',
 					value		=> "ld_content('hot_link', '/admin/main/body?do=hot_link', '', 1);",
 				};
 			}
-			
-						
+
+
 			$items = [
 				@$items,
 				{
@@ -357,7 +354,7 @@ sub register {
 				{
 					type		=> 'eval',
 					value		=> "dSubmit".$stash->{replaceme}." = function () {document.getElementById(id_block_submit['".$stash->{replaceme}."']).disabled = true; document.getElementById('dop' + id_block_submit['".$stash->{replaceme}."']).disabled = true;}",
-	
+
 				},
 				{
 					type		=> 'eval',
@@ -380,21 +377,21 @@ sub register {
 					value		=> "if(link_list.length > 0){requestList = link_list;}",
 				},
 			];
-			
+
 			if($stash->{_html_editor}){
 				push @$items, {
 					type		=> 'eval',
 					value		=> "editor_init('form_".$stash->{replaceme}."');",
-				};				
+				};
 			}
-			
+
 			if($stash->{multilist_init}){
 				push @$items, {
 					type		=> 'eval',
 					value		=> "multilist_init('form_".$stash->{replaceme}."');",
-				};				
+				};
 			}
-			
+
 			# Для поля с деревом структуры
 			if($stash->{flag_select_dir}){
 				push @$items, {
@@ -419,7 +416,7 @@ sub register {
 					id			=> $stash->{replaceme},
 					title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 10 ),
 				},
-			];			
+			];
 
 
 			if($stash->{tree_reload} && !$self->sysuser->settings->{leftwin_hidden}){
@@ -428,7 +425,7 @@ sub register {
 					value		=> "ld_content('pane_tree_".$stash->{controller}."','/admin/".$stash->{controller}."/body?do=tree', 1, 1);",
 				};
 			}
-			
+
 			return $items;
 		}
 	);
@@ -436,10 +433,10 @@ sub register {
 	$app->helper(
 		init_anketa_info => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
 			my $items = [];
-			
+
 			if($self->send_params->{'do'} eq 'save' or $self->send_params->{'do'} eq 'restore'){
 				if($stash->{controller} ne 'keys'){
 					push @$items, {
@@ -453,13 +450,13 @@ sub register {
 						value		=> "ld_content('pane_tree_".$stash->{controller}."', '/admin/".$stash->{controller}."/body?do=tree', 1, 1);",
 					};
 				}
-			}						
+			}
 
 			push @$items, {
 				type		=> 'eval',
 				value		=> "ld_content('hot_link', '/admin/main/body?do=hot_link', '', 1);",
 			};
-			
+
 			push @$items, {
 				type		=> 'eval',
 				value		=> "setTimeout(\"inittabs('".$stash->{replaceme}."', Array(".$stash->{group_name_list}."), Array())\", 100);",
@@ -478,15 +475,15 @@ sub register {
 				type		=> 'settabtitle',
 				id			=> $stash->{replaceme},
 				title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 10 ),
-			};	
+			};
 
 			if($self->sysuser->settings->{$stash->{controller}.'_qedit'} ){
 				push @$items, {
 					type		=> 'eval',
 					value		=> "setTimeout(\"init_qedit_info('".$stash->{replaceme}."')\", 500);",
 				};
-			}	
-						
+			}
+
 			return $items;
 		}
 	);
@@ -494,29 +491,29 @@ sub register {
 	$app->helper(
 		init_anketa_delete => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
 			my $items = [];
-			
+
 			if($stash->{tree_reload} && !$self->sysuser->settings->{leftwin_hidden}){
 				push @$items, {
 						type		=> 'eval',
 						value		=> "ld_content('pane_tree_".$stash->{controller}."', '/admin/".$stash->{controller}."/body?do=tree', 1, 1);",
 				};
 			}
-					
+
 			return $items;
 		}
 	);
-	
+
 
 	$app->helper(
 		init_save_filter => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
 			my $items = [];
-			
+
 			push @$items, {
 					type		=> 'eval',
 					value		=> "ld_content('".$stash->{replaceme}."', '".$stash->{controller_url}."?do=list_container".$stash->{param_default}."', '', 1)",
@@ -525,7 +522,7 @@ sub register {
 					type		=> 'eval',
 					value		=> "closeMessage(3);",
 			};
-						
+
 			return $items;
 		}
 	);
@@ -533,11 +530,11 @@ sub register {
 	$app->helper(
 		init_tablelist_reload => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
-			
+
 			my $items = [];
-			
+
 			push @$items, {
 					type		=> 'eval',
 					value		=> "ld_content('".$stash->{replaceme}."', '".$stash->{controller_url}."?do=list_container".$stash->{param_default}."', '', 1)",
@@ -546,29 +543,29 @@ sub register {
 					type		=> 'eval',
 					value		=> "closeMessage(4);",
 			};
-						
+
 			return $items;
 		}
 	);
-	
+
 	# Сохранение модального окна типа win
 	$app->helper(
 		init_win_save => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
 			return $self->init_tablelist_reload() unless $self->stash->{flag_win};
-			
+
 			my $items = [];
-			
+
 			if($self->has_errors){
-				
+
 				my $msg = $self->dbh->quote($self->admin_msg_errors);
 				push @$items, {
 						type		=> 'eval',
 						value		=> "jQuery('#replaceme_win".$self->stash->{replaceme}." h3:first').html($msg); ",
 				};
-				
+
 			} else {
 				my $index = $stash->{index_old} || $stash->{index};
 				push @$items, {
@@ -580,23 +577,23 @@ sub register {
 						value		=> "closeMessage(4);",
 				};
 			}
-			
+
 			return $items;
 		}
 	);
-	
+
 	$app->helper(
 		init_dop_tablelist_reload => sub {
 			my $self = shift;
 
 			my $stash = $self->stash;
 			return $self->init_win_save() if $self->stash->{flag_win};
-						
+
 			my $main_url = $self->url_for('admin_routes', controller => 'main', action => 'body');
 			my $items = [];
-			
+
 			if($self->has_errors){
-				
+
 				push @$items, {
 						type		=> 'eval',
 						value		=> "ld_content('replaceme_doptable_".$stash->{replaceme}.$stash->{lfield}.$stash->{index}."', '".$main_url."?do=load_table&replaceme=".$stash->{replaceme}."&access_flag=".$stash->{access_flag}."&index=".$stash->{index}."&lfield=".$stash->{lfield}."');",
@@ -609,7 +606,7 @@ sub register {
 						type		=> 'eval',
 						value		=> "setTimeout('init_tableWidget()', 1500);",
 				};
-						
+
 			} else {
 				push @$items, {
 						type		=> 'eval',
@@ -624,7 +621,7 @@ sub register {
 						value		=> "setTimeout('init_tableWidget()', 1500);",
 				};
 			}
-								
+
 			return $items;
 		}
 	);
@@ -633,10 +630,10 @@ sub register {
 	$app->helper(
 		init_null_block => sub {
 			my $self = shift;
-			
+
 			my $stash = $self->stash;
 			my $items = [];
-			
+
 			push @$items, {
 					type		=> 'settitle',
 					id			=> $stash->{replaceme},
@@ -647,7 +644,7 @@ sub register {
 					id			=> $stash->{replaceme},
 					title		=> $stash->{name} || $stash->{page_name} ||  $stash->{controller_name}.$stash->{index}
 			};
-						
+
 			return $items;
 		}
 	);

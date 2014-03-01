@@ -468,7 +468,7 @@ sub list_container{
 	$self->hide_list_items( lfield => 'view') 		if $self->param('hide');
 	$self->show_list_items( lfield => 'view') 		if $self->param('show');
 
-	$self->stash->{enter} = 1 if ($params{enter});
+	$self->stash->{enter} = 1 if $params{enter};
 
 	my $list_table = $self->stash->{list_table};
 
