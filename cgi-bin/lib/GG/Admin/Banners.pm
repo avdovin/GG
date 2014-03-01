@@ -469,7 +469,7 @@ sub list_container{
 	$self->show_list_items( lfield => 'view') 		if $self->param('show');
 
 	$self->stash->{enter} = 1 if $params{enter};
-
+die 3;
 	my $list_table = $self->stash->{list_table};
 
 	if($list_table eq 'data_banner'){

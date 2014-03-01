@@ -8,6 +8,8 @@ use File::stat;
 sub register {
 	my ( $self, $app ) = @_;
 
+	$app->helper(vu     => sub { shift->tx->req->url->path->parts->[+shift] || '' });
+
 	$app->helper( retina_src => sub {
 		my $self = shift;
 		my $src  = shift;
@@ -231,6 +233,25 @@ sub register {
 		}
 	);
 
+	$app->helper(cat => sub {
+		my $self = shift;
+		my $tmpl = shift || return '';
+		my $file = $self->conf('path')->{tmpl} . "/$tmpl.html.ep";
+
+		my $data = do { local $/; open my $fh, '<:utf8', $file or return; <$fh> };
+		return $data || '';
+	});
+
+	$app->helper(render_html => sub {
+		my $self = shift;
+		my $tmpl = shift || return '';
+
+		my $html = $self->render($tmpl, partial => 1, format => 'html', @_);
+		$html =~ s{\n+}{}sg; $html =~ s{\t+}{}sg;
+
+		$html;
+	});
+
 	# в rails этот helper называется - pluralize
 	$app->helper( pluralize	=> sub {
 		return shift->declension( @_ );
@@ -398,6 +419,27 @@ sub register {
 		}
 
 		return $short;
+	});
+
+	$app->helper(text_url => sub { my $self = shift;
+		my $text  = shift || return;
+		my $short = sub { my $t=shift; return length $t > 35 ? substr($t,0,35).'...' : $t; };
+
+		$text =~ s{(http://\S+)}{qq(<a href="$1" class="external">) . $short->($1) . q(</a>)}seg;
+		$text =~ s{\n+}{<br/>}g;
+
+		return $text;
+	});
+
+	# XXX
+	$app->helper(paragraph => sub { my $self = shift;
+		my $info = shift || return;
+		#$info =~ s\\\g;
+		# XXX: Malformed UTF-8 character (unexpected continuation byte 0x98, with no preceding start byte
+		# eval { $info =~ s{(.*?)(\n\s){2,}}{<p>$1</p>\n}sg;  };
+
+		$info = "<p>$info</p>" unless $info =~ /<p>/;
+		return $info;
 	});
 
 	$app->helper(
