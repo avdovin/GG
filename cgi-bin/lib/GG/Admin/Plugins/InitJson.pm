@@ -297,10 +297,12 @@ sub register {
 			}
 
 			# показываем первую вкладку
-			push @$items, {
-				type		=> 'showcontent',
-				id			=> 'center',
-			};
+			unless($stash->{'showcontent_center_disabled'}){
+				push @$items, {
+					type		=> 'showcontent',
+					id			=> 'center',
+				};
+			}
 			return $items;
 		}
 	);

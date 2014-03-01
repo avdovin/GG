@@ -294,8 +294,10 @@ sub list_container{
 		$self->stash->{win_name} = "Таблица объектов: ".$self->app->send_params->{list_table};
 	}
 
-
 	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};
+
+	# блокируем переход на 1-ю вкладку
+	$self->stash->{showcontent_center_disabled} = 1;
 
 	return $self->list_items(%params, container => 1)
 }
