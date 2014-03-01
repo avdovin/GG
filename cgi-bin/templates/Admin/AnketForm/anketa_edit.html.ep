@@ -1,15 +1,15 @@
 <div id='<%= $replaceme %>' style="padding:10px;position:absolute;top:0px;left:0px;display:block;width:96%">
 	<table width="95%">
-    	<tr>
-      		<td align=right valign=top width="48px"><img src='<%== $self->app->program->{pict} %>' align='absMiddle' hspace=7></td>
-        	<td valign=top width="*">
-          		<h1><%= $controller_name %></h1>
-          		<h2><% if ($self->stash->{ page_name }){ %><%== $self->stash->{ page_name } %><% }else{ %>Режим редактирования<% } %></h2>
-      		</td>
-        	<td valign=middle width="150px" align=right><br />
-	            <% if ( $self->stash->{ context_menu } ){ %><%== $self->stash->{ context_menu } %><% } %>
-    	    </td>
-    	</tr>
+		<tr>
+			<td align=right valign=top width="48px"><img src='<%== $self->app->program->{pict} %>' align='absMiddle' hspace=7></td>
+			<td valign=top width="*">
+				<h1><%= $controller_name %></h1>
+				<h2><% if ($self->stash->{ page_name }){ %><%== $self->stash->{ page_name } %><% }else{ %>Режим редактирования<% } %></h2>
+			</td>
+			<td valign=middle width="150px" align=right><br />
+				<% if ( $self->stash->{ context_menu } ){ %><%== $self->stash->{ context_menu } %><% } %>
+			</td>
+		</tr>
 	</table>
 	<h3><%== admin_msg %></h3>
 	<hr>
@@ -18,12 +18,12 @@
 %	unless($self->stash->{no_access}){
 %	if(scalar(@$listfield)){ $self->stash->{anketa_ok} = 'ok'; }
 
-	    <form name="form_<%= $replaceme %>" id="form_<%= $replaceme %>" method="post" enctype="multipart/form-data" style="margin:0px">
+		<form name="form_<%= $replaceme %>" id="form_<%= $replaceme %>" method="post" enctype="multipart/form-data" style="margin:0px">
 			<table width=95% align=center>
 				<tr>
-	  				<td><br />
-	    			<div class="miniNav">
-	      				<p style="text-align:left;margin-left:15px">
+					<td><br />
+					<div class="miniNav">
+						<p style="text-align:left;margin-left:15px">
 %						my $group_index = 1;
 
 %#						Групповые вкладки
@@ -38,30 +38,30 @@
 %								$group_index++;
 %							}
 
-%						}						
-						</p>
-	    			</div>
-	  				</td>
-	  				<td align=right valign=top><br />
-%						if($self->stash->{anketa_ok} eq 'ok'){	  
-	        			<input id="submit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:90%;">
 %						}
-	  				</td>
+						</p>
+					</div>
+					</td>
+					<td align=right valign=top><br />
+%						if($self->stash->{anketa_ok} eq 'ok'){
+						<input id="submit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:90%;">
+%						}
+					</td>
 				</tr>
 			</table>
 
 	<% if($self->stash->{index}){ %><input type="hidden" name="index" value="<%= $self->stash->{index} %>"><% } %>
 	<input type="hidden" name="group" value="<%= $self->stash->{group} %>">
-	
+
 	<div id="formResponse<%= $replaceme %><%= $index %>">
 	<table border=0 width="95%" align="center">
 	<tr>
 %# 	Переход к предыдущей группе
 %	if($befor_index and $befor_index!=$group){
- 		<td style="border:solid 1px #ccc" width="16px" valign=middle onmouseover="this.style.background = '#CCE4D0'" onmouseout="this.style.background = 'white'" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $befor_index %>')"><img border=0 src="/admin/img/arrow-left.gif" align="absMiddle"></td>
+		<td style="border:solid 1px #ccc" width="16px" valign=middle onmouseover="this.style.background = '#CCE4D0'" onmouseout="this.style.background = 'white'" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $befor_index %>')"><img border=0 src="/admin/img/arrow-left.gif" align="absMiddle"></td>
 %	}
-    <td valign=top>
-	    <table id="anketka_<%= $replaceme %>" width="100%" align="center" style="border:solid 1px #ccc">
+	<td valign=top>
+		<table id="anketka_<%= $replaceme %>" width="100%" align="center" style="border:solid 1px #ccc">
 %			my $class = 'even';
 %			my $index = $self->stash->{index} || '';
 %			foreach (@{$listfield}){
@@ -77,7 +77,7 @@
 		</div>
 %	}
 
-	    </table>
+		</table>
 	  </td>
 %	if($after_index and $after_index!=$group){
 		<td style="border:solid 1px #ccc" align="right" width="16px" valign=middle onmouseover="this.style.background = '#CCE4D0'" onmouseout="this.style.background = 'white'" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $after_index %>')"><img border=0 src="/admin/img/arrow-right.gif" align="absMiddle"></td>
@@ -87,9 +87,9 @@
 	</div>
 	<table width=95% align=center>
 	  <tr>
-	    <td align=left width=150><% if($befor_index and $befor_index!=$group){ %><p style="text-align:right"><img src="/admin/img/icons/menu/icon_prev.gif" align="absMiddle"> <a href="#" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $befor_index %>')" title="Переход к предыдущей вкладке">предыдущая</a></p><% } %></td>
-	    <td align=center><% if($self->stash->{anketa_ok} eq 'ok'){ %><input id="dopsubmit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:90%"><% } %></td>
-	    <td align=right width=150><% if($after_index and $after_index!=$group){ %><p style="text-align:left"><a href="#" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $after_index %>')" title="Переход к следующей вкладке">следующая</a> <img src="/admin/img/icons/menu/icon_next.gif" align="absMiddle"></p><% } %></td>
+		<td align=left width=150><% if($befor_index and $befor_index!=$group){ %><p style="text-align:right"><img src="/admin/img/icons/menu/icon_prev.gif" align="absMiddle"> <a href="#" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $befor_index %>')" title="Переход к предыдущей вкладке">предыдущая</a></p><% } %></td>
+		<td align=center><% if($self->stash->{anketa_ok} eq 'ok'){ %><input id="dopsubmit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:90%"><% } %></td>
+		<td align=right width=150><% if($after_index and $after_index!=$group){ %><p style="text-align:left"><a href="#" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $after_index %>')" title="Переход к следующей вкладке">следующая</a> <img src="/admin/img/icons/menu/icon_next.gif" align="absMiddle"></p><% } %></td>
 	  </tr>
 	</table>
 	</form>
@@ -97,6 +97,6 @@
 
 %	if($self->stash->{no_access}){
 	<div style="width:90%;height:250px">
-			<h3 style="text-align:center;margin-top:100px">У Вас нет доступа к данной записи</h3>
+		<h3 style="text-align:center;margin-top:100px">У Вас нет доступа к данной записи</h3>
 	</div>
 %	}
