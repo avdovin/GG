@@ -104,6 +104,22 @@ sub register {
 		}
 	);
 
+	# проверяет что файл является изображением.
+	$app->helper( image_check => sub {
+		my $self = shift;
+		my $file = shift;
+
+		my $im = Image::Magick->new();
+		my ($width, $height, $size, $format) = $im->Ping($file);
+
+		my @avalaible_ext = qw(JPEG JPG GIF PNG);
+
+		return '' unless $format;
+		return '' unless ($format ~~ @avalaible_ext);
+
+		return ($width, $height, $size, $format);
+	});
+
 	$app->helper(
 		image_set => sub {
 			my $self = shift;
