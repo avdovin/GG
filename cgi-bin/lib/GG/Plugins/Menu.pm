@@ -63,26 +63,32 @@ sub _menu_track {
 			my $current		= $cur_alias && $items->{$pageId}->{alias} eq $cur_alias ? 1 : 0;
 
 			my @trees = ();
-			while ($parentID > 0) {
-				if($current){
-					#$levels->{$tree_levels} = $parentID;
-					push @trees, $parentID;
-                    $items->{$parentID}->{menu_active_parent} = $current;
+
+			unless($parentID){
+				push @trees, $pageId if $current;
+			}
+			else {
+				while ($parentID > 0) {
+					if($current){
+						#$levels->{$tree_levels} = $parentID;
+						push @trees, $parentID;
+						$items->{$parentID}->{menu_active_parent} = $current;
+					}
+
+					$tree_levels++;
+					$items->{$parentID}->{noempty} = 1;
+
+
+					$parentID = $items->{$parentID}->{texts_main};
+
 				}
-
-				$tree_levels++;
-				$items->{$parentID}->{noempty} = 1;
-
-
-				$parentID = $items->{$parentID}->{texts_main};
-
 			}
 
 			if($current){
-			    my $sch = 1;
-			    foreach (reverse @trees){
-                   $levels->{$sch++} = $_;
-                }
+				my $sch = 1;
+				foreach (reverse @trees){
+					$levels->{$sch++} = $_;
+				}
 				$levels->{$tree_levels} = $items->{$pageId}->{ID};
 				$self->stash->{menu_active_id} = $pageId;
 				$items->{$pageId}->{menu_active} = $current;
@@ -104,7 +110,7 @@ sub _menu_track {
 		if($self->stash->{menu_active_levels}->{$params{toplevel}-1}){
 			$params{parent_id} = $self->stash->{menu_active_levels}->{$params{toplevel}-1}
 		} else {
-			$params{parent_id} = $self->stash->{info}->{ID};
+			$params{parent_id} = $self->stash->{item}->{ID};
 		}
 	}
 
@@ -123,12 +129,12 @@ sub _menu_track {
 }
 
 sub _build_href{
-    my $self  = shift;
-    my @parts = @_;
+	my $self  = shift;
+	my @parts = @_;
 
-    my $url = $self->prefix . '/' . join '/' => @parts;
+	my $url = $self->prefix . '/' . join '/' => @parts;
 	#return $self->build('articles', $created->year, $created->month, $article->name);
-    return $self->url_for( 'text', url => $url );
+	return $self->url_for( 'text', url => $url );
 }
 
 sub _menu_item {
