@@ -4,7 +4,7 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub register {
 	my ($self, $app, $conf) = @_;
@@ -14,7 +14,7 @@ sub register {
 		my ($self) = @_;
 
 		$self->stash->{'_meta_tags'} = {
-			title 		=> [$self->site_name],
+			title 		=> [],
 			keywords  	=> [],
 			description => [],
 		};
@@ -24,8 +24,9 @@ sub register {
 		my $self	= shift;
 
 		my $title = $self->stash->{'_meta_tags'}->{title};
-		push @$title, $_[0] if $_[0];
+		return push @$title, $_[0] if $_[0];
 
+		unshift @$title, $self->site_name;
 		return join(" » ", reverse @$title);
 	});
 
@@ -56,6 +57,7 @@ sub register {
 			# заданы кастомные теги
 		}
 		else {
+
 			if(!keys @{ $metaTags->{title} } && $self->stash->{alias}){
 				my $textMetaTags = $self->app->dbi->query("SELECT `title`,`keywords`,`description` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
 
