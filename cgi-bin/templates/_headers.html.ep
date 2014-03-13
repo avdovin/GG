@@ -15,6 +15,7 @@ if (typeof jQuery == 'undefined') {
 %== javascript '/js/gg.core-2.js'
 
 % js_files('/js/common.js');
+% js_files('/js/jquery.quickSubmit.js');
 
 % if( $self->stash->{'vfe'} && $self->stash->{'vfe_enabled'} ){
 	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>
