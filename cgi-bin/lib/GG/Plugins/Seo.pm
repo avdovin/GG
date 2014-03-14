@@ -24,7 +24,11 @@ sub register {
 		my $self	= shift;
 
 		my $title = $self->stash->{'_meta_tags'}->{title};
-		return push @$title, $_[0] if $_[0];
+
+		if($_[0]){
+			push @$title, $_ foreach @_;
+			return;
+		}
 
 		unshift @$title, $self->site_name;
 		return join(" » ", reverse @$title);
