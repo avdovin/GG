@@ -62,7 +62,7 @@ sub register {
 		}
 		else {
 
-			if(!keys @{ $metaTags->{title} } && $self->stash->{alias}){
+			if(!scalar @{ $metaTags->{title} } && $self->stash->{alias}){
 				my $textMetaTags = $self->app->dbi->query("SELECT `title`,`keywords`,`description` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
 
 				$self->meta_title( $textMetaTags->{title} );
