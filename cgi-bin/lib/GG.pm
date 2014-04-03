@@ -84,6 +84,7 @@ sub startup{
 		seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
 		jquery_history		=> 0,					# Загрузить jQuery плагин - history
 		vfe_enabled			=> 0,					# Загружать vfe
+		minify_html 		=> 1,					# Сжатие html кода
 	#	lang	=> 'ru',							# языковая версия сайта
 	);
 
@@ -120,6 +121,16 @@ sub startup{
 		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
 		#	$self->session( cck => $cck );
 		#}
+	});
+
+	$self->hook(after_render => sub {
+		my ($c, $output, $format) = @_;
+
+		if($routes_args{minify_html}){
+			eval("use HTML::Packer");
+			my $packer = HTML::Packer->init();
+			$$output = $packer->minify( $output );
+		}
 	});
 
 	$self->hook(after_dispatch => sub {
