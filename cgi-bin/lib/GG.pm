@@ -60,7 +60,6 @@ sub startup{
 	# });
 # / Pluggins ----------------------------------------------------------------------------------------------
 
-	$self->static->paths(['../../httpdocs/']);
 
 	# Routes
 	my $r = $self->routes;
@@ -88,7 +87,9 @@ sub startup{
 	#	lang	=> 'ru',							# языковая версия сайта
 	);
 
+	$self->static->paths(['../../httpdocs/']);
 	$self->plugin('vfe') if $routes_args{'vfe_enabled'};
+	$ENV{MOJO_MAX_MESSAGE_SIZE} = $config->{upload_maxchanksize};
 
 	$self->hook(before_dispatch => sub {
 		my $self = shift;
@@ -97,8 +98,6 @@ sub startup{
 			$ENV{MOJO_MODE} = $mode;
 			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
 		}
-
-		$self->req->url->base( Mojo::URL->new(q{/}) );
 
 		# --- SEO 301 redirect to none www domain ---------
 		my $url = $self->req->url->clone;
@@ -115,6 +114,8 @@ sub startup{
 			$self->rendered;
 			return;
 		}
+
+		$self->req->url->base( Mojo::URL->new(q{/}) );
 
 		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
 		#	$self->session( cck => $cck );
