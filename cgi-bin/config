@@ -8,8 +8,10 @@
 
 	"http_host" 		=> 'domain.com',
 
-	"upload_maxchanksize"	=> "10000000",
-	"no_disconnect"		=> 1,
+	# limit to 1GB
+	"upload_maxchanksize"	=> "1073741824",
+
+	"no_disconnect"			=> 1,
 
 	hypnotoad 			=> {
 		proxy 	=> 1,
