@@ -25,7 +25,11 @@ CKEDITOR.editorConfig = function( config ) {
 
 	config.stylesSet = [];
 
-	config.stylesSet = 'content_styles:/admin/ckeditor/contentstyle/ckeditor_styles.js';
+	config.stylesSet = 'content_styles:/admin/ckeditor/contentstyle/styles.js';
+	config.templates_files = [ '/admin/ckeditor/contentstyle/templates.js' ];
+
+	config.allowedContent = true;
+	config.extraAllowedContent = 'div[class,style]';
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
