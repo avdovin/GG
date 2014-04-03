@@ -79,7 +79,6 @@ sub register {
 				table		=> $self->stash->{list_table},
 				fields		=> {
 					folder		=> 'folder',
-					pict		=> 'pict',
 					type_file	=> 'type_file',
 				},
 				retina		=> 0,
@@ -95,6 +94,8 @@ sub register {
 			$params{filename} ||= $params{file} if $params{file};
 			my $table = delete $params{table};
 			my $fields_hashref = delete $params{fields};
+
+			$fields_hashref->{'pict'} = $params{lfield};
 
 			my ($pict_saved, $type_file, $pict_path);
 
