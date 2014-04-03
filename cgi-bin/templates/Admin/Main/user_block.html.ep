@@ -50,7 +50,7 @@
 	<div width='80%' style="margin-top:15px;padding:5px">
 		<form name="form-restart-hypnotoad" id="form-restart-hypnotoad" method="post" style="margin-left:15px">
 			<input type="hidden" name="do" value="reload_settings">
-			<input type=button onClick="restart_hypnotoad();" value="Сбросить кэш" class=submit_save style="width:200px">
+			<input type=button onClick="restart_hypnotoad();" value="сбросить кэш" class=submit_save style="width:200px">
 		</form>
 	</div>
 % }

@@ -10,7 +10,7 @@
 	<td width="10px" id="_<%= $key %>"></td>
 	<td class="edit">
 		% if(!$lkey->{settings}->{list_type} or $lkey->{settings}->{list_type} eq 'select'){
-			<select id="<%= $self->stash->{replaceme} %><%= $key %>" name="<%= $key %>"
+			<select style="width:300px;" id="<%= $self->stash->{replaceme} %><%= $key %>" name="<%= $key %>"
 				<% if($lkey->{settings}->{required}){%>required<% } %>
 				<% if($lkey->{settings}->{rules}){ %>onChange="getListOther('<%= $self->stash->{replaceme} %>', '<%= $key %>', '<%= $lkey->{settings}->{rules} %>', '<% if($lkey->{settings}->{controller}){ %><%= $lkey->{settings}->{controller} %><% } else { %><%= $self->stash->{controller} %><% } %>')"<% } %>
 			>
