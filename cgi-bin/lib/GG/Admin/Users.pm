@@ -163,14 +163,10 @@ sub delete{
 				$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder}, pict => $self->stash->{anketa}->{pict});
 			}
 
-			# Удаление статистика к банeру
-			$self->dbi->query("DELETE FROM `dtbl_banner_stat` WHERE `id_banner`='".$self->stash->{index}."'");
-			$self->dbi->query("OPTIMIZE TABLE `dtbl_banner_stat`");
-
 			$self->stash->{tree_reload} = 1;
 
 			$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$self->stash->{list_table},
-								comment	=> "Удалена запись из таблицы [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table});
+								comment	=> "Удалена запись из таблицы [".$self->stash->{index}."] «".$self->stash->{anketa}->{name}."» . Таблица ".$self->stash->{list_table});
 
 			$self->define_anket_form( noget => 1, access => 'd', table => $self->stash->{list_table});
 

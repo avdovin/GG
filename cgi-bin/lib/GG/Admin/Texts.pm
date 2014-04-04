@@ -480,7 +480,7 @@ sub delete{
 			$self->stash->{tree_reload} = 1;
 
 			$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$table,
-								comment	=> "Удалена запись из таблицы [$index]. Таблица ".$table);
+								comment	=> "Удалена запись из таблицы [$index] «".$self->stash->{anketa}->{name}."» . Таблица ".$self->stash->{list_table});
 
 			$self->define_anket_form( noget => 1, access => 'd', table =>$table);
 
