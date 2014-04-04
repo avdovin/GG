@@ -40,7 +40,7 @@
 			<tr>
 				<td align=left>
 Всего записей: <b><%= $self->stash->{total} %></b><br />
-%	if($self->stash->{total} ne $self->stash->{total_with_filter}){
+%	if(defined $self->stash->{total_with_filter}){
 %		if(scalar(@$current_filter)>0){
 			Записей соответствует фильтру: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span> <a href="#" style="margin-left:5px" class="pseudolink" onClick="swich_visible('cur_filter<%= $replaceme %>')">текущие фильтры</a> <div id="cur_filter<%= $replaceme %>" style="display:none;padding:10px;border:solid 1px #ccc;margin-top:5px"><%== include 'Admin/TableList/current_filter'%></div>
 %		} else {
