@@ -499,7 +499,11 @@ sub register {
 						if (($lkey->{settings}->{type} eq "s") or ($lkey->{settings}->{type} eq "site") or ($lkey->{settings}->{type} eq "text") or ($lkey->{settings}->{type} eq "html")) {
 							$filter_string .= " AND ($keyf LIKE '%$v%' OR $keyf='$v')";
 
-						} elsif ($lkey->{settings}->{mult}) {
+						} elsif (
+									( $lkey->{settings}->{type} eq 'list' or $lkey->{settings}->{type} eq 'tlist' )
+									and
+									( $lkey->{settings}->{list_type} eq 'checkbox' or $lkey->{settings}->{mult} )
+								){
 							$filter_string .= " AND ($keyf='$v' OR $keyf LIKE '$v=%' OR $keyf LIKE '%=$v=%' OR $keyf LIKE '%=$v')";
 
 		#				} elsif (($v =~ m/^[\d]+$/) and ($$self{lkeys}{$key}{type} ne "chb")) {
