@@ -137,16 +137,44 @@ sub register {
 		);
 	});
 
-	$app->helper( content__faq_anons => sub {
-		my $self   = shift;
+	$app->helper(
+		content__weather=> sub{
+				my $self = shift;
+				my $dir = $ENV{DOCUMENT_ROOT};
+				my $country = shift;
+				my $city = shift;
 
-		my $items = $self->app->dbi->query("SELECT * FROM `data_faq` WHERE `active`='1' ORDER BY `rdate` DESC LIMIT 0,3")->hashes;
+				my $infoXML = XML::Simple->new()->XMLin("$dir/xml_weather/cities.xml");
 
-		return $self->render(
-			items		=> $items,
-			template 	=> 'Faq/_anons',
-			partial		=> 1
-		);
-	});
+				my $city_id;
+				$city_id = $infoXML->{country}->{$country}->{city}->{id} if $infoXML->{country}->{$country}->{city}->{id};
+				unless ($city_id){
+					foreach (%{$infoXML->{country}->{$country}->{city}}){
+						if ($infoXML->{country}->{$country}->{city}->{$_}->{content} eq $city){
+							$city_id = $_;
+						}
+					}
+				}
+
+				return unless $city_id;
+				getstore("http://export.yandex.ru/weather-ng/forecasts/$city_id.xml", $dir."/xml_weather/$city_id.xml") unless (-e "$dir/xml_weather/$city_id.xml");
+
+				my $XML  = XML::Simple->new()->XMLin("$dir/xml_weather/$city_id.xml");
+
+				my $temp = $XML->{fact}->{temperature}->{content};
+
+				my $img = $XML->{fact}->{'image-v2'}->{content};
+
+				return $self->render(
+						temp 	=> $temp>0 ? '+'.$temp : $temp,
+						img		=> $img,
+						city 	=> $city,
+						template	=> 'Countrys/_weather',
+						partial	=> 1,
+				);
+
+		}
+
+	);
 }
 1;
