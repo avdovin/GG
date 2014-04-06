@@ -3,6 +3,7 @@ package GG::Plugins::Content;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use utf8;
+use XML::Simple;
 
 sub register {
 	my ( $self, $app, $opts ) = @_;
