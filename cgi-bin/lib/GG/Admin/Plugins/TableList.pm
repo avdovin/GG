@@ -495,7 +495,6 @@ sub register {
 					if ($user_settings->{$setting_key."_".$key} and ($self->dbi->exists_keys(from => $params{table}, lkey => $key))) {
 						my $v = $user_settings->{$setting_key."_".$key};
 
-						push @current_filter, $key;
 						if (($lkey->{settings}->{type} eq "s") or ($lkey->{settings}->{type} eq "site") or ($lkey->{settings}->{type} eq "text") or ($lkey->{settings}->{type} eq "html")) {
 							$filter_string .= " AND ($keyf LIKE '%$v%' OR $keyf='$v')";
 
@@ -516,6 +515,7 @@ sub register {
 						} elsif (($lkey->{settings}->{type} eq "date") or ($lkey->{settings}->{type} eq "datetime") or ($lkey->{settings}->{type} eq "time")) {
 							# if datetime convert to date
 							$v = substr($v, 0, 10) if(length($v)>10);
+							next if ($v eq '0000-00-00');
 
 							$filter_string .= " AND DATE($keyf) ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
 
@@ -525,6 +525,8 @@ sub register {
 						} else {
 							$filter_string .= " AND $keyf='$v'";
 						}
+
+						push @current_filter, $key;
 					}
 				}
 
