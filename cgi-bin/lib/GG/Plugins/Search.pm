@@ -93,14 +93,25 @@ sub register {
 			#$self->get_keys( type => ['lkey'], controller => $hash_table->{$table}->{controller} );
 
 			my $dbi = $self->app->dbi;
-			foreach my $k (split(/ /, $search)) {
-				foreach my $f (@{ $hash_table->{$table}->{searchfields} } ){
-					next unless (length($k) > 1);
 
-					push(@search_str, "`$f` LIKE '%$k%'");
-				}
+			my @ksearch_splited = ();
+			foreach my $k (split(/ /, $search)) {
+				next if (length($k) <= 1);
+
+				push @ksearch_splited, "%$k%";
 			}
-			$search_str = " ( ".join(" OR ", @search_str)." ) ";
+
+			foreach my $f (@{ $hash_table->{$table}->{searchfields} } ){
+
+			 	my @search_str_field = ();
+			 	foreach (@ksearch_splited){
+			 		push @search_str_field, " `$f` LIKE '$_'";
+
+			 	}
+			 	push @search_str, " ( ".join(' AND ', @search_str_field )." ) "
+			}
+
+			$search_str = join(" OR ", @search_str);
 
 			$search_str .= $hash_table->{$table}->{where} if $hash_table->{$table}->{where};
 
