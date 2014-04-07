@@ -85,6 +85,7 @@ sub body{
 		when('edit') 					{ $self->edit; }
 		when('info') 					{ $self->info; }
 		when('save') 					{ $self->save; }
+		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 
@@ -200,9 +201,8 @@ sub save{
 	$self->send_params->{youtubelink} =~ s/(?:http|https|)(?::\/\/|)(?:www.|)(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/ytscreeningroom\?v=|\/feeds\/api\/videos\/|\/user\S*[^\w\-\s]|\S*[^\w\-\s]))([\w\-]{11})[a-z0-9;:@?&%=+\/\$_.-]*/$1/i;
 
 	$self->stash->{index} = 0 if $params{restore};
-	my $ok = $self->save_info( table => $self->stash->{list_table});
 
-	if($ok){
+	if( $self->save_info( table => $self->stash->{list_table}) ){
 
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
@@ -217,9 +217,14 @@ sub save{
 								) if $self->send_params->{pict};
 
 
-		if(!$self->stash->{dop_table} && $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
+		if($params{continue}){
+			$self->admin_msg_success("Данные сохранены");
+			return $self->edit;
+		}
+		elsif(!$self->stash->{dop_table} && $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
 			return $self->info;
 		}
+
 		$self->stash->{group}++;
 	}
 

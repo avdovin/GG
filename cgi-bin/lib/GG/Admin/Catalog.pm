@@ -91,6 +91,7 @@ sub body{
 		when('edit') 					{ $self->edit; }
 		when('info') 					{ $self->info; }
 		when('save') 					{ $self->save; }
+		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 
@@ -363,7 +364,11 @@ sub save{
 								fields		=> {pict => 'pict'},
 								) if $self->send_params->{pict};
 
-		if(!$self->stash->{dop_table} && $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
+		if($params{continue}){
+			$self->admin_msg_success("Данные сохранены");
+			return $self->edit;
+		}
+		elsif(!$self->stash->{dop_table} && $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
 			return $self->info;
 		}
 		$self->stash->{group}++;

@@ -175,6 +175,7 @@ sub body{
 		when('edit') 					{ $self->edit; }
 		when('info') 					{ $self->info; }
 		when('save') 					{ $self->save; }
+		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 
@@ -520,7 +521,6 @@ sub save{
 			$self->save_info(send_params => 0, table => $self->stash->{list_table}, field_values => {size => $size, docfile => $docfile_saved} );
 		}
 
-
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
 			$self->save_logs( 	name 	=> 'Восстановление записи в таблице '.$self->stash->{list_table},
@@ -528,14 +528,17 @@ sub save{
 			return $self->info;
 		}
 
-		if($self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
+		if($params{continue}){
+			$self->admin_msg_success("Данные сохранены");
+			return $self->edit;
+		}
+		elsif( $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
 			return $self->info;
 		}
 		$self->stash->{group}++;
 	}
 
 	return $self->edit;
-
 }
 
 sub info{

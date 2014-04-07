@@ -66,6 +66,7 @@ sub body{
 		when('add') 					{ $self->edit( add => 1); }
 		when('edit') 					{ $self->edit; }
 		when('save') 					{ $self->save; }
+		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 
@@ -120,9 +121,9 @@ sub save{
 		$code = $info_line.$code;
 	}
 
-	my $ok = $self->file_save_data( data => $code, path => $path);
-
-	if($ok){
+	if(
+		$self->file_save_data( data => $code, path => $path)
+		){
 		$self->admin_msg_success('Файл успешно сохранен ...');
 	}
 

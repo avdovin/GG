@@ -66,6 +66,7 @@ sub body{
 		when('edit') 					{ $self->edit; }
 		when('info') 					{ $self->edit; }
 		when('save') 					{ $self->save; }
+		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
 		when('restore') 				{ $self->save( restore => 1); }
 
