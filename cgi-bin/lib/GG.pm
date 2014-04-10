@@ -118,6 +118,8 @@ sub startup{
 
 		# remove url trailing slash - /about/ => /about
 		if( $self->req->url->path->trailing_slash ){
+			next if $self->req->url->path->contains('/admin');
+
 			my $path = $self->req->url->path->to_string;
 			$path =~ s{\/$}{}gi;
 
