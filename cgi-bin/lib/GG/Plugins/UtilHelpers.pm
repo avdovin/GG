@@ -233,6 +233,14 @@ sub register {
 		}
 	);
 
+	$app->helper(css_files	=> sub {
+		my $self = shift;
+		my $file = shift;
+
+		my $out .= $self->stylesheet($file)."\n";
+		$self->content_for(css_files => $out);
+	});
+
 	$app->helper(cat => sub {
 		my $self = shift;
 		my $tmpl = shift || return '';
