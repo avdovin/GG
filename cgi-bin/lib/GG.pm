@@ -116,6 +116,15 @@ sub startup{
 			return;
 		}
 
+		# remove url trailing slash - /about/ => /about
+		if( $self->req->url->path->trailing_slash ){
+			my $path = $self->req->url->path->to_string;
+			$path =~ s{\/$}{}gi;
+
+			$self->res->code(301);
+			return $self->redirect_to($path);
+		}
+
 		$self->req->url->base( Mojo::URL->new(q{/}) );
 
 		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
