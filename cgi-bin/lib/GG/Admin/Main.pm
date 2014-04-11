@@ -68,7 +68,14 @@ sub hot_link{
 sub restart_hypnotoad{
 	my $self = shift;
 
-	system("./hypnotoad ./dispatch.cgi");
+
+	delete $ENV{HYPNOTOAD_PID};
+	require Mojo::Server::Hypnotoad;
+	Mojo::Server::Hypnotoad->new->run('./dispatch.cgi');
+
+	#system("/var/www/i2si/data/www/i2.si/cgi-bin/script/hypnotoad /var/www/i2si/data/www/i2.si/cgi-bin/script/dispatch.cgi") == 0
+	#or die "system failed: $?";
+
 	#kill 'QUIT', $ENV{HYPNOTOAD_PID};
 	$self->render( text => 'restart hypnotoad from admin');
 }
