@@ -96,7 +96,7 @@ sub startup{
 		my $self = shift;
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
-			$ENV{MOJO_MODE} = $mode;
+			$self->app->mode( $ENV{MOJO_MODE} = $mode );
 			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
 		}
 
