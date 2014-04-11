@@ -346,7 +346,8 @@ sub mainpage{
 	       		"classhref"		=> "href_icons",
 	       		"title" 		=> $list->{name},
 	       		"type_link" 	=> "openpage",
-	       		"script"		=> "openPage('center','lists".$table."','$controller_url?do=list_container&list_table=$table','Справочники: ".$list->{name}."','$table')"
+	       		#"script"		=> "openPage('center','lists".$table."','$controller_url?do=list_container&list_table=$table','Справочники: ".$list->{name}."')"
+	       		"script"		=> "ld_content('replaceme','$controller_url?do=list_container&list_table=$table')"
 	   		);
 
 			$body .= $self->render( partial => 1, template => 'Admin/icon', button => \%button_conf);

@@ -176,6 +176,12 @@ sub register {
 				};
 			}
 
+			push @$items, {
+					type		=> 'settabtitle',
+					id			=> 'center',
+					title		=> 'Главная'
+			};
+
 			return $items;
 		}
 	);
@@ -226,6 +232,11 @@ sub register {
 				{
 					type		=> 'eval',
 					value		=> "load_css('/admin/css/calendar.css');",
+				},
+				{
+					type		=> 'settabtitle',
+					id			=> 'center',
+					title		=> $stash->{'controller_name'}.' » '.($self->stash->{ win_name } || 'Список')
 				},
 			];
 

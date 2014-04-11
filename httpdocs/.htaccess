@@ -1,11 +1,13 @@
 AddDefaultCharset UTF-8
 
-Options FollowSymLinks Includes MultiViews Indexes
+Options FollowSymLinks Includes MultiViews
 
 #AddHandler fcgid-script .fcgi
 
-RewriteEngine On
+# The DirectorySlash directive determines, whether mod_dir should fixup URLs pointing to a directory or not.
+DirectorySlash Off
 
+RewriteEngine On
 RewriteRule \.git - [F,L]
 
 

@@ -227,7 +227,12 @@ sub list_container{
 
 	$self->def_context_menu( lkey => 'table_list');
 
-	$self->stash->{win_name} = "Ключи: ".$self->app->send_params->{list_table};
+	# Получаем название справочника
+	if(my $controller = $self->dbi->query("SELECT `name` FROM `sys_program` WHERE `keys_table`='".$self->app->send_params->{list_table}."' ")->hash){
+		$self->stash->{win_name} = $controller->{name};
+	} else {
+		$self->stash->{win_name} = $self->app->send_params->{list_table};
+	}
 
 	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};
 
@@ -268,7 +273,8 @@ sub mainpage{
 	       		"classhref"		=> "href_icons",
 	       		"title" 		=> $t,
 	       		"type_link" 	=> "openpage",
-	       		"script"		=> "openPage('center','keys${t}','/admin/keys/body?do=list_container&list_table=$t','Ключи: $t','$t')"
+	       		#"script"		=> "openPage('center','keys${t}','/admin/keys/body?do=list_container&list_table=$t','Ключи: $t','$t')"
+	       		"script"		=> "ld_content('replaceme','/admin/keys/body?do=list_container&list_table=$t')"
 	   		);
 
 			$body .= $self->render( partial => 1, template => 'Admin/icon', button => \%button_conf);

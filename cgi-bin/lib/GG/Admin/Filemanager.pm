@@ -97,6 +97,11 @@ HEAD
 			type		=> 'loadjson',
 			divid		=> 'menuButton',
 			url			=> '/admin/filemanager/body?do=menu_button'
+		},
+		{
+			type		=> 'settabtitle',
+			id			=> 'center',
+			title		=> 'Файлменеджер'
 		}
 	];
 
