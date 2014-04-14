@@ -756,6 +756,8 @@ sub _extract{
 	my $path = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 
 	my $zip = Archive::Zip->new();
+	return $self->{RES}->{'error'}.= 'Ошибка распаковки архива' unless ( $zip->read( $path ) == AZ_OK );
+
 	my ($dir, $foldername) = __get_dir_from_path($path);
 
 	$foldername =~ s/(\.[^.]+)$//;
@@ -774,25 +776,17 @@ sub _extract{
 		}
 	}
 
-	return $self->{RES}->{'error'}.= 'Ошибка распаковки архива' unless ( $zip->read( $path ) == AZ_OK );
-
 	mkdir($dir.$DIRECTORY_SEPARATOR.$foldername, $self->{CONF}->{'dirMode'});
 
-	my @members = $zip -> memberNames( '.*' );
-	foreach my $element(@members){
+	foreach my $element ( $zip->members ){
 
-		my $filename = $self->{app}->transliteration($element);
-		my $Content = $zip -> contents( $element );
+		next if $element->isDirectory;
 
+		(my $extractName = $element->fileName) =~ s{.*/}{};
+		my $filename = $self->{app}->transliteration($extractName);
 
-		eval{
-			open(FILE, ">${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename") or die("can't open ${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename: $!");
-			flock(FILE, 2);
-			binmode(FILE);
-			print FILE $Content;
-			close FILE or die("can't close ${dir}${DIRECTORY_SEPARATOR}${foldername}${DIRECTORY_SEPARATOR}$filename: $!");
-		};
-		warn $@ if $@;
+		next if ($filename eq 'thumbs.db');
+		$element->extractToFileNamed($dir.$DIRECTORY_SEPARATOR.$foldername.$DIRECTORY_SEPARATOR.$filename);
 	}
 
 	$self->{RES}->{'added'} = [ { $self->_info($dir.$DIRECTORY_SEPARATOR.$foldername) } ];
