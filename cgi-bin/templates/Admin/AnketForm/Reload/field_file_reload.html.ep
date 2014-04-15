@@ -21,7 +21,7 @@ $(function(){
 	jQuery('#<%= $key %>_<%= $index %>').liteUploader({
 		script: '<%= $controller_url %>',
 		allowedFileTypes: '<%= file_convert_ext_to_mime $file_ext %>',
-		maxSizeInBytes: 5000000,
+		maxSizeInBytes: <%= $ENV{MOJO_MAX_MESSAGE_SIZE} %>,
 		customParams: {'do':'file_upload_tmp', 'lfield': '<%= $key %>', 'index' : '<%= $index %>', 'userlogin' : '<%= $login %>', 'cck' : '<%= $cck %>' },
 		before: function (files){
 			$progressContainer.show();
