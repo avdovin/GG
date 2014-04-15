@@ -4,6 +4,8 @@ use Mojo::Base 'Mojolicious';
 
 use utf8;
 
+our $VERSION  = '9.3';
+
 # This method will run once at server start
 sub startup{
 	my $self = shift;
