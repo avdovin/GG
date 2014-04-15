@@ -218,10 +218,14 @@ sub zipimport_save_pict{
 								lfield		=> $lfield,
 	)){
 		my $vals = {
-			name	=> $self->send_params->{filename},
-			viewimg	=> 1,
-			rating	=> 99
+			name			=> $self->send_params->{filename},
+			viewimg			=> 1,
+			rating			=> 99,
 		};
+
+		if( $self->dbi->exists_keys(from => $self->stash->{list_table}, lkey => "image_".$self->stash->{key_razdel}) ){
+			$vals->{ "image_".$self->stash->{key_razdel} } = $self->send_params->{image_gallery} || 0;
+		}
 
 		$self->save_info(table => $self->stash->{list_table}, field_values => $vals );
 	};
@@ -231,6 +235,7 @@ sub zipimport_save_pict{
 	my $folder = $self->lfield_folder( lfield => $lfield ) || $item->{folder};
 	$self->render( json => {filename	=> $item->{pict}, src => $folder.$item->{pict} });
 }
+
 
 sub lists_select{
 	my $self = shift;
