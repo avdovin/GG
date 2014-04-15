@@ -439,19 +439,14 @@ sub register {
 				$path = $self->static_path.'/admin/img/file_broken.png';
 			}
 
-			my $data;
-			open my $fh, '<', $path or $self->error( sprintf( "Ошибка чтения файла %s $!", $path, $! ));
-			while(sysread($fh, my $buf, 1024)) {
-				 $data .= $buf;
-			}
-			close($fh);
-			my $size = -s $path;
+			my $ext = ($path =~ m/([^.]+)$/)[0];
+			my $content_type;
+			$content_type = $self->app->types->type( $ext ) if $ext;
+			$content_type ||= 'text/plain';
 
-			$self->res->headers->content_disposition('attachment; filename='.$filename);
-			$self->res->headers->content_length($size);
-			$self->res->headers->content_encoding("Binary");
-			$self->res->headers->content_type("application/octet-stream");
-			$self->render( data => $data);
+			$self->res->headers->content_type($content_type);
+			$self->res->content->asset(Mojo::Asset::File->new(path => $path));
+			$self->rendered(200);
 		}
 	);
 
