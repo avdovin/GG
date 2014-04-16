@@ -30,6 +30,21 @@ sub register {
 		return $self->req->headers->host() || $self->stash->{'config'}->{'http_host'} || '';
 	});
 
+	# caselang field name => name_ru => name_en
+	$app->helper( clf => sub {
+		my $self   	= shift;
+		my $field 	= shift;
+		return '' unless my $item  	= shift;
+
+		my $lang = $self->lang;
+		if($lang ne 'ru'){
+			return $item->{$field.'_'.$lang};
+		}
+		else {
+			return defined $item->{$field.'_ru'} ? $item->{$field.'_ru'} : $item->{$field};
+		}
+	});
+
 	$app->helper( cl => sub {
 		return shift->caselang(@_)
 	});
