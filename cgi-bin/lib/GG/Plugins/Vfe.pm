@@ -34,9 +34,9 @@ sub register {
 
 			if ($self->cookie('vfe')) {
 				return qq~<ins class="vfe-dummy" data-vfe-textid="$sha_id" style="display:none;"></ins>~
-				.$self->app->text_by_alias($params{alias}) if $params{alias};
+				.$self->text_by_alias($params{alias}) if $params{alias};
 			} else {
-				return $self->app->text_by_alias($params{alias}) if $params{alias};
+				return $self->text_by_alias($params{alias}) if $params{alias};
 			}
 
 		}
