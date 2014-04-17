@@ -6,7 +6,9 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '1';
 
-use Image::Magick;
+BEGIN {
+	die 'Module Image::Magick not properly installed' unless eval { require Image::Magick; 1 }
+}
 
 my @EXT = qw(png jpg jpeg gif);
 
