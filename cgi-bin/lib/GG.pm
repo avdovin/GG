@@ -139,10 +139,12 @@ sub startup{
 	$self->hook(after_render => sub {
 		my ($c, $output, $format) = @_;
 
-		if($routes_args{minify_html}){
+		if($routes_args{minify_html} && $self->app->mode eq 'production'){
 			eval("use HTML::Packer");
 			my $packer = HTML::Packer->init();
-			$$output = $packer->minify( $output );
+			$$output = $packer->minify( $output, {
+				remove_comments 	=> 1
+			});
 		}
 	});
 
