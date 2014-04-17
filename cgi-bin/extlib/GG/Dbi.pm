@@ -8,23 +8,20 @@ use base qw(DBIx::Simple);
 
 $Carp::Internal{$_} = 1 for qw( GG::Dbi );
 
+# build where select for GG multiselect fields
+# ex:
+#	in: 	where_multiselect('ID', 2)
+# 	out: 	AND `ID` REGEXP  '(^|=)(2)(=|$)'
+#	in: 	where_multiselect('ID', [2,5])
+# 	out: 	AND `ID` REGEXP  '(^|=)(2,5)(=|$)'
+
 sub where_multiselect{
 	my $self = shift;
 	my $field = shift;
 
-	my $arr;
-	ref($_[0]) eq "ARRAY" ? $arr = shift :	$arr = \@_;
-	return '' unless (scalar @$arr);
+	my $arr = ref $_[0] ? $_[0] : [@_];
 
-	my @elements;
-	foreach (@$arr){
-		push @elements, $_;
-		push @elements, "%=".$_;
-		push @elements, "%=".$_."=%";
-		push @elements, $_."=%";
-	}
-
-	return " AND `$field` REGEXP '".join('|',@elements)."' ";
+	return scalar @$arr ? " AND `$field` REGEXP '(^|=)(".join('|',@$arr).")(=|\$)' " : '';
 });
 
 
