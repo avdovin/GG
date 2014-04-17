@@ -8,13 +8,33 @@ use base qw(DBIx::Simple);
 
 $Carp::Internal{$_} = 1 for qw( GG::Dbi );
 
-# Get table fields (columns)     
+sub where_multiselect{
+	my $self = shift;
+	my $field = shift;
+
+	my $arr;
+	ref($_[0]) eq "ARRAY" ? $arr = shift :	$arr = \@_;
+	return '' unless (scalar @$arr);
+
+	my @elements;
+	foreach (@$arr){
+		push @elements, $_;
+		push @elements, "%=".$_;
+		push @elements, "%=".$_."=%";
+		push @elements, $_."=%";
+	}
+
+	return " AND `$field` REGEXP '".join('|',@elements)."' ";
+});
+
+
+# Get table fields (columns)
 sub getKeysSQL{
 	my $self = shift;
 	my %params = @_;
-	
+
 	if(!$params{from}) { Carp::croak("Функция getKeysSQL. Отсутствует параметр FROM"); }
-	
+
 	my $sql = "SHOW FIELDS FROM `$params{from}`";
 	my (@fields);
 	if($self->{'_from_'.$params{from}}){
@@ -23,9 +43,9 @@ sub getKeysSQL{
 		for my $row ($self->SUPER::query($sql)->arrays){
 			push @fields, $row->[0];
 		}
-		$self->{'_from_'.$params{from}} = \@fields; 
-	}	
-	
+		$self->{'_from_'.$params{from}} = \@fields;
+	}
+
 	return wantarray ? @fields : $fields[-1];
 }
 
@@ -33,7 +53,7 @@ sub getKeysSQL{
 sub exists_keys{
 	my $self = shift;
 	my %params = @_;
-	
+
 	$params{from} ||= $params{table} if $params{table};
 	if (!$params{from}) {Carp::croak("Функция exists_keys. Отсутствует параметр FROM");}
 	my $lkey = delete $params{lkey} || return;
@@ -45,9 +65,9 @@ sub exists_keys{
 sub getCountCol{
 	my $self = shift;
 	my %params = @_;
-	
+
 	if (!$params{from})  {Carp::croak("Функция getCountCol. Отсутствует параметр FROM");}
-	
+
 	my $sql = "SELECT count(*) FROM $params{from} WHERE $params{where}";
 	my $fetch = $self->SUPER::query($sql)->fetch;
 	my $count = $fetch ? $fetch->[0] : 0;
@@ -56,7 +76,7 @@ sub getCountCol{
 
 sub getTablesSQL {
 	my $self = shift();
-	
+
 	my (@array);
 
 	if (!$self->{tables_list}) {
@@ -64,7 +84,7 @@ sub getTablesSQL {
 		for my $row ($self->SUPER::query("SHOW TABLES")->arrays){
 			push @array, $row->[0];
 		}
-		
+
 		$self->{tables_list} = \@array;
 	} else {
 		@array = @{$self->{tables_list}};
@@ -77,10 +97,10 @@ sub insert{
  	my $self = shift;
  	my ($table, $field_values, $insType) = @_;
  	my $dbh = $self->dbh;
- 
+
     my @fields = sort keys %$field_values;
     my @values = @{$field_values}{@fields};
-    	 
+
     my $sql = sprintf "$insType INTO %s (%s) VALUES (%s)",
     	$table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
 
@@ -94,7 +114,7 @@ sub insert{
 	    my $sth = $dbh->prepare($sql);
 	    $sth->execute(@values) || die $DBI::errstr;
 	    $index = $dbh->{'mysql_insertid'};
-	    $sth->finish();		
+	    $sth->finish();
 	};
 	if($@){
 		$self->save_mysql_error($@, $sql, \@values);
@@ -107,47 +127,47 @@ sub insert{
 
 sub insert_hash {
  	my $self = shift;
- 	
+
     my ($table, $field_values, $insType) = @_;
     my $dbh = $self->dbh;
-	
+
 	$insType ||= 'INSERT';
 
   	my $rdate = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
-  	
+
   	$field_values->{$_} ||= 0  foreach (qw(rdate edate));
-  	
+
 	foreach my $k (keys %$field_values){
-		
+
 		unless($self->exists_keys(from => $table, lkey => $k) ){
 			delete $field_values->{$k};
 			next;
 		}
-		
+
 		   if($k eq 'edate'){ $field_values->{$k} ||= '0000-00-00 00:00:00';}
 		elsif($k eq 'rdate'){ $field_values->{$k} ||= $rdate;}
 	}
 
     my @fields = sort keys %$field_values;
     my @values = @{$field_values}{@fields};
-    
-    
+
+
    	return $self->insert($table, $field_values, $insType);
 }
 
 sub update{
 	my $self = shift;
 	my ($table,$field_values, $where) = @_;
-	
+
 	my $dbh = $self->dbh;
-	
+
 	#USING SQL::Abstract
 	#my($stmt, @bind) = $self->SUPER::update($table, $field_values,  $where);
-	
+
 	my @fields = sort keys %$field_values;
     my @values = @{$field_values}{@fields};
 	my $sql = sprintf "UPDATE `%s` SET %s WHERE $where", $table, join(",", map{"`$_`=?"}@fields);
-	
+
 	my $count = 0;
 	eval{
 		my $sth = $dbh->prepare($sql) or die $DBI::errstr;
@@ -157,9 +177,9 @@ sub update{
 		$self->save_mysql_error($@, $sql, \@values);
 		$self->{error} = $@;
 		return;
-	}	
-    
-    return $count;			
+	}
+
+    return $count;
 }
 
 # Обновление
@@ -168,32 +188,32 @@ sub update_hash {
 
 	my $dbh = $self->dbh;
 	my ($table,$field_values, $where) = @_;
-	
+
 	if($self->exists_keys(from => $table, lkey => 'edate')){
 		my $edate = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
 		$field_values->{edate} = $edate;
 	}
-	
+
 	return $self->update($table,$field_values, $where);
 }
 
 sub save_mysql_error{
 	my $self = shift;
 	my ($error, $sql, $values) = @_;
-	
+
 	$values ||= [];
-	
+
 	foreach my $v (@$values){
 		$sql =~ s{\?}{"\"$v\""}ei;
 	}
-	
+
 	$self->dbh->do("
-	INSERT INTO 
-		`sys_mysql_error` 
-		(`sql`, `error`, `qstring`, `rdate`) 
-	VALUES 
+	INSERT INTO
+		`sys_mysql_error`
+		(`sql`, `error`, `qstring`, `rdate`)
+	VALUES
 		(?, ?, ?, CURRENT_TIMESTAMP)
 	", undef, $sql, $error, '');
-	
+
 }
 1;
