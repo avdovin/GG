@@ -1,5 +1,5 @@
 <div id='<%= $replaceme %>' style="padding:10px;position:absolute;top:0px;left:0px;display:block;width:100%">
-<div style="display:none" id="<%= $replaceme %>_QS">index=<%= $self->stash->{index} %><%== $self->stash->{param_default} =%></div>
+<div style="display:none" id="<%== $replaceme %>_QS">index=<%= $self->stash->{index} %><%== $self->stash->{param_default} =%></div>
 <div style="display:none" id="datasource_list<%= $controller_name %>">
 
 % 	foreach my $gr (1..$group_total){
@@ -8,11 +8,11 @@
 %			if($self->lkey(name => $k)->{settings}->{type} =~ /list/){
 				<select id="datasource_<%= $k %>" style="display:none" <% if(lkey(name => $k)->{settings}->{mult}){ %>multiple="<%= lkey(name => $k)->{settings}->{mult} %>"<% } %>>
 				<%== LIST (name => $k, type => 'select', option => 1) %>
-				</select>	
+				</select>
 %			} elsif($self->lkey(name => $k)->{type} eq 'chb'){
 				<select id="datasource_<%= $k %>" style="display:none">
 					<option value="0"><%= lkey(name => $k)->{settings}->{no} %></option>
-					<option value="1"><%= lkey(name => $k)->{settings}->{yes} %></option>			
+					<option value="1"><%= lkey(name => $k)->{settings}->{yes} %></option>
 				</select>
 %			}
 %		}
@@ -33,13 +33,13 @@
 	<h3><%== admin_msg %></h3><hr />
 %	unless($self->stash->{no_access}){
 
- 
+
 
 %	if($self->app->program->{settings}->{qedit}) {
     	<table width="90%"><tr>
       	<td align=right>
-	        <a href="#" title="Включить/выключить быстрое редактирование" onclick="ld_content('type_qe_<%= $replaceme %>', '<%= $script_link %>?do=set_qedit_i&replaceme=<%= $replaceme %>', '', 1)">
-    	        <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить qedit<% } else { %>Выключить qedit<% } %></span>
+	        <a href="#" title="Включить/выключить быстрое редактирование" onclick="ld_content('type_qe_<%= $replaceme %>', '<%= $script_link %>?do=set_qedit_i&replaceme=<%= $replaceme %>&index=<%= $index %>', '', 1)">
+    	        <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить QEdit<% } else { %>Выключить QEdit<% } %></span>
         	</a>
       	</td>
     	</tr></table>
@@ -75,12 +75,32 @@
               	</div>
             	</td>
           	</tr>
-%		}
+  % } elsif(
+    % $self->stash->{index} &&
+    % (
+    %   $self->stash->{list_table} eq 'texts_main_ru' or
+    %   $self->stash->{list_table} eq 'texts_news_ru'
+    % )
+    % ){
+      <tr onmouseout="tr_select_out(this, 'odd');" onmouseover="tr_select_over(this);" class="odd" id="trtdate">
+       <td width="150px" valign="top" colspan="3" class="edit">Ссылка на страницу:</td>
+       <td valign="top" class="read">
+          % my $url = url_for('text', alias => $self->stash->{anketa}->{alias});
+          % if($self->stash->{list_table} eq 'texts_news_ru'){
+            % my $categoryId = $self->stash->{anketa}->{id_category};
+            % my $categoryAlias = $self->dbi->query("SELECT `alias` FROM `lst_news_categorys` WHERE `ID`='$categoryId'")->list;
+            % $url = url_for('news_iteminfo', news_category_alias => $categoryAlias, list_item_alias => $self->stash->{anketa}->{alias} );
+          % }
+          <a href="<%= 'http://'.$self->host.$url %>" target="_blank"><%= 'http://'.$self->host.$url %></a>
+       </td>
+      </tr>
+  % }
+
 		</table>
     </div>
 %	}
 	</div>
-%	} 
+%	}
 
 %	if($self->stash->{no_access}){
 		<div style="width:90%;height:250px"><h3 style="text-align:center;margin-top:100px">К данной записи доступа нет</h3></div>

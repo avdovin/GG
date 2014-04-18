@@ -720,11 +720,11 @@ sub register {
 				$self->sysuser->save_settings($controller.'_qedit' => 1);
 
 				$self->render( json => {
-					content	=> 'Выключить qedit',
+					content	=> 'Выключить QEdit',
 					items	=> [
 						{
 							type	=> 'eval',
-							value	=> "ld_content('$replaceme', '$script_link?do=".($params{info} ? 'info' : 'list_container')."&'+ document.getElementById('${replaceme}_QS').innerHTML);",
+							value	=> "ld_content('$replaceme', '$script_link?do=".($params{info} ? 'info' : 'list_container')."&'+ document.getElementById('${replaceme}_QS').innerHTML.replace(/&amp;/g, '&') );",
 						},
 					]
 				})
@@ -733,11 +733,11 @@ sub register {
 				$self->sysuser->save_settings($controller.'_qedit' => 0);
 
 				$self->render( json => {
-					content	=> 'Включить qedit',
+					content	=> 'Включить QEdit',
 					items	=> [
 						{
 							type	=> 'eval',
-							value	=> "ld_content('$replaceme', '$script_link?do=".($params{info} ? 'info' : 'list_container')."&'+ document.getElementById('${replaceme}_QS').innerHTML);",
+							value	=> "ld_content('$replaceme', '$script_link?do=".($params{info} ? 'info' : 'list_container')."&'+ document.getElementById('${replaceme}_QS').innerHTML.replace(/&amp;/g, '&') );",
 						},
 					]
 				})
