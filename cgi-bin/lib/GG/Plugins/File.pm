@@ -57,14 +57,14 @@ sub register {
 
 					warn $@ if $@;
 				}
-
-				my $retina_path = $self->file_path_retina($document_root.$params{folder}.$params{pict});
-				eval{
-					unlink ($document_root.$params{folder}.$params{pict});
-					unlink ($retina_path);
-				};
-				warn $@ if $@;
 			}
+
+			my $retina_path = $self->file_path_retina($document_root.$params{folder}.$params{pict});
+			eval{
+				unlink ($document_root.$params{folder}.$params{pict});
+				unlink ($retina_path);
+			};
+			warn $@ if $@;
 		}
 	);
 
