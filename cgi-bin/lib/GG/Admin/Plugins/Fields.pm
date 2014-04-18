@@ -162,7 +162,7 @@ sub register {
 			my %params = (
 					table	=> $self->stash->{dop_table} || $self->stash->{list_table},
 					folder	=> '',#$self->stash->{folder},
-					fields	=> [qw(folder type_file)],
+					fields	=> [$self->send_params->{lfield}],
 					lfield	=> $self->stash->{lfield},
 					index	=> $self->stash->{index},
 					@_
@@ -188,7 +188,13 @@ sub register {
 				$self->save_info( table => $params{table}, field_values => $clear_fields);
 			}
 
-			my $content = $self->render( key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_pict_reload', partial => 1);
+			my $content = $self->render(
+				key => $lfield,
+				lkey => $self->lkey(name => $lfield),
+				template => '/Admin/AnketForm/Reload/field_pict_reload',
+
+				partial => 1
+			);
 			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),
