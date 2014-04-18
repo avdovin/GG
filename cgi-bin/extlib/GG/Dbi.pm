@@ -21,7 +21,7 @@ sub where_multiselect{
 
 	my $arr = ref $_[0] ? $_[0] : [@_];
 
-	return scalar @$arr ? " AND `$field` REGEXP '(^|=)(".join('|',@$arr).")(=|\$)' " : '';
+	return scalar @$arr ? " `$field` REGEXP '(^|=)(".join('|',@$arr).")(=|\$)' " : '';
 });
 
 

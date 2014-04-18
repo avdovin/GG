@@ -132,11 +132,14 @@ sub register {
 				}
 			}
 
-			my $banner_content = 	$self->render(		%params,
-								banners			=> $banners || [],
-								banner_block	=> $banner_block,
-								template		=> $params{template},
-								partial			=> 1 );
+			my $banner_content = 	$self->render(
+				%params,
+				banners			=> $banners || [],
+				banner_block	=> $banner_block,
+				template		=> $params{template},
+
+				partial			=> 1
+			);
 
 			return $params{before_html} . $banner_content . $params{after_html};
 
