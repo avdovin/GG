@@ -48,29 +48,11 @@ sub body{
 
 	given ($do){
 
-		when('list_container') 			{ $self->list_container; }
 		when('mainpage') 				{ $self->mainpage; }
-		when('list_items') 				{ $self->list_items; }
 
-		when('menu_button') 			{
-			$self->def_menu_button(
-				key 		=> $self->app->program->{menu_btn_key},
-				controller	=> $self->app->program->{key_razdel},
-			);
+		default							{
+			$self->default_actions($do);
 		}
-
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('add') 					{ $self->edit( add => 1); }
-		when('edit') 					{ $self->edit; }
-		when('info') 					{ $self->edit; }
-		when('save') 					{ $self->save; }
-		when('save_continue‎')			{ $self->save( continue => 1); }
-		when('delete') 					{ $self->delete; }
-		when('restore') 				{ $self->save( restore => 1); }
-
-		default							{ $self->render( text => "действие не определенно"); }
 	}
 
 }

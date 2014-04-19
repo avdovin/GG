@@ -49,41 +49,10 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
-		when('enter') 					{ $self->list_container( enter => 1); }
-		when('list_items') 				{ $self->list_items; }
 
-		when('menu_button') 			{
-			$self->def_menu_button(
-				key 		=> $self->app->program->{menu_btn_key},
-				controller	=> $self->app->program->{key_razdel},
-			);
+		default							{
+			$self->default_actions($do);
 		}
-
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('set_qedit') 				{ $self->set_qedit; }
-		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
-		when('save_qedit') 				{ $self->save_qedit; }
-		when('save_qedit_i') 			{ $self->save_qedit; }
-
-		when('filter') 					{ $self->filter_form; }
-		when('filter_save') 			{ $self->filter_save; }
-		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
-
-		when('add') 					{ $self->edit( add => 1); }
-		when('edit') 					{ $self->edit; }
-		when('info') 					{ $self->info; }
-		when('save') 					{ $self->save; }
-		when('save_continue‎')			{ $self->save( continue => 1); }
-		when('delete') 					{ $self->delete; }
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('tree') 					{ $self->tree; }
-		when('tree_block') 				{ $self->tree_block; }
-		when('tree_reload') 			{ $self->tree_block; }
-
-		default							{ $self->render( text => "действие не определенно"); }
 	}
 }
 

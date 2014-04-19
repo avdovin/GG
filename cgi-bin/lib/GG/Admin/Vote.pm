@@ -52,48 +52,14 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
-		when('enter') 					{ $self->list_container( enter => 1); }
-		when('list_items') 				{ $self->list_items; }
 
-		when('delete_pict') 			{ $self->field_delete_pict( render => 1, fields => [qw(pict)]); }
-		when('field_upload_swf') 		{ $self->field_upload_swf; }
-		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
-
-		when('menu_button') 			{
-			$self->def_menu_button(
-				key 		=> $self->app->program->{menu_btn_key},
-				controller	=> $self->app->program->{key_razdel},
-			);
+		default							{
+			$self->default_actions($do);
 		}
-
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('set_qedit') 				{ $self->set_qedit; }
-		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
-		when('save_qedit') 				{ $self->save_qedit; }
-		when('save_qedit_i') 			{ $self->save_qedit; }
-
-		when('filter') 					{ $self->filter_form; }
-		when('filter_save') 			{ $self->filter_save; }
-		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
-
-		when('add') 					{ $self->edit( add => 1); }
-		when('edit') 					{ $self->edit; }
-		when('info') 					{ $self->info; }
-		when('save') 					{ $self->save; }
-		when('delete') 					{ $self->delete; }
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('lists_select') 			{ $self->catalog_lists_select; }
-
-		default							{ $self->render(text=>"действие не определенно"); }
 	}
 }
 
-sub catalog_lists_select{
+sub lists_select{
 	my $self = shift;
 
 	my $lfield = $self->param('lfield');

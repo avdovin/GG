@@ -54,106 +54,11 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
-		when('enter') 					{ $self->list_container( enter => 1); }
-		when('list_items') 				{ $self->list_items; }
 
-		when('print') 					{ $self->print_choose; }
-		when('print_anketa') 			{
-			$self->print_anketa(
-				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
-			);
+		default							{
+			$self->default_actions($do);
 		}
-
-		when('delete_pict') 			{ $self->field_delete_pict( render => 1, fields => [$self->send_params->{lfield}]); }
-		when('field_upload_swf') 		{ $self->field_upload_swf; }
-		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
-
-		when('menu_button') 			{
-			$self->def_menu_button(
-				key 		=> $self->app->program->{menu_btn_key},
-				controller	=> $self->app->program->{key_razdel},
-			);
-		}
-
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('set_qedit') 				{ $self->set_qedit; }
-		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
-		when('save_qedit') 				{ $self->save_qedit; }
-		when('save_qedit_i') 			{ $self->save_qedit; }
-
-		when('filter') 					{ $self->filter_form; }
-		when('filter_save') 			{ $self->filter_save; }
-		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
-
-		when('add') 					{ $self->edit( add => 1); }
-		when('edit') 					{ $self->edit; }
-		when('info') 					{ $self->info; }
-		when('save') 					{ $self->save; }
-		when('save_continue‎')			{ $self->save( continue => 1); }
-		when('delete') 					{ $self->delete; }
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('lists_select') 			{ $self->lists_select; }
-
-		# Загрузка архива
-		when('zipimport')	 			{ $self->zipimport; }
-		when('zipimport_save')	 		{ $self->zipimport_save; }
-		when('zipimport_save_pict')	 	{ $self->zipimport_save_pict; }
-
-		default							{ $self->render( text => "действие не определенно"); }
 	}
-}
-
-sub zipimport{
-	my $self = shift;
-
-	$self->param_default('lfield' => 'pict');
-
-	my @keys = qw(zip);
-	push @keys, $self->stash->{dir_field};
-
-	$self->param_default('list_table' => 'dtbl_catalog_items_images' );
-	$self->param_default('id_item' => $self->send_params->{id_item} );
-
-	$self->define_anket_form(template => 'anketa_zipimport', access => 'w', render_html => 1, keys => \@keys);
-}
-
-sub zipimport_save{
-	my $self = shift;
-
-	my $files = $self->file_extract_zip( path => $self->file_tmpdir.$self->send_params->{zip} );
-
-	my $html = $self->render( files => $files, template => 'Admin/Plugins/File/zipimport_img_node', partial => 1);
-
-	$self->render( json => {html => $html, count => scalar(@$files)});
-}
-
-sub zipimport_save_pict{
-	my $self = shift;
-
-	my $lfield = $self->send_params->{lfield};
-
-	if($self->file_save_pict(
-		filename 	=> $self->send_params->{filename},
-		lfield		=> $lfield,
-	)){
-		my $vals = {
-			name	=> $self->send_params->{filename},
-			rating	=> 99,
-			id_item =>
-		};
-
-		$self->save_info(table => $self->stash->{list_table}, field_values => $vals );
-	};
-
-	my $item = $self->dbi->query("SELECT `pict` FROM `".$self->stash->{list_table}."` WHERE `ID`='".$self->stash->{index}."'")->hash;
-
-	my $folder = $self->lfield_folder( lfield => $lfield ) || $item->{folder};
-	$self->render( json => {filename	=> $item->{pict}, src => $folder.$item->{pict} });
 }
 
 sub lists_select{

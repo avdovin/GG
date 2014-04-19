@@ -56,18 +56,6 @@ sub body{
 			);
 		}
 
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('set_qedit') 				{ $self->set_qedit; }
-		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
-		when('save_qedit') 				{ $self->save_qedit; }
-		when('save_qedit_i') 			{ $self->save_qedit; }
-
-		when('filter') 					{ $self->filter_form; }
-		when('filter_save') 			{ $self->filter_save; }
-		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
-
 		when('add') 					{ $self->edit( add => 1); }
 		when('edit') 					{ $self->edit; }
 		when('info') 					{ $self->info; }
@@ -80,7 +68,9 @@ sub body{
 		when('tree_block') 				{ $self->tree_block; }
 		when('tree_reload') 			{ $self->tree_block; }
 
-		default							{ $self->render( text => "действие не определенно"); }
+		default							{
+			$self->default_actions($do);
+		}
 	}
 }
 

@@ -108,26 +108,6 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
-		when('enter') 					{ $self->list_container( enter => 1); }
-		when('list_items') 				{ $self->list_items; }
-
-		when('delete_pict') 			{ $self->field_delete_pict( render => 1, fields => [qw(pict)]); }
-		when('field_upload_swf') 		{ $self->field_upload_swf; }
-		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
-
-		when('menu_button') 			{
-			$self->def_menu_button(
-				key 		=> $self->app->program->{menu_btn_key},
-				controller	=> $self->app->program->{key_razdel},
-			);
-		}
-
-		when('print') 					{ $self->print_choose; }
-		when('print_anketa') 			{
-			$self->print_anketa(
-				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
-			);
-		}
 
 		when('chrazdel') 				{
 			$self->changeRazdel;
@@ -138,43 +118,10 @@ sub body{
 			$self->list_container;
 		}
 
-		# Загрузка архива
-		when('zipimport')	 			{ $self->zipimport; }
-		when('zipimport_save')	 		{ $self->zipimport_save; }
-		when('zipimport_save_pict')	 	{ $self->zipimport_save_pict; }
 
-		when('sel_treeblock') 			{ $self->field_select_dir; }
-
-		when('filter_take') 			{ $self->filter_take( render => 1); }
-		when('quick_view') 				{ $self->quick_view; }
-
-		when('set_qedit') 				{ $self->set_qedit; }
-		when('set_qedit_i') 			{ $self->set_qedit(info => 1); }
-		when('save_qedit') 				{ $self->save_qedit; }
-		when('save_qedit_i') 			{ $self->save_qedit; }
-
-		when('filter') 					{ $self->filter_form; }
-		when('filter_save') 			{ $self->filter_save; }
-		when('filter_clear') 			{ $self->filter_clear();  $self->list_container(); }
-
-		when('add') 					{ $self->edit( add => 1); }
-		when('add_dir') 				{ $self->edit( add => 1, dir => 1); }
-		when('edit') 					{ $self->edit; }
-		when('info') 					{ $self->info; }
-		when('save') 					{ $self->save; }
-		when('save_continue‎')			{ $self->save( continue => 1); }
-		when('delete') 					{ $self->delete; }
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('tree') 					{ $self->tree; }
-		when('tree_block') 				{ $self->tree_block; }
-		when('tree_reload') 			{ $self->tree_block; }
-
-		when('restore') 				{ $self->save( restore => 1); }
-
-		when('lists_select') 			{ $self->lists_select; }
-
-		default							{ $self->render( text => "действие не определенно"); }
+		default							{
+			$self->default_actions($do);
+		}
 	}
 }
 
