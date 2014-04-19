@@ -54,6 +54,7 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
+		when('copy') 					{ $self->copy; }
 
 		default							{
 			$self->default_actions($do);
@@ -159,10 +160,10 @@ sub delete{
 
 	} else {
 
-	$self->save_logs( 	name 	=> 'Попытка удаления записи из таблицы '.$self->stash->{list_table},
-						comment	=> "Неудачная попытка удаления записи из таблицы [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
+		$self->save_logs( 	name 	=> 'Попытка удаления записи из таблицы '.$self->stash->{list_table},
+							comment	=> "Неудачная попытка удаления записи из таблицы [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
 
-	$self->block_null;
+		$self->block_null;
 	}
 
 }

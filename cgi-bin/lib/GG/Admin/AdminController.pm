@@ -17,7 +17,6 @@ sub default_actions{
 	my $do = shift;
 
 	given ($do){
-
 		when('list_container') 			{ $self->list_container; }
 		when('enter') 					{ $self->list_container( enter => 1); }
 		when('list_items') 				{ $self->list_items; }
