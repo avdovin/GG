@@ -45,7 +45,7 @@
 					<td align="right">
 						% if($self->stash->{anketa_ok} eq 'ok'){
 							<div style="text-align:right;margin:10px 23px 10px 0;">
-								<input id="submit_<%= $replaceme %>" type="submit" onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save_continue‎&<%= $self->stash->{param_default} %>'); return false;" value="Применить" class="submit_save" style="width:40%;">
+								<input id="continue_submit_<%= $replaceme %>" type="submit" onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save_continue‎&<%= $self->stash->{param_default} %>'); return false;" value="Применить" class="submit_save" style="width:40%;">
 								<input id="submit_<%= $replaceme %>" type="submit" onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:40%;">
 							</div>
 						% }
@@ -93,7 +93,7 @@
 			<td align=left width=150><% if($befor_index and $befor_index!=$group){ %><p style="text-align:right"><img src="/admin/img/icons/menu/icon_prev.gif" align="absMiddle"> <a href="#" onClick="ld_content('<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=edit&<%= $self->stash->{param_default} %>&index=<%= $self->stash->{index} %>&group=<%= $befor_index %>')" title="Переход к предыдущей вкладке">предыдущая</a></p><% } %></td>
 			<td align=center>
 				% if($self->stash->{anketa_ok} eq 'ok'){
-					<input id="dopsubmit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save_continue‎&<%= $self->stash->{param_default} %>'); return false;" value="Применить" class="submit_save" style="width:40%">
+					<input id="continue_dopsubmit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save_continue‎&<%= $self->stash->{param_default} %>'); return false;" value="Применить" class="submit_save" style="width:40%">
 					<input id="dopsubmit_<%= $replaceme %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%= $self->stash->{controller_url} %>?do=save&<%= $self->stash->{param_default} %>'); return false;" value="Сохранить" class="submit_save" style="width:40%">
 				% }
 			</td>

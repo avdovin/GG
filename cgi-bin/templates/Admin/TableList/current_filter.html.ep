@@ -3,7 +3,7 @@
 
 %	foreach my $f (@{$self->stash->{current_filter}}){
 	<% my $lkey = $self->lkey(name => $f); %>
-  	<tr>
+  	<tr class="odd">
     	<td width="50px" class=edit valign=top><b><%= $lkey->{name} =%>:</b></td>
 		<td width="*" class="edit" align="left" valign="top">
 %		if($lkey->{settings}->{type} eq 's' or $lkey->{settings}->{type} eq 'site' or $lkey->{settings}->{type} eq 'text'){

@@ -362,11 +362,23 @@ sub register {
 				@$items,
 				{
 					type		=> 'eval',
-					value		=> "eSubmit".$stash->{replaceme}."= function () {document.getElementById(id_block_submit['".$stash->{replaceme}."']).disabled = false; document.getElementById('dop' + id_block_submit['".$stash->{replaceme}."']).disabled = false;}",
+					value		=> "eSubmit".$stash->{replaceme}."= function () {
+								document.getElementById(id_block_submit['".$stash->{replaceme}."']).disabled = false;
+								document.getElementById('dop' + id_block_submit['".$stash->{replaceme}."']).disabled = false;
+
+								document.getElementById('continue_' + id_block_submit['".$stash->{replaceme}."']).disabled = false;
+								document.getElementById('continue_dop' + id_block_submit['".$stash->{replaceme}."']).disabled = false;
+							}",
 				},
 				{
 					type		=> 'eval',
-					value		=> "dSubmit".$stash->{replaceme}." = function () {document.getElementById(id_block_submit['".$stash->{replaceme}."']).disabled = true; document.getElementById('dop' + id_block_submit['".$stash->{replaceme}."']).disabled = true;}",
+					value		=> "dSubmit".$stash->{replaceme}." = function () {
+								document.getElementById(id_block_submit['".$stash->{replaceme}."']).disabled = true;
+								document.getElementById('dop' + id_block_submit['".$stash->{replaceme}."']).disabled = true;
+
+								document.getElementById('continue_' + id_block_submit['".$stash->{replaceme}."']).disabled = true;
+								document.getElementById('continue_dop' + id_block_submit['".$stash->{replaceme}."']).disabled = true;
+							}",
 
 				},
 				{
@@ -417,6 +429,12 @@ sub register {
 									|
 				};
 			}
+
+			# if new entry title = subtitle = Новая запись
+			if($stash->{replaceme} eq 'newentry' && !$stash->{index}){
+				$stash->{win_name} = $stash->{anketa}->{name} = 'Новая запись';
+			}
+
 			$items = [
 				@$items,
 				{
@@ -427,7 +445,7 @@ sub register {
 				{
 					type		=> 'settabtitle',
 					id			=> $stash->{replaceme},
-					title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 10 ),
+					title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 15 ),
 				},
 			];
 
@@ -487,7 +505,7 @@ sub register {
 			push @$items, {
 				type		=> 'settabtitle',
 				id			=> $stash->{replaceme},
-				title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 10 ),
+				title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 15 ),
 			};
 
 			if($self->sysuser->settings->{$stash->{controller}.'_qedit'} ){

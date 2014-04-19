@@ -44,9 +44,9 @@ function init_tablelist(id) {
 					var class_tr = element.className;
 					element.classold = class_tr;
 					element.onmouseout = function() {
-						if (this.className == 'selectmarked' || this.className == 'marked') { 
+						if (this.className == 'selectmarked' || this.className == 'marked') {
 							this.className = 'marked'
-						} else { 
+						} else {
 							this.className = this.classold;
 						}
 					}
@@ -113,14 +113,14 @@ function init_tablelist(id) {
 											img.onclick = function() {
 												array = this.className.split(' ');
 												if (confirm(this.alt)) openPage('center', script_replaceme + array[1], script_link + '?do=' + array[0] + '&index=' + array[1] +'&replaceme=' + script_replaceme + array[1] + script_param, 'info','info');
-											}											
+											}
 									    } else if(action == 'send' ){
 											var confirm_msg = 'Вы действительно хотите разослать?';
 											img.alt = confirm_msg;
 											img.onclick = function() {
 												array = this.className.split(' ');
 												if (confirm(this.alt)) openPage('center', script_replaceme + array[1], script_link + '?do=' + array[0] + '&index=' + array[1] +'&replaceme=' + script_replaceme + array[1] + script_param, 'info','info');
-											}	
+											}
 										} else if (action == 'print'){
 											img.onclick = function() {
 												array = this.className.split(' ');
@@ -148,7 +148,7 @@ function init_tablelist(id) {
 			if (element_table.getAttribute("qedit") == 1) setTimeout("init_qedit('" + id + "')", 1000);
 		}
 	}
-	
+
 
 }
 
@@ -186,7 +186,7 @@ function init_qedit_doptable(id) {
 			}
 			if(textEditObj[id]) textEditObj[id].init();
 		}
-	}	
+	}
 }
 
 function init_qedit(id) {
@@ -222,7 +222,7 @@ function init_qedit(id) {
 			}
 			if(textEditObj[id]) textEditObj[id].init();
 		}
-	}	
+	}
 }
 
 function init_qedit_info(id) {
@@ -230,7 +230,7 @@ function init_qedit_info(id) {
 	if(element_table){
 		var script_link = element_table.attr("script_link");
 		var script_param = element_table.attr("script_param");
-		
+
 		textEditObj[id] = new DHTMLSuite.textEdit();
 		textEditObj[id].setServersideFile(script_link + '?do=save_qedit_i&' + script_param);
 		var td_list = jQuery("tr td", element_table);
@@ -242,7 +242,7 @@ function init_qedit_info(id) {
 				var label_id = label.attr('id');
 				var div_id = div.attr('id');
 				if(!div_id || !label_id) return false;
-				
+
 				if(label.hasClass("list")){
 					var lkey = div_id.split('__')[1]
 					if (!listModel[lkey]) {
@@ -282,34 +282,34 @@ function parse_data_to_table(id, ajaxIndex) {
 
 	data = ajaxform[ajaxIndex].response;
 	var data =jQuery.parseJSON(data);
-		
-		
+
+
 	var element_table = jQuery("#quickEdit"+id);
 	if(element_table){
 		var element_body = jQuery("tbody:first", element_table);
 		var element_header = jQuery("tr:last", element_body);
-		
+
 		var lkeys = data.lkeys;
 		var vals = data.data;
 		var buttons_key = data.buttons_key;
 		var settings = data.settings;
 		var qedit = element_table.attr('qedit') ? 1 : 0;
-		
+
 		for(var i=0; i<vals.length; i++){
 			tr = document.createElement('TR');
 			var td_str = vals[i];
-			
+
 			jQuery(tr).attr('id',  'tr'+td_str['ID']);
 			var td = document.createElement('TD');
 			jQuery(td).addClass("lchb");
 			jQuery(tr).append(td);
-			
+
 			if(settings.qview){
 				var td = document.createElement('TD');
 				jQuery(td).addClass("qview");
 				jQuery(tr).append(td);
 			}
-			
+
 			for(var lkeyindex=0; lkeyindex<lkeys.length; lkeyindex++) {
 				var lkey_name = lkeys[lkeyindex].lkey;
 				var lkey_type = lkeys[lkeyindex].type;
@@ -317,7 +317,7 @@ function parse_data_to_table(id, ajaxIndex) {
 				var td = document.createElement('TD');
 
 				if(qedit && (lkey_type=='s' || lkey_type=='d' || lkey_type=='tlist' || lkey_type=='list' || lkey_type=='chb')){
-					
+
 					if(lkeys[lkeyindex].qedit){
 						var label = document.createElement('LABEL');
 						if (lkey_type=='list' || lkey_type=='tlist' || lkey_type=='chb') {
@@ -337,7 +337,7 @@ function parse_data_to_table(id, ajaxIndex) {
 					}
 
 				} else if(lkey_type=='pict'){
-					
+
 					var ext = (/[.]/.exec(td_str[lkey_name])) ? /[^.]+$/.exec(td_str[lkey_name]) : undefined;
 					if(typeof ext != 'undefined' && ext == 'swf'){
 						var swf_width = 64;
@@ -347,13 +347,13 @@ function parse_data_to_table(id, ajaxIndex) {
 							var k = td_str['width'] / swf_width;
 							swf_height = parseInt(td_str['height'] / k)
 						}
-						
+
 						var swf = document.createElement('OBJECT');
 						swf.setAttribute("width", swf_width);
 						swf.setAttribute("height", swf_height);
 						swf.setAttribute("codebase", "http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0");
 						swf.setAttribute("classid", "clsid:d27cdb6e-ae6d-11cf-96b8-444553540000");
-						
+
 						param = document.createElement('PARAM');
 						param.name  = "allowScriptAccess";
 						param.value = "sameDomain";
@@ -395,29 +395,29 @@ function parse_data_to_table(id, ajaxIndex) {
 						jQuery(td).append(img);
 						jQuery(td).css("text-align", 'center');
 					}
-										
+
 				} else{
 					jQuery(td).html( td_str[lkey_name] );
 				}
 				jQuery(tr).append(td);
 			};
-			
+
 			for(var j=0; j<buttons_key.length; j++) {
 				var td = document.createElement('TD');
 				jQuery(td).addClass("button16");
 				var div = document.createElement('DIV');
 				jQuery(div).addClass(  buttons_key[j].lkey );
-				
+
 				if(buttons_key[j].confirm) div.setAttribute("confirm", buttons_key[j].confirm);
-				
+
 				jQuery(td).append(div);
 				jQuery(tr).append(td);
 			};
-			
+
 			jQuery(tr).insertBefore(element_header);
 		};
 	}
-		
+
 	document.getElementById(ajaxIndex).innerHTML = "";
 
 	init_tablelist('quickEdit' + id);

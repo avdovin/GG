@@ -771,7 +771,14 @@ sub def_script_button { # определение скрипта выполнен
 				$$self{tabtitle} ||= $$self{settings}{id};
 				if ($settings->{confirm}) {
 					$settings->{script} = "if (confirm('$$settings{confirm}')) openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
-				} else {
+
+				}
+				elsif( $settings->{id} eq 'newentry'){
+					$settings->{tabtitle} = 'Новая запись';
+					$$settings{params_string} = '&replaceme=newentry';
+					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+				}
+				else {
 					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
 				}
 		}
