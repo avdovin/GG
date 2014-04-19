@@ -582,15 +582,40 @@ function getMultilist(sel, out, key_program, razdel_index, lfield, request_url) 
 	getList(sel, "fromselect" + out, key_program, razdel_index, lfield, request_url, 1);
 }
 
+function multiblock_toogle(replaceme) {
+
+	if(!jQuery('#multisearchblock'+replaceme).length ) return false;
+
+	if( !jQuery('#multisearchblock'+replaceme).is(':visible') ){
+		jQuery('#multisearchblock'+replaceme).show();
+		jQuery('#multisearchblock_on'+replaceme).show();
+		jQuery('#multisearchblock_off'+replaceme).hide();
+
+		if(jQuery(".helptext-"+replaceme).length) jQuery(".helptext-"+replaceme).hide();
+	}
+	else {
+		jQuery('#multisearchblock'+replaceme).hide();
+		jQuery('#multisearchblock_on'+replaceme).hide();
+		jQuery('#multisearchblock_off'+replaceme).show();
+
+		if(jQuery(".helptext-"+replaceme).length) jQuery(".helptext-"+replaceme).show();
+	}
+
+}
+
 function multiblock_on(multisearchblock) {
+	console.log('multiblock_on deprecated');
 	if(document.getElementById("multisearchblock" + multisearchblock)) {
 		document.getElementById("multisearchblock" + multisearchblock).style.display = "block";
 		document.getElementById("multisearchblock_off" + multisearchblock).style.display = "block";
 		document.getElementById("multisearchblock_on" + multisearchblock).style.display = "none";
 	}
+
+	jQuery("#multisearchblock")
 }
 
 function multiblock_off(multisearchblock) {
+	console.log('multiblock_off deprecated');
 	if(document.getElementById("multisearchblock" + multisearchblock)) {
 		document.getElementById("multisearchblock" + multisearchblock).style.display = "none";
 		document.getElementById("multisearchblock_on" + multisearchblock).style.display = "block";

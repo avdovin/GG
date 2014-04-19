@@ -1,10 +1,12 @@
-<% if($lkey->{settings}->{select_help}){ $self->stash->{multiselect_flag} = $self->stash->{replaceme}.$key; } %>
+% if($lkey->{settings}->{select_help}){
+  % $self->stash->{multiselect_flag} = $self->stash->{replaceme}.$key;
+% }
 <tr>
   <td class=edit width="150px" valign=top>
     	<%= $lkey->{name} %>
     <br /><br />
-    <span id="multisearchblock_on<%= $self->stash->{replaceme} %><%= $key %>" style="display:block"><img src="/admin/img/icons/menu/icon_search.gif" align="absMiddle"> <a href="javascript:multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>выбрать</a></span>
-    <span id="multisearchblock_off<%= $self->stash->{replaceme} %><%= $key %>" style="display:none"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="javascript:multiblock_off('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>свернуть</a></span>
+    <span id="multisearchblock_on<%= $self->stash->{replaceme} %><%= $key %>" style="display:block"><img src="/admin/img/icons/menu/icon_search.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>выбрать</a></span>
+    <span id="multisearchblock_off<%= $self->stash->{replaceme} %><%= $key %>" style="display:none"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>свернуть</a></span>
   </td>
   <td class=edit width="10px" valign=top>
 % 	if($lkey->{settings}->{help}){
@@ -19,8 +21,8 @@
 		</b>
 	</p>
 	<% } else { %>
-		<p style="color: red;">Для выбора значений используйте кнопку <a class="pseudolink" href="javascript:void(0);" onClick="multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>');return false;">выбрать</a></p>
-	<% } %> 
+		<p style="color: red;" class="helptext-<%= $self->stash->{replaceme} %><%= $key %>">Для выбора значений используйте кнопку <a class="pseudolink" href="javascript:void(0);" onClick="jQuery(this).parent().hide();multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>');return false;">выбрать</a></p>
+	<% } %>
     <div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
     <table style="width:95%;padding:3px">
       <tr>
