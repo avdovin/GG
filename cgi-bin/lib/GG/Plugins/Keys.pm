@@ -713,14 +713,18 @@ sub def_params_button { # определение параметров
 
 	if ($settings->{params}) {
 		foreach my $p (split(/,/, $settings->{params})) {
-			push(@params, "$p=".$stash->{$p}) if ($p && $stash->{$p});
+			next unless $p;
+			next unless my $v = $stash->{$p};
+
+			$v = 'newentry' if ($settings->{id} eq 'newentry' && $p eq 'replaceme');
+
+			push(@params, "$p=$v");
 		}
 	}
 
 	$settings->{controller} ||= $stash->{controller};
-	$$self{params_string} = join("&", @params) || '';
-	#$settings->{params_string} = join("&", @params) || '';
-	#$settings->{controller} ||= $settings->{modul} || 'undef';
+	$self->{params_string} = $settings->{params_string} = join("&", @params) || '';
+
 	$settings->{action} ||= $settings->{'do'} || 'undef';
 	$settings->{controller} ||= '';
 
@@ -775,8 +779,7 @@ sub def_script_button { # определение скрипта выполнен
 				}
 				elsif( $settings->{id} eq 'newentry'){
 					$settings->{tabtitle} = 'Новая запись';
-					$$settings{params_string} = '&replaceme=newentry';
-					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}&$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
 				}
 				else {
 					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
