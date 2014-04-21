@@ -211,11 +211,12 @@ sub mainpage{
 	my $rel_dir = $self->app->home->rel_dir("/templates/$dir");
 	my $controller_url = $self->stash->{controller_url};
 
-	$self->stash->{win_name} = $dir;
+	#$self->stash->{win_name} = $dir;
 	$self->stash->{anketa}->{name} = $dir;
 
 	for my $file ($self->_get_files($dir)){
-		next if ($file =~ /Admin/);
+		next if ($file =~ /Admin|DS_Store|exception|not_found|perldoc|mojobar/);
+
 		my $is_folder = -d $rel_dir.'/'.$file ? 1 : 0;
 		my $dir_file = $dir.'/'.$file;
 
@@ -254,12 +255,8 @@ sub mainpage{
 
 	$self->def_context_menu( lkey => 'templates_list');
 
+	my $win_name = $self->stash->{win_name} = $dir ? 'Папка: '.$self->cut( string => $dir, size => 100 ) : '';
 	my $content = $self->render( partial => 1, template => 'Admin/page_admin_main', body => $body);
-
-	my $win_name = $self->cut( string => $dir, size => 15 );
-	$self->stash->{win_name} = $win_name;
-
-
 
 	my $items = [];
 
