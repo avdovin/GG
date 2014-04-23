@@ -11,7 +11,9 @@
 %		my $menuitem = $items->{$id};
 %		if($menuitem->{level}==$level && $menuitem->{texts_main}==$parent_id){
 			<li class="menu__entry <% if($alias eq $menuitem->{alias} or $menuitem->{menu_active_parent}){ %>current <% } %><% if($menuitem->{noempty} && $level==1){ %>noempty<% } %>"><a class="menu__link" href="<%== menu_item $menuitem %>" title="<%= $menuitem->{name} %>"><%= $menuitem->{name} =%></a>
-			<% if($level==1 && $menuitem->{noempty}){ %><%== menu_track ( template => 'top',  botomlevel => 2, parent_id => $id, level => $level+1 ) =%><% } %>
+				% if($level==1 && $menuitem->{noempty}){
+					%== menu_track ( template => $template, toplevel => $toplevel, botomlevel => $botomlevel, parent_id => $id, level => $level+1 );
+				% }
 			</li>
 %		}
 %	}
