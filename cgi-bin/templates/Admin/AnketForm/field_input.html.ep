@@ -1,4 +1,13 @@
-<% if($lkey eq 'alias' && !$value  && $self->stash->{anketa}->{name}){ $value = $self->transliteration($self->stash->{anketa}->{name}); } %>
+% if($lkey eq 'alias' && !$value  && $self->stash->{anketa}->{name}){
+	% $value = $self->transliteration($self->stash->{anketa}->{name});
+% }
+% my $input_type = 'text';
+% my $lkey_type = $lkey->{settings}->{type};
+
+% if($lkey_type eq 'float'){
+	% $lkey->{settings}->{default} ||= '0000.00';
+	% $lkey->{settings}->{regexpPattern} ||= '^[0-9]*\.?[0-9]*$';
+% }
 <tr>
 	<td class="edit" width="150px">
 		%= $lkey ? $lkey->{name} : $key
@@ -10,9 +19,6 @@
 	</td>
 	<td width="10px" id="_<%= $key %>"></td>
 	<td class="edit">
-		%
-		% my $input_type = 'text';
-		% my $lkey_type = $lkey->{settings}->{type};
 		% $input_type = 'email' if($lkey_type eq 'email');
 		% $input_type = 'url' if($lkey_type eq 'site');
 		%
@@ -21,7 +27,8 @@
 		%
 		<input
 			<% if($lkey_type eq 'd'){ %>pattern="[0­9]*"<% } %>
-			<% if($key eq 'name'){ %>onKeyUp="build_alias(this);"<% } %>
+			<% if($key eq 'name' && defined $self->stash->{anketa}->{alias}){ %>onKeyUp="build_alias(this);"<% } %>
+			<% if($lkey->{settings}->{regexpPattern}){ %>regexpPattern="<%= $lkey->{settings}->{regexpPattern} %>"<% } %>
 			id="<%= $self->stash->{replaceme} %>_<%= $key %>"
 			onmouseup="this.focus();"
 			onmousedown="this.focus();"
@@ -30,8 +37,8 @@
 			<% if($lkey->{settings}->{mask}){%>mask="<%== $lkey->{settings}->{mask} %>" <% } %>
 			type="<%= $input_type %>"
 			name='<%= $key %>'
+			maxlength='<%= $lkey->{settings}->{maxlength} || 255 %>'
 			%== $lkey->{settings}->{minlength} ? "minlength='".$lkey->{settings}->{minlength}."' " : "";
-			%== $lkey->{settings}->{maxlength} ? "maxlength='".$lkey->{settings}->{maxlength}."' " : "";
 			value='<% if($value){ %><%== $value =%><% }else{ %><%== $lkey->{settings}->{default} ? $lkey->{settings}->{default} : '' %><% } =%>'
 		>
 	</td>

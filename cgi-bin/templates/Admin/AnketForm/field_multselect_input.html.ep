@@ -1,51 +1,51 @@
 % if($lkey->{settings}->{select_help}){
-  % $self->stash->{multiselect_flag} = $self->stash->{replaceme}.$key;
+	% $self->stash->{multiselect_flag} = $self->stash->{replaceme}.$key;
 % }
 <tr>
-  <td class=edit width="150px" valign=top>
-    	<%= $lkey->{name} %>
-    <br /><br />
-    <span id="multisearchblock_on<%= $self->stash->{replaceme} %><%= $key %>" style="display:block"><img src="/admin/img/icons/menu/icon_search.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>выбрать</a></span>
-    <span id="multisearchblock_off<%= $self->stash->{replaceme} %><%= $key %>" style="display:none"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>свернуть</a></span>
-  </td>
-  <td class=edit width="10px" valign=top>
+	<td class=edit width="150px" valign=top>
+			<%= $lkey->{name} %>
+		<br /><br />
+		<span id="multisearchblock_on<%= $self->stash->{replaceme} %><%= $key %>" style="display:block"><img src="/admin/img/icons/menu/icon_search.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>выбрать</a></span>
+		<span id="multisearchblock_off<%= $self->stash->{replaceme} %><%= $key %>" style="display:none"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="javascript:multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>')" class=pseudolink>свернуть</a></span>
+	</td>
+	<td class=edit width="10px" valign=top>
 % 	if($lkey->{settings}->{help}){
 		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
 %	}
-  </td>
-  <td width="10px" id="_<%= $key %>"></td>
-  <td class=read>
-  	<% if($value){ %>
-  		<p style="color: green;">
-  			<b><%== VALUES (name => $key, value => $value ) %>
+	</td>
+	<td width="10px" id="_<%= $key %>"></td>
+	<td class=read>
+		<% if($value){ %>
+			<p style="color: green;">
+				<b><%== VALUES (name => $key, value => $value ) %>
 		</b>
 	</p>
 	<% } else { %>
-		<p style="color: red;" class="helptext-<%= $self->stash->{replaceme} %><%= $key %>">Для выбора значений используйте кнопку <a class="pseudolink" href="javascript:void(0);" onClick="jQuery(this).parent().hide();multiblock_on('<%= $self->stash->{replaceme} %><%= $key %>');return false;">выбрать</a></p>
+		<p style="color: red;" class="helptext-<%= $self->stash->{replaceme} %><%= $key %>">Для выбора значений используйте кнопку <a class="pseudolink" href="javascript:void(0);" onClick="jQuery(this).parent().hide();multiblock_toogle('<%= $self->stash->{replaceme} %><%= $key %>');return false;">выбрать</a></p>
 	<% } %>
-    <div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
-    <table style="width:95%;padding:3px">
-      <tr>
-        <td valign=top colspan=2>
-            <b>Поиск</b> <% if($lkey->{settings}->{select_help}){ %> (<a href="#" class=pseudolink id="link<%= $self->stash->{multiselect_flag} %>">включить подсказку по клику</a>)<% } %>
-            <span id="ok_fromselect<%= $self->stash->{replaceme}.$key %>"></span></td>
-      </tr>
-      <tr>
-        <td colspan=2 align=left>
+		<div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
+		<table style="width:95%;padding:3px">
+			<tr>
+				<td valign=top colspan=2>
+						<b>Поиск</b> <% if($lkey->{settings}->{select_help}){ %> (<a href="#" class=pseudolink id="link<%= $self->stash->{multiselect_flag} %>">включить подсказку по клику</a>)<% } %>
+						<span id="ok_fromselect<%= $self->stash->{replaceme}.$key %>"></span></td>
+			</tr>
+			<tr>
+				<td colspan=2 align=left>
 			<input data-list-table="<%= $lkey->{settings}->{list} %>" type=text placeholder="Введите часть искомого названия" onkeyup="getMultilist(this, '<%= $self->stash->{replaceme} %><%= $key %>', '<% if($lkey->{settings}->{controller}){ %><%= $lkey->{settings}->{controller} %><% } else { %><%= $self->stash->{controller} %><% } %>', '<%= $self->{stash}->{razdel} %>:<%= $self->{stash}->{index} %>', '<%= $key %>', '<%= $lkey->{settings}->{request_url} %>')" class="fromselect <%= $self->stash->{replaceme} %> <%= $key %>" style="width:250px" onClick="this.focus();">
 			<% if($lkey->{settings}->{add_to_list} && $lkey->{settings}->{list_table}){ %><img src="/admin/img/icons/menu/icon_add.gif" align="absMiddle"> <a href="#" onclick="displayMessage('<%= $self->stash->{controller_url} %>?do=add&list_table=<%= $lkey->{settings}->{list_table} %>&lfield=<%= $key %>', '<%= $lkey->{settings}->{width} %>', '<%= $lkey->{settings}->{height} %>', 4); return false">добавить</a><% } %>
 			<% if($lkey->{settings}->{select_help}){ %><div style="width:95%;height:130px;border:solid 1px #ccc;display:none;padding:3px;margin-top:3px;overflow:hidden" id="helpmultilist<%= $self->stash->{multiselect_flag} %>"></div><% } %>
 		</td>
-      </tr>
-      <tr>
-        <td colspan=2><div>
-          <select multiple="<%= $lkey->{settings}->{multiple} || $lkey->{settings}->{mult} %>" id="fromselect<%= $self->stash->{replaceme} %><%= $key %>" name="fromselect<%= $key %>" style="border:solid 1px navy;font-size:9px"></select>
-          <select multiple="<%= $lkey->{settings}->{multiple} || $lkey->{settings}->{mult} %>" id="<%= $self->stash->{replaceme} %><%= $key %>" name="<%= $key %>" style="border:solid 1px navy;font-size:9px"><%== LIST name => $key, type => 'select', value => $value, option => 1, onlyindex => 1 =%></select>
-          </div>
-        </td>
-      </tr>
-    </table>
-    </div>
-  </td>
+			</tr>
+			<tr>
+				<td colspan=2><div>
+					<select multiple="<%= $lkey->{settings}->{multiple} || $lkey->{settings}->{mult} %>" id="fromselect<%= $self->stash->{replaceme} %><%= $key %>" name="fromselect<%= $key %>" style="border:solid 1px navy;font-size:9px"></select>
+					<select multiple="<%= $lkey->{settings}->{multiple} || $lkey->{settings}->{mult} %>" id="<%= $self->stash->{replaceme} %><%= $key %>" name="<%= $key %>" style="border:solid 1px navy;font-size:9px"><%== LIST name => $key, type => 'select', value => $value, option => 1, onlyindex => 1 =%></select>
+					</div>
+				</td>
+			</tr>
+		</table>
+		</div>
+	</td>
 </tr>
 % $self->stash->{multilist_init} = 1;
