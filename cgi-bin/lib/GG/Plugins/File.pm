@@ -11,6 +11,7 @@ use Lingua::Translit;
 use File::Basename ();
 use File::Copy ();
 use File::Spec ();
+use File::Path ();
 use File::stat;
 
 use Encode qw( encode decode_utf8 );
@@ -99,6 +100,9 @@ sub register {
 
 			my ($pict_saved, $type_file, $pict_path);
 
+			# Создаем папку если ее нет
+			$self->file_make_static_path($params{folder});
+
 			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
 				file	=> $pict_path,
@@ -163,6 +167,30 @@ sub register {
 			return $pict_saved;
 		}
 	);
+
+	$app->helper(
+		file_make_static_path => sub {
+			my $self = shift;
+			my $path = shift;
+			my $perms = shift || 0777;
+
+			my $static_path = $self->static_path;
+			return 1 if -d $static_path.$path;
+
+			my $dir = '';
+
+			warn "make_path $path";
+			for ( split /\//, $path ) {
+				next unless $_;
+
+				$dir .= "/$_";
+				next if -d $static_path.$dir;
+
+				mkdir $static_path.$dir, $perms or warn "file_make_static_path - $static_path.$dir - ".$!;
+			}
+		}
+	);
+
 
 	$app->helper(
 		file_save_from_tmp => sub {
