@@ -369,11 +369,11 @@ sub register {
 				my $lkey = $self->lkey(name => $lfield, controller => $controller );
 
 				if($lkey){
-					my $table = $lkey->{settings}->{list};
+					my 	$table = $lkey->{settings}->{list};
 					my  $where  = " 1 ";
 						$where	.= $lkey->{settings}->{where}." " if $lkey->{settings}->{where};
 
-						$where	.= " AND `ID` NOT IN ($selected_vals) " if ( $selected_vals && ($self->send_params->{multi} or $self->send_params->{mult})); # Исключаем ИД если мультисписок
+						$where	.= " AND `ID` NOT IN ($selected_vals) " if ( $selected_vals && ( $self->param('multi') or $self->param('mult') ) ); # Исключаем ИД если мультисписок
 	   					$where .= " AND `name` LIKE '%$keystring%' ORDER BY `name` LIMIT 0,50";
 
 	   				for my $item ($self->dbi->query("SELECT `ID`,`name` FROM `$table` WHERE $where")->hashes){
