@@ -21,6 +21,8 @@ sub default_actions{
 		when('enter') 					{ $self->list_container( enter => 1); }
 		when('list_items') 				{ $self->list_items; }
 
+		when('mainpage') 				{ $self->mainpage; }
+
 		when('add') 					{ $self->edit( add => 1); }
 		when('add_dir') 				{ $self->edit( add => 1, dir => 1); }
 		when('edit') 					{ $self->edit; }

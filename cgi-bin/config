@@ -1,7 +1,9 @@
-# GG.conf
+#######################################################
+############### GG сonfiguration file #################
+#######################################################
 {
 	"db_host"			=> "localhost:3306",
-	"db_name" 			=> "gg9",
+	"db_name" 			=> "gg",
 	"db_user"			=> "root",
 	"db_password" 		=> "root",
 	"db_no_disconnect" 	=> "0",
@@ -18,4 +20,7 @@
 		listen 	=> ['http://*:9000'],
 		workers => 10
 	},
+
+	# CDN HOST (optional)
+	cdn               => '//gg.dev.ifrog.ru',
 };

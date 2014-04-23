@@ -2,24 +2,31 @@
 <html lang="ru-RU">
 <head>
 	%== render_headers
-	<link href="/css/style.css" rel="stylesheet" type="text/css" media="all" />
-	<link href="/js/prettyphoto/css/prettyPhoto.css" rel="stylesheet" type="text/css" media="all" />
 
-	% js_files('/js/prettyphoto/js/jquery.prettyPhoto.js');
-	% js_files('/js/prettyphoto/js/jquery/plugins/jquery.galleryCarousel.js');
-	% js_files('/js/prettyphoto/js/jquery/plugins/jquery.mask.min.js');
-
+	% js_files_cdn(file => '/js/jquery/plugins/jquery.galleryCarousel.js', template => '_headers.html.ep');
 </head>
-<body class="main">
+<body>
 
 	<div class="wrapper">
 		%== include 'Texts/_header'
 
-		%== menu_track template => 'top'
+		<div class="topbar">
+			<div class="block">
+				%== menu_track template => 'top'
+
+				<div class="topbar__search">
+					<form id="search-form" method="post" action="/search">
+						<input class="search__input" type="text" placeholder="Поиск" name="qsearch"/>
+						<input type="submit" class="search__button" value="">
+					</form>
+				</div>
+			</div>
+		</div>
+
 
 		% content wrapper => begin
 			<div class="body clearfix">
-				<div class="block block_background block_padding content clearfix">
+				<div class="block content">
 					%== content
 				</div>
 			</div>
@@ -29,6 +36,7 @@
 	</div>
 
 	%== include 'Texts/_footer'
-%== js_files
+
+	%== render_footer
 </body>
 </html>

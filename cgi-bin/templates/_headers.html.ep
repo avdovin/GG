@@ -3,22 +3,23 @@
 <meta name="description" content="<%= meta_description %>"/>
 <meta name="robots" content="index, follow">
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+<!--//--><![CDATA[//><!--
+if (typeof jQuery == 'undefined') {
+	document.write('<%== js_files_cdn(file => '/js/jquery/lib/jquery-1.9.1.min.js', template => '_headers.html.ep', alone => 1) %>');
+}
+//--><!]]>
+</script>
+
+% js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if $self->stash->{'jquery_history'};
+% js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
+% js_files(file => '/js/common.js', template => '_headers.html.ep');
+% js_files_cdn(file => '/js/jquery/plugins/jquery.mask.min.js', template => '_headers.html.ep');
+
+% css_files( '/css/style.css' );
+
 %= content_for 'headers'
 
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script type="text/javascript">
-if (typeof jQuery == 'undefined') {
-	document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
-}
-</script>
-%== javascript '/js/bundled/html4+html5/jquery.history.js' if $self->stash->{'jquery_history'}
-%== javascript '/js/gg.core-2.js'
 
-% js_files('/js/common.js');
-% js_files('/js/jquery.quickSubmit.js');
 
-% if( $self->stash->{'vfe'} && $self->stash->{'vfe_enabled'} ){
-	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>
-% }
-
-%= content_for 'css_files'

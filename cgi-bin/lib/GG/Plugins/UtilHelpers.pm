@@ -59,8 +59,8 @@ sub register {
 
 	$app->helper( trim => sub {
 		my $str = $_[1];
-  		$str =~ s/^\s+|\s+$//g;
-  		return $str;
+		$str =~ s/^\s+|\s+$//g;
+		return $str;
 	});
 
 	$app->helper( return_url => sub {
@@ -187,17 +187,14 @@ sub register {
 			$ext =~ /.+\.(.+)$/;
 			$ext = $1;
 
-			if(my $fh = $self->app->static->paths->[0].$file){
+			if (my $fh = $self->static_path.$file) {
 				$file .= "?t=".stat($fh)->mtime;
 			}
 
 			if ($ext eq 'css') {
-				return $self->stylesheet($file) if $file;
-				#return qq~<link href="$file" rel="stylesheet" type="text/css" media="all" />~;
-
+				$self->css_files($file);
 			} elsif ($ext eq 'js') {
 				$self->js_files($file);
-				#return qq~<script src="$file" type="text/javascript" language="javascript"></script>~;
 			}
 		}
 	);
@@ -207,8 +204,12 @@ sub register {
 			my $self = shift;
 			return unless my $controller = shift || $self->stash->{controller};
 
-			$self->js_files( '/js/controllers/'.$controller.'.js' );
-			if(-d $self->app->static->paths->[0].'/js/controllers/'.$controller){
+			$controller = lc $controller;
+
+			if(-f $self->static_path.'/js/controllers/'.$controller.'.js'){
+				$self->js_files( '/js/controllers/'.$controller.'.js' );
+			}
+			if(-d $self->static_path.'/js/controllers/'.$controller){
 				opendir(DIR, $self->app->static->paths->[0].'/js/controllers/'.$controller);
 				while (my $file = readdir(DIR)) {
 					next if ($file =~ m/^\./);
@@ -219,42 +220,74 @@ sub register {
 				}
 				closedir(DIR);
 			}
-	});
-
-	$app->helper(
-		js_files	=> sub {
-			my $self = shift;
- 			my $file = shift;
- 			my $template = shift || '';
-
- 			if($file){
- 				push @{ $self->stash->{_js_files} }, {
- 					file			=> $file,
- 					template	=> $template,
- 				};
- 				return;
- 			}
-
- 			my $js_files = $self->stash->{_js_files} || [];
- 			my $out = '';
- 			foreach (@$js_files){
- 				next unless $_->{file};
-
- 				$out .= '<!-- '.$_->{template}." -->\n" if $_->{template};
- 				$out .= $self->javascript($_->{file})."\n";
- 			}
-
- 			return $out;
 		}
 	);
 
-	$app->helper(css_files	=> sub {
-		my $self = shift;
-		my $file = shift;
+	$app->helper(
+		js_files	=> sub {
+			my $self   = shift;
+			my %params = scalar @_ > 1 ? @_ : ( file => $_[0] );
 
-		my $out .= $self->stylesheet($file)."\n";
-		$self->content_for(css_files => $out);
-	});
+			my $out;
+
+			if($params{file}) {
+				$out .= '<!-- from template '.$params{template}." -->" if $params{template} && !$params{alone};
+				$out .= $self->javascript($params{file}).($params{alone} ? "": "\n");
+
+				$params{alone} ? return $out : $self->content_for(js_files => $out);
+			}
+		}
+	);
+
+	$app->helper(
+		js_files_cdn	=> sub {
+			my $self   = shift;
+			my %params = scalar @_ > 1 ? @_ : ( file => $_[0] );
+
+			if ($params{file}) {
+				$params{file} = $self->cdn.$params{file};
+				return $self->js_files(%params);
+			}
+		}
+	);
+
+	$app->helper(
+		css_files	=> sub {
+			my $self   = shift;
+			my %params = scalar @_ > 1 ? @_ : ( file => $_[0] );
+
+			my $out;
+			if($params{file}) {
+				$out .= '<!-- from template '.$params{template}." -->" if $params{template} && !$params{alone};
+				$out .= $self->stylesheet($params{file}).($params{alone} ? "": "\n");
+
+				$params{alone} ? return $out : $self->content_for(headers => $out);
+			}
+		}
+	);
+
+	$app->helper(
+		css_files_cdn	=> sub {
+			my $self   = shift;
+			my %params = scalar @_ > 1 ? @_ : ( file => $_[0] );
+
+			if ($params{file}) {
+				$params{file} = $self->cdn.$params{file};
+				return $self->css_files(%params);
+			}
+		}
+	);
+
+	$app->helper(
+		cdn	=> sub {
+			my $self = shift;
+
+			my $out = substr($self->config->{db_name},0,3) eq 'dev' ? "//gg.dev.ifrog.ru" : $self->config->{cdn} ? $self->config->{cdn} : "";
+
+			return $out;
+		}
+	);
+
 
 	$app->helper(cat => sub {
 		my $self = shift;
@@ -283,12 +316,12 @@ sub register {
 	$app->helper(
 		declension	=> sub {
 			my $self = shift;
- 			my $int = shift;
- 			my $expressions = shift;
+			my $int = shift;
+			my $expressions = shift;
 
-    		my $count = $int % 100;
-    		my $result;
-		    if ($count >= 5 && $count <= 20) {
+			my $count = $int % 100;
+			my $result;
+			if ($count >= 5 && $count <= 20) {
 				$result = $$expressions[2];
 			} else {
 				$count = $count % 10;
@@ -300,7 +333,7 @@ sub register {
 					$result = $$expressions[2];
 				}
 			}
-		    return $result;
+			return $result;
 		}
 	);
 
@@ -322,7 +355,7 @@ sub register {
 		defCCK => sub {
 			my $c   = shift;
 			my @user_info = map { $ENV{$_} } grep { /USER|REMOTE/ } keys %ENV;
-   			return Digest::MD5::md5_hex( rand() . join('', @user_info) );
+			return Digest::MD5::md5_hex( rand() . join('', @user_info) );
 
 			#my $string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 			#my $b;

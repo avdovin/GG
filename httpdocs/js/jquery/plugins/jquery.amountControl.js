@@ -1,10 +1,10 @@
 // jQuery Amount Control
 // Author: Nikita K., nikita.ak.85@gmail.com
-// Version: 1.1, 24.09.2013
+// Version: 1.31, 14.04.2014 [from 24.09.2013]
 
 (function($){
 
-	$.amountControl = {version: '1.1'};
+	$.amountControl = {version: '1.31'};
 
 	var methods = {
 		init: function(params){
@@ -26,13 +26,13 @@
 
 			return this.each(function(){
 
-				var $wrapper	= $(this),
+				var $wrapper    = $(this),
 					$wrapperid  = $wrapper.attr("id"),
-					$entries	= $wrapper.find(options.child),
-					$data	   = $wrapper.data('amountControl');
+					$entries    = $wrapper.find(options.child),
+					$data      = $wrapper.data('amountControl');
 
 				if (!$wrapperid) { // create random id
-					$wrapper.attr("id", "gc" + (new Date()).getTime() + Math.floor(Math.random()*100));
+					$wrapper.attr("id", "ac" + (new Date()).getTime() + Math.floor(Math.random()*100));
 					$wrapperid = $wrapper.attr("id");
 				}
 
@@ -55,9 +55,9 @@
 		setControl: function(){
 			var $wrapper   = this,
 				$wrapperid = $wrapper.attr("id"),
-				$data	  = $wrapper.data('amountControl'),
-				$entry	 = arguments[0],
-				$input	 = $($entry).find($data.control).find("input");
+				$data     = $wrapper.data('amountControl'),
+				$entry   = arguments[0],
+				$input   = $($entry).find($data.control).find("input");
 
 			// clear
 			$($entry).find($data.control).find("ins").remove();
@@ -82,33 +82,77 @@
 			}
 
 			// events
-			$input.keyup(function(){
-				var $entry	= $(this).closest($data.child),
-					amount	= $(this).val() || 0,
-					newamount = 0;
+			$input.keyup(function(e){
+				if (e.keyCode != 38 && e.keyCode != 40) {
+					var $entry  = $(this).closest($data.child),
+						amount  = parseInt($(this).val()) || 0,
+						newamount = 0;
 
-				amount ? newamount = amount.replace(/\D/g,"") : 0;
+					if (parseInt(amount) < 0) {
+						amount = amount+'';
+						amount ? newamount = amount.replace(/\D/g,"") : 0;
+						newamount = parseInt("-"+newamount);
+					} else {
+						amount = amount+'';
+						amount ? newamount = amount.replace(/\D/g,"") : 0;
+					}
 
-				methods.setAmount.call($entry, $wrapper, newamount);
+					var max = parseInt($(this).data("max")) || 999,
+						min = parseInt($(this).data("min")) || 0;
+
+					newamount = newamount > max ? max : newamount < min ? min : newamount;
+
+					methods.setAmount.call($entry, $wrapper, newamount);
+				}
+			}).on("click", function(){
+				this.select();
+			}).keydown(function(e){
+				if (e.keyCode == 38 || e.keyCode == 40) {
+					var $entry  = $(this).closest($data.child),
+						amount  = parseInt($(this).val()) || 0,
+						newamount = 0;
+
+					if (parseInt(amount) < 0) {
+						amount = amount+'';
+						amount ? newamount = amount.replace(/\D/g,"") : 0;
+						newamount = parseInt("-"+newamount);
+					} else {
+						amount = amount+'';
+						amount ? newamount = parseInt(amount.replace(/\D/g,"")) : 0;
+					}
+
+					if (e.keyCode == 38) newamount = e.shiftKey ? newamount + 10 : newamount + 1;
+					if (e.keyCode == 40) newamount = e.shiftKey ? newamount - 10 : newamount - 1;
+
+					var max = parseInt($(this).data("max")) || 999,
+						min = parseInt($(this).data("min")) || 0;
+
+					newamount = newamount > max ? max : newamount < min ? min : newamount;
+
+					methods.setAmount.call($entry, $wrapper, newamount);
+
+					e.preventDefault();
+				}
 			});
 
 			$ins.click(function(){
-				var $entry	= $(this).closest($data.child),
-					amount	= $(this).parent().find("input").val() || 0,
-					newamount = $(this).is(".plus") ? parseInt(amount)+1 : parseInt(amount)-1;
+				var $entry  = $(this).closest($data.child),
+					amount  = $(this).parent().find("input").val() || 0,
+					newamount = $(this).is(".plus") ? parseInt(amount)+1 : parseInt(amount)-1,
+					min = $(this).parent().find("input").data("min") || 0;
 
-				if (newamount < 0) return false;
+				if (newamount < min) return false;
 
 				methods.setAmount.call($entry, $wrapper, newamount);
 			});
 		},
 		setAmount: function(){
-			var $entry	 = this,
+			var $entry   = this,
 				$entrydata = $entry.data('amountcontrol') || $entry.attr('data-amountcontrol'),
 				$wrapper   = arguments[0],
 				newamount  = arguments[1],
-				$data	  = $wrapper.data('amountControl'),
-				$input	 = $entry.find($data.control).find("input"),
+				$data     = $wrapper.data('amountControl'),
+				$input   = $entry.find($data.control).find("input"),
 				$wrapper   = $entry.closest($data.wrapper); // !!! some magic here
 
 			if (newamount <= $input.data("min")) {
@@ -134,22 +178,24 @@
 			methods.updateAmount.call($wrapper);
 		},
 		updateAmount: function(){
-			var $wrapper	 = this,
+			var $wrapper     = this,
 				$wrapperid   = $wrapper.attr("id"),
-				$data		= $wrapper.data('amountControl'),
+				$data       = $wrapper.data('amountControl'),
 				callbackFlag = arguments[0];
 
 			var all_total_amount = 0,
-				all_total_price  = 0;
+				all_total_price  = 0,
+				all_total_entries =0;
 
 			if (typeof $data.callback_before_update != 'undefined') {
 				$data.callback_before_update({
-					total: all_total_amount
+					total: all_total_amount,
+					entries: all_total_entries
 				});
 			}
 
 			$wrapper.find($data.child).each(function(){
-				var $entry	 = $(this),
+				var $entry   = $(this),
 					$entrydata = $(this).data('amountcontrol'),
 					$control   = $entry.find($data.control);
 
@@ -172,17 +218,20 @@
 
 				all_total_amount += parseInt($entrydata.amount);
 				all_total_price  += $entrydata.amount * $entrydata.price;
+
+				all_total_entries = $wrapper.find($data.child).length;
 			});
 
 			// update overall
 			$($data.all_total_amount).html(all_total_amount);
+			$($data.all_total_entries).html(all_total_entries);
 			$($data.all_total_price).html(formatNumberWithSpaces(all_total_price));
 			if ($data.all_total_price_postfix) $($data.all_total_price).html($($data.all_total_price).html()+' '+$data.all_total_price_postfix);
 
 			if ($data.unitname) {
 				//var lastDigit = Math.floor(all_total_amount / (Math.pow(10, 0)) % 10);
 
-				$($data.all_total_middle).html(methods.sklonyator({amount: all_total_amount, text: $data.unitname}));
+				$($data.all_total_middle).html(methods.sklonyator({amount: $($data.all_total_entries).length ? all_total_entries : all_total_amount, text: $data.unitname}));
 
 				if (all_total_amount == 0) {
 					$($data.all_total).fadeOut()
@@ -197,14 +246,15 @@
 				$data.callback_total_update({
 					total: all_total_amount,
 					price: formatNumberWithSpaces(all_total_price),
-					middle: $($data.all_total_middle).html()
+					middle: methods.sklonyator({amount: $($data.all_total_entries).length ? all_total_entries : all_total_amount, text: $data.unitname}),
+					entries: all_total_entries
 				});
 			}
 
 			if (typeof $data.callback_after_update != 'undefined') {
 				$data.callback_after_update({
 					total: all_total_amount,
-					entries: $wrapper.find($data.child).length
+					entries: all_total_entries
 				});
 			}
 

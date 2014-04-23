@@ -1,180 +1,181 @@
 <!DOCTYPE html>
 <html lang="ru-RU">
 <head>
-%== render_headers
+    %== render_headers
 
-%== uncache( '/css/style.css' )
-
-% uncache( '/js/jquery.galleryCarousel-1.2.js' );
-% uncache( '/js/common.js' );
-% uncache( '/js/core.js' );
-
+    % js_files_cdn(file => '/js/jquery/plugins/jquery.galleryCarousel.js', template => '_headers.html.ep');
 </head>
 <body>
-	<%== include 'Texts/_callback' %>
 
     <div class="wrapper">
+        %== include 'Texts/_header'
 
-        <div class="block block_background block_shadowed">
-            <div class="header">
-                <a href="/" class="header__logo"></a>
-                <div class="header__contacts">
-                    <p class="contacts__phone">8 (812) 555-55-55</p>
-                    <a href="/feedback" class="contacts__callback">Заказ обратного звонка</a>
+        <div class="topbar">
+            <div class="block">
+                %== menu_track template => 'top'
+
+                <div class="topbar__search">
+                    <form id="search-form" method="post" action="/search">
+                        <input class="search__input" type="text" placeholder="Поиск" name="qsearch"/>
+                        <input type="submit" class="search__button" value="">
+                    </form>
                 </div>
             </div>
-            <%== menu_track( template => 'top' ) =%>
-
-			<%== catalog_categorys_top %>
         </div>
 
-        <div class="body">
-            <div class="block block_background clearfix">
-                <div class="block_shadow">
-                    <div class="banners">
-                    	%== banner_place place => 1, count => 10, template => "Banners/slider"
-
- 						<%== banner_place
- 							place 		=> 10,
- 							count 		=> 1,
- 							before_html	=> qq{
- 							<div class='banners__unit banners__unit_right'>
- 							},
- 							after_html	=> qq{</div></div>}
-						%>
-                    </div>
-                </div>
-
-                <div class="block">
-                    <div class="showcase clearfix">
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+        <div class="banners">
+            <div class="block">
+                <div class="banners__wrapper clearfix">
+                    <div class="banners__top">
+                        <div class="top__banners">
+                            <img src="/img/banner_big_1_644x340.jpg" alt=""/>
+                            <img src="/img/banner_big_2_644x340.jpg" alt=""/>
                         </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль еще одна строка</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение.</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
-                        </div>
-                        <div class="showcase__entry">
-                            <a href="#"><img class="showcase_entry-image" src="/img/thumb_197x105.jpg" alt=""/></a>
-                            <h3 class="showcase_entry-title">В поисках чаши Грааль</h3>
-                            <p class="showcase_entry-text">Яркое и незабываемое приключение - осенний квест в Михайловском замке!</p>
-                            <a href="#" class="showcase_entry-link button button-blue button-quest">Смотреть квест</a>
+                        <div class="top__texts">
+                            <div class="texts__entry texts__entry_1" style="display: block;">
+                                <h3 class="entry__title">Бронежилет общевойсковой штурмовой 6Б43 базовая комплектация</h3>
+                                <p class="entry__text">Общевойсковой штурмовой бронежилет (БЖ) является средством индивидуальной бронезащиты личного состава боевых подразделений сухопутных войск, ВДВ, морской пехоты и частей специального назначения при ведении всех видов боевых действий, в т.ч. в условиях ближнего боя.</p>
+                            </div>
+                            <div class="texts__entry texts__entry_2">
+                                <h3 class="entry__title">Апокалиптический Уничтожитель Всего 5000 (ЖУК)</h3>
+                                <p class="entry__text">Общевойсковой штурмовой бронежилет (БЖ) является средством индивидуальной бронезащиты личного состава боевых подразделений сухопутных войск, ВДВ, морской пехоты и частей специального назначения при ведении всех видов боевых действий, в т.ч. в условиях ближнего боя.</p>
+                            </div>
                         </div>
                     </div>
+                    <ul class="banners__bottom">
+                        <li class="bottom__entry">
+                            <div class="entry__banner">
+                                <img src="/img/banner_sm_1_317x103.jpg" alt=""/>
+                            </div>
+                            <h3 class="entry__title"><span>Средства</span> бронезащиты</h3>
+                            <a href="#" class="entry__link"></a>
+                        </li>
+                        <li class="bottom__entry">
+                            <div class="entry__banner">
+                                <img src="/img/banner_sm_2_317x103.jpg" alt=""/>
+                            </div>
+                            <h3 class="entry__title">Экипировка</h3>
+                            <a href="#" class="entry__link"></a>
+                        </li>
+                        <li class="bottom__entry">
+                            <div class="entry__banner">
+                                <img src="/img/banner_sm_3_317x103.jpg" alt=""/>
+                            </div>
+                            <h3 class="entry__title">Макеты</h3>
+                            <a href="#" class="entry__link"></a>
+                        </li>
+                    </ul>
                 </div>
+            </div>
+        </div>
 
-                <hr/>
-
-                <div class="mainpage-content">
-                    <div class="content">
-                        <h1>О нас</h1>
-                        <p>День торжества, установленный в честь или в память кого-нибудь, чего-нибудь. В том числе, день или ряд дней, отмечаемых церковью в память религиозного события или святого. Выходной, нерабочий день. День радости и торжества. День игр и развлечений.Социальное время можно разбить на три вида: повседневность, выходные и праздники. Повседневностьэто череда практик, повторяющихся изо дня в день. Выходные — это регулярные перерывы в беге повседневности. Повседневность и выходные имеют тенденцию к рутинизации. Чаще всего основным содержанием повседневности является труд.</p>
-                        <p>В выходные же преобладает свободное время. В это свободное время может меняться график и содержание питания, индивид может сам выбирать свое окружение. Считается, что в выходные человек должен восстанавливать свои силы после рабочих будней. Праздник является особым элементом в структуре социального времени. Главная функция праздника — социокультурная интеграция той или иной общности людей. Разные праздники осуществляют разные виды интеграции. Праздничный спектакль любого уровня строится по образу семейного праздника, при этом делаются попытки усилить интеграцию социокультурных полей, приблизить управляющих к управляемым, главу государства к народу. </p>
+        <div class="body clearfix">
+            <div class="catalog">
+                <div class="catalog__title">
+                    <h2 class="block">Продукция <a href="#" class="button button_red fright">Смотреть каталог</a></h2>
+                </div>
+                <div class="block block_margin">
+                    <div class="catalog__list clearfix">
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
+                        <div class="list__entry">
+                            <div class="entry__thumb"><img src="/img/catalog_thumb_180x180.jpg" alt=""/></div>
+                            <div class="entry__info">
+                                <p class="info__title">Жилетная основа УМТБС модернизированная</p>
+                                <span class="info__price"><b>5 985</b> руб.</span>
+                            </div>
+                            <a href="#" class="entry__link"></a>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mainpage-upcoming">
-                    <h2 class="mainpage-upcoming__title">Ближайшие мероприятия</h2>
-                    <div class="mainpage-upcoming__container">
-                        <div class="calendar__date">
-                            <a href="#" class="date__prev"></a>
-                            <span class="date__text">июнь 2013</span>
-                            <a href="#" class="date__next"></a>
+            </div>
+            <div class="info">
+                <div class="block clearfix">
+                    <div class="col col_left content" style="width: 635px;">
+                        <h1>Дополнительная информация</h1>
+                        <p>Приоритетной продукцией являются средства индивидуальной бронезащиты - бронежилеты, бронепанели самого высокого уровня (5а, 6а классы по ГОСТ Р 50744-95), обеспечивающие защиту человека в боевой обстановке от пуль стрелкового оружия, в т.ч. повышенной пробиваемости и бронебойных под снайперским и пулеметным огнем. Тактико-технические характеристики этих изделий отличаются в лучшую сторону по сравнению с большинством  аналогичных зарубежных изделий. Успешным направлением также является разработка и производство передового тактического боевого снаряжения, предназначенного для использования в подразделениях силовых ведомств, участвующих в контртеррористических мероприятиях и выполняющих специальные задачи автономно на различных ТВД.</p>
+                    </div>
+                    <div class="col col_right" style="width: 315px;">
+                        <div class="news">
+                            <h2>Новости <a href="#" class="button button_red fright">Все новости</a></h2>
+                            <div class="news__list">
+                                <div class="list__entry">
+                                    <span class="entry__date">15 марта, 2014 г.</span>
+                                    <p class="entry__text">Тактико-технические характеристики этих изделий отличаются в лучшую сторону по сравнению с большинством  аналогичных зарубежных изделий. Успешным направлением также является разработка и производство передового боевого снаряжения, предназначенного для использования. в подразделениях силовых ведомств. </p>
+                                    <a href="#" class="entry__link"></a>
+                                </div>
+                            </div>
                         </div>
-                        <div  class="calendar__wrapper">
-                            <table class="calendar__layout">
-                                <tr>
-                                    <th class="calendar-cell calendar-cell_day">пн</th>
-                                    <th class="calendar-cell calendar-cell_day">вт</th>
-                                    <th class="calendar-cell calendar-cell_day">ср</th>
-                                    <th class="calendar-cell calendar-cell_day">чт</th>
-                                    <th class="calendar-cell calendar-cell_day">пт</th>
-                                    <th class="calendar-cell calendar-cell_day">сб</th>
-                                    <th class="calendar-cell calendar-cell_day">вс</th>
-                                </tr>
-                                <tr>
-                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
-                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
-                                    <td class="calendar-cell calendar-cell_disabled">1</td>
-                                    <td class="calendar-cell calendar-cell_disabled">2</td>
-                                    <td class="calendar-cell calendar-cell_disabled">3</td>
-                                    <td class="calendar-cell calendar-cell_disabled">4</td>
-                                    <td class="calendar-cell">5</td>
-                                </tr>
-                                <tr>
-                                    <td class="calendar-cell">6</td>
-                                    <td class="calendar-cell">7</td>
-                                    <td class="calendar-cell">8</td>
-                                    <td class="calendar-cell">9</td>
-                                    <td class="calendar-cell">10</td>
-                                    <td class="calendar-cell">11</td>
-                                    <td class="calendar-cell">12</td>
-                                </tr>
-                                <tr>
-                                    <td class="calendar-cell">13</td>
-                                    <td class="calendar-cell">14</td>
-                                    <td class="calendar-cell">15</td>
-                                    <td class="calendar-cell calendar-cell_active calendar-cell_current">16</td>
-                                    <td class="calendar-cell">17</td>
-                                    <td class="calendar-cell calendar-cell_active">18</td>
-                                    <td class="calendar-cell calendar-cell_active">19</td>
-                                </tr>
-                                <tr>
-                                    <td class="calendar-cell">20</td>
-                                    <td class="calendar-cell">21</td>
-                                    <td class="calendar-cell">22</td>
-                                    <td class="calendar-cell">23</td>
-                                    <td class="calendar-cell">24</td>
-                                    <td class="calendar-cell">25</td>
-                                    <td class="calendar-cell">26</td>
-                                </tr>
-                                <tr>
-                                    <td class="calendar-cell">27</td>
-                                    <td class="calendar-cell">28</td>
-                                    <td class="calendar-cell">29</td>
-                                    <td class="calendar-cell">30</td>
-                                    <td class="calendar-cell">31</td>
-                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
-                                    <td class="calendar-cell calendar-cell_empty">&nbsp;</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <a href="#" class="mainpage-upcoming__link">Все ближайшие мероприятия</a>
                     </div>
                 </div>
             </div>
@@ -182,8 +183,8 @@
 
     </div>
 
+    %== include 'Texts/_footer'
 
-    %== include 'Texts/footer'
-%== js_files
+    %== render_footer
 </body>
 </html>

@@ -6,17 +6,17 @@
 	% } else {
 		<ul>
 	% }
-%	my $alias = $self->stash('alias') || '';
-%	foreach my $id (sort { ($$items{$a}{rating}||0 ) <=> ($$items{$b}{rating}||0 ) } keys %$items){
-%		my $menuitem = $items->{$id};
-%		if($menuitem->{level}==$level && $menuitem->{texts_main}==$parent_id){
+	% my $alias = $self->stash('alias') || '';
+	% foreach my $id (sort { ($$items{$a}{rating}||0 ) <=> ($$items{$b}{rating}||0 ) } keys %$items){
+		% my $menuitem = $items->{$id};
+		% if($menuitem->{level}==$level && $menuitem->{texts_main}==$parent_id){
 			<li class="menu__entry <% if($alias eq $menuitem->{alias} or $menuitem->{menu_active_parent}){ %>current <% } %><% if($menuitem->{noempty} && $level==1){ %>noempty<% } %>"><a class="menu__link" href="<%== menu_item $menuitem %>" title="<%= $menuitem->{name} %>"><%= $menuitem->{name} =%></a>
 				% if($level==1 && $menuitem->{noempty}){
 					%== menu_track ( template => $template, toplevel => $toplevel, botomlevel => $botomlevel, parent_id => $id, level => $level+1 );
 				% }
 			</li>
-%		}
-%	}
+		% }
+	% }
 	% if($level==1){
 				</ul>
 			</div>

@@ -97,6 +97,7 @@ sub startup{
 	$self->hook(before_dispatch => sub {
 		my $self = shift;
 
+		$self->stash->{lang} = 'ru';
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );
 			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
@@ -148,19 +149,12 @@ sub startup{
 		}
 	});
 
-	$self->hook(after_dispatch => sub {
-		my $tx = shift;
+	$self->hook(before_render => sub {
+		my ($self, $args) = @_;
 
-		# Was the response dynamic?
-#	    return if $tx->res->headers->header('Expires');
-#
-#	    # If so, try to prevent caching
-#	    $tx->res->headers->header(
-#	        Expires => Mojo::Date->new(time-365*86400)
-#	    );
-#	    $tx->res->headers->header(
-#	        "Cache-Control" => "no-cache, max-age=0, must-revalidate, no-store"
-#	    );
+		if($args->{template} eq '_footer'){
+			$self->js_controller();
+		}
 	});
 
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {

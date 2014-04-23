@@ -716,7 +716,7 @@ sub def_params_button { # определение параметров
 			next unless $p;
 			next unless my $v = $stash->{$p};
 
-			$v = 'newentry' if ($settings->{id} eq 'newentry' && $p eq 'replaceme');
+			$v = 'newentry' if ($settings->{id} && $settings->{id} eq 'newentry' && $p eq 'replaceme');
 
 			push(@params, "$p=$v");
 		}

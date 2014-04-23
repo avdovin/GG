@@ -44,7 +44,7 @@ sub body{
 
 	given ($do){
 
-		when('list_container') 			{ $self->list_container; }
+		when('mainpage') 				{ $self->mainpage; }
 
 		when('upload') 					{
 

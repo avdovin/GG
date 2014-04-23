@@ -1,4 +1,4 @@
-// core.js
+// 18.04.2014
 
 // FUNCTIONS
 //	  GG.togglePopup(id)
@@ -16,7 +16,7 @@
 var GG = function(){
 	var $self = this;
 
-	$self.version = '2.0';
+	$self.version = '2.02';
 
 	$self.debug = function(arg){
 		if (typeof arg != 'undefined') {
@@ -55,7 +55,9 @@ var GG = function(){
 
 		if (typeof settings.afterLoad == 'function') {
 			$self.afterLoad = options.afterLoad;
-			$self.afterLoad();
+			$(document).ready(function(){
+				$self.afterLoad();
+			})
 		}
 
 		$self.INIT  = true;
@@ -74,8 +76,8 @@ var GG = function(){
 	}
 
 	$self.setUrlQs = function(qsArray, title) {
-		if(!History) return false;
-		if(typeof(title) == 'undefined') title = document.title;
+		if (!History) return false;
+		if (typeof title == 'undefined') title = document.title;
 
 		var pairs = [];
 		var filter = jQuery.extend({}, qsArray);
@@ -233,8 +235,8 @@ var GG = function(){
 				// check if parent is '.content'
 				var flagNotContent = true;
 				//if ($(this).closest(".content").length > 0) {
-					//flagNotContent = false;
-					//console.log("Link is in 'content', auto 'current' toggle off");
+				//flagNotContent = false;
+				//console.log("Link is in 'content', auto 'current' toggle off");
 				//}
 
 				// check if one of parents are '.noautocurrent'
@@ -326,13 +328,13 @@ var GG = function(){
 		$("html").data("width", $("html").width());
 
 		$("body").on("click", ".popup-close", function(){
-			togglePopup($(this).closest(".popup").attr("id"));
+			$self.togglePopup($(this).closest(".popup").attr("id"));
 			return false;
 		});
 
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
-				togglePopup();
+				$self.togglePopup();
 			}
 		});
 
@@ -341,52 +343,52 @@ var GG = function(){
 		$("body").on("touchstart", ".popup", function(e){
 			touchStartEvent = e;
 		}).on("touchmove", ".popup", function(e){
-			if ((e.originalEvent.pageY > touchStartEvent.originalEvent.pageY && this.scrollTop == 0) ||
-				(e.originalEvent.pageY < touchStartEvent.originalEvent.pageY && this.scrollTop + this.offsetHeight >= this.scrollHeight))
-				e.preventDefault();
-		});
-
-		$self.togglePopup = function(id) {
-
-			// hide visible popups if no ID specified
-			if (typeof id == 'undefined') {
-				$(".popup:visible").each(function(){
-					$self.togglePopup($(this).attr("id"));
-				});
-				return;
-			}
-
-			// do nothing if element not exist
-			if (!$("#"+id).length) return;
-
-			// hide popup
-			if ($("#"+id).is(":visible")) {
-				if (!$("#"+id).is("table")) { // if not table toggle overflow
-					$("html").css("overflow", "auto");
-					$(".wrapper").css("padding-right", 0);
-				}
-
-				$("#"+id).hide(); // no animation here!
-
-				$(".topbar").css("z-index", "");
-
-				// show popup
-			} else {
-				if (!$("#"+id).is("table")) { // if not table toggle overflow
-					$("html").css("overflow", "hidden");
-					$(".wrapper").css("padding-right", $("html").width() - $("html").data("width"));
-				} else {
-					if (typeof jQuery.fn.mousewheel != 'undefined') $("#"+id).mousewheel(function(){
-						return;
-					});
-				}
-
-				$("#"+id).show(); // no animation here!
-
-				$(".topbar").css("z-index", 1000);
-			}
-		}
+				if ((e.originalEvent.pageY > touchStartEvent.originalEvent.pageY && this.scrollTop == 0) ||
+					(e.originalEvent.pageY < touchStartEvent.originalEvent.pageY && this.scrollTop + this.offsetHeight >= this.scrollHeight))
+					e.preventDefault();
+			});
 	});
+
+	$self.togglePopup = function(id) {
+
+		// hide visible popups if no ID specified
+		if (typeof id == 'undefined') {
+			$(".popup:visible").each(function(){
+				$self.togglePopup($(this).attr("id"));
+			});
+			return;
+		}
+
+		// do nothing if element not exist
+		if (!$("#"+id).length) return;
+
+		// hide popup
+		if ($("#"+id).is(":visible")) {
+			if (!$("#"+id).is("table")) { // if not table toggle overflow
+				$("html").css("overflow", "auto");
+				$(".wrapper").css("padding-right", 0);
+			}
+
+			$("#"+id).hide(); // no animation here!
+
+			$(".topbar").css("z-index", "");
+
+			// show popup
+		} else {
+			if (!$("#"+id).is("table")) { // if not table toggle overflow
+				$("html").css("overflow", "hidden");
+				$(".wrapper").css("padding-right", $("html").width() - $("html").data("width"));
+			} else {
+				if (typeof jQuery.fn.mousewheel != 'undefined') $("#"+id).mousewheel(function(){
+					return;
+				});
+			}
+
+			$("#"+id).show(); // no animation here!
+
+			$(".topbar").css("z-index", 1000);
+		}
+	}
 	//
 
 	// optimizer

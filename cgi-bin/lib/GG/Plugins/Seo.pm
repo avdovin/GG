@@ -52,6 +52,15 @@ sub register {
 		return join(", ", reverse @$description);
 	});
 
+	$app->helper( render_footer => sub {
+		my $self	= shift;
+
+		return $self->render(
+			template 	=> '_footer',
+			partial		=> 1,
+		);
+	});
+
 	$app->helper( render_headers => sub {
 		my $self	= shift;
 
