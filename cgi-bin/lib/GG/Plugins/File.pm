@@ -88,8 +88,8 @@ sub register {
 			);
 
 			$params{filename} ||= $self->send_params->{ $params{lfield} } if $self->send_params->{ $params{lfield} };
-			$params{folder} ||= $self->lkey(name => $params{lfield}, setting => 'folder' );
-			$params{retina} = 1 if $self->lkey(name => $params{lfield}, setting => 'retina' );
+			$params{folder} ||= $self->lkey(name => $params{lfield}, tbl => $params{table}, setting => 'folder' );
+			$params{retina} = 1 if $self->lkey(name => $params{lfield}, tbl => $params{table}, setting => 'retina' );
 
 
 			$params{filename} ||= $params{file} if $params{file};

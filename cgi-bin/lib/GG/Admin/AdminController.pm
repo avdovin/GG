@@ -39,6 +39,8 @@ sub default_actions{
 			);
 		}
 
+		when('copy') 					{ $self->item_copy; }
+
 		when('tree') 					{ $self->tree; }
 		when('tree_block') 				{ $self->tree_block; }
 		when('tree_reload') 			{ $self->tree_block; }
@@ -79,6 +81,112 @@ sub default_actions{
 		default							{ $self->render( text => "действие не определенно"); }
 
 	}
+}
+
+sub item_copy{
+	my $self = shift;
+
+	unless(
+			$self->getArraySQL(
+				from 	=> $self->stash->{list_table},
+				where	=> "`ID`='".$self->stash->{index}."'",
+				stash	=> 'anketa'
+			)
+		){
+		$self->admin_msg_errors("Перед созданием копии необходимо сохранить текущий объект");
+
+		return $self->edit;
+	}
+	my $index = delete $self->stash->{'index'};
+
+	my $anketa = delete $self->stash->{anketa};
+	foreach ( qw(ID rdate edate alias active viewtext viewimg) ){
+		delete $anketa->{$_};
+	}
+
+	$self->send_params({});
+	foreach my $f (keys %$anketa){
+		my $lkeyType = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'type');
+
+		if($f eq 'name'){
+
+			$self->send_params->{$f} = $anketa->{$f}.' копия';
+			$self->send_params->{'alias'} = $self->transliteration( $self->send_params->{$f} );
+
+		}
+		elsif($lkeyType eq 'pict'){
+
+			my $lkeyFolder = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'folder');
+			my $folder = $self->static_path.$lkeyFolder;
+
+			# пропускаем если вдруг нет файла
+			next unless -f $folder.$anketa->{$f};
+
+			my $filetmp = $self->file_copy_tmp($folder.$anketa->{$f});
+
+			$self->send_params->{$f} = $self->file_save_pict(
+				filename 	=> $filetmp,
+				lfield		=> $f,
+				fields		=> {pict => $f},
+			);
+
+		}
+		elsif($lkeyType ne 'table' && $lkeyType ne 'file' && $lkeyType ne 'filename'){
+
+			$self->send_params->{$f} = $anketa->{$f};
+		}
+	}
+
+	$self->stash->{group} = 1;
+
+	if( $self->save_info( table => $self->stash->{list_table}) ){
+		my $copiedIndex = $self->stash->{'index'};
+
+		foreach my $f (keys %$anketa){
+			next if($f eq 's' or $f eq 'd');
+
+			my $lkeyType = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'type');
+
+			if($lkeyType eq 'table'){
+				my $dopTable = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'table');
+				my $svf_field = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'table_svf');
+
+				for my $dopItems ($self->dbi->query("SELECT * FROM `$dopTable` WHERE `$svf_field`='$index'")->hashes){
+					delete $dopItems->{ID};
+					$dopItems->{ $svf_field } = $copiedIndex;
+
+					foreach my $dopF (keys %$dopItems){
+						my $dlkeyType = $self->lkey(name => $dopF, controller => $self->stash->{'controller'}, setting => 'type');
+						next if ($dlkeyType ne 'pict');
+
+						my $lkeyFolder = $self->lkey(name => $dopF, controller => $self->stash->{'controller'}, tbl => $dopTable, setting => 'folder');
+						my $folder = $self->static_path.$lkeyFolder;
+
+						# пропускаем если вдруг нет файла
+						next unless -f $folder.$dopItems->{$dopF};
+
+						my $filetmp = $self->file_copy_tmp($folder.$dopItems->{$dopF});
+
+						$dopItems->{ $dopF } = $self->file_save_pict(
+							filename 	=> $filetmp,
+							lfield		=> $dopF,
+							table 		=> $dopTable,
+							fields		=> {pict => $dopF},
+						);
+					}
+
+					$self->dbi->insert_hash($dopTable, $dopItems);
+				}
+			}
+
+		}
+
+		$self->admin_msg_success("Объект успешно скопирован");
+		return $self->edit;
+	}
+
+	$self->admin_msg_errors("Ошибка создании копии");
+	return $self->edit;
 }
 
 sub zipimport{
@@ -770,6 +878,9 @@ sub def_context_menu{
 	my $user_sys = $self->sysuser->sys;
 
 	foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} keys %$buttons) {
+		# копировани объектов доступно только для уже сохранненой карточки
+		next if($key eq 'copy' && !$self->stash->{index});
+
 		my $button = $$buttons{$key};
 
 		next if (!$$button{settings}{$lkey} or (!$access_buttons->{$key}->{r} and !$user_sys));
