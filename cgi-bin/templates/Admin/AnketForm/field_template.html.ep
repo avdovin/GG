@@ -26,32 +26,29 @@
 %	});
 %	init_items({
 %		type		=> 'eval',
-%		value		=> "load_css('/admin/js/codemirror/theme/ambiance.css');"
-%	});
-%	init_items({
-%		type		=> 'eval',
 %		value		=> "load_scripts({
 %							loading_key: 'templates',
 %							scripts: [
 %								'/admin/js/codemirror/lib/codemirror.js',
+%								'/admin/js/codemirror/keymap/sublime.js',
 %								'/admin/js/codemirror/mode/xml/xml.js',
 %								'/admin/js/codemirror/mode/javascript/javascript.js',
 %								'/admin/js/codemirror/mode/css/css.js',
 %								'/admin/js/codemirror/addon/mode/multiplex.js',								'/admin/js/codemirror/mode/htmlmixed/htmlmixed.js',
 %								'/admin/js/codemirror/mode/perl/perl.js',
-%							], 
+%							],
 %							beforeSend: function(){
 %							},
 %							success: function(){
 %								if(typeof(CodeMirror) != 'undefined'){
 %									defineTempleteMode();
 %   								CODEMIRROR['template_$index'] = CodeMirror.fromTextArea(document.getElementById('template_$index'), {
+%										keyMap: 'sublime',
 %       								lineNumbers: true,
 %										mode: 'mojotemplates',
 %                                       indentWithTabs: true,
 %                                       enterMode: 'keep',
 %                                       tabMode: 'shift',
-%										theme: 'ambiance',
 %										extraKeys: {
 %									        'F4': function(cm) {
 %          										toggleFullscreenEditing('template_$index', cm);
@@ -60,6 +57,6 @@
 %   								});
 %									CODEMIRROR['template_$index'].focus();
 %								}
-%							}	
+%							}
 %						});"
 %	});
