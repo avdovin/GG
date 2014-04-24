@@ -62,7 +62,28 @@ input.submit_save {
 	cursor: pointer; }
 	input.submit_save:active {
 	-webkit-box-shadow: inset 0 0 20px 0 #1d2845, 0 1px 0 white;
-	box-shadow: inset 0 0 20px 0 #1d2845, 0 1px 0 white; }
+	box-shadow: inset 0 0 20px 0 #1d2845, 0 1px 0 white;
+}
+
+input.submit-and-continue{
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #00b200), color-stop(50%, #009900), color-stop(50%, #009900), color-stop(100%, #006600));
+    background-image: -webkit-linear-gradient(top, #00b200 0%, #009900 50%, #009900 50%, #006600 100%);
+    background-image: -moz-linear-gradient(top, #00b200 0%, #009900 50%, #009900 50%, #006600 100%);
+    background-image: -ms-linear-gradient(top, #00b200 0%, #009900 50%, #009900 50%, #006600 100%);
+    background-image: -o-linear-gradient(top, #00b200 0%, #009900 50%, #009900 50%, #006600 100%);
+    background-image: linear-gradient(top, #00b200 0%, #009900 50%, #009900 50%, #006600 100%);
+}
+
+input.submit-and-continue:hover {
+    background-color: #006600;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #009900), color-stop(50%, #007f00), color-stop(50%, #007f00), color-stop(100%, #007f00));
+    background-image: -webkit-linear-gradient(top, #009900 0%, #007f00 50%, #007f00 50%, #007f00 100%);
+    background-image: -moz-linear-gradient(top, #009900 0%, #007f00 50%, #007f00 50%, #007f00 100%);
+    background-image: -ms-linear-gradient(top, #009900 0%, #007f00 50%, #007f00 50%, #007f00 100%);
+    background-image: -o-linear-gradient(top, #009900 0%, #007f00 50%, #007f00 50%, #007f00 100%);
+    background-image: linear-gradient(top, #009900 0%, #007f00 50%, #007f00 50%, #007f00 100%);
+    cursor: pointer;
+}
 
 hr{border:solid 1px #D3D3D3;width:98%;}
 select{border:solid 1px navy;border-top:solid 1px navy;border-left:solid 1px navy;font-size:13px;width-min:50%;padding:1px 1px 1px 3px;}
