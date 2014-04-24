@@ -57,6 +57,8 @@ window.onerror = doNothing;
 
 function whenLoading(replaceme) {
 	if(!replaceme) replaceme = "replaceme";
+	console.log( replaceme );
+	console.log( document.getElementById(replaceme) );
 	if(document.getElementById(replaceme)) {
 		e = document.getElementById(replaceme);
 		e.innerHTML = "<span style='background:#ffffaa;width:145px;padding:3px' id='" + replaceme + "_temp'>" + "Данные передаются" + "</span>";
@@ -347,13 +349,24 @@ function FromServer_json(ajaxIndex, replaceme) {
 // else e.innerHTML = value_text;
 // }
 
-function ld_content(divId, url, outer, msg) {
+function ld_content(divId, url, outer, loading_msg) {
 	var ajaxIndex = divId; //ajaxform.length;
+
 	if(document.getElementById(divId) && ajaxIndex) {
 		ajaxrezerv[ajaxIndex] = document.getElementById(divId).innerHTML;
 		ajaxform[ajaxIndex] = new sack();
 		ajaxform[ajaxIndex].requestFile = url;
-		if(!msg) {
+
+		if(loading_msg){
+			loading_layout_show();
+			ajaxform[ajaxIndex].onInteractive = function() {
+				loading_layout_hide();
+			}
+			ajaxform[ajaxIndex].onError = function() {
+				loading_layout_hide();
+			}
+		}
+		else {
 			ajaxform[ajaxIndex].onError = function() {
 				whenError(ajaxIndex);
 			}

@@ -760,9 +760,20 @@ sub def_script_button { # определение скрипта выполнен
 				$settings->{program}	  ||= $stash->{script_link};
 
 				if ($settings->{confirm}) {
-					$settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+					if($settings->{loading_msg}){
+						$settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
+					}
+					else {
+						$settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+					}
 				} else {
-					$settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+					if($settings->{loading_msg}){
+						$settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
+					}
+					else {
+						$settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+					}
+
 				}
 
 		} elsif ($settings->{type_link} eq "javascript") {
