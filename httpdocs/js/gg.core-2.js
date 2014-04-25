@@ -71,6 +71,126 @@ var GG = function(){
 		}
 	};
 
+	$self.notify_warning = function(text, title, options){
+		if(typeof title == 'undefined') title = 'Уведомление';
+		options = $.extend({
+			icon : 'warning'
+		}, options);
+
+		$self.notify(text, title, options);
+	};
+	$self.notify_add = function(text, title, options){
+		if(typeof title == 'undefined') title = 'Товар добавлен в корзину';
+		options = $.extend({
+			icon : 'add'
+		}, options);
+		$self.notify(text, title, options);
+	};
+	$self.notify_delete = function(text, title, options){
+		if(typeof title == 'undefined') title = 'Изменения в корзине';
+		options = $.extend({
+			icon : 'delete'
+		}, options);
+		$self.notify(text, title, options);
+	};
+	$self.notify = function(text, title, options){
+		if(typeof title == 'undefined') title = 'Товар добавлен в корзину';
+		var stackContainer, messageWrap, messageBox, messageBody, messageTextBox, messagePicture, image;
+
+		options = $.extend({
+			lifeTime: 		4000,
+			click: 			undefined,
+			icon: 			'add'
+		}, options);
+
+		// находим контейнер с сообщениями, если его нет, тогда создаём
+		stackContainer = $('#notifier-box');
+		if (!stackContainer.length) {
+			stackContainer = $('<div>', {id: 'notifier-box'}).prependTo(document.body);
+		}
+
+		// создаём элементы вертски контейнера сообщения
+		messageWrap = $('<div>', {
+			'class': 'message-wrap',
+			css: {
+				display: 'none'
+			}
+		});
+
+		messageBox = $('<div>', {
+			'class': 'message-box'
+		});
+
+		messageHeader = $('<div>', {
+			'class': 'message-header',
+			text: title
+		});
+
+		messageBody = $('<div>', {
+			'class': 'message-body'
+		});
+
+		messageTextBox = $('<span>', {
+			html: text
+		});
+
+		closeButton = $('<a>', {
+			'class': 'message-close',
+			href: 'javascript:void(0);',
+			title: 'Закрыть',
+			click: function() {
+				$(this).parent().parent().fadeOut(300, function() {
+					$(this).remove();
+				});
+			}
+		});
+
+		// теперь расположим все на свои места
+		messageWrap.appendTo(stackContainer).fadeIn();
+		messageBox.appendTo(messageWrap);
+		closeButton.appendTo(messageBox);
+		messageHeader.appendTo(messageBox);
+		messageBody.appendTo(messageBox);
+
+		messagePicture = $('<div>', {
+			'class': 'thumb'
+		});
+
+		var notifyIcon = options.icon;
+		if(notifyIcon){
+			image = $('<img>', {
+				src: 	'/img/core/notify/notify_'+notifyIcon+'.png',
+				widht: 	48,
+				height: 48
+			});
+		}
+		messagePicture.appendTo(messageBody);
+		image.appendTo(messagePicture);
+
+		messageTextBox.appendTo(messageBody);
+
+		// если время жизни уведомления больше 0, ставим таймер
+		if (options.lifeTime > 0) {
+			setTimeout(function() {
+				$(messageWrap).fadeOut(300, function() {
+					$(this).remove();
+				});
+			}, options.lifeTime);
+		}
+
+		// если установлен колбек
+		if (options.click != undefined) {
+			messageWrap.click(function(e) {
+				if (!jQuery(e.target).is('.message-close')) {
+					options.click.call(this);
+				}
+			});
+		}
+
+		return this;
+	};
+
+
 	$self.isEmpty = function(obj){
 		return Object.keys(obj).length === 0;
 	}
