@@ -1,4 +1,4 @@
-// 18.04.2014
+// 25.04.2014
 
 // FUNCTIONS
 //	  GG.togglePopup(id)
@@ -16,7 +16,7 @@
 var GG = function(){
 	var $self = this;
 
-	$self.version = '2.02';
+	$self.version = '2.05';
 
 	$self.debug = function(arg){
 		if (typeof arg != 'undefined') {
@@ -61,6 +61,11 @@ var GG = function(){
 		}
 
 		$self.INIT  = true;
+
+		// GG options getter
+		$self.options = function(key){
+			return settings[key] || 'Invalid options';
+		}
 
 		return this;
 	};
@@ -219,20 +224,29 @@ var GG = function(){
 
 		var defaults = {
 			type: $form.attr('method'),
-			action: $form.attr('action'),
+			url: $form.attr('action'),
 			data: $form.serialize(),
 			beforeSend: function(){
 				$loading.fadeIn();
 			},
 			beforeSubmit: function(){},
+			onDone: function($wrapper, $error){
+				$error.hide();
+
+				var old_height = $wrapper.height(),
+					new_height = 0;
+
+				$wrapper.html(data.message_success);
+				new_height = $wrapper.height();
+				$wrapper.height(old_height).animate({height: new_height});
+			}
 		};
 
 		var settings = $.extend(defaults, options);
 
 		if (!$(formWrapper).data("formAttached")) {
-			$("body").on("click", handle, function(){
+			$(document).on("click", handle, function(){
 				settings.beforeSubmit();
-
 				settings.data = $form.serialize();
 
 				$.ajax(settings).done(function(data) {
@@ -253,14 +267,7 @@ var GG = function(){
 
 						$error.show();
 					} else {
-						$error.hide();
-
-						var old_height = $wrapper.height(),
-							new_height = 0;
-
-						$wrapper.html(data.message_success);
-						new_height = $wrapper.height();
-						$wrapper.height(old_height).animate({height: new_height});
+						settings.onDone($wrapper, $error);
 					}
 				}).always(function(){
 					$loading.fadeOut();
@@ -447,7 +454,7 @@ var GG = function(){
 	$(function(){
 		$("html").data("width", $("html").width());
 
-		$("body").on("click", ".popup-close", function(){
+		$("body").on("click", ".popup .popup-close, .popup .popup__close", function(){
 			$self.togglePopup($(this).closest(".popup").attr("id"));
 			return false;
 		});
@@ -455,6 +462,10 @@ var GG = function(){
 		$(document).keyup(function(e) {
 			if (e.keyCode == 27) {
 				$self.togglePopup();
+			} else if (e.keyCode == 37) {
+				$(".popup:visible").find(".popup__prev:visible").click();
+			} else if (e.keyCode == 39) {
+				$(".popup:visible").find(".popup__next:visible").click();
 			}
 		});
 
@@ -485,8 +496,28 @@ var GG = function(){
 		// hide popup
 		if ($("#"+id).is(":visible")) {
 			if (!$("#"+id).is("table")) { // if not table toggle overflow
-				$("html").css("overflow", "auto");
-				$(".wrapper").css("padding-right", 0);
+				$("html").css("overflow", "");
+
+				var togglePopupSettings = $self.options("togglePopup");
+
+				if (togglePopupSettings.elements.length > 0) {
+					for (var i = 0, k = togglePopupSettings.elements.length; i < k; i++) {
+						if (typeof togglePopupSettings.attr == 'undefined') {
+							$(togglePopupSettings.elements[i]).css("padding-right", "");
+						} else {
+							if (typeof togglePopupSettings.attr == 'string') {
+								$(togglePopupSettings.elements[i]).css(togglePopupSettings.attr, "");
+							} else if (typeof togglePopupSettings.attr == 'object' && togglePopupSettings.attr.length == togglePopupSettings.elements.length) {
+								$(togglePopupSettings.elements[i]).css(togglePopupSettings.attr[i], "");
+							} else {
+								$(togglePopupSettings.elements[i]).css("padding-right", "");
+							}
+						}
+					}
+				} else {
+					$(".wrapper").css("padding-right", "");
+				}
+
 			}
 
 			$("#"+id).hide(); // no animation here!
@@ -497,7 +528,27 @@ var GG = function(){
 		} else {
 			if (!$("#"+id).is("table")) { // if not table toggle overflow
 				$("html").css("overflow", "hidden");
-				$(".wrapper").css("padding-right", $("html").width() - $("html").data("width"));
+
+				var togglePopupSettings = $self.options("togglePopup");
+
+				if (togglePopupSettings.elements.length > 0) {
+					for (var i = 0, k = togglePopupSettings.elements.length; i < k; i++) {
+						if (typeof togglePopupSettings.attr == 'undefined') {
+							$(togglePopupSettings.elements[i]).css("padding-right", $("html").width() - $("html").data("width"));
+						} else {
+							if (typeof togglePopupSettings.attr == 'string') {
+								$(togglePopupSettings.elements[i]).css(togglePopupSettings.attr, $("html").width() - $("html").data("width"));
+							} else if (typeof togglePopupSettings.attr == 'object' && togglePopupSettings.attr.length == togglePopupSettings.elements.length) {
+								$(togglePopupSettings.elements[i]).css(togglePopupSettings.attr[i], $("html").width() - $("html").data("width"));
+							} else {
+								$(togglePopupSettings.elements[i]).css("padding-right", $("html").width() - $("html").data("width"));
+							}
+						}
+					}
+				} else {
+					$(".wrapper").css("padding-right", $("html").width() - $("html").data("width"));
+				}
+
 			} else {
 				if (typeof jQuery.fn.mousewheel != 'undefined') $("#"+id).mousewheel(function(){
 					return;
