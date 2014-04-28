@@ -9,13 +9,52 @@ sub register {
 
 	$opts ||= {};
 
-	$app->helper( menu_item  => \&_menu_item );
-	$app->helper( menu_track => \&_menu_track );
+	$app->helper( menu_item  	=> \&menu_item );
+	$app->helper( menu_track 	=> \&menu_track );
+
+	$app->helper( navipoint 	=> \&navipoint );
+	$app->helper( breadcrumbs 	=> \&breadcrumbs );
+
+	$app->helper( breadcrumbs 	=> \&breadcrumbs );
 
 	return 1;
 }
 
-sub _menu_track {
+sub breadcrumbs{
+	my $self = shift;
+
+	unless($self->stash->{menu_active_id}){
+		menu_track($self);
+	}
+
+	navipoint($self, @_);
+
+	my $content = $self->render(
+		template    => 'Menu/breadcrumbs',
+		partial 	=> 1,
+	);
+
+	return $content;
+}
+
+sub navipoint {
+	my $self = shift;
+	my @points;
+	if (@_ > 0) {
+		for (my $i = 0; $i <= $#_; $i += 2) {
+			push @points, {'name' => $_[$i], 'url' => $_[$i + 1]};
+		}
+		@points = reverse @points;
+	}
+
+	my $store = $self->stash('_navipoints') || [];
+	push @$store, @points;
+	$self->stash('_navipoints', $store);
+
+	return scalar @$store;
+}
+
+sub menu_track {
 	my $self   = shift;
 	my %params = (
 		key_razdel	=> 'main',
@@ -80,7 +119,6 @@ sub _menu_track {
 
 
 					$parentID = $items->{$parentID}->{texts_main};
-
 				}
 			}
 
@@ -98,6 +136,14 @@ sub _menu_track {
 			$self->stash->{menu_active_levels} = $levels if $current;
 
 			$items->{$pageId}->{level} = $tree_levels;
+		}
+
+		foreach my $pageId (sort keys %$levels){
+			$self->navipoint( $items->{$pageId}->{name} => $self->menu_item( $items->{$pageId} ) );
+		}
+
+		if( my $currentID = $self->stash->{menu_active_id} ){
+			$self->navipoint( $items->{$currentID}->{name} =>  $self->menu_item( $currentID ) );
 		}
 
 		$self->stash->{$stash_key			   } = $items;
@@ -137,7 +183,7 @@ sub _build_href{
 	return $self->url_for( 'text', url => $url );
 }
 
-sub _menu_item {
+sub menu_item {
 	my $self   = shift;
 	my $params = shift;
 

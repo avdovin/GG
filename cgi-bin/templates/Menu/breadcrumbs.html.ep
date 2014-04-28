@@ -1,0 +1,10 @@
+% my $nav = begin
+	% my $link = shift;
+	<li class="breadcrumbs__entry"><% if($link->{url}){ %><a class="entry__link" href="<%= $link->{url} %>"><% } %><%= $link->{name} %><% if($link->{url}){ %></a><% } %></li>
+% end
+<ul class="breadcrumbs clearfix">
+	% my $lastEntry = pop @{$self->stash('_navipoints')};
+
+	%== join "\n", map $nav->($_), @{$self->stash('_navipoints')};
+	%== $nav->( {name => $lastEntry->{name}, url => ''} );
+</ul>

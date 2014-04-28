@@ -62,9 +62,7 @@ sub register {
 		my $self   = shift;
 		my %params = @_;
 
-		$self->metaHeader({
-			title	=> 'Поиск',
-		});
+		$self->meta_title( 'Поиск' );
 
 		$params{page} = $self->param('page') || 1;
 
