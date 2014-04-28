@@ -331,14 +331,15 @@ sub _resize_x{
 	my $image = ${ +shift };
 	my ( $W, $H, $nx, $ny ) = @_;
 
-	$image -> Resize(
-		geometry => qq{$W x $H},
-		width    => $nx,
-		height   => $H,
-		blur		=> 1,
-	);    # Делаем resize
+   # Делаем resize
 
 	if ( $nx >= $W ) {     					# Если ширина получилась больше $W
+		$image -> Resize(
+			geometry => qq{$W x $H},
+			width    => $nx,
+			height   => $H,
+			blur	 => 1,
+		);
 		my $nnx = int( ( $nx - $W ) / 2 );	# Вычисляем откуда нам резать
 		$image -> Crop(
 			x => $nnx,
@@ -358,14 +359,14 @@ sub _resize_y {
 	my $image = ${ +shift };
 	my ( $W, $H, $nx, $ny  ) = @_;
 
-	$image->Resize(
-		geometry => qq{$W x $H},
-		width    => $W,
-		height   => $ny,
-		blur		=> 1,
-	);
 
 	if ( $ny >= $H ) {    	# Если ширина получилась больше $W
+		$image->Resize(
+			geometry => qq{$W x $H},
+			width    => $W,
+			height   => $ny,
+			blur	 => 1,
+		);
 		my $nny = int( ( $ny - $H ) / 2 );
 		$image -> Crop(
 			x => 0,
