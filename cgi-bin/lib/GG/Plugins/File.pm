@@ -545,10 +545,10 @@ sub register {
 
 			my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
-			if ($name =~ m/[\\\/]/) {
-				$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
-				$name = $2;
-			}
+			# if ($name =~ m/[\\\/]/) {
+			# 	$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
+			# 	$name = $2;
+			# }
 			$name =~ s{\s}{_}gi;
 
 			if(my $name_tr = $tr->translit($name)){
