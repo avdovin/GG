@@ -226,6 +226,10 @@ sub register {
 			my $list_vals = {};
 			if($type eq 'list'){
 
+				if(my $listOut = $lkey->{settings}->{list_out}){
+					$list = $self->lkey(name => $args->{name}, controller => $args->{controller} )->{settings}->{list} = $self->lkey(name => $listOut )->{settings}->{list};
+				}
+
 				foreach my $l (split(/~/, $list)) {
 					my ($key, $value) = split(/\|/, $l);
 					$list_vals->{$key} = $value;

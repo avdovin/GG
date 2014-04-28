@@ -89,7 +89,7 @@ sub register {
 			my $week  = $wdays{(localtime)[6]};
 
 			my $where  = "`view` = 1";
-			   $where .= " AND (`view_langs`='$lang' OR (`view_langs` LIKE '$lang=%' OR `view_langs` LIKE '%=$lang=%' OR `view_langs` LIKE '%=$lang')) ";
+			   $where .= " AND (`langs`='$lang' OR (`langs` LIKE '$lang=%' OR `langs` LIKE '%=$lang=%' OR `langs` LIKE '%=$lang')) ";
 			   $where .= " AND (`id_advert_block` = $params{place} OR (`id_advert_block` LIKE '$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}'))";
 			   $where .= " AND (`docfile` != '' OR `textlink` != '' OR `code` != '')";
 			   $where .= " AND (`type_show` = 0 OR (`type_show` > 0 AND `cash` > 0))";
