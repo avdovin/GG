@@ -272,10 +272,14 @@ sub register {
 
 			$self->restore_doptable;
 
-			$self->define_anket_form( 	access => $self->stash->{access_flag},
-										template_dir => "/Admin/AnketForm/",
-										template	=> "field_table");
+			$self->def_tablelist_param( key => "pcol_doptable", lkey => $self->stash->{key}, default => 25);
+			$self->def_tablelist_param( key => "page_doptable", lkey => $self->stash->{key}, default => 1);
 
+			$self->define_anket_form(
+				access 			=> $self->stash->{access_flag},
+				template_dir 	=> "/Admin/AnketForm/",
+				template		=> "field_table"
+			);
 		}
 	);
 

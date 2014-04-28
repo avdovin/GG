@@ -716,7 +716,7 @@ sub def_params_button { # определение параметров
 			next unless $p;
 			next unless my $v = $stash->{$p};
 
-			$v = 'newentry' if ($settings->{id} && $settings->{id} eq 'newentry' && $p eq 'replaceme');
+			$v = $stash->{controller}.'_'.$stash->{list_table}.'0' if ($settings->{id} && $settings->{id} eq 'newentry' && $p eq 'replaceme');
 
 			push(@params, "$p=$v");
 		}
@@ -790,7 +790,8 @@ sub def_script_button { # определение скрипта выполнен
 				}
 				elsif( $settings->{id} eq 'newentry'){
 					$settings->{tabtitle} = 'Новая запись';
-					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}&$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+					my $replaceme = $stash->{controller}.'_'.$stash->{list_table}.'0';
+					$settings->{script} = "openPage('$$settings{position}','$replaceme','$$settings{program}&$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
 				}
 				else {
 					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
