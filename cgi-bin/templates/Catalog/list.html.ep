@@ -1,0 +1,39 @@
+% content_for popup => begin
+	%== include 'Catalog/_popup_iteminfo';
+% end
+
+% content wrapper => begin
+
+<div class="body clearfix">
+
+	<div class="catalog block">
+		%== catalog__categorys_menu
+
+		<div class="catalog__wrapper">
+			<div class="catalog__filters">
+				<span>Сортировать по: <a href="#" data-field="price" data-direction="asc" class="button button_small button_greengray">цене</a></span>
+			</div>
+			<h1>Продукция</h1>
+
+			% if($self->stash->{subcategory_alias}){
+				% my $link = $self->url_for('catalog_list_by_sub_category', subcategory_alias => $subcategory->{alias}, category_alias => $category->{alias} );
+				%== breadcrumbs $category->{name} => $link;
+
+			% }elsif($self->stash->{category_alias}){
+				% my $link = $self->url_for('catalog_list_by_category', category_alias => $category->{alias} );
+				%== breadcrumbs $category->{name} => $link;
+
+			% } else {
+				%== breadcrumbs
+			% }
+
+			<div class="catalog__list clearfix" id="catalog-list-inner"></div>
+		</div>
+	</div>
+</div>
+
+% end
+
+% js_files_cdn('/js/jquery/plugins/jquery.amountControl.js');
+% js_files_cdn('/js/cloudzoom/cloudzoom.js');
+% css_files_cdn('/js/cloudzoom/cloudzoom.css');

@@ -3,7 +3,20 @@ var $popupIteminfo = $("#popup-kartochka");
 
 $(function(){
 
-	$(document).on('click', '.list__entry a', function(){
+	$(".catalog__wrapper").on('click', '.catalog__filters a', function(){
+		var curDir = $(this).data('direction');
+		if(curDir == 'asc'){
+			$(this).data('direction', 'desc').addClass('desc');
+		}
+		else{
+			$(this).data('direction', 'asc').removeClass('desc');
+		}
+		get_items();
+
+		return false;
+	});
+
+	$("#catalog-list-inner").on('click', '.list__entry a', function(){
 		get_iteminfo( $(this).closest('.list__entry').data('item-id') );
 
 		return false;
@@ -59,7 +72,7 @@ $(function(){
 		return false;
 	});
 
-	get_items();
+	if( $('#catalog-list-inner').length ) get_items();
 });
 
 var get_items_progress = 0;
@@ -110,43 +123,6 @@ function get_items(options){
 	return return_status;
 }
 
-function iteminfo_body(item_id){
-	var item_loading = $(".iteminfo--body");
-
-	var $item = $(".slider__entry[data-item-id="+item_id+"]");
-	var parent = $item.parents('li');
-
-	$(".slider__entry").removeClass('active');
-	$item.addClass('active');
-
-	$.ajax({
-		url: "/catalog/ajax/iteminfo/body/"+item_id,
-		type: 'get',
-		dataType: 'html',
-		beforeSend: function(){
-			item_loading.html('').addClass('catalog_loading');
-
-		$(".slider__entry[data-item-id]").removeClass('slider__entry_current');
-		$(".slider__entry[data-item-id="+item_id+"]").addClass('slider__entry_current');
-		},
-
-		success: function(data){
-			item_loading.removeClass('catalog_loading').html(data);
-
-
-		},
-		complete: function(){
-			item_loading.removeClass('catalog_loading');
-
-			updateAmountControl();
-		},
-		error: function(jqXHR, textStatus, errorThrown){
-		},
-		data: {}
-	});
-}
-
-
 function iteminfo_set_items_list(data){
 	$(".slider__container").removeClass('loading').html(data);
 	$(".slider__entry[data-item-id="+item_id+"]").addClass('slider__entry_current');
@@ -171,13 +147,21 @@ function get_filter(){
 		filter['category_id'] = $(".menu__list .list__entry_current a.entry__link").data('category-id');
 	}
 
+	if( $(".catalog__filters a").length ){
+		filter[ 'sort_field' ] = $(".catalog__filters a").data('field') ;
+		filter[ 'sort_direction' ] = $(".catalog__filters a").data('direction') ;
+	}
+
 
 	return filter;
 }
 
 function get_iteminfo(item_id){
+	var itemName = $(".list__entry[data-item-id='"+item_id+"'] .info__title").text();
+	var itemUrl = $(".list__entry[data-item-id='"+item_id+"'] .entry__link").attr('href');
+
 	$.ajax({
-		url: '/catalog/iteminfo/'+item_id+'/body',
+		url: itemUrl+'/body',
 		beforeSend: function(){
 			GG.togglePopup("popup-kartochka");
 			$popupIteminfo.find('.kartochka__loading').show();
@@ -196,8 +180,8 @@ function get_iteminfo(item_id){
 
 			refreshCloudzoom();
 
-			var itemName = $(".list__entry[data-item-id='"+item_id+"'] .info__title").text();
-			History.pushState({}, itemName, location.protocol + '//' + location.host + '/catalog/iteminfo/'+item_id);
+			GG.historyBackupUrl();
+			History.pushState({}, itemName, location.protocol + '//' + location.host + itemUrl);
 		},
 
 		error: function(data){

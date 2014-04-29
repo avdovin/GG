@@ -1,0 +1,12 @@
+<div class="popup" id="popup-kartochka">
+	<div class="popup-container">
+		<a href="#" class="popup-close"></a>
+		<a href="#" class="kartochka__prev"></a>
+		<a href="#" class="kartochka__next"></a>
+
+		<div class="kartochka clearfix">
+			<div class="kartochka__loading" style="display: block;"></div>
+			<div class="iteminfo-inner"></div>
+		</div>
+	</div>
+</div>

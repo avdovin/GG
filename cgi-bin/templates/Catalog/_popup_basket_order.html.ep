@@ -1,0 +1,56 @@
+<table class="popup" id="popup-order">
+	<tr>
+		<td>
+			<div class="popup-container form__wrapper">
+				<a href="#" class="popup-close"></a>
+				<div class="popup__loading"></div>
+				<h2 class="popup__title">Оформляем заказ</h2>
+				<form class="order__wrapper" action="/catalog/ajax/order/checkout" method="POST">
+					<div class="popup-error form__error" style="display:none;"></div>
+					<table class="order__container">
+						<tr>
+							<td class="order__field">
+								<span class="field__title">Ваше имя<span class="red">*</span></span>
+								<input name="name" class="field__input field__input_text error" type="text"/>
+							</td>
+							<td class="order__field">
+								<span class="field__title">Номер телефона<span class="red">*</span></span>
+								<input name="phone" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67"/>
+
+							</td>
+						</tr>
+						<tr>
+							<td class="order__field">
+							   	<span class="field__title">Город</span>
+								<input name="city" class="field__input field__input_text" type="text"/>
+							</td>
+							<td class="order__field">
+								<span class="field__title">Электронная почта<span class="red">*</span></span>
+								<input name="email" class="field__input field__input_text" type="email"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="order__field" colspan="2">
+								<span class="field__title">Ваш комментарий</span>
+								<textarea name="comment" class="field__input field__input_textarea"></textarea>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<p class="field__help"><span class="red">*</span> – поля, обязательные для заполнения</p>
+							</td>
+							<td>
+								<p class="right"><a href="#" class="button button_big button_red order__submit">Оформить заказ</a></p>
+							</td>
+						</tr>
+					</table>
+					<div class="order__ok content">
+						<div class="order__text">
+							<p class="text__text">Наш менеджер свяжется с Вами в ближайшее время</p>
+						</div>
+					</div>
+				</form>
+			</div>
+		</td>
+	</tr>
+</table>

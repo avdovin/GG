@@ -1,0 +1,23 @@
+% unless(defined $self->stash->{cataloc_calc_count}){
+	% ($self->stash->{cataloc_calc_price}, $self->stash->{cataloc_calc_count}) = $self->catalog_calc_resultprice;
+% }
+<div class="header__basket">
+	<a href="<%= url_for 'catalog_basket' %>" class="basket__title">Корзина</a>
+
+	<% if($self->stash->{cataloc_calc_count}){ %>
+		<div class="basket__container full">
+			<b class="basket__count"><%= numberformat $self->stash->{cataloc_calc_count} %></b> <span class="basket__unit"><%= declension($self->stash->{cataloc_calc_count}, [qw(товар товара товаров)] ) %></span> <span class="basket__text">на</span> <b class="basket__total"><%= $self->stash->{cataloc_calc_price} %></b> руб.
+		</div>
+		<div style="display: none" class="basket__container empty">
+			<span class="basket__text">нет товаров</span>
+		</div>
+	<% } else { %>
+		<div style="display: none" class="basket__container full">
+			<a href="/catalog/basket" class="basket__link">1 товар</a> <span class="basket__text">на сумму</span> <b class="basket__total">14 790 руб.</b>
+		</div>
+		<div class="basket__container empty">
+			<span class="basket__text">нет товаров</span>
+		</div>
+	<% } %>
+</div>
+

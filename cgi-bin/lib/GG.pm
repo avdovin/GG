@@ -168,9 +168,11 @@ sub startup{
 		shift->callbackSend;
 	});
 
-	my $routesCatalog = $routes->bridge('/catalog')->to(layout => 'default', cb => sub {
+
+	my $routesCatalog = $routes->bridge('/catalog')->to(alias => 'catalog',layout => 'default', cb => sub {
 
 		$self->stash->{catalog} = 1;
+		$self->stash->{alias} = 'catalog';
 		return 1;
 	});
 
@@ -178,12 +180,19 @@ sub startup{
 
 		return 1;
 	});
+	$routesCatalogAjax->route("/order/checkout")->to("Catalog#order_checkout");
+	$routesCatalogAjax->any('/list_items')->to('Catalog#list_items');
+	$routesCatalogAjax->any('/update_basket_items')->to('Catalog#update_basket_items');
 
-	$routesCatalogAjax->any('/list_items')->to('Catalog#list_items', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+	$routesCatalog->any('/iteminfo/:item_alias/body')->to('Catalog#iteminfo', popup => 1)->name('catalog_iteminfo_body');
+	$routesCatalog->any('/iteminfo/:item_alias')->to('Catalog#iteminfo')->name('catalog_iteminfo');
 
-	$routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_sub_category');
-	$routesCatalog->any('/:category_alias')->to('Catalog#list', alias => 'catalog', admin_name => 'Каталог программ')->name('catalog_list_by_category');
+	$routesCatalog->any('/basket/flush')->to('Catalog#basket_flush')->name('catalog_basket_flush');
+	$routesCatalog->any('/basket')->to('Catalog#basket')->name('catalog_basket');
 
+	$routesCatalog->any('/:category_alias/:subcategory_alias')->to('Catalog#list')->name('catalog_list_by_sub_category');
+	$routesCatalog->any('/:category_alias')->to('Catalog#list')->name('catalog_list_by_category');
+	$routesCatalog->any('/')->to('Catalog#list', admin_name => 'Продукция')->name('catalog_list');
 
 	$routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args )->name('main');
 

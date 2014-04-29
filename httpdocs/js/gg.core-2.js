@@ -16,7 +16,7 @@
 var GG = function(){
 	var $self = this;
 
-	$self.version = '2.05';
+	$self.version = '2.07';
 
 	$self.debug = function(arg){
 		if (typeof arg != 'undefined') {
@@ -64,7 +64,7 @@ var GG = function(){
 
 		// GG options getter
 		$self.options = function(key){
-			return settings[key] || 'Invalid options';
+			return settings[key] || null;
 		}
 
 		return this;
@@ -200,6 +200,17 @@ var GG = function(){
 		return Object.keys(obj).length === 0;
 	}
 
+	$self.historyBackupUrl = function(){
+		window._history_backup_url = location.protocol + '//' + location.host + location.pathname + window.location.search;
+		window._history_backup_title = document.title;
+	}
+
+	$self.historyRestoreUrl = function(){
+		var title = window._history_backup_title ? window._history_backup_title : document.title;
+		var url = window._history_backup_url ? window._history_backup_url : location.protocol + '//' + location.host + location.pathname + window.location.search;
+		History.pushState({}, title, url);
+	}
+
 	$self.setUrlQs = function(qsArray, title) {
 		if (!History) return false;
 		if (typeof title == 'undefined') title = document.title;
@@ -214,7 +225,7 @@ var GG = function(){
 	};
 
 	$self.attachForm = function(formWrapper, handle, options) {
-		if (typeof formWrapper == 'undefined') return false;
+		if (typeof formWrapper == 'undefined' || !$(formWrapper).length ) return false;
 
 		var $parent  = $(formWrapper),
 			$form 	 = $parent.find('form'),
@@ -455,6 +466,7 @@ var GG = function(){
 		$("html").data("width", $("html").width());
 
 		$("body").on("click", ".popup .popup-close, .popup .popup__close", function(){
+			$self.historyRestoreUrl();
 			$self.togglePopup($(this).closest(".popup").attr("id"));
 			return false;
 		});
@@ -500,7 +512,7 @@ var GG = function(){
 
 				var togglePopupSettings = $self.options("togglePopup");
 
-				if (togglePopupSettings.elements.length > 0) {
+				if (togglePopupSettings && togglePopupSettings.elements.length > 0) {
 					for (var i = 0, k = togglePopupSettings.elements.length; i < k; i++) {
 						if (typeof togglePopupSettings.attr == 'undefined') {
 							$(togglePopupSettings.elements[i]).css("padding-right", "");
@@ -531,7 +543,7 @@ var GG = function(){
 
 				var togglePopupSettings = $self.options("togglePopup");
 
-				if (togglePopupSettings.elements.length > 0) {
+				if (togglePopupSettings && togglePopupSettings.elements.length > 0) {
 					for (var i = 0, k = togglePopupSettings.elements.length; i < k; i++) {
 						if (typeof togglePopupSettings.attr == 'undefined') {
 							$(togglePopupSettings.elements[i]).css("padding-right", $("html").width() - $("html").data("width"));

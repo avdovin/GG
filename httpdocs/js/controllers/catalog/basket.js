@@ -1,33 +1,109 @@
 $(function(){
+	$(document).on('click', '.korzina__clear', function(){
+		if( !confirm('Вы уверены что хотите удалить все товары из корзины?') ) return false;
+	})
 
-	 $("body").on("click", "#popup-order .order__submit", function(e){
-		var $parent  = $(this).closest(".popup"),
-			$loading = $parent.find(".popup__loading"),
-			$wrapper = $parent.find(".order__wrapper"),
-			$error   = $wrapper.find(".popup-error");
+	$(document).on('click', '.korzina__order', function(){
+		$("textarea[name=comment]").val( $("textarea[name=order-comment]").val() );
+		GG.togglePopup("popup-order");
+		return false;
+	});
 
-		$loading.fadeIn(1000, function(){
-			var old_height = $wrapper.height(),
+	GG.attachForm("#popup-order", "#popup-order .order__submit", {
+		onDone : function($wrapper, $error){
+	 		var old_height = $wrapper.height(),
 				new_height = 0;
 
-			$(this).fadeOut();
-
-			// if ok
 			$error.hide();
-			$parent.find(".popup__title").text("Спасибо за заказ!");
+			$wrapper.find(".popup__title").text("Спасибо за заказ!");
 			$wrapper.find(".order__container").hide();
 			$wrapper.find(".order__ok").show();
 			new_height = $wrapper.height();
 			$wrapper.height(old_height).animate({height: new_height});
 
+			$("#popup-order .popup-close").unbind('click');
+
+	 		$("body").on("click", ".popup-close", function(){
+	 			togglePopup($(this).closest(".popup").attr("id"));
+	 			window.location.href='/';
+	 			return false;
+	 		});
+		}
+	});
+
+	// $("body").on("click", "#popup-order .order__submit", function(e){
+	// 	var $parent  = $(this).closest(".popup"),
+	// 		$loading = $parent.find(".popup__loading"),
+	// 		$wrapper = $parent.find(".order__wrapper"),
+	// 		$error   = $wrapper.find(".popup-error");
+
+	// 	$loading.fadeIn(1000, function(){
+	// 		var old_height = $wrapper.height(),
+	// 			new_height = 0;
+
+	// 		$(this).fadeOut();
+
+			// // if ok
+			// $.ajax({
+			// 	url: '/catalog/ajax/order/checkout',
+			// 	dataType: 'json',
+			// 	type: 'POST',
+			// 	beforeSend: function( xhr ) {
+			// 	},
+			// 	data: $wrapper.serialize()
+			// })
+			// .done(function(data) {
+			// 	if( Object.keys(data.errors).length ){
+			// 		addFormErrors($wrapper, data.errors);
+
+			// 	} else {
+			// 		$error.hide();
+			// 		$parent.find(".popup__title").text("Спасибо за заказ!");
+			// 		$wrapper.find(".order__container").hide();
+			// 		$wrapper.find(".order__ok").show();
+			// 		new_height = $wrapper.height();
+			// 		$wrapper.height(old_height).animate({height: new_height});
+
+			// 		$("#popup-order .popup-close").unbind('click');
+
+			// 		window.yaParams = {
+			// 		  order_id: data.order_id,
+			// 		  order_price: data.price,
+			// 		  currency: "RUR",
+			// 		  exchange_rate: 1,
+			// 		  goods: []
+			// 		};
+			// 		for(var i = 0; i < data.goods.length; i++){
+			// 			yaParams.goods.push({
+			// 				id: data.goods[i].id_item,
+			// 				name: data.goods[i].name,
+			// 				price: data.goods[i].price,
+			// 				quantity: data.goods[i].count,
+			// 			});
+			// 		}
+
+			// 		//console.log( yaParams );
+			// 		//yaCounter21680044.reachGoal('BUY', window.yaParams||{ });
+
+			// 		$("body").on("click", ".popup-close", function(){
+			// 			togglePopup($(this).closest(".popup").attr("id"));
+			// 			window.location.href='/';
+			// 			return false;
+			// 		});
+			// 	}
+			// })
+			// .fail(function() {
+			// 	$error.html(buildServerErrorsString( {misc: 'Системная ошибка, повторите попытку позже'} ));
+			// });
+
 			// if error
 //			$error.html("Текст ошибки").show();
 //			new_height = $wrapper.height();
 //			$wrapper.height(old_height).animate({height: new_height});
-		});
+	// 	});
 
-		e.preventDefault();
-	});
+	// 	e.preventDefault();
+	// });
 
 	if ($.amountControl && $(".korzina__list").length) {
 		$(".korzina__list").amountControl({
@@ -75,6 +151,7 @@ $(function(){
 	$("body").on("click", ".korzina .korzina__entry .button_del", function(){
 		var $entry   = $(this).closest(".korzina__entry"),
 			$loading = $entry.find(".entry__loading");
+			itemId 	 = $(this).data('item-id');
 
 		$loading.fadeIn(function(){
 			var fadeOut = function(){
@@ -90,10 +167,16 @@ $(function(){
 				);
 			}
 
-			// some ajax
-			// if ok
-			fadeOut();
-			deleteRow();
+			addItem({
+				delFlag: true,
+				items: [{
+					id: itemId,
+				}],
+				onSuccess: function(data){
+					fadeOut();
+					deleteRow();
+				}
+			});
 
 		});
 

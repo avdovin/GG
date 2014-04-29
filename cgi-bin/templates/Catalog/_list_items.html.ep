@@ -1,0 +1,10 @@
+% foreach (@$items){
+	<div class="list__entry" data-item-id="<%= $_->{ID} %>">
+		<div class="entry__thumb"><img src="/image/catalog/items/180x180_<%= $_->{pict} %>" alt="<%= $_->{name} %>"/></div>
+		<div class="entry__info">
+			<p class="info__title"><%= $_->{name} %></p>
+			<span class="info__price"><b><%= $_->{price} %></b> руб.</span>
+		</div>
+		<a href="<%= url_for 'catalog_iteminfo', item_alias => $_->{alias} %>" class="entry__link"></a>
+	</div>
+% }
