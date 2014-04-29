@@ -3,7 +3,7 @@ use Mojo::Base 'Mojo::Transaction';
 
 use Compress::Raw::Zlib 'Z_SYNC_FLUSH';
 use Config;
-use Mojo::JSON;
+use Mojo::JSON qw(encode_json j);
 use Mojo::Transaction::HTTP;
 use Mojo::Util qw(b64_encode decode encode sha1_bytes xor_encode);
 
@@ -83,7 +83,7 @@ sub build_message {
   $frame = {text => encode('UTF-8', $frame)} if ref $frame ne 'HASH';
 
   # JSON
-  $frame->{text} = Mojo::JSON->new->encode($frame->{json}) if $frame->{json};
+  $frame->{text} = encode_json($frame->{json}) if exists $frame->{json};
 
   # Raw text or binary
   if (exists $frame->{text}) { $frame = [1, 0, 0, 0, TEXT, $frame->{text}] }
@@ -326,8 +326,7 @@ sub _message {
     $msg = $out;
   }
 
-  $self->emit(json => Mojo::JSON->new->decode($msg))
-    if $self->has_subscribers('json');
+  $self->emit(json => j($msg)) if $self->has_subscribers('json');
   $op = delete $self->{op};
   $self->emit($op == TEXT ? 'text' : 'binary' => $msg);
   $self->emit(message => $op == TEXT ? decode('UTF-8', $msg) : $msg)
@@ -505,7 +504,7 @@ Mask outgoing frames with XOR cipher and a random 32bit key.
   $ws      = $ws->max_websocket_size(1024);
 
 Maximum WebSocket message size in bytes, defaults to the value of the
-MOJO_MAX_WEBSOCKET_SIZE environment variable or C<262144>.
+C<MOJO_MAX_WEBSOCKET_SIZE> environment variable or C<262144>.
 
 =head1 METHODS
 
@@ -702,8 +701,8 @@ Write data server-side, used to implement web servers.
 
 =head1 DEBUGGING
 
-You can set the MOJO_WEBSOCKET_DEBUG environment variable to get some advanced
-diagnostics information printed to C<STDERR>.
+You can set the C<MOJO_WEBSOCKET_DEBUG> environment variable to get some
+advanced diagnostics information printed to C<STDERR>.
 
   MOJO_WEBSOCKET_DEBUG=1
 

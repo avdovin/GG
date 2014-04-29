@@ -4,6 +4,7 @@ use Mojo::Base -base;
 use File::Spec::Functions 'catfile';
 use Mojo::Asset::File;
 use Mojo::Asset::Memory;
+use Mojo::Date;
 use Mojo::Home;
 use Mojo::Loader;
 
@@ -51,8 +52,9 @@ sub file {
 sub serve {
   my ($self, $c, $rel) = @_;
   return undef unless my $asset = $self->file($rel);
-  my $type = $rel =~ /\.(\w+)$/ ? $c->app->types->type($1) : undef;
-  $c->res->headers->content_type($type || 'text/plain');
+  my $types = $c->app->types;
+  my $type = $rel =~ /\.(\w+)$/ ? $types->type($1) : undef;
+  $c->res->headers->content_type($type || $types->type('txt'));
   return !!$self->serve_asset($c, $asset);
 }
 

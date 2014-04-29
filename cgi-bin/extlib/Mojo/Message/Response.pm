@@ -47,7 +47,7 @@ my %MESSAGES = (
   415 => 'Unsupported Media Type',
   416 => 'Request Range Not Satisfiable',
   417 => 'Expectation Failed',
-  418 => "I'm a teapot",                       # :)
+  418 => "I'm a teapot",                       # RFC 2324 :)
   422 => 'Unprocessable Entity',               # RFC 2518 (WebDAV)
   423 => 'Locked',                             # RFC 2518 (WebDAV)
   424 => 'Failed Dependency',                  # RFC 2518 (WebDAV)
@@ -88,7 +88,7 @@ sub cookies {
   return $self;
 }
 
-sub default_message { $MESSAGES{$_[1] || $_[0]->code || 404} || '' }
+sub default_message { $MESSAGES{$_[1] || $_[0]->code // 404} || '' }
 
 sub extract_start_line {
   my ($self, $bufref) = @_;
@@ -128,7 +128,7 @@ sub get_start_line_chunk {
 sub is_empty {
   my $self = shift;
   return undef unless my $code = $self->code;
-  return $self->is_status_class(100) || $code eq 204 || $code eq 304;
+  return $self->is_status_class(100) || $code == 204 || $code == 304;
 }
 
 sub is_status_class {

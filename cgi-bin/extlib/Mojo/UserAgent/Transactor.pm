@@ -6,7 +6,7 @@ use Mojo::Asset::File;
 use Mojo::Asset::Memory;
 use Mojo::Content::MultiPart;
 use Mojo::Content::Single;
-use Mojo::JSON;
+use Mojo::JSON 'encode_json';
 use Mojo::Parameters;
 use Mojo::Transaction::HTTP;
 use Mojo::Transaction::WebSocket;
@@ -34,7 +34,7 @@ sub endpoint {
 
   # Proxy for normal HTTP requests
   return $self->_proxy($tx, $proto, $host, $port)
-    if $proto eq 'http' && lc($req->headers->upgrade // '') ne 'websocket';
+    if $proto eq 'http' && !$req->is_handshake;
 
   return $proto, $host, $port;
 }
@@ -56,8 +56,7 @@ sub proxy_connect {
 
   # WebSocket and/or HTTPS
   my $url = $req->url;
-  my $upgrade = lc($req->headers->upgrade // '');
-  return undef unless $upgrade eq 'websocket' || $url->protocol eq 'https';
+  return undef unless $req->is_handshake || $url->protocol eq 'https';
 
   # CONNECT request
   my $new = $self->tx(CONNECT => $url->clone->userinfo(undef));
@@ -71,8 +70,8 @@ sub redirect {
 
   # Commonly used codes
   my $res = $old->res;
-  my $code = $res->code // '';
-  return undef unless grep { $_ eq $code } 301, 302, 303, 307, 308;
+  my $code = $res->code // 0;
+  return undef unless grep { $_ == $code } 301, 302, 303, 307, 308;
 
   # Fix broken location without authority and/or scheme
   return unless my $location = $res->headers->location;
@@ -82,7 +81,7 @@ sub redirect {
   # Clone request if necessary
   my $new = Mojo::Transaction::HTTP->new;
   my $req = $old->req;
-  if ($code eq 307 || $code eq 308) {
+  if ($code == 307 || $code == 308) {
     return undef unless my $clone = $req->clone;
     $new->req($clone);
   }
@@ -127,8 +126,8 @@ sub tx {
 
 sub upgrade {
   my ($self, $tx) = @_;
-  my $code = $tx->res->code // '';
-  return undef unless $tx->req->headers->upgrade && $code eq '101';
+  my $code = $tx->res->code // 0;
+  return undef unless $tx->req->is_handshake && $code == 101;
   my $ws = Mojo::Transaction::WebSocket->new(handshake => $tx, masked => 1);
   return $ws->client_challenge ? $ws : undef;
 }
@@ -185,8 +184,7 @@ sub _form {
 
 sub _json {
   my ($self, $tx, $data) = @_;
-  $tx->req->body(Mojo::JSON->new->encode($data));
-  my $headers = $tx->req->headers;
+  my $headers = $tx->req->body(encode_json($data))->headers;
   $headers->content_type('application/json') unless $headers->content_type;
   return $tx;
 }
@@ -331,7 +329,7 @@ Actual peer for transaction.
 
   my $tx = $t->proxy_connect(Mojo::Transaction::HTTP->new);
 
-Build L<Mojo::Transaction::HTTP> proxy connect request for transaction if
+Build L<Mojo::Transaction::HTTP> proxy C<CONNECT> request for transaction if
 possible.
 
 =head2 redirect
@@ -420,9 +418,9 @@ requests, with support for content generators.
   });
 
 The C<form> content generator will automatically use query parameters for
-GET/HEAD requests and the "application/x-www-form-urlencoded" content type for
-everything else. Both get upgraded automatically to using the
-"multipart/form-data" content type when necessary or when the header has been
+C<GET>/C<HEAD> requests and the C<application/x-www-form-urlencoded> content
+type for everything else. Both get upgraded automatically to using the
+C<multipart/form-data> content type when necessary or when the header has been
 set manually.
 
   # Force "multipart/form-data"

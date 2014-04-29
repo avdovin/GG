@@ -1,7 +1,7 @@
 package Mojolicious::Sessions;
 use Mojo::Base -base;
 
-use Mojo::JSON;
+use Mojo::JSON qw(encode_json j);
 use Mojo::Util qw(b64_decode b64_encode);
 
 has [qw(cookie_domain secure)];
@@ -13,8 +13,8 @@ sub load {
   my ($self, $c) = @_;
 
   return unless my $value = $c->signed_cookie($self->cookie_name);
-  $value =~ s/-/=/g;
-  return unless my $session = Mojo::JSON->new->decode(b64_decode $value);
+  $value =~ y/-/=/;
+  return unless my $session = j(b64_decode $value);
 
   # "expiration" value is inherited
   my $expiration = $session->{expiration} // $self->default_expiration;
@@ -37,8 +37,7 @@ sub store {
 
   # Don't reset flash for static files
   my $old = delete $session->{flash};
-  @{$session->{new_flash}}{keys %$old} = values %$old
-    if $stash->{'mojo.static'};
+  $session->{new_flash} = $old if $stash->{'mojo.static'};
   delete $session->{new_flash} unless keys %{$session->{new_flash}};
 
   # Generate "expires" value from "expiration" if necessary
@@ -47,8 +46,8 @@ sub store {
   $session->{expires} = $default || time + $expiration
     if $expiration || $default;
 
-  my $value = b64_encode(Mojo::JSON->new->encode($session), '');
-  $value =~ s/=/-/g;
+  my $value = b64_encode(encode_json($session), '');
+  $value =~ y/=/-/;
   my $options = {
     domain   => $self->cookie_domain,
     expires  => $session->{expires},
@@ -78,9 +77,9 @@ Mojolicious::Sessions - Signed cookie based session manager
 =head1 DESCRIPTION
 
 L<Mojolicious::Sessions> manages simple signed cookie based sessions for
-L<Mojolicious>. All data gets serialized with L<Mojo::JSON> and stored
-C<Base64> encoded on the client-side, but is protected from unwanted changes
-with a C<HMAC-SHA1> signature.
+L<Mojolicious>. All data gets serialized with L<Mojo::JSON> and stored Base64
+encoded on the client-side, but is protected from unwanted changes with a
+HMAC-SHA1 signature.
 
 =head1 ATTRIBUTES
 

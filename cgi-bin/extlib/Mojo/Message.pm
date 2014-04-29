@@ -5,7 +5,7 @@ use Carp 'croak';
 use Mojo::Asset::Memory;
 use Mojo::Content::Single;
 use Mojo::DOM;
-use Mojo::JSON;
+use Mojo::JSON 'j';
 use Mojo::JSON::Pointer;
 use Mojo::Parameters;
 use Mojo::Upload;
@@ -98,15 +98,14 @@ sub finish {
 
 sub fix_headers {
   my $self = shift;
+  return $self if $self->{fix}++;
 
   # Content-Length or Connection (unless chunked transfer encoding is used)
   my $content = $self->content;
-  return $self if $self->{fix}++ || $content->is_chunked;
-  my $headers = $self->headers;
-  $content->is_dynamic
-    ? $headers->connection('close')
-    : $headers->content_length($self->body_size)
-    unless $headers->content_length;
+  my $headers = $content->headers;
+  return $self if $content->is_chunked || $headers->content_length;
+  if   ($content->is_dynamic) { $headers->connection('close') }
+  else                        { $headers->content_length($self->body_size) }
 
   return $self;
 }
@@ -143,8 +142,8 @@ sub is_limit_exceeded { !!shift->{limit} }
 sub json {
   my ($self, $pointer) = @_;
   return undef if $self->content->is_multipart;
-  my $data = $self->{json} ||= Mojo::JSON->new->decode($self->body);
-  return $pointer ? Mojo::JSON::Pointer->new->get($data, $pointer) : $data;
+  my $data = $self->{json} //= j($self->body);
+  return $pointer ? Mojo::JSON::Pointer->new($data)->get($pointer) : $data;
 }
 
 sub param { shift->body_params->param(@_) }
@@ -278,7 +277,7 @@ sub _parse_formdata {
 
     next unless my $disposition = $part->headers->content_disposition;
     my ($filename) = $disposition =~ /[; ]filename\s*=\s*"?((?:\\"|[^"])*)"?/i;
-    next if ($upload && !defined $filename) || (!$upload && defined $filename);
+    next if $upload && !defined $filename || !$upload && defined $filename;
     my ($name) = $disposition =~ /[; ]name\s*=\s*"?((?:\\"|[^";])+)"?/i;
     if ($charset) {
       $name     = decode($charset, $name)     // $name     if $name;
@@ -386,7 +385,7 @@ Default charset used for form-data parsing, defaults to C<UTF-8>.
   $msg     = $msg->max_line_size(1024);
 
 Maximum start line size in bytes, defaults to the value of the
-MOJO_MAX_LINE_SIZE environment variable or C<10240>.
+C<MOJO_MAX_LINE_SIZE> environment variable or C<10240>.
 
 =head2 max_message_size
 
@@ -394,9 +393,9 @@ MOJO_MAX_LINE_SIZE environment variable or C<10240>.
   $msg     = $msg->max_message_size(1024);
 
 Maximum message size in bytes, defaults to the value of the
-MOJO_MAX_MESSAGE_SIZE environment variable or C<10485760>. Setting the value
-to C<0> will allow messages of indefinite size. Note that increasing this
-value can also drastically increase memory usage, should you for example
+C<MOJO_MAX_MESSAGE_SIZE> environment variable or C<10485760>. Setting the
+value to C<0> will allow messages of indefinite size. Note that increasing
+this value can also drastically increase memory usage, should you for example
 attempt to parse an excessively large message body with the L</"body_params">,
 L</"dom"> or L</"json"> methods.
 
@@ -424,12 +423,12 @@ automatically downgraded to L<Mojo::Content::Single>.
 
   my $params = $msg->body_params;
 
-POST parameters extracted from C<application/x-www-form-urlencoded> or
+C<POST> parameters extracted from C<application/x-www-form-urlencoded> or
 C<multipart/form-data> message body, usually a L<Mojo::Parameters> object.
 Note that this method caches all data, so it should not be called before the
 entire message body has been received. Parts of the message body need to be
-loaded into memory to parse POST parameters, so you have to make sure it is
-not excessively large.
+loaded into memory to parse C<POST> parameters, so you have to make sure it is
+not excessively large, there's a 10MB limit by default.
 
   # Get POST parameter value
   say $msg->body_params->param('foo');
@@ -486,7 +485,7 @@ to call the method L<Mojo::DOM/"find"> on it right away, which returns a
 L<Mojo::Collection> object. Note that this method caches all data, so it
 should not be called before the entire message body has been received. The
 whole message body needs to be loaded into memory to parse it, so you have to
-make sure it is not excessively large.
+make sure it is not excessively large, there's a 10MB limit by default.
 
   # Perform "find" right away
   say $msg->dom('h1, h2, h3')->text;
@@ -567,16 +566,16 @@ Check if message has exceeded L</"max_line_size"> or L</"max_message_size">.
 
 =head2 json
 
-  my $hash  = $msg->json;
-  my $array = $msg->json;
+  my $value = $msg->json;
   my $value = $msg->json('/foo/bar');
 
-Decode JSON message body directly using L<Mojo::JSON> if possible, returns
-C<undef> otherwise. An optional JSON Pointer can be used to extract a specific
-value with L<Mojo::JSON::Pointer>. Note that this method caches all data, so
-it should not be called before the entire message body has been received.
-The whole message body needs to be loaded into memory to parse it, so you have
-to make sure it is not excessively large.
+Decode JSON message body directly using L<Mojo::JSON> if possible, an C<undef>
+return value indicates a bare C<null> or that decoding failed. An optional
+JSON Pointer can be used to extract a specific value with
+L<Mojo::JSON::Pointer>. Note that this method caches all data, so it should
+not be called before the entire message body has been received. The whole
+message body needs to be loaded into memory to parse it, so you have to make
+sure it is not excessively large, there's a 10MB limit by default.
 
   # Extract JSON values
   say $msg->json->{foo}{bar}[23];
@@ -588,10 +587,11 @@ to make sure it is not excessively large.
   my $foo   = $msg->param('foo');
   my @foo   = $msg->param('foo');
 
-Access POST parameters. Note that this method caches all data, so it should
+Access C<POST> parameters. Note that this method caches all data, so it should
 not be called before the entire message body has been received. Parts of the
-message body need to be loaded into memory to parse POST parameters, so you
-have to make sure it is not excessively large.
+message body need to be loaded into memory to parse C<POST> parameters, so you
+have to make sure it is not excessively large, there's a 10MB limit by
+default.
 
 =head2 parse
 

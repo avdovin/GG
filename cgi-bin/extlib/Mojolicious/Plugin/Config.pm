@@ -51,10 +51,7 @@ sub register {
   # Merge everything
   $config = {%$config, %{$self->load($mode, $conf, $app)}} if $mode;
   $config = {%{$conf->{default}}, %$config} if $conf->{default};
-  my $current = $app->defaults(config => $app->config)->config;
-  %$current = (%$current, %$config);
-
-  return $current;
+  return $app->defaults(config => $app->config)->config($config)->config;
 }
 
 1;
@@ -131,7 +128,7 @@ File extension for generated configuration filenames, defaults to C<conf>.
   plugin Config => {file => 'myapp.conf'};
   plugin Config => {file => '/etc/foo.stuff'};
 
-Full path to configuration file, defaults to the value of the MOJO_CONFIG
+Full path to configuration file, defaults to the value of the C<MOJO_CONFIG>
 environment variable or C<$moniker.conf> in the application home directory.
 
 =head1 METHODS

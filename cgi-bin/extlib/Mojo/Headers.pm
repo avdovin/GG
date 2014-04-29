@@ -6,7 +6,7 @@ use Mojo::Util 'monkey_patch';
 has max_line_size => sub { $ENV{MOJO_MAX_LINE_SIZE} || 10240 };
 
 # Common headers
-my @HEADERS = (
+my %NORMALCASE = map { lc($_) => $_ } (
   qw(Accept Accept-Charset Accept-Encoding Accept-Language Accept-Ranges),
   qw(Allow Authorization Cache-Control Connection Content-Disposition),
   qw(Content-Encoding Content-Length Content-Range Content-Type Cookie DNT),
@@ -16,14 +16,11 @@ my @HEADERS = (
   qw(Sec-WebSocket-Protocol Sec-WebSocket-Version Server Set-Cookie Status),
   qw(TE Trailer Transfer-Encoding Upgrade User-Agent Vary WWW-Authenticate)
 );
-for my $header (@HEADERS) {
+for my $header (values %NORMALCASE) {
   my $name = lc $header;
-  $name =~ s/-/_/g;
+  $name =~ y/-/_/;
   monkey_patch __PACKAGE__, $name, sub { scalar shift->header($header => @_) };
 }
-
-# Lowercase headers
-my %NORMALCASE = map { lc($_) => $_ } @HEADERS;
 
 sub add {
   my ($self, $name) = (shift, shift);
@@ -51,7 +48,8 @@ sub from_hash {
   delete $self->{headers} if keys %{$hash} == 0;
 
   # Merge
-  while (my ($header, $value) = each %$hash) {
+  for my $header (keys %$hash) {
+    my $value = $hash->{$header};
     $self->add($header => ref $value eq 'ARRAY' ? @$value : $value);
   }
 
@@ -101,7 +99,7 @@ sub parse {
     }
 
     # New header
-    if ($line =~ /^(\S+)\s*:\s*(.*)$/) { push @$headers, $1, [$2] }
+    if ($line =~ /^(\S[^:]+)\s*:\s*(.*)$/) { push @$headers, $1, [$2] }
 
     # Multiline
     elsif (@$headers && $line =~ s/^\s+//) { push @{$headers->[-1]}, $line }
@@ -186,7 +184,7 @@ L<Mojo::Headers> implements the following attributes.
   $headers = $headers->max_line_size(1024);
 
 Maximum header line size in bytes, defaults to the value of the
-MOJO_MAX_LINE_SIZE environment variable or C<10240>.
+C<MOJO_MAX_LINE_SIZE> environment variable or C<10240>.
 
 =head1 METHODS
 

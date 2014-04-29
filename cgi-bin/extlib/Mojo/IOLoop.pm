@@ -82,18 +82,15 @@ sub client {
 }
 
 sub delay {
-  my $self = _instance(shift);
-
   my $delay = Mojo::IOLoop::Delay->new;
-  weaken $delay->ioloop($self)->{ioloop};
-  @_ > 1 ? $delay->steps(@_) : $delay->once(finish => shift) if @_;
-
-  return $delay;
+  weaken $delay->ioloop(_instance(shift))->{ioloop};
+  return @_ ? $delay->steps(@_) : $delay;
 }
 
 sub generate_port { Mojo::IOLoop::Server->generate_port }
 
 sub is_running { _instance(shift)->reactor->is_running }
+sub next_tick  { _instance(shift)->reactor->next_tick(@_) }
 sub one_tick   { _instance(shift)->reactor->one_tick }
 
 sub recurring { shift->_timer(recurring => @_) }
@@ -310,9 +307,9 @@ is loaded.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
 support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
-L<IO::Socket::SSL> (1.75+) will be used automatically if they are installed.
-Individual features can also be disabled with the MOJO_NO_IPV6 and MOJO_NO_TLS
-environment variables.
+L<IO::Socket::SSL> (1.84+) will be used automatically if they are installed.
+Individual features can also be disabled with the C<MOJO_NO_IPV6> and
+C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"REAL-TIME WEB"> for more.
 
@@ -379,7 +376,7 @@ Number of connections to accept at once, defaults to C<50>.
   my $reactor = $loop->reactor;
   $loop       = $loop->reactor(Mojo::Reactor->new);
 
-Low level event reactor, usually a L<Mojo::Reactor::Poll> or
+Low-level event reactor, usually a L<Mojo::Reactor::Poll> or
 L<Mojo::Reactor::EV> object with a default subscriber to the event
 L<Mojo::Reactor/"error">.
 
@@ -438,9 +435,8 @@ L<Mojo::IOLoop::Client/"connect">.
 
 Build L<Mojo::IOLoop::Delay> object to manage callbacks and control the flow
 of events, which can help you avoid deep nested closures that often result
-from continuation-passing style. A single callback will be treated as a
-subscriber to the event L<Mojo::IOLoop::Delay/"finish">, and multiple ones as
-a chain for L<Mojo::IOLoop::Delay/"steps">.
+from continuation-passing style. Callbacks will be passed along to
+L<Mojo::IOLoop::Delay/"steps">.
 
   # Synchronize multiple events
   my $delay = Mojo::IOLoop->delay(sub { say 'BOOM!' });
@@ -492,6 +488,20 @@ Check if event loop is running.
 
   exit unless Mojo::IOLoop->is_running;
 
+=head2 next_tick
+
+  my $undef = Mojo::IOLoop->next_tick(sub {...});
+  my $undef = $loop->next_tick(sub {...});
+
+Invoke callback as soon as possible, but not before returning, always returns
+C<undef>.
+
+  # Perform operation on next reactor tick
+  Mojo::IOLoop->next_tick(sub {
+    my $loop = shift;
+    ...
+  });
+
 =head2 one_tick
 
   Mojo::IOLoop->one_tick;
@@ -507,14 +517,18 @@ into the reactor, so you need to be careful.
 
 =head2 recurring
 
-  my $id = Mojo::IOLoop->recurring(0.5 => sub {...});
-  my $id = $loop->recurring(3 => sub {...});
+  my $id = Mojo::IOLoop->recurring(3 => sub {...});
+  my $id = $loop->recurring(0 => sub {...});
+  my $id = $loop->recurring(0.25 => sub {...});
 
 Create a new recurring timer, invoking the callback repeatedly after a given
 amount of time in seconds.
 
-  # Invoke as soon as possible
-  Mojo::IOLoop->recurring(0 => sub { say 'Reactor tick.' });
+  # Perform operation every 5 seconds
+  Mojo::IOLoop->recurring(5 => sub {
+    my $loop = shift;
+    ...
+  });
 
 =head2 remove
 
@@ -586,19 +600,22 @@ Get L<Mojo::IOLoop::Stream> object for id or turn object into a connection.
 
 =head2 timer
 
-  my $id = Mojo::IOLoop->timer(5 => sub {...});
-  my $id = $loop->timer(5 => sub {...});
+  my $id = Mojo::IOLoop->timer(3 => sub {...});
+  my $id = $loop->timer(0 => sub {...});
   my $id = $loop->timer(0.25 => sub {...});
 
 Create a new timer, invoking the callback after a given amount of time in
 seconds.
 
-  # Invoke as soon as possible
-  Mojo::IOLoop->timer(0 => sub { say 'Next tick.' });
+  # Perform operation in 5 seconds
+  Mojo::IOLoop->timer(5 => sub {
+    my $loop = shift;
+    ...
+  });
 
 =head1 DEBUGGING
 
-You can set the MOJO_IOLOOP_DEBUG environment variable to get some advanced
+You can set the C<MOJO_IOLOOP_DEBUG> environment variable to get some advanced
 diagnostics information printed to C<STDERR>.
 
   MOJO_IOLOOP_DEBUG=1

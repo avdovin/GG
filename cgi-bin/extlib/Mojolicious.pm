@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo';
 # "Fry: Shut up and take my money!"
 use Carp 'croak';
 use Mojo::Exception;
-use Mojo::Util qw(decamelize deprecated);
+use Mojo::Util 'decamelize';
 use Mojolicious::Commands;
 use Mojolicious::Controller;
 use Mojolicious::Plugins;
@@ -43,7 +43,7 @@ has types     => sub { Mojolicious::Types->new };
 has validator => sub { Mojolicious::Validator->new };
 
 our $CODENAME = 'Top Hat';
-our $VERSION  = '4.82';
+our $VERSION  = '4.97';
 
 sub AUTOLOAD {
   my $self = shift;
@@ -55,10 +55,26 @@ sub AUTOLOAD {
   # Call helper with fresh controller
   croak qq{Can't locate object method "$method" via package "$package"}
     unless my $helper = $self->renderer->helpers->{$method};
-  return $self->controller_class->new(app => $self)->$helper(@_);
+  return $self->build_controller->$helper(@_);
 }
 
-sub DESTROY { }
+sub build_controller {
+  my ($self, $tx) = @_;
+  $tx ||= $self->build_tx;
+
+  # Embedded application
+  my $stash = {};
+  if (my $sub = $tx->can('stash')) { ($stash, $tx) = ($tx->$sub, $tx->tx) }
+  $stash->{'mojo.secrets'} //= $self->secrets;
+
+  # Build default controller
+  %$stash = (%$stash, %{$self->defaults});
+  my $c
+    = $self->controller_class->new(app => $self, stash => $stash, tx => $tx);
+  weaken $c->{app};
+
+  return $c;
+}
 
 sub build_tx {
   my $self = shift;
@@ -102,19 +118,7 @@ sub dispatch {
 }
 
 sub handler {
-  my ($self, $tx) = @_;
-
-  # Embedded application
-  my $stash = {};
-  if (my $sub = $tx->can('stash')) { ($stash, $tx) = ($tx->$sub, $tx->tx) }
-  $stash->{'mojo.secrets'} //= $self->secrets;
-
-  # Build default controller
-  my $defaults = $self->defaults;
-  @{$stash}{keys %$defaults} = values %$defaults;
-  my $c
-    = $self->controller_class->new(app => $self, stash => $stash, tx => $tx);
-  weaken $c->{$_} for qw(app tx);
+  my $self = shift;
 
   # Dispatcher has to be last in the chain
   ++$self->{dispatch}
@@ -123,11 +127,13 @@ sub handler {
     unless $self->{dispatch};
 
   # Process with chain
+  my $c = $self->build_controller(@_);
+  weaken $c->{tx};
   $self->plugins->emit_chain(around_dispatch => $c);
 
   # Delayed response
   $self->log->debug('Nothing has been rendered, expecting delayed response.')
-    unless $tx->is_writing;
+    unless $c->tx->is_writing;
 }
 
 sub helper {
@@ -179,16 +185,6 @@ sub new {
 sub plugin {
   my $self = shift;
   $self->plugins->register_plugin(shift, $self, @_);
-}
-
-# DEPRECATED in Top Hat!
-sub secret {
-  deprecated
-    'Mojolicious::secret is DEPRECATED in favor of Mojolicious::secrets';
-  my $self = shift;
-  return $self->secrets->[0] unless @_;
-  $self->secrets->[0] = shift;
-  return $self;
 }
 
 sub start { shift->commands->run(@_ ? @_ : @ARGV) }
@@ -405,10 +401,10 @@ L<Mojolicious::Controller>.
   $app     = $app->mode('production');
 
 The operating mode for your application, defaults to a value from the
-MOJO_MODE and PLACK_ENV environment variables or C<development>. Right before
-calling L</"startup">, L<Mojolicious> will pick up the current mode, name the
-log file after it and raise the log level from C<debug> to C<info> if it has a
-value other than C<development>.
+C<MOJO_MODE> and C<PLACK_ENV> environment variables or C<development>. Right
+before calling L</"startup">, L<Mojolicious> will pick up the current mode,
+name the log file after it and raise the log level from C<debug> to C<info> if
+it has a value other than C<development>.
 
 =head2 moniker
 
@@ -529,12 +525,22 @@ Validate parameters, defaults to a L<Mojolicious::Validator> object.
 L<Mojolicious> inherits all methods from L<Mojo> and implements the following
 new ones.
 
+=head2 build_controller
+
+  my $c = $app->build_controller;
+  my $c = $app->build_controller(Mojo::Transaction::HTTP->new);
+  my $c = $app->build_controller(Mojolicious::Controller->new);
+
+Build default controller object with L</"controller_class">.
+
+  # Render template from application
+  my $foo = $app->build_controller->render(template => 'foo', partial => 1);
+
 =head2 build_tx
 
   my $tx = $app->build_tx;
 
-Transaction builder, defaults to building a L<Mojo::Transaction::HTTP>
-object.
+Build L<Mojo::Transaction::HTTP> object and emit L</"after_build_tx"> hook.
 
 =head2 defaults
 
@@ -980,6 +986,7 @@ the terms of the Artistic License version 2.0.
 
 =head1 SEE ALSO
 
-L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<https://github.com/kraih/mojo>, L<Mojolicious::Guides>,
+L<http://mojolicio.us>.
 
 =cut

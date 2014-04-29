@@ -1,11 +1,12 @@
 package Mojo::Util;
-use Mojo::Base 'Exporter';
+use Mojo::Base -strict;
 
 use Carp qw(carp croak);
 use Data::Dumper ();
 use Digest::MD5 qw(md5 md5_hex);
 use Digest::SHA qw(hmac_sha1_hex sha1 sha1_hex);
 use Encode 'find_encoding';
+use Exporter 'import';
 use File::Basename 'dirname';
 use File::Spec::Functions 'catfile';
 use List::Util 'min';
@@ -110,7 +111,9 @@ sub deprecated {
   $ENV{MOJO_FATAL_DEPRECATIONS} ? croak(@_) : carp(@_);
 }
 
-sub dumper { Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Dump }
+sub dumper {
+  Data::Dumper->new([@_])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump;
+}
 
 sub encode { _encoding($_[0])->encode("$_[1]") }
 
@@ -311,7 +314,8 @@ sub tablify {
 
 sub trim {
   my $str = shift;
-  $str =~ s/^\s+|\s+$//g;
+  $str =~ s/^\s+//;
+  $str =~ s/\s+$//;
   return $str;
 }
 
@@ -504,7 +508,7 @@ Decode bytes to characters and return C<undef> if decoding failed.
   deprecated 'foo is DEPRECATED in favor of bar';
 
 Warn about deprecated feature from perspective of caller. You can also set the
-MOJO_FATAL_DEPRECATIONS environment variable to make them die instead.
+C<MOJO_FATAL_DEPRECATIONS> environment variable to make them die instead.
 
 =head2 dumper
 

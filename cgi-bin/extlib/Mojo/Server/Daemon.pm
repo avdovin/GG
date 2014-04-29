@@ -1,21 +1,20 @@
 package Mojo::Server::Daemon;
 use Mojo::Base 'Mojo::Server';
 
-use Carp 'croak';
 use Mojo::IOLoop;
 use Mojo::URL;
-use POSIX;
 use Scalar::Util 'weaken';
 
 use constant DEBUG => $ENV{MOJO_DAEMON_DEBUG} || 0;
 
 has acceptors => sub { [] };
-has [qw(backlog group silent user)];
+has [qw(backlog silent)];
 has inactivity_timeout => sub { $ENV{MOJO_INACTIVITY_TIMEOUT} // 15 };
 has ioloop => sub { Mojo::IOLoop->singleton };
 has listen => sub { [split ',', $ENV{MOJO_LISTEN} || 'http://*:3000'] };
-has max_clients  => 1000;
-has max_requests => 25;
+has max_clients   => 1000;
+has max_requests  => 25;
+has reverse_proxy => sub { $ENV{MOJO_REVERSE_PROXY} };
 
 sub DESTROY {
   my $self = shift;
@@ -28,26 +27,6 @@ sub run {
   my $self = shift;
   local $SIG{INT} = local $SIG{TERM} = sub { $self->ioloop->stop };
   $self->start->setuidgid->ioloop->start;
-}
-
-sub setuidgid {
-  my $self = shift;
-
-  # Group
-  if (my $group = $self->group) {
-    croak qq{Group "$group" does not exist}
-      unless defined(my $gid = getgrnam $group);
-    POSIX::setgid($gid) or croak qq{Can't switch to group "$group": $!};
-  }
-
-  # User
-  if (my $user = $self->user) {
-    croak qq{User "$user" does not exist}
-      unless defined(my $uid = getpwnam $user);
-    POSIX::setuid($uid) or croak qq{Can't switch to user "$user": $!};
-  }
-
-  return $self;
 }
 
 sub start {
@@ -89,6 +68,7 @@ sub _build_tx {
   my $handle = $self->ioloop->stream($id)->handle;
   $tx->local_address($handle->sockhost)->local_port($handle->sockport);
   $tx->remote_address($handle->peerhost)->remote_port($handle->peerport);
+  $tx->req->reverse_proxy(1) if $self->reverse_proxy;
   $tx->req->url->base->scheme('https') if $c->{tls};
 
   # Handle upgrades and requests
@@ -135,7 +115,7 @@ sub _finish {
   if (my $ws = $c->{tx} = delete $c->{ws}) {
 
     # Successful upgrade
-    if ($ws->res->code eq '101') {
+    if ($ws->res->code == 101) {
       weaken $self;
       $ws->on(resume => sub { $self->_write($id) });
     }
@@ -184,13 +164,8 @@ sub _listen {
       $stream->timeout($self->inactivity_timeout);
 
       $stream->on(close => sub { $self->_close($id) });
-      $stream->on(
-        error => sub {
-          return unless $self;
-          $self->app->log->error(pop);
-          $self->_close($id);
-        }
-      );
+      $stream->on(error =>
+          sub { $self && $self->app->log->error(pop) && $self->_close($id) });
       $stream->on(read => sub { $self->_read($id => pop) });
       $stream->on(timeout =>
           sub { $self->app->log->debug('Inactivity timeout.') if $c->{tx} });
@@ -298,9 +273,9 @@ support.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
 support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
-L<IO::Socket::SSL> (1.75+) will be used automatically by L<Mojo::IOLoop> if
+L<IO::Socket::SSL> (1.84+) will be used automatically by L<Mojo::IOLoop> if
 they are installed. Individual features can also be disabled with the
-MOJO_NO_IPV6 and MOJO_NO_TLS environment variables.
+C<MOJO_NO_IPV6> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
@@ -327,20 +302,13 @@ Active acceptors.
 
 Listen backlog size, defaults to C<SOMAXCONN>.
 
-=head2 group
-
-  my $group = $daemon->group;
-  $daemon   = $daemon->group('users');
-
-Group for server process.
-
 =head2 inactivity_timeout
 
   my $timeout = $daemon->inactivity_timeout;
   $daemon     = $daemon->inactivity_timeout(5);
 
 Maximum amount of time in seconds a connection can be inactive before getting
-closed, defaults to the value of the MOJO_INACTIVITY_TIMEOUT environment
+closed, defaults to the value of the C<MOJO_INACTIVITY_TIMEOUT> environment
 variable or C<15>. Setting the value to C<0> will allow connections to be
 inactive indefinitely.
 
@@ -358,7 +326,7 @@ L<Mojo::IOLoop> singleton.
   $daemon    = $daemon->listen(['https://localhost:3000']);
 
 List of one or more locations to listen on, defaults to the value of the
-MOJO_LISTEN environment variable or C<http://*:3000>.
+C<MOJO_LISTEN> environment variable or C<http://*:3000>.
 
   # Listen on all IPv4 interfaces
   $daemon->listen(['http://*:3000']);
@@ -405,8 +373,7 @@ Path to the TLS cert file, defaults to a built-in test certificate.
 
   ciphers=AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH
 
-Cipher specification string, defaults to
-C<ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH>.
+Cipher specification string.
 
 =item key
 
@@ -443,19 +410,20 @@ Maximum number of concurrent client connections, defaults to C<1000>.
 
 Maximum number of keep-alive requests per connection, defaults to C<25>.
 
+=head2 reverse_proxy
+
+  my $bool = $daemon->reverse_proxy;
+  $daemon  = $daemon->reverse_proxy($bool);
+
+This server operates behind a reverse proxy, defaults to the value of the
+C<MOJO_REVERSE_PROXY> environment variable.
+
 =head2 silent
 
   my $bool = $daemon->silent;
   $daemon  = $daemon->silent($bool);
 
 Disable console messages.
-
-=head2 user
-
-  my $user = $daemon->user;
-  $daemon  = $daemon->user('web');
-
-User for the server process.
 
 =head1 METHODS
 
@@ -467,12 +435,6 @@ implements the following new ones.
   $daemon->run;
 
 Run server.
-
-=head2 setuidgid
-
-  $daemon = $daemon->setuidgid;
-
-Set user and group for process.
 
 =head2 start
 
@@ -488,7 +450,7 @@ Stop accepting connections.
 
 =head1 DEBUGGING
 
-You can set the MOJO_DAEMON_DEBUG environment variable to get some advanced
+You can set the C<MOJO_DAEMON_DEBUG> environment variable to get some advanced
 diagnostics information printed to C<STDERR>.
 
   MOJO_DAEMON_DEBUG=1

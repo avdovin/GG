@@ -3,7 +3,7 @@ use Mojo::Base 'Mojo::Server::Daemon';
 
 use Fcntl ':flock';
 use File::Spec::Functions qw(catfile tmpdir);
-use IO::Poll 'POLLIN';
+use IO::Poll qw(POLLIN POLLPRI);
 use List::Util 'shuffle';
 use Mojo::Util 'steady_time';
 use POSIX 'WNOHANG';
@@ -24,7 +24,7 @@ sub DESTROY {
   my $self = shift;
 
   # Worker
-  return unless $self->{finished};
+  return if $self->{worker};
 
   # Manager
   if (my $file = $self->{lock_file}) { unlink $file if -w $file }
@@ -45,6 +45,20 @@ sub check_pid {
   return undef;
 }
 
+sub ensure_pid_file {
+  my $self = shift;
+
+  # Check if PID file already exists
+  return if -e (my $file = $self->pid_file);
+
+  # Create PID file
+  $self->app->log->info(qq{Creating process id file "$file".});
+  die qq{Can't create process id file "$file": $!}
+    unless open my $handle, '>', $file;
+  chmod 0644, $handle;
+  print $handle $$;
+}
+
 sub run {
   my $self = shift;
 
@@ -59,7 +73,7 @@ sub run {
   # Pipe for worker communication
   pipe($self->{reader}, $self->{writer}) or die "Can't create pipe: $!";
   $self->{poll} = IO::Poll->new;
-  $self->{poll}->mask($self->{reader}, POLLIN);
+  $self->{poll}->mask($self->{reader}, POLLIN | POLLPRI);
 
   # Clean manager environment
   local $SIG{INT} = local $SIG{TERM} = sub { $self->_term };
@@ -89,7 +103,7 @@ sub _heartbeat {
   # Poll for heartbeats
   my $poll = $self->{poll};
   $poll->poll(1);
-  return unless $poll->handles(POLLIN);
+  return unless $poll->handles(POLLIN | POLLPRI);
   return unless $self->{reader}->sysread(my $chunk, 4194304);
 
   # Update heartbeats
@@ -104,7 +118,7 @@ sub _manage {
   # Spawn more workers and check PID file
   if (!$self->{finished}) {
     $self->_spawn while keys %{$self->{pool}} < $self->workers;
-    $self->_pid_file;
+    $self->ensure_pid_file;
   }
 
   # Shutdown
@@ -141,20 +155,6 @@ sub _manage {
   }
 }
 
-sub _pid_file {
-  my $self = shift;
-
-  # Check if PID file already exists
-  return if -e (my $file = $self->pid_file);
-
-  # Create PID file
-  $self->app->log->info(qq{Creating process id file "$file".});
-  die qq{Can't create process id file "$file": $!}
-    unless open my $handle, '>', $file;
-  chmod 0644, $handle;
-  print $handle $$;
-}
-
 sub _spawn {
   my $self = shift;
 
@@ -165,13 +165,14 @@ sub _spawn {
 
   # Prepare lock file
   my $file = $self->{lock_file};
-  die qq{Can't open lock file "$file": $!} unless open my $handle, '>', $file;
+  $self->app->log->error(qq{Can't open lock file "$file": $!})
+    unless open my $handle, '>', $file;
 
   # Change user/group
-  my $loop = $self->setuidgid->ioloop;
+  $self->setuidgid->{worker}++;
 
   # Accept mutex
-  $loop->lock(
+  my $loop = $self->ioloop->lock(
     sub {
 
       # Blocking ("ualarm" can't be imported on Windows)
@@ -261,9 +262,9 @@ should avoid modifying signal handlers in your applications.
 
 For better scalability (epoll, kqueue) and to provide IPv6 as well as TLS
 support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+) and
-L<IO::Socket::SSL> (1.75+) will be used automatically by L<Mojo::IOLoop> if
+L<IO::Socket::SSL> (1.84+) will be used automatically by L<Mojo::IOLoop> if
 they are installed. Individual features can also be disabled with the
-MOJO_NO_IPV6 and MOJO_NO_TLS environment variables.
+C<MOJO_NO_IPV6> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
@@ -480,6 +481,12 @@ Get process id for running server from L</"pid_file"> or delete it if server
 is not running.
 
   say 'Server is not running' unless $prefork->check_pid;
+
+=head2 ensure_pid_file
+
+  $prefork->ensure_pid_file;
+
+Ensure L</"pid_file"> exists.
 
 =head2 run
 

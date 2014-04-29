@@ -8,13 +8,14 @@ use Mojo::URL;
 has env => sub { {} };
 has method => 'GET';
 has url => sub { Mojo::URL->new };
+has 'reverse_proxy';
 
 my $START_LINE_RE = qr/
   ^
   ([a-zA-Z]+)                                            # Method
   \s+
   ([0-9a-zA-Z!#\$\%&'()*+,\-.\/:;=?\@[\\\]^_`\{|\}~]+)   # URL
-  (?:\s+HTTP\/(\d\.\d))?                                 # Version
+  \s+HTTP\/(\d\.\d)                                      # Version
   $
 /x;
 
@@ -70,25 +71,21 @@ sub fix_headers {
   my $self = shift;
   $self->{fix} ? return $self : $self->SUPER::fix_headers(@_);
 
-  # Basic authentication
+  # Host
   my $url     = $self->url;
   my $headers = $self->headers;
-  my $auth    = $url->userinfo;
-  $headers->authorization('Basic ' . b64_encode($auth, ''))
-    if $auth && !$headers->authorization;
+  $headers->host($url->host_port) unless $headers->host;
 
-  # Basic proxy authentication
-  if (my $proxy = $self->proxy) {
-    my $proxy_auth = $proxy->userinfo;
-    $headers->proxy_authorization('Basic ' . b64_encode($proxy_auth, ''))
-      if $proxy_auth && !$headers->proxy_authorization;
+  # Basic authentication
+  if ((my $info = $url->userinfo) && !$headers->authorization) {
+    $headers->authorization('Basic ' . b64_encode($info, ''));
   }
 
-  # Host
-  my $host = $url->ihost;
-  my $port = $url->port;
-  $headers->host($port ? "$host:$port" : $host) unless $headers->host;
-
+  # Basic proxy authentication
+  return $self unless my $proxy = $self->proxy;
+  return $self unless my $info  = $proxy->userinfo;
+  $headers->proxy_authorization('Basic ' . b64_encode($info, ''))
+    unless $headers->proxy_authorization;
   return $self;
 }
 
@@ -98,25 +95,21 @@ sub get_start_line_chunk {
   unless (defined $self->{start_buffer}) {
 
     # Path
-    my $url   = $self->url;
-    my $path  = $url->path->to_string;
-    my $query = $url->query->to_string;
-    $path .= "?$query" if $query;
+    my $url  = $self->url;
+    my $path = $url->path_query;
     $path = "/$path" unless $path =~ m!^/!;
 
     # CONNECT
     my $method = uc $self->method;
     if ($method eq 'CONNECT') {
       my $port = $url->port || ($url->protocol eq 'https' ? '443' : '80');
-      $path = $url->host . ":$port";
+      $path = $url->ihost . ":$port";
     }
 
     # Proxy
     elsif ($self->proxy) {
-      my $clone = $url = $url->clone->userinfo(undef);
-      my $upgrade = lc($self->headers->upgrade // '');
-      $path = $clone
-        unless $upgrade eq 'websocket' || $url->protocol eq 'https';
+      $path = $url->clone->userinfo(undef)
+        unless $self->is_handshake || $url->protocol eq 'https';
     }
 
     $self->{start_buffer} = "$method $path HTTP/@{[$self->version]}\x0d\x0a";
@@ -125,6 +118,8 @@ sub get_start_line_chunk {
   $self->emit(progress => 'start_line', $offset);
   return substr $self->{start_buffer}, $offset, 131072;
 }
+
+sub is_handshake { lc($_[0]->headers->upgrade // '') eq 'websocket' }
 
 sub is_secure {
   my $url = shift->url;
@@ -176,7 +171,7 @@ sub parse {
 
   # "X-Forwarded-HTTPS"
   $base->scheme('https')
-    if $ENV{MOJO_REVERSE_PROXY} && $headers->header('X-Forwarded-HTTPS');
+    if $self->reverse_proxy && $headers->header('X-Forwarded-HTTPS');
 
   return $self;
 }
@@ -202,9 +197,10 @@ sub _parse_env {
   my $headers = $self->headers;
   my $url     = $self->url;
   my $base    = $url->base;
-  while (my ($name, $value) = each %$env) {
+  for my $name (keys %$env) {
+    my $value = $env->{$name};
     next unless $name =~ s/^HTTP_//i;
-    $name =~ s/_/-/g;
+    $name =~ y/_/-/;
     $headers->header($name => $value);
 
     # Host/Port
@@ -332,6 +328,13 @@ HTTP request URL, defaults to a L<Mojo::URL> object.
   say $req->url->to_abs->host;
   say $req->url->to_abs->path;
 
+=head2 reverse_proxy
+
+  my $bool = $req->reverse_proxy;
+  $req     = $req->reverse_proxy($bool);
+
+Request has been performed through a reverse proxy.
+
 =head1 METHODS
 
 L<Mojo::Message::Request> inherits all methods from L<Mojo::Message> and
@@ -369,6 +372,12 @@ Make sure request has all required headers.
 
 Get a chunk of request line data starting from a specific position.
 
+=head2 is_handshake
+
+  my $bool = $req->is_handshake;
+
+Check C<Upgrade> header for C<websocket> value.
+
 =head2 is_secure
 
   my $bool = $req->is_secure;
@@ -387,20 +396,21 @@ Check C<X-Requested-With> header for C<XMLHttpRequest> value.
   my $foo   = $req->param('foo');
   my @foo   = $req->param('foo');
 
-Access GET and POST parameters. Note that this method caches all data, so it
-should not be called before the entire request body has been received. Parts
-of the request body need to be loaded into memory to parse POST parameters, so
-you have to make sure it is not excessively large.
+Access C<GET> and C<POST> parameters. Note that this method caches all data,
+so it should not be called before the entire request body has been received.
+Parts of the request body need to be loaded into memory to parse C<POST>
+parameters, so you have to make sure it is not excessively large, there's a
+10MB limit by default.
 
 =head2 params
 
   my $params = $req->params;
 
-All GET and POST parameters, usually a L<Mojo::Parameters> object. Note that
-this method caches all data, so it should not be called before the entire
+All C<GET> and C<POST> parameters, usually a L<Mojo::Parameters> object. Note
+that this method caches all data, so it should not be called before the entire
 request body has been received. Parts of the request body need to be loaded
-into memory to parse POST parameters, so you have to make sure it is not
-excessively large.
+into memory to parse C<POST> parameters, so you have to make sure it is not
+excessively large, there's a 10MB limit by default.
 
   # Get parameter value
   say $req->params->param('foo');
@@ -428,7 +438,7 @@ Proxy URL for request.
 
   my $params = $req->query_params;
 
-All GET parameters, usually a L<Mojo::Parameters> object.
+All C<GET> parameters, usually a L<Mojo::Parameters> object.
 
   # Turn GET parameters to hash and extract value
   say $req->query_params->to_hash->{foo};
