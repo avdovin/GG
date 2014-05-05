@@ -17,7 +17,7 @@ sub _config{
 				route 			=> 'text',
 				linktmlp 		=> '',
 				mapfields 		=> {},
-				where 			=> " `viewtext`=1 ",
+				where 			=> " AND `viewtext`=1 ",
 			},
 		'texts_news_ru' => {
 				searchfields 	=> [qw(name text)],
@@ -28,26 +28,15 @@ sub _config{
 				mapfields 		=> {
 					alias 	=> 'list_item_alias',
 				},
-				where 			=> " `viewtext`=1 ",
-			},
-		'texts_events_ru' => {
-				searchfields 	=> [qw(name text)],
-				primary_key 	=> [qw(ID)],
-				controller 		=> 'text',
-				route 			=> 'events_item',
-				linktmlp 		=> '',
-				mapfields 		=> {
-					alias 	=> 'list_item_alias',
-				},
-				where 			=> " `viewtext`=1 ",
+				where 			=> " AND `viewtext`=1 ",
 			},
 		'data_catalog_items' => {
-				searchfields 	=> [qw(name article text)],
-				primary_key 	=> [qw(sync variantcode)],
+				searchfields 	=> [qw(name text)],
+				primary_key 	=> [qw(ID)],
 				controller 		=> 'catalog',
 				route 			=> '',
-				linktmlp 		=> '/catalog/item/%s~sync%_%s~variantcode%',
-				where 			=> " `active`=1 ",
+				linktmlp 		=> '/catalog/iteminfo/%s~alias%',
+				where 			=> " AND `active`=1 ",
 			},
 	};
 
@@ -114,6 +103,7 @@ sub register {
 			$search_str .= $hash_table->{$table}->{where} if $hash_table->{$table}->{where};
 
 			if($search_str){
+				warn "SELECT $keyFieldSelect FROM `$table` WHERE $search_str";
 				for my $row  ($self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE $search_str")->hashes){
 
 					$result_search_index[$sch] = {
@@ -180,9 +170,12 @@ sub print_search_result{
 	my $qsearch = $params{qsearch};
 
 	my $where = " `qsearch`='$qsearch' ORDER BY `idx` ";
+
+	$params{count} = $self->stash->{total_count} = $self->dbi->getCountCol(from => 'dtbl_search_results', where => $where);
+
 	if($params{limit}){
-		my $count = $self->stash->{total_count} = $self->dbi->getCountCol(from => 'dtbl_search_results', where => $where);
-		$self->def_text_interval( total_vals => $count, cur_page => $params{page}, col_per_page => $params{limit} );
+		#$params{count} = $self->stash->{total_count} = $self->dbi->getCountCol(from => 'dtbl_search_results', where => $where);
+		$self->def_text_interval( total_vals => $params{count}, cur_page => $params{page}, col_per_page => $params{limit} );
 		$params{npage} = $params{limit} * ($params{page} - 1);
 		$where .= " LIMIT $params{npage},$params{limit} ";
 	}

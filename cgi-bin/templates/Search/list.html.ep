@@ -1,35 +1,36 @@
 % layout 'default';
 
-<div class="block-wrapper block-padding">
-	<div class="content">
-	
-		<h1>Результаты поиска</h1>
-	    <div id="search-container">
-	       	<h2>Вы искали: <b><%= $qsearch %></b></h2>
-	        <label>Найдено страниц: <%= $count %></label>
-	        <div id="search-result">
-				<% if(scalar(@$items)==0) { %>
-					<br/><h2>По Вашему запросу ничего не найдено</h2>
-				<% } else { %>
-					<% foreach my $item (@$items){ %>
-	                    <div class="search-entry clearfix">
-	                    	<span><%= $item->{index} %></span>
-	                    	<div>
-		                    	<% if ($item->{pict}) { %>
-					        		<a href="<%= $item->{link} %>"><img width="90" height="90" src="/image/catalog/items/90x90_<%= $item->{pict} %>" alt=""/></a>
-						        <% } %>
-		                    	<h3><a href="<%= $item->{link} %>"><%= $item->{name} %></a></h3>
-		                    	<p><%== $item->{text} %></p>
-		                    	
-		                    	<% if ($item->{price}) { %>
-			                    	<p style="float: left; margin-right: 15px;">Цена: <%== $item->{price} %> руб.</p>
-		                    	<% } %>
-	                    	</div>
-	                    </div>
-	                <% } %>		
-				<% } %>
-	        </div>
-	    </div>
-			
-	</div>
+<h1>Результаты поиска</h1>
+
+<ul class="breadcrumbs clearfix">
+	<li class="breadcrumbs__entry"><a class="entry__link" href="/">Главная</a></li>
+	<li class="breadcrumbs__entry"><span class="entry__link">Поиск</span></li>
+</ul>
+
+<div class="block block_background block_shadowed block_padding content">
+    <div id="search-container">
+       	<h2>Вы искали: <b><%= $qsearch %></b></h2>
+        <label>Найдено страниц: <%= $count %></label>
+        <div id="search-result">
+			<% if(scalar(@$items)==0) { %>
+				<br/><h2>По Вашему запросу ничего не найдено</h2>
+			<% } else { %>
+				<% foreach my $item (@$items){ %>
+                    <div class="search-entry clearfix">
+                    	<span><%= $item->{index} %></span>
+                    	<div>
+	                    	<% if ($item->{pict}) { %>
+				        		<a href="<%= $item->{link} %>"><img width="90" height="90" src="/image/catalog/items/180x180_<%= $item->{pict} %>" alt=""/></a>
+					        <% } %>
+	                    	<h3><a href="<%= $item->{link} %>"><%= $item->{name} %></a></h3>
+	                    	<p><%== $item->{text} %></p>
+
+	                    	<% if ($item->{price}) { %>
+		                    	<p style="float: left; margin-right: 15px;">Цена: <%== $item->{price} %> руб.</p>
+	                    	<% } %>
+                    	</div>
+                    </div>
+                <% } %>
+			<% } %>
+        </div>
 </div>

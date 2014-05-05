@@ -16,8 +16,9 @@
 			<h1>Продукция</h1>
 
 			% if($self->stash->{subcategory_alias}){
-				% my $link = $self->url_for('catalog_list_by_sub_category', subcategory_alias => $subcategory->{alias}, category_alias => $category->{alias} );
-				%== breadcrumbs $category->{name} => $link;
+				% my $catlink = $self->url_for('catalog_list_by_category', category_alias => $category->{alias} );
+				% my $subcatlink = $self->url_for('catalog_list_by_sub_category', subcategory_alias => $subcategory->{alias}, category_alias => $category->{alias} );
+				%== breadcrumbs $category->{name} => $catlink, $subcategory->{name} => $subcatlink;
 
 			% }elsif($self->stash->{category_alias}){
 				% my $link = $self->url_for('catalog_list_by_category', category_alias => $category->{alias} );

@@ -1,10 +1,10 @@
 // jQuery Amount Control
 // Author: Nikita K., nikita.ak.85@gmail.com
-// Version: 1.31, 14.04.2014 [from 24.09.2013]
+// Version: 1.32, 29.04.2014 [from 24.09.2013]
 
 (function($){
 
-	$.amountControl = {version: '1.31'};
+	$.amountControl = {version: '1.32'};
 
 	var methods = {
 		init: function(params){
@@ -173,6 +173,10 @@
 			$entrydata.amount = newamount;
 			$entrydata.total  = $entrydata.amount * $entrydata.price;
 
+			if ($entrydata.price.match(/\./)) {
+				$entrydata.total = $entrydata.total.toFixed(2);
+			}
+
 			$entry.data('amountcontrol', $entrydata);
 
 			methods.updateAmount.call($wrapper);
@@ -194,7 +198,7 @@
 				});
 			}
 
-			$wrapper.find($data.child).each(function(){
+			$wrapper.find($data.child).each(function(i){
 				var $entry   = $(this),
 					$entrydata = $(this).data('amountcontrol'),
 					$control   = $entry.find($data.control);
@@ -213,7 +217,11 @@
 
 				// update label
 				$entry.find($data.unit_amount).html($entrydata.amount);
-				$entry.find($data.unit_total).html(formatNumberWithSpaces($entrydata.price*$entrydata.amount));
+				var itemPrice = $entrydata.price*$entrydata.amount;
+				if (Math.round(itemPrice) != itemPrice) {
+					itemPrice = itemPrice.toFixed(2);
+				}
+				$entry.find($data.unit_total).html( formatNumberWithSpaces(itemPrice) );
 				if ($data.unit_total_postfix) $entry.find($data.unit_total).html($entry.find($data.unit_total).html()+' '+$data.unit_total_postfix);
 
 				all_total_amount += parseInt($entrydata.amount);
@@ -221,6 +229,10 @@
 
 				all_total_entries = $wrapper.find($data.child).length;
 			});
+
+			if (Math.round(all_total_price) != all_total_price) {
+				all_total_price = all_total_price.toFixed(2);
+			}
 
 			// update overall
 			$($data.all_total_amount).html(all_total_amount);

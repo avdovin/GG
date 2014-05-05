@@ -1,4 +1,4 @@
-// 25.04.2014
+// 29.04.2014
 
 // FUNCTIONS
 //	  GG.togglePopup(id)
@@ -16,7 +16,7 @@
 var GG = function(){
 	var $self = this;
 
-	$self.version = '2.07';
+	$self.version = '2.08';
 
 	$self.debug = function(arg){
 		if (typeof arg != 'undefined') {
@@ -241,7 +241,7 @@ var GG = function(){
 				$loading.fadeIn();
 			},
 			beforeSubmit: function(){},
-			onDone: function($wrapper, $error){
+			onDone: function($wrapper, $error, data){
 				$error.hide();
 
 				var old_height = $wrapper.height(),
@@ -261,24 +261,31 @@ var GG = function(){
 				settings.data = $form.serialize();
 
 				$.ajax(settings).done(function(data) {
-					if(!$self.isEmpty(data.errors)){
-						var errors  = data.errors;
-						var errorText = '';
-
-						$error.html("<ul></ul>");
-						for (var error in errors) {
-							if (errors.hasOwnProperty(error)) {
-								// add classes
-								$parent.find("input[name="+error+"], textarea[name="+error+"], select[name="+error+"]").addClass(".field__input_error").addClass(".error");
-
-								// fill errors container
-								$("<li/>").html(errors[error]).appendTo($error.find("ul"));
-							}
+					if ($self.LOCAL) { // этот блок нужен для отладки ajax-запроса на машине без сервера
+						var data = {
+							message_success: '<h3>Запрос выполнен (локаль)<br/>DEBUG MODE ON</h3>'
 						}
-
-						$error.show();
+						settings.onDone($wrapper, $error, data);
 					} else {
-						settings.onDone($wrapper, $error);
+						if(!$self.isEmpty(data.errors || {})){
+							var errors  = data.errors;
+							var errorText = '';
+
+							$error.html("<ul></ul>");
+							for (var error in errors) {
+								if (errors.hasOwnProperty(error)) {
+									// add classes
+									$parent.find("input[name="+error+"], textarea[name="+error+"], select[name="+error+"]").addClass(".field__input_error").addClass(".error");
+
+									// fill errors container
+									$("<li/>").html(errors[error]).appendTo($error.find("ul"));
+								}
+							}
+
+							$error.show();
+						} else {
+							settings.onDone($wrapper, $error, data);
+						}
 					}
 				}).always(function(){
 					$loading.fadeOut();

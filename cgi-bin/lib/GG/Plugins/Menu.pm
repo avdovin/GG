@@ -44,7 +44,7 @@ sub navipoint {
 		for (my $i = 0; $i <= $#_; $i += 2) {
 			push @points, {'name' => $_[$i], 'url' => $_[$i + 1]};
 		}
-		@points = reverse @points;
+		#@points = @points;
 	}
 
 	my $store = $self->stash('_navipoints') || [];

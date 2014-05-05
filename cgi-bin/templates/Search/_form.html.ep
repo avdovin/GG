@@ -1,5 +1,6 @@
-<div id="search">
-	<form id="search-form" method="post" action="<%= url_for('search') %>">
-    	<input type="text" name="qsearch" placeholder="Поиск" /><a href="javascript:void(0);" onClick="document.getElementById('search-form').submit();" id="search-button"></a>
-   </form>
+<div class="topbar__search">
+    <form id="search-form" method="get" action="<%= url_for 'search' %>">
+        <input class="search__input" type="text" placeholder="Поиск" value="<%= param('qsearch') || '' %>" name="qsearch"/>
+        <input type="submit" class="search__button" value="">
+    </form>
 </div>

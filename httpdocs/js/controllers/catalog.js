@@ -53,7 +53,6 @@ $(function(){
 				id: itemId,
 				count: $("input[name=count-"+itemId+"]").val(),
 				color: $(".colors-"+itemId+" a.colors__entry_current").data('color-id'),
-				size: $("input[name=count-"+itemId+"]").attr('data-size')
 			}],
 			onSuccess: function(){
 				if(delFlag){

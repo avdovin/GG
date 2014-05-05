@@ -39,11 +39,11 @@
 									</div>
 									<div class="entry__amount-container">
 										<span class="amount__prefix">Количество:</span>
-										<div class="amount__control"><input type="text" value="<%= $basket->{ $_->{ID}}->{count} =%>" data-min="1" data-max="99" /></div>
+										<div class="amount__control"><input data-color-id="<%= $basket->{ $_->{ID}}->{color} %>" data-item-id="<%= $_->{ID} %>" name="count-<%= $_->{ID} %>" type="text" value="<%= $basket->{ $_->{ID}}->{count} =%>" data-min="1" data-max="99" /></div>
 										<span class="amount__postfix">шт.</span>
 									</div>
 									<div class="entry__total-container">
-										<span class="total__itemprice"><%= $_->{price} %></b></span>
+										<span class="total__itemprice"><%= $_->{price} %></span>
 										<span class="total__multiply">x</span>
 										<span class="total__amount"></span>
 										<span class="total__equal">=</span>

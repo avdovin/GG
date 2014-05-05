@@ -1,3 +1,5 @@
+window._updateBasketInterval = null;
+
 $(function(){
 	$(document).on('click', '.korzina__clear', function(){
 		if( !confirm('Вы уверены что хотите удалить все товары из корзины?') ) return false;
@@ -126,15 +128,17 @@ $(function(){
 			all_total_price_postfix: '',
 
 			callback_total_update:   function(data){
-				topBasketUpdate({
-					total: data.entries,
-					middle: data.middle,
-					price: data.price,
+				// topBasketUpdate({
+				// 	total: data.entries,
+				// 	middle: data.middle,
+				// 	price: data.price,
 
-					animationSpeed: 500
-				});
+				// 	animationSpeed: 500
+				// });
 			},
-			callback_before_update:  function(){},
+			callback_before_update:  function(){
+				clearTimeout(window._updateBasketInterval);
+			},
 			callback_after_update:  function(data){
 				if (!data.entries) {
 					$(".korzina__empty").fadeIn();
@@ -143,6 +147,26 @@ $(function(){
 					$(".korzina__empty").hide();
 					$(".korzina__form").show();
 				}
+
+
+				window._updateBasketInterval = setTimeout(function(){
+					var items = [];
+					$(".korzina__entry input").each(function(){
+						items.push({
+							id : $(this).data('item-id'),
+							count : $(this).val(),
+							color : $(this).data('color-id'),
+						});
+					});
+
+					addItem({
+						delFlag: 0,
+						items: items,
+						onSuccess: function(){
+							GG.notify_warning("Изменения успешно внесены в корзину");
+						}
+					});
+				}, 1000);
 			}
 		});
 	}
