@@ -17,6 +17,7 @@ if (typeof jQuery == 'undefined') {
 % js_files(file => '/js/common.js', template => '_headers.html.ep');
 % js_files_cdn(file => '/js/jquery/plugins/jquery.mask.min.js', template => '_headers.html.ep');
 
+% css_files( '/css/core.css' );
 % css_files( '/css/style.css' );
 
 %= content_for 'headers'

@@ -164,6 +164,7 @@ sub menu_track {
 		levels		=> $levels,
 		order_ids	=> $menu_order_ids,
 		template   	=> 'Menu/'.$params{template},
+		_template 	=> $params{template},
 		parent_id  	=> $params{parent_id},
 		level      	=> $params{level},
 		toplevel   	=> $params{toplevel},

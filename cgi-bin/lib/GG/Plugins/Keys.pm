@@ -263,6 +263,11 @@ sub register {
 
 			my $list_vals = $lkey->{list} || {};
 			my $sort = $lkey->{settings}->{list_sort} || 0;
+
+			if(!$sort && $lkey->{settings}->{type} eq 'list'){
+				$sort = 'asc_d';
+			}
+
 			my $labels = [];
 			# Сортировка по значению
 			if($sort eq 'asc_d'){

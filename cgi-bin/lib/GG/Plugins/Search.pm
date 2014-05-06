@@ -6,6 +6,8 @@ use Encode;
 
 our $VERSION = '1';
 
+my $cutSize = 200;
+
 sub _config{
 	my $self = shift;
 
@@ -204,7 +206,6 @@ sub print_search_result{
 			if( $node->{text} ) {
 				$node->{text} =~ s/<.*?>//gi;
 
-				my $cutSize = 300;
 				if($node->{text} =~ /([\s\S]*?)$qsearch([\s\S]*)/){
 					my $pref = $1;
 					my $post = $2;

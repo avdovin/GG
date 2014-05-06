@@ -40,8 +40,6 @@ sub _init{
 	if($self->stash->{list_table} =~ /data_catalog_([\s\S]+)/){
 		$self->app->program->{groupname} = $self->app->program->{settings}->{'groupname_'.$1} if($1 && $self->app->program->{settings}->{'groupname_'.$1});
 	}
-
-
 }
 
 sub body{
@@ -54,7 +52,7 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
-		when('copy') 					{ $self->copy; }
+		when('order') 					{ $self->stash->{group} = 2; $self->edit; }
 
 		default							{
 			$self->default_actions($do);
@@ -167,84 +165,6 @@ sub delete{
 	}
 
 }
-
-
-sub copy{
-	my $self = shift;
-
-	unless(
-			$self->getArraySQL(
-				from 	=> $self->stash->{list_table},
-				where	=> "`ID`='".$self->stash->{index}."'",
-				stash	=> 'anketa'
-			)
-		){
-		$self->admin_msg_errors("Перед созданием копии необходимо сохранить текущий объект");
-
-		return $self->edit;
-	}
-	my $index = delete $self->stash->{'index'};
-
-	my $anketa = delete $self->stash->{anketa};
-	$self->send_params({});
-	foreach my $f (keys %$anketa){
-		next if($f eq 'ID' or $f eq 'alias' or $f eq 'pict');
-
-		$self->send_params->{$f} = $anketa->{$f};
-	}
-
-	$self->stash->{group} = 1;
-
-	if( $self->save_info( table => $self->stash->{list_table}) ){
-		my $copiedIndex = $self->stash->{'index'};
-
-		# Копируем сложные поля
-		if($anketa->{pict}){
-			my $lkeyFolder = $self->lkey(name => 'pict', controller => 'catalog', setting => 'folder');
-			my $folder = $self->app->static->paths->[0].$lkeyFolder;
-			my $filetmp = $self->file_copy_tmp($folder.$anketa->{pict});
-
-			$self->file_save_pict(
-				filename 	=> $filetmp,
-				lfield		=> 'pict',
-				fields		=> {pict => 'pict'},
-			);
-		}
-
-		# копируем измерения
-		for my $features ($self->dbi->query("SELECT * FROM `dtbl_catalog_items_features` WHERE `id_item`='$index' ORDER BY `rating`")->hashes){
-			delete $features->{ID};
-			$features->{id_item} = $copiedIndex;
-
-			$self->dbi->insert_hash('dtbl_catalog_items_features', %$features);
-		}
-
-		# копируем доп фото
-		for my $images ($self->dbi->query("SELECT * FROM `dtbl_catalog_items_images` WHERE `id_item`='$index' ORDER BY `rating`")->hashes){
-			delete $images->{ID};
-			$images->{id_item} = $copiedIndex;
-
-			my $imgId = $self->dbi->insert_hash('dtbl_catalog_items_images', %$images);
-
-			my $lkeyFolder = $self->lkey(name => 'pict', controller => 'catalog', setting => 'folder');
-			my $folder = $self->app->static->paths->[0].$lkeyFolder;
-			my $filetmp = $self->file_copy_tmp($folder.$anketa->{pict});
-
-			$self->file_save_pict(
-				filename 	=> $filetmp,
-				lfield		=> 'pict',
-				fields		=> {pict => 'pict'},
-			);
-		}
-
-		$self->admin_msg_success("Объект успешно скопирован");
-		return $self->edit;
-	}
-
-	$self->admin_msg_errors("Ошибка создании копии");
-	return $self->edit;
-}
-
 
 sub save{
 	my $self = shift;
@@ -368,7 +288,12 @@ sub list_items{
 	my $list_table = $self->stash->{list_table};
 	$self->render_not_found unless $list_table;
 
-	$self->stash->{listfield_buttons} =  [qw(delete edit print)];
+	if($self->stash->{list_table} eq 'data_catalog_orders'){
+		$self->stash->{listfield_buttons} =  [qw(delete edit order print)];
+	}
+	else {
+		$self->stash->{listfield_buttons} =  [qw(delete edit print)];
+	}
 
 	$params{table} = $list_table;
 
