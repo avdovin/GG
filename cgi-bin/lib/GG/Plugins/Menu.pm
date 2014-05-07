@@ -143,7 +143,7 @@ sub menu_track {
 		}
 
 		if( my $currentID = $self->stash->{menu_active_id} ){
-			$self->navipoint( $items->{$currentID}->{name} =>  $self->menu_item( $currentID ) );
+			$self->navipoint( $items->{$currentID}->{name} =>  $self->menu_item( $items->{ $currentID } ) );
 		}
 
 		$self->stash->{$stash_key			   } = $items;
