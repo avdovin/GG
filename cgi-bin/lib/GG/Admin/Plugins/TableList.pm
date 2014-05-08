@@ -99,13 +99,16 @@ sub register {
 			}
 
 			my $Data = {
-						lkeys	=> [],
-						settings	=> {},
-						data	=> [],
-						buttons_key => [],
+				lkeys	=> [],
+				settings	=> {},
+				data	=> [],
+				buttons_key => [],
 			};
 
-			$Data->{settings}->{qview} = 1 if $self->app->program->{settings}->{qview};
+			# показываем qView
+			$Data->{settings}->{qview} = 1 if $self->app->program->{settings}->{'qview'};
+			# показываем ID записи в списке
+			$Data->{settings}->{table_indexes} = 1 if $self->app->program->{settings}->{'table_indexes'};
 
 			#my $lkeys = $self->lkey;
 
@@ -122,8 +125,10 @@ sub register {
 			my $mini_prefix = {};
 			my $folders = {};
 			my $data_items = [];
+
 			foreach my $item (@$items){
 				my $id = $item->{ID};
+
 				foreach my $v (keys %$item){
 					my $lkey = $self->lkey( name => $v );
 					my $type = $lkey->{settings}->{type} || next;
@@ -567,7 +572,8 @@ sub register {
 			$params{lkey} = $self->stash->{replaceme} || $self->stash->{controller};
 
 			my @table_list_keys 		= ("`$params{table}`.`ID`");
-			my @table_list_keys_header  = ("ID") if (!$$self{program_table_noindex});
+			my @table_list_keys_header  = ();
+			push @table_list_keys_header, 'ID' if $self->app->program->{settings}->{'table_indexes'};
 
 			my $sch = 1;
 			my %tables;

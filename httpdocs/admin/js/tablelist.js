@@ -296,8 +296,10 @@ function parse_data_to_table(id, ajaxIndex) {
 		var qedit = element_table.attr('qedit') ? 1 : 0;
 
 		for(var i=0; i<vals.length; i++){
-			tr = document.createElement('TR');
 			var td_str = vals[i];
+
+			tr = document.createElement('TR');
+			jQuery(tr).data('index', td_str['ID']);
 
 			jQuery(tr).attr('id',  'tr'+td_str['ID']);
 			var td = document.createElement('TD');
