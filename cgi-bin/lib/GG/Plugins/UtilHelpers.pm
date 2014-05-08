@@ -160,7 +160,7 @@ sub register {
 			my $alias = shift || $self->stash->{alias};
 
 			my $item = $self->app->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `viewtext`='1' AND `alias`='$alias'")->hash;
-			return $self->stash->{text} = $item;
+			return $item;
 		}
 	);
 

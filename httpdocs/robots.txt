@@ -1,7 +1,5 @@
 User-Agent: Googlebot
-Disallow: */?&
-Disallow: */?f
-Disallow: */?c
+Disallow: /*?
 Disallow: /admin/
 Disallow: /userfiles/
 Disallow: /docfiles/
@@ -9,9 +7,7 @@ Crawl-delay: 10
 Sitemap: /sitemap.xml
 
 User-Agent: Yandex
-Disallow: */?&
-Disallow: */?f
-Disallow: */?c
+Disallow: /*?
 Disallow: /admin/
 Disallow: /userfiles/
 Disallow: /docfiles/
@@ -19,9 +15,7 @@ Crawl-delay: 10
 Sitemap: /sitemap.xml
 
 User-Agent: *
-Disallow: */?&
-Disallow: */?f
-Disallow: */?c
+Disallow: /*?
 Disallow: /admin/
 Disallow: /userfiles/
 Disallow: /docfiles/
