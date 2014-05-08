@@ -155,10 +155,10 @@ sub text_main_item{
 	$self->meta_keywords( $text->{keywords} );
 	$self->meta_description( $text->{description} );
 
-
+	my $template = $self->stash->{template} ||= "Texts/_body_default";
 	$self->render(
 		item		=> $text,
-		template	=> "Texts/_body_default",
+		template	=> $template,
 		layout		=> $text->{'layout'} || 'default',
 	);
 }

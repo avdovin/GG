@@ -113,6 +113,8 @@ table.tablelist tr.select td,table.tablelist tr.selectmarked td{background-color
 .ui-spinner-buttons {position: absolute}
 .ui-spinner-button {overflow: hidden}
 
+#filter label {cursor: pointer;}
+
 #loading-layout {
     position:fixed;
     width:100%;

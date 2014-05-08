@@ -417,7 +417,9 @@ sub edit{
 			$self->stash->{anketa}->{height} = $place->{height};
 		}
 	}
-
+	else {
+		$self->stash->{anketa}->{langs} = 'ru';
+	}
 
 	$self->define_anket_form( access => 'w', noget => 1);
 }
