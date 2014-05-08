@@ -31,7 +31,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.allowedContent = true;
 	config.extraAllowedContent = 'div[class,style]';
 
-	config.extraPlugins = 'youtube,uploadcare';
+	//config.extraPlugins = 'youtube,uploadcare';
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
