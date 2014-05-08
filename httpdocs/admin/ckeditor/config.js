@@ -31,6 +31,8 @@ CKEDITOR.editorConfig = function( config ) {
 	config.allowedContent = true;
 	config.extraAllowedContent = 'div[class,style]';
 
+	config.extraPlugins = 'youtube,uploadcare';
+
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
 	    { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
@@ -72,7 +74,7 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'paragraph', items : [ 'JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock' ] },
 
 		{ name: 'links', items : [ 'Link','Unlink','Anchor' ] },
-		{ name: 'insert', items : [ 'Image','Flash','Table','HorizontalRule','SpecialChar','PageBreak' ] },
+		{ name: 'insert', items : [ 'Image','Flash','Table','HorizontalRule','SpecialChar','PageBreak', 'Uploadcare' ] },
 		//'/',
 		{ name: 'styles', items : [ 'Format' ] },
 		{ name: 'colors', items : [ 'TextColor','BGColor' ] },
