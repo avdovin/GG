@@ -184,6 +184,10 @@ sub edit{
 
 	$self->def_context_menu( lkey => 'edit_info');
 
+	unless($self->stash->{index}){
+		$self->stash->{anketa}->{object} = 'lkey';
+	}
+
 	$self->define_anket_form( access => 'w');
 }
 
