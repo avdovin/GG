@@ -328,6 +328,7 @@ sub edit{
 			}
 			when('email'){
 				$self->lkey(name => 'envvalue')->{settings}->{template_w} = 'field_input';
+				$self->lkey(name => 'envvalue')->{settings}->{multiple} = 1;
 			}
 			when('code'){
 				$self->lkey(name => 'envvalue')->{settings}->{template_w} = 'field_text';

@@ -29,6 +29,7 @@
 			<% if($lkey_type eq 'd'){ %>pattern="[0­9]*"<% } %>
 			<% if($key eq 'name' && defined $self->stash->{anketa}->{alias}){ %>onKeyUp="build_alias(this);"<% } %>
 			<% if($lkey->{settings}->{regexpPattern}){ %>regexpPattern="<%= $lkey->{settings}->{regexpPattern} %>"<% } %>
+			<% if($lkey_type eq 'email' && $lkey->{settings}->{multiple}){ %>placeholder="Можно указать 1 или несколько адресов через ','"<% } %>
 			id="<%= $self->stash->{replaceme} %>_<%= $key %>"
 			onmouseup="this.focus();"
 			onmousedown="this.focus();"

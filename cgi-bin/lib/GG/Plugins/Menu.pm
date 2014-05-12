@@ -103,31 +103,28 @@ sub menu_track {
 
 			my @trees = ();
 
-			unless($parentID){
-				push @trees, $pageId if $current;
-			}
-			else {
-				while ($parentID > 0) {
-					if($current){
-						#$levels->{$tree_levels} = $parentID;
-						push @trees, $parentID;
-						$items->{$parentID}->{menu_active_parent} = $current;
-					}
-
-					$tree_levels++;
-					$items->{$parentID}->{noempty} = 1;
-
-
-					$parentID = $items->{$parentID}->{texts_main};
+			push @trees, $pageId if $current;
+			while ($parentID > 0) {
+				if($current){
+					#$levels->{$tree_levels} = $parentID;
+					push @trees, $parentID;
+					$items->{$parentID}->{menu_active_parent} = $current;
 				}
+
+				$tree_levels++;
+				$items->{$parentID}->{noempty} = 1;
+
+
+				$parentID = $items->{$parentID}->{texts_main};
+
 			}
 
 			if($current){
 				my $sch = 1;
 				foreach (reverse @trees){
+					warn "tree node: $_";
 					$levels->{$sch++} = $_;
 				}
-				$levels->{$tree_levels} = $items->{$pageId}->{ID};
 				$self->stash->{menu_active_id} = $pageId;
 				$items->{$pageId}->{menu_active} = $current;
 			}
@@ -138,12 +135,9 @@ sub menu_track {
 			$items->{$pageId}->{level} = $tree_levels;
 		}
 
-		foreach my $pageId (sort keys %$levels){
+		foreach my $lvl (sort keys %$levels){
+			my $pageId = $levels->{ $lvl };
 			$self->navipoint( $items->{$pageId}->{name} => $self->menu_item( $items->{$pageId} ) );
-		}
-
-		if( my $currentID = $self->stash->{menu_active_id} ){
-			$self->navipoint( $items->{$currentID}->{name} =>  $self->menu_item( $items->{ $currentID } ) );
 		}
 
 		$self->stash->{$stash_key			   } = $items;
@@ -164,7 +158,7 @@ sub menu_track {
 		levels		=> $levels,
 		order_ids	=> $menu_order_ids,
 		template   	=> 'Menu/'.$params{template},
-		_template 	=> $params{template},
+		_template   => $params{template},
 		parent_id  	=> $params{parent_id},
 		level      	=> $params{level},
 		toplevel   	=> $params{toplevel},
