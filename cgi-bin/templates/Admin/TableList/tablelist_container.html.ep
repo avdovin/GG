@@ -73,10 +73,10 @@
 %	if($self->app->program->{settings}->{razdels}) {
 	<td>
 		<form name="change_<%= $controller %>" id="change_<%= $controller %>" method="POST">
-		Раздел: <%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel} ) %>
-				<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel'); return false;" value="Сменить" style="width:100px;" class=submit_save>
-				</form>
-		</td>
+			Раздел: <%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel} ) %>
+			<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel'); return false;" value="Сменить" style="width:100px;" class=submit_save>
+		</form>
+	</td>
 %	}
 						<td width="25px"> </td>
 %	if($self->app->program->{settings}->{change_lang}) {
@@ -99,9 +99,9 @@
 				<form name="qsearch_<%= $controller %>" id="qsearch_<%= $controller %>" method="POST" onSubmit="return false;">
 				<table width="95%" align=center>
 				<tr>
-					<td width="160px" align=right valign=top>
-						Быстрый поиск:<br>
-						<a href="#" class="pseudolink" onClick="ld_content('<%= $replaceme %>filter_take', '/admin/<%= $controller %>/body?do=filter_take&<%= $self->stash->{param_default} %>', '', 1);"><span id="<%= $replaceme %>filter_take"><%= $self->stash->{'filter_take_text'} %></span></a>
+					<td width="160px" align=right valign=middle style="line-height: 13px;">
+						Быстрый поиск:
+						<a style="display:inline-block;" href="#" class="pseudolink" onClick="ld_content('<%= $replaceme %>filter_take', '/admin/<%= $controller %>/body?do=filter_take&<%= $self->stash->{param_default} %>', '', 1);"><span id="<%= $replaceme %>filter_take"><%= $self->stash->{'filter_take_text'} %></span></a>
 					</td>
 					<td width=50% align=left>
 						<input type=text name="qsearch" class="menu" value="<%= $self->stash->{'qsearch'} %>">
@@ -121,7 +121,7 @@
 <table width="96%" align=center><tr><td>
 	<%= page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container' %>
 </td>
-			<td width="*" align=right>
+			<td width="*" align=right style="line-height:13px;">
 %	if($self->app->program->{settings}->{qedit}) {
 				<a href="#" class="pseudolink" title="Включить/выключить быстрое редактирование" onclick="ld_content('qedit_type', '<%= $self->stash->{controller_url} %>?do=set_qedit&<%= $self->stash->{param_default} %>', '', 1)">
 						<span id="qedit_type"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить QEdit<% } else { %>Выключить QEdit<% } %></span>
@@ -143,38 +143,38 @@
 	<table class=tablelist width="96%" align=center id="quickEdit<%= $replaceme %>" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="&list_table=<%= $self->stash->{list_table} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit'} %>">
 		<tr class=header>
 			<td style="width: 10px;"><input id="listallchb" type="checkbox" onclick="selectAllcheckbox();"/></td>
-%	if($self->app->program->{settings}->{qview}) {
-			<td style="width: 16px;"></td>
-%	}
+	% if($self->app->program->{settings}->{qview}) {
+		<td style="width: 16px;"></td>
+	% }
 
-%	foreach (@$listfield_header){
-%		my $lkey = $self->lkey( name => $_);
-		<td style="<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %><% if($_ eq 'ID'){ %>width: 60px;<% } elsif($lkey->{settings}->{table_list_width}){ %>width:<%= $lkey->{settings}->{table_list_width} %>px;<% } else { %>width:auto;<% } %>">
-%		unless($lkey->{settings}->{table_list_nosort}){
-			<div style="padding:0px;margin:0px;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>">
-							<div style="width:9px;height:16px;margin-right:5px;margin-bottom:5px;float:left;padding:0px;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>" valign=top>
-								<a style="text-decoration:none;margin:0px" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=asc')" href="#">
-%					if($self->stash->{asc} eq 'asc' and $_ eq $self->stash->{sfield}){
-									<img src="/admin/img/arrow-up-sel.gif" vspace=0 border=0 style="margin-bottom:0px">
-%					} else {
-						<img src="/admin/img/arrow-up.gif" vspace=0 border=0 style="margin-bottom:0px">
-%					}
-					</a>
-								<a style="text-decoration:none;margin:0px" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=desc')" href="#">
-%					if($self->stash->{asc} eq 'desc' and $_ eq $self->stash->{sfield}){
-									<img src="/admin/img/arrow-down-sel.gif" vspace=0 border=0 style="margin-top:0px">
-%					} else {
-						<img src="/admin/img/arrow-down.gif" vspace=0 border=0 style="margin-top:0px">
-%					}
-					</a><br>
-				</div>
-						<div<% if($_ eq $self->stash->{sfield}){ %> style="background-color: rgb(204, 228, 208);"<% } %>>
-								<% if($lkey->{settings}->{table_list_name}){ %><%= $lkey->{settings}->{table_list_name}%><% } else { %><%= $lkey->{name}%><% } %>
-							</div>
+	% foreach (@$listfield_header){
+		% my $lkey = $self->lkey( name => $_);
+		<td style="padding:0;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %><% if($_ eq 'ID'){ %>width: 60px;<% } elsif($lkey->{settings}->{table_list_width}){ %>width:<%= $lkey->{settings}->{table_list_width} %>px;<% } else { %>width:auto;<% } %>">
+			% unless($lkey->{settings}->{table_list_nosort}){
+				<div style="position:relative;white-space:nowrap;min-height:32px;padding: 0 0 0 20px;margin:0px;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>">
+					<div style="position:absolute;top:9px;left:6px;font-size:1px;display:inline-block;">
+						<a style="font-size:1px;display:block;text-decoration:none;" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=asc')" href="#">
+							% if($self->stash->{asc} eq 'asc' and $_ eq $self->stash->{sfield}){
+							<img src="/admin/img/arrow-up-sel.gif" vspace=0 border=0 style="margin-bottom:0px">
+							% } else {
+							<img src="/admin/img/arrow-up.gif" vspace=0 border=0 style="margin-bottom:0px">
+							% }
+						</a>
+						<a style="font-size:1px;margin-right:5px;text-decoration:none;" onclick="ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=desc')" href="#">
+							% if($self->stash->{asc} eq 'desc' and $_ eq $self->stash->{sfield}){
+							<img src="/admin/img/arrow-down-sel.gif" vspace=0 border=0 style="margin-top:0px">
+							% } else {
+							<img src="/admin/img/arrow-down.gif" vspace=0 border=0 style="margin-top:0px">
+							% }
+						</a>
 					</div>
-%		}
+					<div style="position:relative;<% if($_ eq $self->stash->{sfield}){ %>background-color: rgb(204, 228, 208);<% } %>">
+						<a href="javascript:void(0);" onclick="<% if($self->stash->{asc} eq 'asc' and $_ eq $self->stash->{sfield}){ %>ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=desc')<% } else { %>ld_content('<%= $replaceme %>','/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&sfield=<%= $_ %>&asc=asc')<% } %>" style="display:block;padding:7px 7px 7px 0;color:#000;text-decoration:none;"><% if($lkey->{settings}->{table_list_name}){ %><%= $lkey->{settings}->{table_list_name}%><% } else { %><%= $lkey->{name}%><% } %></a>
+					</div>
+				</div>
+			% }
 		</td>
-%	}
+	% }
 
 	<% foreach(@$listfield_buttons){ %><td style="width:16px;"> </td><% } =%>
 		</tr>
