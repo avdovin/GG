@@ -127,6 +127,41 @@ function init_tablelist(id) {
 												displayMessage(script_link + '?do=' + array[0] + '&index=' + array[1], 400, 350, 3)
 //												loadfile(script_link + '?action=' + array[0] + '&index=' + array[1]);
 											}
+
+										} else if (action == 'link'){
+											// img.onclick = function() {
+											// 	array = this.className.split(' ');
+											// 	open_url(script_link + '?do=' + array[0] + '&index=' + array[1]);
+											// }
+
+											img.onclick = function() {
+												array = this.className.split(' ');
+
+												var $img = $("#tr"+array[1]).find(".button16 img.restore"),
+												     src = $img.attr("src");
+
+												if (window.openURLtimer) {
+													$img.attr("src", "/admin/img/preloader_16x16.gif");
+
+													$.ajax({
+														url: script_link + '?do=' + array[0] + '&index=' + array[1]
+													}).done(function(data){
+														$img.attr("src", src);
+														if (data) {
+															prompt("URL страницы", data);
+														}
+													});
+
+													clearTimeout(window.openURLtimer);
+													window.openURLtimer = null;
+
+													return false;
+												}
+
+    											window.openURLtimer = setTimeout(function() { open_url(script_link + '?do=' + array[0] + '&index=' + array[1]); window.openURLtimer = null; }, 250);
+											}
+
+
 										} else if (action != 'upload') {
 											img.onclick = function() {
 												array = this.className.split(' ');
