@@ -28,6 +28,10 @@
 
 	<script type="text/javascript" src="/admin/js/jquery/jtip.js"></script>
 	<link rel="stylesheet" href="/admin/css/pane-content-custom.css" type="text/css" />
+
+	<script>
+		UPLOADCARE_PUBLIC_KEY = "<%= get_var name => 'UPLOADCARE_PUBLIC_KEY', controller => 'global' %>";
+	</script>
 </head>
 <body>
 <!-- начало. данные для панелей -->
