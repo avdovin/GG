@@ -14,7 +14,7 @@ if (typeof jQuery == 'undefined') {
 //--><!]]>
 </script>
 
-% js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if $self->stash->{'jquery_history'};
+% js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if $self->config->{'jquery_history'};
 % js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
 % js_files(file => '/js/common.js', template => '_headers.html.ep');
 % js_files_cdn(file => '/js/jquery/plugins/jquery.mask.min.js', template => '_headers.html.ep');

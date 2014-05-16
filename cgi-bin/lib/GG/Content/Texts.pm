@@ -56,7 +56,7 @@ sub texts_list{
 		order_field	=> $self->stash('date') || "tdate",
 		select		=> '*',
 		page		=> $self->stash('page') || 1,
-		limit		=> 0,	#$self->vars->{news_limit}->value
+		limit		=> 0,	# $self->get_var(name => 'news_limit', controller => 'texts', raw => 1),
 		@_
 	);
 

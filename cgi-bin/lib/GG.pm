@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious';
 
 use utf8;
 
-our $VERSION  = '9.3';
+our $VERSION  = '9.3.1.1';
 
 # This method will run once at server start
 sub startup{
@@ -27,31 +27,16 @@ sub startup{
 	# Load config
 	my $config = $self->plugin('Config', {	file      => 'config', 	default   => {} });
 
+	$self->plugin('init');
+	$self->plugin('util_helpers');
 	# DBI OO api
 	$self->plugin('dbi', $config );
 
-	# Sys vars
-	$self->plugin('vars');
 
-	# Lkeys
-	$self->plugin('keys');
-	$self->plugin('seo');
-	$self->plugin('util_helpers');
-
-
-	# ADMIN ROUTES
-	$self->plugin('admin');
-
-	# self
-	$self->plugin('menu');
-	$self->plugin('banners');
-	$self->plugin('content');
-	#$self->plugin('feedback');
-	#$self->plugin('captcha') ;
-
-	$self->plugin('file');
-	$self->plugin('feedback');
-	$self->plugin('image');
+	# Load plugins from config
+	foreach (@{$config->{plugins}}){
+		$self->plugin($_);
+	}
 
 	# языковые версии сайта
 	# $self->plugin('I18N' =>  {
@@ -82,22 +67,17 @@ sub startup{
 		handler				=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
 		controller_class	=> 'GG::Controller',	# Папка с модулями
 		layout				=> 'default',			# Скелет (layout) страниц
-		seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
-		seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
-		jquery_history		=> 0,					# Загрузить jQuery плагин - history
-		vfe_enabled			=> 0,					# Загружать vfe
-		minify_html 		=> 1,					# Сжатие html кода
-	#	lang	=> 'ru',							# языковая версия сайта
 	);
 
-	$self->static->paths(['../../httpdocs/']);
-	$self->plugin('vfe') if $routes_args{'vfe_enabled'};
+	$self->static->paths([$config->{static_path}]);
+	$self->plugin('vfe') if $config->{'vfe_enabled'};
 	$ENV{MOJO_MAX_MESSAGE_SIZE} = $config->{upload_maxchanksize};
 
 	$self->hook(before_dispatch => sub {
 		my $self = shift;
 
-		$self->stash->{lang} = 'ru';
+		$self->stash->{lang} = $config->{lang_default};
+
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );
 			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
@@ -138,9 +118,9 @@ sub startup{
 	});
 
 	$self->hook(after_render => sub {
-		my ($c, $output, $format) = @_;
+		my ($self, $output, $format) = @_;
 
-		if($routes_args{minify_html} && $self->app->mode eq 'production'){
+		if($config->{minify_html} && $self->app->mode eq 'production'){
 			eval("use HTML::Packer");
 			my $packer = HTML::Packer->init();
 			$$output = $packer->minify( $output, {
@@ -156,6 +136,7 @@ sub startup{
 			$self->js_controller();
 		}
 	});
+
 
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
 		my $self = shift;

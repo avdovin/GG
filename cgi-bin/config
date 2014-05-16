@@ -21,6 +21,15 @@
 		workers => 10
 	},
 
-	# CDN HOST (optional)
-	cdn               => '//gg.dev.ifrog.ru',
+	static_path 		=> '../../httpdocs/', 	# относительный путь к статике (относительно dispatch.cgi)
+	cdn                 => '//gg.dev.ifrog.ru', # включить загрузку статики через CDN
+	seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
+	seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
+	jquery_history		=> 0,					# Загрузить jQuery плагин - history
+	vfe_enabled			=> 0,					# Загружать vfe
+	minify_html 		=> 1,					# Сжатие html кода
+	lang_default 		=> 'ru', 				# языковая версия по умолчанию
+	lang_supported	 	=> [qw(ru)], 			# доступные языковые версии
+
+	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image)],
 };
