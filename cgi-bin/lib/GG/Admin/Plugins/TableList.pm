@@ -522,7 +522,17 @@ sub register {
 							$v = substr($v, 0, 10) if(length($v)>10);
 							next if ($v eq '0000-00-00');
 
-							$filter_string .= " AND DATE($keyf) ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
+							my ($f_year, $f_month, $f_day) = split('-', $v);
+							# если не заданы каой то параметр то фильтруем по остальным
+							if($f_month eq '00' && $f_day eq '00'){
+								$filter_string .= " AND YEAR($keyf)='$f_year'";
+							}
+							elsif($f_day eq '00'){
+								$filter_string .= " AND YEAR($keyf)='$f_year' AND MONTH($keyf)='$f_month'";
+							}
+							else {
+								$filter_string .= " AND DATE($keyf) ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." '$v'";
+							}
 
 						} elsif ($lkey->{settings}->{type} eq "d") {
 							$filter_string .= " AND $keyf ".$self->sysuser->settings->{$setting_key."_".$key."pref"}." $v";

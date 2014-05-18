@@ -7,7 +7,23 @@
 %			if($item->{flag_plus}){
 %				my $click_link = $self->stash->{controller_url}.'?do=tree_block&index='.$item->{ID}.$node_params;
     			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('n_<%= $node %>', '<%= $click_link %>');">
-        			<a href='#' onClick="<% if($item->{click_type} && $item->{click_type} eq 'list'){ %>openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=list_container&index=<%=$item->{ID} %><%=$node_params %>','инфо','инфо');<% } %><% if($item->{click_type} && $item->{click_type} eq 'text'){ %>openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');<% } %>">
+        			<a href='#' onClick="
+                    % if($item->{click_type} && $item->{click_type} eq 'list'){
+                        set_list_filter(
+                                    '<%= $self->stash->{controller_url} %>',
+                                    '<%=$item->{replaceme} %>',{
+                                    % foreach (keys %{ $item->{params} }){
+                                        '<%= $_ %>' : '<%= $item->{params}->{$_} %>',
+                                    % }
+                                    }
+                        );
+                    % }
+                    % if($item->{click_type} && $item->{click_type} eq 'text'){
+                        openPage(   'center',
+                                    '<%=$item->{replaceme} %>',
+                                    '<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');
+                    % }
+                    ">
             		<%== $item->{name} =%>
         		</a>
         		<div id='n_<%= $node %>' style="margin:0px;"><ul style="margin:0px;"></ul></div>
@@ -17,7 +33,7 @@
         			<a href='#' <% if(!$item->{noclick}){ %>onClick="openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');"<% } %>>
             			<%== $item->{name} =%>
         			</a>
-    			</li>				
+    			</li>
 %			}
 
 %#		Формирование веток по дате
@@ -28,7 +44,23 @@
 %			if($item->{flag_plus}){
 %				my $click_link = $self->stash->{controller_url}.'?do=tree_block&index='.$item->{ID}.$node_params;
     			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('n_<%= $node %>', '<%= $click_link %>');">
-        			<a href='#' onClick="<% if($item->{click_type} && $item->{click_type} eq 'list'){ %>openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=list_container&index=<%=$item->{ID} %><%=$node_params %>','инфо','инфо');<% } %><% if($item->{click_type} && $item->{click_type} eq 'text'){ %>openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');<% } %>">
+        			<a href='#' onClick="
+                    % if($item->{click_type} && $item->{click_type} eq 'list'){
+                        set_list_filter(
+                                    '<%= $self->stash->{controller_url} %>',
+                                    '<%=$item->{replaceme} %>',{
+                                    % foreach (keys %{ $item->{params} }){
+                                        '<%= $_ %>' : '<%= $item->{params}->{$_} %>',
+                                    % }
+                                    }
+                        );
+                    % }
+                    % if($item->{click_type} && $item->{click_type} eq 'text'){
+                        openPage(   'center',
+                                    '<%=$item->{replaceme} %>',
+                                    '<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');
+                    % }
+                    ">
             		<%== $item->{name} =%>
         		</a>
         		<div id='n_<%= $node %>' style="margin:0px;"><ul style="margin:0px;"></ul></div>
@@ -38,8 +70,8 @@
         			<a href='#' <% if($item->{noclick}){ %>onClick="openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');"<% } %> <% if(!$item->{noclick}){ %>onClick="openPage('center','<%=$item->{replaceme} %>','<%= $self->stash->{controller_url} %>?do=edit&index=<%== $item->{ID} %><%= $node_params %>','инфо','инфо');"<% } %>>
             			<%== $item->{name} =%>
         			</a>
-    			</li>				
-%			}			
+    			</li>
+%			}
 
 %		}
 

@@ -226,11 +226,15 @@ sub tree{
 		my $table = "texts_".$_->{key_razdel}."_$lang";
 
 		push @tmp, {
-				ID => $controller.$_->{ID},
-				name => $_->{name},
+				ID 			=> $controller.$_->{ID},
+				name 		=> $_->{name},
 				param_default => "&list_table=".$table."&first_flag=1&lang=$lang",
 				replaceme	=> $controller.$table,
 				tabname		=> $table,
+				click_type  => 'list',
+				params 		=> {
+					razdel 	=> $_->{ID}
+				},
 		} if $access_table->{$table}->{r};
 
 	}
@@ -305,23 +309,37 @@ sub tree_block{
 
 				$items->[$i]->{flag_plus} = 1;
 				$items->[$i]->{icon} = 'folder';
-				$items->[$i]->{replaceme} = "";
+				$items->[$i]->{replaceme} = $controller;
+				$items->[$i]->{click_type} = 'list';
 
 				if (!$send_params->{year} and !$send_params->{month} and !$send_params->{day}) {
 					$param_default = "&year=$$item{name}";
+					$items->[$i]->{params} = {
+						tdate 	=> sprintf( "%04d-%02d-%02d", $item->{name}),
+						razdel 			=> $self->stash->{razdel},
+					};
 
 				} elsif ($send_params->{year} and !$send_params->{month} and !$send_params->{day}) {
 					$param_default = "&year=".$send_params->{year}."&month=$$item{name}";
+					$items->[$i]->{params} = {
+						tdate 	=> sprintf( "%04d-%02d-%02d", $send_params->{year}, , $$item{name}, '00'),
+						razdel 			=> $self->stash->{razdel},
+					};
 
 				} elsif ($send_params->{year} and $send_params->{month} and !$send_params->{day}) {
 					$param_default = "&year=".$send_params->{year}."&month=".$send_params->{month}."&day=$$item{name}";
+					$items->[$i]->{params} = {
+						tdate 	=> sprintf( "%04d-%02d-%02d", $send_params->{year}, , $send_params->{month}, $$item{name}),
+						razdel 			=> $self->stash->{razdel},
+					};
 
 				} elsif ($send_params->{year} and $send_params->{month} and $send_params->{day}) {
 					$param_default = "&year=".$send_params->{year}."&month=".$send_params->{month}."&day=".$send_params->{day};
 
-					$items->[$i]->{flag_plus} = 0;
+					$items->[$i]->{click_type} 	= 'text';
+					$items->[$i]->{flag_plus} 	= 0;
 					$items->[$i]->{icon} 		= "doc";
-					$items->[$i]->{replaceme} = $controller.'_'.$table.$item->{ID};
+					$items->[$i]->{replaceme} 	= $controller.'_'.$table.$item->{ID};
 
 				}
 
@@ -362,7 +380,7 @@ sub tree_block{
 
 				$items->[$i]->{key_element} 	= $table;
 				$items->[$i]->{tabname} 	  	= $table.$item->{ID};
-				$items->[$i]->{replaceme} = $controller.'_'.$table.$item->{ID};
+				$items->[$i]->{replaceme} 		= $controller.'_'.$table.$item->{ID};
 				$items->[$i]->{param_default}	= "&list_table=$table&replaceme=".$items->[$i]->{replaceme};
 
 				if ($item->{dir}) {
@@ -372,6 +390,12 @@ sub tree_block{
 
 					if ($count) {
 						$items->[$i]->{flag_plus} = 1;
+						$items->[$i]->{replaceme} = $controller;
+						$items->[$i]->{click_type} = 'list';
+						$items->[$i]->{params} = {
+							$key_razdel 	=> $items->[$i]->{ID},
+							razdel 			=> $self->stash->{razdel},
+						};
 					} else {
 						$items->[$i]->{flag_plus} = 0;
 						$items->[$i]->{icon} = "doc";

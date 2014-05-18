@@ -25,6 +25,42 @@ function sendAllchecked(divId, url, flag) { // удаление всех отм�
 	else { if (flag != 'delete') ld_content(divId, url, 0); }
 }
 
+function clear_list_filter(url, replaceme, params){
+	var out = url + '_list_filter';
+	ajaxform[out] = new sack();
+	ajaxform[out].requestFile = url;
+	ajaxform[out].method = "POST";
+	ajaxform[out].setVar("do", "filter_clear");
+
+	for(var field in params){
+		ajaxform[out].setVar(field , params[field]);
+	}
+	ajaxform[out].setVar("replaceme", replaceme);
+
+	ajaxform[out].onCompletion = function() {
+		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme, '', 1)
+	}
+	ajaxform[out].runAJAX();
+}
+
+function set_list_filter(url, replaceme, params){
+	var out = url + '_list_filter';
+	ajaxform[out] = new sack();
+	ajaxform[out].requestFile = url;
+	ajaxform[out].method = "POST";
+	ajaxform[out].setVar("do", "filter_save");
+
+	for(var field in params){
+		ajaxform[out].setVar(field , params[field]);
+	}
+	ajaxform[out].setVar("replaceme", replaceme);
+
+	ajaxform[out].onCompletion = function() {
+		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme, '', 1)
+	}
+	ajaxform[out].runAJAX();
+}
+
 function init_tablelist(id) {
 	alltabl = document.getElementsByTagName("table").length;
 	for(var i = 0; i < alltabl; i++) {
