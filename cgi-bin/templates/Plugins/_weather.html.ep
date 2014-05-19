@@ -1,4 +1,0 @@
-% if ($temp){
-	<img class="weather__icon" src="http://yandex.st/weather/1.1.78/i/icons/48x48/<%= $img  %>.png">
-	<span class="weather__tempreture">Температура в городе <%= $city %>: <%= $temp %></span>
-% }
