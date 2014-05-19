@@ -70,23 +70,27 @@
 				<td colspan=2>
 					<table>
 						<tr>
-%	if($self->app->program->{settings}->{razdels}) {
-	<td>
-		<form name="change_<%= $controller %>" id="change_<%= $controller %>" method="POST">
-			Раздел: <%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel} ) %>
-			<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel'); return false;" value="Сменить" style="width:100px;" class=submit_save>
-		</form>
-	</td>
-%	}
-						<td width="25px"> </td>
-%	if($self->app->program->{settings}->{change_lang}) {
-			<td>
-							<form name="formchlang" method="POST" style="margin-right:5px">
-								Язык: <%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang} ) %>
-								<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang'); return false;" value="Сменить" style="width:100px;" class=submit_save>
-							</form>
-						</td>
-%	}
+							% if($self->app->program->{settings}->{razdels}) {
+								<td>
+									<form name="change_<%= $controller %>" id="change_<%= $controller %>" method="POST">
+										Раздел:
+										<select name="razdel" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel');">
+											%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel}, option => 1 );
+										</select>
+									</form>
+								</td>
+							% }
+							<td width="25px"> </td>
+							% if($self->app->program->{settings}->{change_lang}) {
+								<td>
+									<form name="formchlang" method="POST" style="margin-right:5px">
+										Язык:
+										<select name="razdel" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang');">
+											%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang}, option => 1 );
+										</select>
+									</form>
+								</td>
+							% }
 						</tr>
 					</table>
 				</td>
