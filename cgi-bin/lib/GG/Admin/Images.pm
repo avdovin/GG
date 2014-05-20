@@ -111,6 +111,8 @@ sub body{
 
 		when('chrazdel') 				{
 			$self->changeRazdel;
+
+			$self->list_container;
 		}
 		when('chlang') 					{
 			$self->sysuser->save_settings(lang => $self->stash->{lang});
@@ -130,7 +132,7 @@ sub changeRazdel{
 
 	$self->sysuser->save_settings(images_razdel => $self->send_params->{razdel});
 	$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
-	$self->list_container;
+	$self->stash->{razdel} = $self->send_params->{razdel};
 }
 
 sub zipimport{
@@ -382,6 +384,8 @@ sub list_container{
 	my $self = shift;
 	my %params = @_;
 
+	$self->changeRazdel if $self->param('razdel');
+
 	$self->delete_list_items(has_pict => 1) if $self->stash->{delete};
 	$self->hide_list_items( lfield => 'viewimg') 		if $self->param('hide');
 	$self->show_list_items( lfield => 'viewimg') 		if $self->param('show');
@@ -437,8 +441,12 @@ sub tree{
 				ID => $controller.$_->{ID},
 				name => $_->{name},
 				param_default => "&list_table=".$table."&first_flag=1",
-				replaceme	=> $controller.$table,
+				replaceme	=> 'replaceme',# $controller.$table,
 				tabname		=> $table,
+				click_type  => 'list',
+				params 		=> {
+					razdel 	=> $_->{ID}
+				},
 		} if $self->sysuser->access->{table}->{$table}->{r};
 	}
 
@@ -467,7 +475,15 @@ sub tree_block{
 		foreach my $i (0..$#$items){
 			my $item = $items->[$i];
 			if ($item->{dir}) {
+
 				$items->[$i]->{flag_plus} = 1;
+				$items->[$i]->{replaceme} = $controller;
+				$items->[$i]->{click_type} = 'list_filtered';
+				$items->[$i]->{params} = {
+					$self->stash->{dir_field} 	=> $items->[$i]->{ID},
+					razdel 						=> $self->stash->{razdel},
+				};
+
 			} elsif($item->{type_file}){
 				$items->[$i]->{icon} = $items->[$i]->{type_file};
 			} else {

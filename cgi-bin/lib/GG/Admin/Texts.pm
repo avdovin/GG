@@ -240,9 +240,9 @@ sub tree{
 				ID 			=> $controller.$_->{ID},
 				name 		=> $_->{name},
 				param_default => "&list_table=".$table."&first_flag=1&lang=$lang",
-				replaceme	=> $controller.$table,
+				replaceme	=> 'replaceme',##$controller.$table,
 				tabname		=> $table,
-				click_type  => 'list',
+				click_type  => 'list_filtered_clear',
 				params 		=> {
 					razdel 	=> $_->{ID}
 				},

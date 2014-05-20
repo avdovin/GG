@@ -38,7 +38,12 @@ function clear_list_filter(url, replaceme, params){
 	ajaxform[out].setVar("replaceme", replaceme);
 
 	ajaxform[out].onCompletion = function() {
-		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme, '', 1)
+		var qs = '';
+		for(var field in params){
+			qs = '&'+field+'='+params[field];
+		}
+
+		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
 	}
 	ajaxform[out].runAJAX();
 }
@@ -56,7 +61,12 @@ function set_list_filter(url, replaceme, params){
 	ajaxform[out].setVar("replaceme", replaceme);
 
 	ajaxform[out].onCompletion = function() {
-		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme, '', 1)
+		var qs = '';
+		for(var field in params){
+			qs = '&'+field+'='+params[field];
+		}
+
+		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
 	}
 	ajaxform[out].runAJAX();
 }
@@ -400,11 +410,13 @@ function parse_data_to_table(id, ajaxIndex) {
 								listModel[lkey_name].createFromMarkupSelect('datasource_'+lkey_name);
 							}
 						}
+
 						jQuery(label).attr('id',  "label"+td_str['ID']+"__"+lkey_name).html('');
 						jQuery(td).append(label);
 						div = document.createElement('DIV');
 						jQuery(div).attr('id',  td_str['ID']+"__"+lkey_name).html( td_str[lkey_name] );
 						jQuery(td).append(div);
+
 					} else{
 						jQuery(td).html( td_str[lkey_name] );
 					}

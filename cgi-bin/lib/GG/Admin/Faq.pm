@@ -203,7 +203,7 @@ sub list_container{
 
 	$self->def_context_menu( lkey => 'table_list');
 
-	$self->stash->{win_name} = "Список правил";
+	$self->stash->{win_name} = "Список";
 
 	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};
 

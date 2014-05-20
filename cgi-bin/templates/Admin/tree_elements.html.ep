@@ -6,12 +6,14 @@
 %			my $node_params = $self->stash->{param_default}.$item->{param_default};
 %			if($item->{flag_plus}){
 %				my $click_link = $self->stash->{controller_url}.'?do=tree_block&index='.$item->{ID}.$node_params;
-    			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('n_<%= $node %>', '<%= $click_link %>');">
+    			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('<%= $controller %>', 'n_<%= $node %>', '<%= $click_link %>');">
         			<a href='#' onClick="
-                    % if($item->{click_type} && $item->{click_type} eq 'list'){
+                    treeObj['<%= $controller %>'].showHideNode(this, 'node_<%= $node %>');
+
+                    % if($item->{click_type} && ($item->{click_type} eq 'list_filtered' or $item->{click_type} eq 'list') ){
                         set_list_filter(
                                     '<%= $self->stash->{controller_url} %>',
-                                    '<%=$item->{replaceme} %>',{
+                                    'replaceme',{
                                     % foreach (keys %{ $item->{params} }){
                                         '<%= $_ %>' : '<%= $item->{params}->{$_} %>',
                                     % }
@@ -43,8 +45,10 @@
 
 %			if($item->{flag_plus}){
 %				my $click_link = $self->stash->{controller_url}.'?do=tree_block&index='.$item->{ID}.$node_params;
-    			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('n_<%= $node %>', '<%= $click_link %>');">
+    			<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $click_link %>" onClick="click_node('<%= $controller %>', 'n_<%= $node %>', '<%= $click_link %>');">
         			<a href='#' onClick="
+                    treeObj['<%= $controller %>'].showHideNode(this, 'node_<%= $node %>');
+
                     % if($item->{click_type} && $item->{click_type} eq 'list'){
                         set_list_filter(
                                     '<%= $self->stash->{controller_url} %>',

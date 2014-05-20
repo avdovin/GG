@@ -136,7 +136,11 @@ sub tree{
 										sys		=> 1) || [];
 
 	foreach my $i (0..$#$folders){
-		$folders->[$i]->{replaceme} = $table.$folders->[$i]->{ID};
+		$folders->[$i]->{replaceme} 	= 'replaceme',#$table.$folders->[$i]->{ID};
+		$folders->[$i]->{click_type} 	= 'list_filtered',
+		$folders->[$i]->{params}		= {
+			id_advert_block 	=> $folders->[$i]->{ID}
+		};
 	}
 
 	my $items = $self->getHashSQL(	select	=> "`ID`,`name`",

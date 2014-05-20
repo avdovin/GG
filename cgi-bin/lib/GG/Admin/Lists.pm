@@ -82,13 +82,16 @@ sub tree{
 	foreach (@$folders){
 		my $table = $_->{lkey};
 		push @tmp, {
-				ID => $controller.$_->{ID},
-				name => $_->{name},
+				ID 			=> $controller.$_->{ID},
+				name 		=> $_->{name},
 				param_default => "&list_table=$table&first_flag=1",
-				replaceme	=> $controller.$table,
+				replaceme	=> 'replaceme',#$controller.$table,
 				tabname		=> $table,
+				click_type  => 'list',
+				params 		=> {
+					list_table 	=> $table
+				},
 		} if $self->sysuser->access->{table}->{$table}->{r};
-
 	}
 
 	$self->render( folders => \@tmp, template => 'Admin/tree_block');
