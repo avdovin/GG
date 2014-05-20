@@ -82,14 +82,18 @@
 							% }
 							<td width="25px"> </td>
 							% if($self->app->program->{settings}->{change_lang}) {
-								<td>
-									<form name="formchlang" method="POST" style="margin-right:5px">
-										Язык:
-										<select name="razdel" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang');">
-											%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang}, option => 1 );
-										</select>
-									</form>
-								</td>
+								% def_list name => 'lang';
+								% my $langList = lkey( name => 'lang' )->{list};
+								% if(keys %$langList > 1){
+									<td>
+										<form name="formchlang" method="POST" style="margin-right:5px">
+											Язык:
+											<select name="lang" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang');">
+												%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang}, option => 1 );
+											</select>
+										</form>
+									</td>
+								% }
 							% }
 						</tr>
 					</table>

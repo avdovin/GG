@@ -1,4 +1,4 @@
-<% if (! $self->stash->{context_menu} ){ %> 
+<% if (! $self->stash->{context_menu} ){ %>
 <table width="95%">
   <tr>
     <td valign=top width="100%"><h1><%= $controller_name %></h1><% if ($self->stash->{win_name}){ %><h2><%= $self->stash->{win_name} %></h2><% } %></td>
@@ -24,7 +24,7 @@
 <table width="95%" border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td valign="top">
-	<%== $body %>
+	     %== $body
     </td>
     <td width="1" valign="top"><img src="/admin/img/px.gif" width="1" height="20px"></td>
   </tr>

@@ -138,7 +138,18 @@ sub body{
 			$self->sysuser->save_settings(lang => $self->stash->{lang});
 			$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
 
-			$self->list_container;
+			delete $self->lkey(name => 'razdel', controller => $self->stash->{controller})->{list};
+
+			$self->render( json => {
+					content	=> 'Изменение языковой версии',
+					items	=> [
+						{
+							type	=> 'eval',
+							value	=> "ld_content('".$self->stash->{replaceme}."', '".$self->stash->{controller_url}."?do=list_container&".$self->stash->{param_default}."')",
+						},
+					]
+				})
+			#$self->list_container;
 		}
 
 
