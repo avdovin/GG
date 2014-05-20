@@ -834,7 +834,7 @@ function tree_ld_content(divId, url, outer, msg) {
 }
 
 
-function click_node(controller, div, url) {
+function click_node_dtree(controller, div, url) {
 	var e = document.getElementById(div);
 	if (e) {tree_ld_content(div, url, 1);}
 }

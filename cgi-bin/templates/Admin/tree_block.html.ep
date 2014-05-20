@@ -10,7 +10,7 @@
 	%			my $node = $controller.$folder->{ID}.$i;
 	%			$i++;
 	%			my $node_params = $self->stash->{param_default}.$folder->{param_default};
-					<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $self->stash->{controller_url} %>?do=tree_block&index=<%= $folder->{ID} %><%= $node_params %>" onClick="click_node('<%= $controller %>', 'n_<%= $node %>', '<%= $self->stash->{controller_url} %>?do=tree_block&index=<%= $folder->{ID} %><%= $node_params %>');">
+					<li id='node_<%= $node %>' noDrag="true" noSiblings="true" noDelete="true" noRename="true" click_link="<%= $self->stash->{controller_url} %>?do=tree_block&index=<%= $folder->{ID} %><%= $node_params %>" onClick="click_node_dtree('<%= $controller %>', 'n_<%= $node %>', '<%= $self->stash->{controller_url} %>?do=tree_block&index=<%= $folder->{ID} %><%= $node_params %>');">
 							<a href='#' onClick="
 							treeObj['<%= $controller %>'].showHideNode(this, 'node_<%= $node %>');
 
