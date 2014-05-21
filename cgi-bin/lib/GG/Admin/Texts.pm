@@ -457,16 +457,16 @@ sub delete{
 
 		if($self->delete_info( from => $table, where => $index )){
 
-			if($self->stash->{anketa}->{pict}){
-				$self->file_delete_pict(index => $index, lfield => 'pict', pict => $self->stash->{anketa}->{pict});
-			}
+			# if($self->stash->{anketa}->{pict}){
+			# 	$self->file_delete_pict(index => $index, lfield => 'pict', pict => $self->stash->{anketa}->{pict});
+			# }
 
-			if($self->stash->{anketa}->{docfile}){
-				eval{
-					unlink ($ENV{DOCUMENT_ROOT}.$self->stash->{anketa}->{folder}.$self->stash->{anketa}->{docfile});
-				};
-				warn $@ if $@;
-			}
+			# if($self->stash->{anketa}->{docfile}){
+			# 	eval{
+			# 		unlink ($ENV{DOCUMENT_ROOT}.$self->stash->{anketa}->{folder}.$self->stash->{anketa}->{docfile});
+			# 	};
+			# 	warn $@ if $@;
+			# }
 
 			$self->stash->{tree_reload} = 1;
 
@@ -496,20 +496,20 @@ sub save{
 	$self->send_params->{size} = 0 if($self->send_params->{docfile} && !$self->stash->{index});
 
 	if( $self->save_info( table => $self->stash->{list_table}) ){
-		$self->file_save_pict( 	filename 	=> $self->send_params->{pict},
-								lfield		=> 'pict',
-								) if $self->send_params->{pict};
+		# $self->file_save_pict( 	filename 	=> $self->send_params->{pict},
+		# 						lfield		=> 'pict',
+		# 						) if $self->send_params->{pict};
 
-		if($self->send_params->{docfile}){
-			my $docfile = $self->send_params->{docfile};
+		# if($self->send_params->{docfile}){
+		# 	my $docfile = $self->send_params->{docfile};
 
-			my (undef, $docfile_saved, $type_file) = $self->file_save_from_tmp( filename => $self->send_params->{docfile}, lfield => 'docfile' );
+		# 	my (undef, $docfile_saved, $type_file) = $self->file_save_from_tmp( filename => $self->send_params->{docfile}, lfield => 'docfile' );
 
-			my $folder = $self->lkey(name => 'docfile', controller => 'texts', setting => 'folder');
-			my $size = -s $self->static_path.$folder.$docfile_saved || 0;
+		# 	my $folder = $self->lkey(name => 'docfile', controller => 'texts', setting => 'folder');
+		# 	my $size = -s $self->static_path.$folder.$docfile_saved || 0;
 
-			$self->save_info(send_params => 0, table => $self->stash->{list_table}, field_values => {size => $size, docfile => $docfile_saved} );
-		}
+		# 	$self->save_info(send_params => 0, table => $self->stash->{list_table}, field_values => {size => $size, docfile => $docfile_saved} );
+		# }
 
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
@@ -586,16 +586,16 @@ sub delete_list_items{
 			}
 
 			if(!$no_del && $self->delete_info( from => $table, where => $id )){
-				if($item->{pict}){
-					$self->file_delete_pict(index => $id, lfield => 'pict', folder =>  $item->{folder}, pict => $item->{pict});
-				}
+				# if($item->{pict}){
+				# 	$self->file_delete_pict(index => $id, lfield => 'pict', folder =>  $item->{folder}, pict => $item->{pict});
+				# }
 
-				if($item->{docfile}){
-					eval{
-						unlink($ENV{DOCUMENT_ROOT}.$item->{folder}.$item->{docfile});
-					};
-					warn $@ if $@;
-				}
+				# if($item->{docfile}){
+				# 	eval{
+				# 		unlink($ENV{DOCUMENT_ROOT}.$item->{folder}.$item->{docfile});
+				# 	};
+				# 	warn $@ if $@;
+				# }
 				$self->stash->{tree_reload} = 1;
 
 				$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$table,

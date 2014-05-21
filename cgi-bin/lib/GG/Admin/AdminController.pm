@@ -542,6 +542,28 @@ sub delete_info {
 	my $sth = $self->dbh->prepare($sql);
 	my $res = $sth->execute();
 
+	# удаление сложных полей
+	$self->getArraySQL( from => $table, where => $params{where}, stash => 'delete_info');
+	my $delValues = $self->stash->{delete_info};
+	foreach my $k (keys %$delValues ) {
+		next unless my $v = $delValues->{$k};
+
+		my $lkey = $self->lkey(name => $k);
+		my $lkey_settings = $lkey->{settings};
+		my $type = $lkey_settings->{type};
+
+		if($type eq 'pict'){
+			$self->file_delete_pict(index => $params{index}, lfield => $k, pict => $v);
+		}
+		elsif($type eq 'file'){
+			eval{
+				unlink $self->static_path.$lkey->{settings}->{folder}.$v;
+			};
+			warn $@ if $@;
+		}
+	}
+
+
 	unless($self->stash->{win_name}){
 		$self->stash->{win_name} = "Удаление объекта #$params{index}";
 		$self->stash->{win_name} .= " «".$self->stash->{anketa}->{name}."»" if $self->stash->{anketa}->{name};
@@ -617,8 +639,8 @@ sub save_info{
 		}
 	}
 
+	my $send_params = $self->send_params;
 	if($params{send_params}){
-		my $send_params = $self->send_params;
 		foreach (keys %$send_params){
 			if($self->dbi->exists_keys(from => $table, lkey => $_)){
 				$field_values->{$_} ||= $send_params->{$_};
@@ -640,12 +662,55 @@ sub save_info{
 
 	if(!$self->stash->{index}){
 
-		return $self->insert_hash($table, $field_values, %params);
+		$self->stash->{index} = $self->insert_hash($table, $field_values, %params);
 	} else {
 		$where ||= "`ID`='".$self->stash->{index}."'";
 		$self->update_hash($table, $field_values, $where, %params);
-		return $self->stash->{index};
 	}
+
+	if($params{send_params} && $self->stash->{index}){
+		# сохраняем сложные поля
+		foreach my $k (keys %$send_params){
+			next unless my $v = $send_params->{$k};
+
+			my $lkey = $self->lkey(name => $k);
+			my $lkey_settings = $lkey->{settings};
+			my $type = $lkey_settings->{type};
+
+			# сохраняем картинки
+			if($type eq 'pict'){
+				$self->file_save_pict(
+					filename 	=> $v,
+					lfield		=> $k,
+					table 		=> $table,
+					watermark 	=> $lkey_settings->{watermark},
+					retina 		=> $lkey_settings->{retina},
+				);
+			}
+			elsif($type eq 'file'){
+				my (undef, $file_name_saved, $fileType) = $self->file_save_from_tmp( filename => $v, lfield => $k );
+
+				my $folder = $lkey_settings->{folder};
+
+				my $fv = {$k => $file_name_saved};
+				if(defined $send_params->{size}){
+					my $size = -s $self->static_path.$folder.$file_name_saved || 0;
+					$fv->{size} = $size;
+				}
+				if(defined $send_params->{file_type}){
+					$fv->{file_type} = $fileType;
+				}
+
+				$self->save_info(
+					send_params 	=> 0,
+					table 			=> $table,
+					field_values 	=> $fv
+				);
+			}
+		}
+	}
+
+	return $self->stash->{'index'};
 }
 
 sub insert_hash {
