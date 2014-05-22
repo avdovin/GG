@@ -57,6 +57,17 @@ sub register {
 		return $values->{ $lang } || ''
 	});
 
+	# заменяет в тексте все ссылки на картинки (attr=src) с относительного пути в абсолютный
+	$app->helper( text_convert_src_rel_to_abs => sub {
+		my $self   	= shift;
+		my $text 	= shift;
+
+		my $host = $self->host;
+		$text =~ s{src="\/(.*?)"}{src="http:\/\/host\/$1"}sgi;
+
+		return $text;
+	});
+
 	$app->helper( trim => sub {
 		my $str = $_[1];
 		$str =~ s/^\s+|\s+$//g;
