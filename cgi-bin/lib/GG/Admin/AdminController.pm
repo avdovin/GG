@@ -539,12 +539,10 @@ sub delete_info {
 		return;
 	}
 
-	my $sth = $self->dbh->prepare($sql);
-	my $res = $sth->execute();
-
 	# удаление сложных полей
-	$self->getArraySQL( from => $table, where => $params{where}, stash => 'delete_info');
-	my $delValues = $self->stash->{delete_info};
+	$self->getArraySQL( from => $table, where => $params{index}, stash => 'delete_info');
+	my $delValues = delete $self->stash->{delete_info};
+
 	foreach my $k (keys %$delValues ) {
 		next unless my $v = $delValues->{$k};
 
@@ -563,6 +561,8 @@ sub delete_info {
 		}
 	}
 
+	my $sth = $self->dbh->prepare($sql);
+	my $res = $sth->execute();
 
 	unless($self->stash->{win_name}){
 		$self->stash->{win_name} = "Удаление объекта #$params{index}";

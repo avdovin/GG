@@ -208,13 +208,6 @@ sub delete{
 
 		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index} )){
 
-			if($self->stash->{anketa}->{docfile}){
-				eval{
-					unlink ($ENV{DOCUMENT_ROOT}.$self->stash->{folder}.$self->stash->{anketa}->{docfile});
-				};
-				warn $@ if $@;
-			}
-
 			# Удаление статистика к банeру
 			$self->dbi->query("DELETE FROM `dtbl_banner_stat` WHERE `id_banner`='".$self->stash->{index}."'");
 			$self->dbi->query("OPTIMIZE TABLE `dtbl_banner_stat`");
@@ -268,52 +261,31 @@ sub save{
 		}
 
 		if($self->send_params->{docfile}){
-			my $docfile = $self->send_params->{docfile};
-			my (undef, $docfile_saved, $type_file, $size) = $self->file_save_from_tmp( filename => $docfile, to => $self->stash->{folder}.$docfile );
-
-			$self->save_info(send_params => 0, table => $self->stash->{list_table}, field_values => {docfile => $docfile_saved, type_file => $type_file, size => $size} );
-
-
+			$self->getArraySQL(
+				select 	=> "`ID`,`docfile`,`type_file`",
+				from 	=> $self->stash->{list_table},
+				where	=> "`ID`='".$self->stash->{index}."'",
+				stash	=> 'tmp'
+			);
 
 			# Изменяем размер баннера под выбранное баннерное место
-			if($self->send_params->{width} && $self->send_params->{height}){
+			if($self->stash->{tmp}->{docfile} && $self->send_params->{width} && $self->send_params->{height}){
 				my $img_ext = [qw(jpg jpeg gif png)];
 
-				$type_file = lc($type_file);
+				my $lkeyFolder = $self->lkey(name => 'docfile', setting => 'folder');
+				my $type_file = lc($self->stash->{tmp}->{type_file});
+
 				if(grep {$type_file eq $_}  @$img_ext){
 					$self->resize_pict(
 						crop 	=> 1,
-						file 	=> $self->app->static->paths->[0].$self->stash->{folder}.$docfile,
+						file 	=> $self->static_path.$lkeyFolder.$self->stash->{tmp}->{docfile},
 						width 	=> $self->send_params->{width},
 						height 	=> $self->send_params->{height},
 						retina 	=> $self->lkey(name => 'docfile', setting => 'retina' ),
 					);
 				}
 			}
-
 		}
-
-
-		# Если закачена картинка и не указаны размеры подрезаем под размеры баннерного места
-#		if($self->send_params->{id_advert_block} && $self->getArraySQL(	from 	=> $self->stash->{list_table},
-#								where	=> "`ID`='".$self->stash->{index}."'",
-#								stash	=> 'banner')
-#			){
-#			my $img_ext = [qw(jpg jpeg gif png)];
-#			$self->stash->{banner} ||= {};
-#
-#			if($self->stash->{banner}->{docfile}){
-#				my $type_file = ($self->stash->{banner}->{docfile} =~ m/([^.]+)$/)[0] || '';
-#				if(grep(/$type_file/, @$img_ext) and !$self->stash->{banner}->{width} and !$self->stash->{banner}->{height}){
-#
-#					if(my $place = $self->dbi->query("SELECT * FROM `lst_advert_block` WHERE `ID`='".$self->stash->{banner}->{id_advert_block}."' AND `width`!='' AND `height`!=''")->hash){
-#						my ($w, $h) = $self->image_set( file => $self->stash->{folder}.$self->stash->{banner}->{docfile}, width => $place->{width}, height => $place->{height} );
-#						$self->save_info( table => $self->stash->{list_table}, field_values => { width => $w, height => $h});
-#					}
-#
-#				}
-#			}
-#		}
 
 		if($params{continue}){
 			$self->admin_msg_success("Данные сохранены");

@@ -703,10 +703,6 @@ sub register {
 			require URI::Escape::JavaScript;
 			my $value = URI::Escape::JavaScript::js_unescape( $self->send_params->{textEditValue} );
 
-			if($self->lkeys->{ $sfield }->{settings}->{type} eq 'list'){
-
-			}
-
 			if($self->update_hash($table, {$sfield => $value}, "`ID`='$index'")){
 				$self->save_logs(
 					name 	=> "Сохранение записи в таблице объектов (ключей) $table",
