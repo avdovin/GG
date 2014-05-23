@@ -778,7 +778,8 @@ sub register {
 			@_
 		);
 
-		$params{postfix} 		= $params{postfix} ? "_".$params{postfix} : '';
+		$params{prefix} 	||= $self->req->url->to_abs->path.'?page=';
+		$params{postfix} 	= $params{postfix} ? "_".$params{postfix} : '';
 
 		my $page = delete $params{page};
 		my $total_page = $self->stash("total_page".$params{postfix}) || 1;
