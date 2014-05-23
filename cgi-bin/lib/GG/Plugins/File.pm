@@ -208,6 +208,10 @@ sub register {
 		}
 	);
 
+	$app->helper( render_file => sub {
+		shift->file_download(@_);
+	});
+
 	$app->helper(
 		file_download => sub {
 			my $self = shift;
