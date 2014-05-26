@@ -256,10 +256,6 @@ sub delete{
 
 		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index} )){
 
-			if($self->stash->{anketa}->{pict}){
-				$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder}, pict => $self->stash->{anketa}->{pict});
-			}
-
 			$self->stash->{tree_reload} = 1;
 
 			$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$self->stash->{list_table},
@@ -297,12 +293,6 @@ sub save{
 								comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
 			return $self->info;
 		}
-
-		$self->file_save_pict( 	filename 	=> $self->send_params->{pict},
-								lfield		=> 'pict',
-								fields		=> {pict => 'pict'},
-								) if $self->send_params->{pict};
-
 
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
