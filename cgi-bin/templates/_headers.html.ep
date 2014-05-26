@@ -24,5 +24,6 @@ if (typeof jQuery == 'undefined') {
 
 %= content_for 'headers'
 
-
+%= asset 'app.js';
+%= asset 'app.css';
 
