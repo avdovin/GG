@@ -4,63 +4,20 @@ use Mojo::Base 'Mojolicious';
 
 use utf8;
 
-our $VERSION  = '9.3.1.1';
+our $VERSION  = '9.3.2.1';
 
 # This method will run once at server start
 sub startup{
 	my $self = shift;
 
-	# Add new MIME type
-	$self->types->type(xls => 'application/vnd.ms-excel');
-	# Add secret
-	$self->secrets(['It is a good day to die ...']);
-
-
-#	Pluggins
-#----------------------------------------------------------------------------------------------------------
-
-	# Register plugins namespace
+	# Init config & plugins and other ...
 	$self->plugins->namespaces( [ 'GG::Plugins', 'Mojolicious::Plugin' ] );
-	$self->plugin( charset => { charset => 'UTF-8' } );
-
-
-	# Load config
-	my $config = $self->plugin('Config', {	file      => 'config', 	default   => {} });
-
 	$self->plugin('init');
-	$self->plugin('util_helpers');
-	# DBI OO api
-	$self->plugin('dbi', $config );
-
-
-	# Load plugins from config
-	foreach (@{$config->{plugins}}){
-		$self->plugin($_);
-	}
-
-	# языковые версии сайта
-	# $self->plugin('I18N' =>  {
-	# 	support_url_langs 	=> [qw(ru en)],
-	# 	default 			=> 'ru',
-	# 	namespace 			=> 'GG::I18N',
-	# 	no_header_detect 	=> 1
-	# });
-# / Pluggins ----------------------------------------------------------------------------------------------
 
 
 	# Routes
 	my $r = $self->routes;
 	$r->namespaces(['GG::Content']);
-
-	eval{
-		$self->plugin(mail => {
-			from     => 'no-reply@domain.com',
-			encoding => 'base64',
-			how      => 'sendmail',
-			howargs  => [ '/usr/sbin/sendmail -t' ],
-			type	 => 'text/html;charset=utf-8',
-		});
-	};
 
 	# значения по умолчанию для маршрутов
 	my %routes_args = (
@@ -69,72 +26,12 @@ sub startup{
 		layout				=> 'default',			# Скелет (layout) страниц
 	);
 
-	$self->static->paths([$config->{static_path}]);
-	$self->plugin('vfe') if $config->{'vfe_enabled'};
-	$ENV{MOJO_MAX_MESSAGE_SIZE} = $config->{upload_maxchanksize};
-
 	$self->hook(before_dispatch => sub {
 		my $self = shift;
-
-		$self->stash->{lang} = $config->{lang_default};
-
-		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
-			$self->app->mode( $ENV{MOJO_MODE} = $mode );
-			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
-		}
-
-		# --- SEO 301 redirect to none www domain ---------
-		my $url = $self->req->url->clone;
-		my $host = $url->base->host || '';
-
-		if($host =~ /^www\./){
-			$host =~ s{^www\.}{};
-
-			$url->base->host($host);
-			my $res = $self->res;
-			$res->code(301);
-			$res->headers->location($url->to_abs);
-			$res->headers->content_length(0);
-			$self->rendered;
-			return;
-		}
-
-		# remove url trailing slash - /about/ => /about
-		if( $self->req->url->path->trailing_slash ){
-			next if $self->req->url->path->contains('/admin');
-
-			my $path = $self->req->url->path->to_string;
-			$path =~ s{\/$}{}gi;
-
-			$self->res->code(301);
-			return $self->redirect_to($path);
-		}
-
-		$self->req->url->base( Mojo::URL->new(q{/}) );
 
 		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
 		#	$self->session( cck => $cck );
 		#}
-	});
-
-	$self->hook(after_render => sub {
-		my ($self, $output, $format) = @_;
-
-		if($config->{minify_html} && $self->app->mode eq 'production'){
-			eval("use HTML::Packer");
-			my $packer = HTML::Packer->init();
-			$$output = $packer->minify( $output, {
-				remove_comments 	=> 1
-			});
-		}
-	});
-
-	$self->hook(before_render => sub {
-		my ($self, $args) = @_;
-
-		return unless my $template = $args->{template};
-
-		$self->js_controller() if ($template eq '_footer');
 	});
 
 
