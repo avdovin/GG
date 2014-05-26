@@ -67,7 +67,7 @@ sub _init{
 		}
 	}
 
-	$self->stash->{win_name} = 'Раздел: '.$self->stash->{name_razdel};
+	$self->stash->{win_name} = $self->stash->{name_razdel};
 	$self->app->lkeys->{texts}->{razdel}->{settings}->{where} = " AND `".$self->sysuser->settings->{'lang'}."`='1' ";
 
 	$self->stash->{list_table} = 'texts_'.$self->stash->{key_razdel}.'_'.$self->sysuser->settings->{'lang'};

@@ -66,7 +66,7 @@ sub _init{
 		$self->changeRazdel;
 	}
 
-	$self->stash->{win_name} = 'Раздел: '.$self->stash->{name_razdel};
+	$self->stash->{win_name} = $self->stash->{name_razdel};
 
 	$self->stash->{list_table} = 'images_'.$self->stash->{key_razdel};
 
@@ -256,6 +256,10 @@ sub delete{
 
 		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index} )){
 
+			if($self->stash->{anketa}->{pict}){
+				$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder}, pict => $self->stash->{anketa}->{pict});
+			}
+
 			$self->stash->{tree_reload} = 1;
 
 			$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$self->stash->{list_table},
@@ -293,6 +297,12 @@ sub save{
 								comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
 			return $self->info;
 		}
+
+		$self->file_save_pict( 	filename 	=> $self->send_params->{pict},
+								lfield		=> 'pict',
+								fields		=> {pict => 'pict'},
+								) if $self->send_params->{pict};
+
 
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
@@ -376,7 +386,7 @@ sub list_container{
 
 	$self->changeRazdel if $self->param('razdel');
 
-	$self->delete_list_items(has_pict => 1) 			if $self->stash->{delete};
+	$self->delete_list_items(has_pict => 1) if $self->stash->{delete};
 	$self->hide_list_items( lfield => 'viewimg') 		if $self->param('hide');
 	$self->show_list_items( lfield => 'viewimg') 		if $self->param('show');
 
