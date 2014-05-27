@@ -5,7 +5,16 @@ use utf8;
 use Mojo::Base 'Mojolicious::Plugin';
 
 sub register {
-	my ($self, $app, $conf) = @_;
+	my ($self, $app) = @_;
+
+	$app->helper(_setup_inc => sub {
+		my $self = shift;
+		my $perl5lib = shift;
+
+		return unless $perl5lib;
+
+		push @INC, $_ for (ref $perl5lib eq 'ARRAY' ? @{$perl5lib} : $perl5lib);
+	});
 
 	$app->plugin( charset => { charset => 'UTF-8' } );
 
@@ -16,6 +25,8 @@ sub register {
 
 	my $conf = $app->plugin('Config', {	file      => 'config', 	default   => {} });
 	$app->static->paths([$conf->{static_path}]);
+
+	$app->_setup_inc($conf->{perl5lib});
 
 	# Pipeline assets
 	if($conf->{pipeline}){
@@ -124,8 +135,6 @@ sub register {
 
 		$self->js_controller() if ($template eq '_footer');
 	});
-
-
 };
 
 1;
