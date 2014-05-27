@@ -35,6 +35,7 @@ sub register {
 	}
 
 	$app->plugin('util_helpers');
+	$app->plugin('http_cache');
 	$app->plugin('dbi', $conf );
 
 	# Load plugins from config
