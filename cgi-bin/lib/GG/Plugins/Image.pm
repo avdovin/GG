@@ -33,6 +33,7 @@ sub register {
 				file		=> '',	# путь к картинке,
 				background	=> '#FFFFFF',
 				retina		=> 0,		# версия картинок для ретины
+				quality  	=> $QUALITY,
 				@_
 			);
 
@@ -65,21 +66,21 @@ sub register {
 			}
 
 			if ($params{crop} == 1){
-				$self->image_crop(file => $file, width => $width, height => $height);
+				$self->image_crop(file => $file, width => $width, height => $height, quality => $params{quality});
 
 			} elsif($params{montage}){
 
 				my $images = Image::Magick->new();
 				my $m = $images -> ReadImage($file);
 				warn $m if $m;
-				$images->set(quality => $QUALITY);
+				$images->set( quality => $params{quality} );
 				$m = $images -> Montage(geometry=>  qq{$width x $height}, gravity => 'Center', background => $params{background});
 				warn $m if $m;
 				$m -> Write($file);
 				undef $images;
 
 			} else {
-				my ($img_w, $img_h) = $self->image_set( file => $file);
+				my ($img_w, $img_h) = $self->image_set( file => $file, quality => $params{quality});
 
 				if ($img_w > $width || $img_h > $height) {
 					if ($img_w > $img_h) {
@@ -91,7 +92,7 @@ sub register {
 						$img_h = $height;
 						$img_w  = int($img_w / $k);
 					}
-					($width, $height) = $self->image_set( file => $file, width => $img_w, height => $img_h );
+					($width, $height) = $self->image_set( file => $file, width => $img_w, height => $img_h , quality => $params{quality});
 				}
 			}
 
@@ -126,15 +127,16 @@ sub register {
 		image_set => sub {
 			my $self = shift;
 			my %params = (
-				file	=> '',
-				width	=> '',
-				height	=> '',
+				file		=> '',
+				width		=> '',
+				height		=> '',
+				quality 	=> $QUALITY,
 				@_
 			);
 
 			my $image = Image::Magick->new();
 			my $x = $image -> Read($params{file});						# открываем файл
-			$image->set(quality => $QUALITY);
+			$image->set(quality => $params{quality});
 			my ($ox, $oy) = $image -> Get('width', 'height');			# определяем ширину и высоту
 
 			if ((!$params{width}) || (!$params{height})) {
@@ -198,6 +200,7 @@ sub register {
 				height	=> 120,
 				x		=> 0,
 				y		=> 0,
+				quality => $QUALITY,
 				@_
 			);
 
@@ -205,7 +208,7 @@ sub register {
 			my $x     = $image->Read( $params{file} );
 			warn $x if $x;
 
-			$image->set(quality => $QUALITY);
+			$image->set(quality => $params{quality});
 
 			$image -> Crop(
 				x => $params{'x'},
@@ -225,6 +228,7 @@ sub register {
 			my %params = (
 				width	=> 120,
 				height	=> 120,
+				quality => $QUALITY,
 				@_
 			);
 
@@ -237,7 +241,7 @@ sub register {
 
 			$image = Image::Magick->new;               # новый проект
 			$x     = $image->Read( $params{file} );    # открываем файл
-			$image->set(quality => $QUALITY);
+			$image->set(quality => $params{quality});
 
 			my ( $ox, $oy ) = $image->Get( 'width', 'height' ); 	# определяем ширину и высоту изображения
 
@@ -270,7 +274,7 @@ sub register {
 				$img->Set(
 					colorspace  => 'RGB',
 					compression => 'JPEG',
-					quality     => $QUALITY
+					quality     => $QUALITY,
 				);
 			}
 			return $img;
@@ -283,6 +287,7 @@ sub register {
 			my %params = (
 				file 		=> '',
 				watermark 	=> '',
+				quality 	=> $QUALITY,
 				@_
 			);
 
@@ -299,8 +304,8 @@ sub register {
 			my $water = Image::Magick -> new;
 			my $x     = $image->Read( $params{file} );  # открываем файл
 			my $xx    = $water->Read( $params{watermark} );
-			$image->Set( quality     => $QUALITY );
-			$water->Set( quality     => $QUALITY );
+			$image->Set( quality     => $params{quality} );
+			$water->Set( quality     => $params{quality} );
 			my ($image_w, $image_h) = $image -> Get('width', 'height');			# определяем ширину и высоту
 			my ($water_w, $water_h) = $water -> Get('width', 'height');			# определяем ширину и высоту
 

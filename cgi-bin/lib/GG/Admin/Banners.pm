@@ -278,6 +278,7 @@ sub save{
 				if(grep {$type_file eq $_}  @$img_ext){
 					$self->resize_pict(
 						crop 	=> 1,
+						quality => 100,
 						file 	=> $self->static_path.$lkeyFolder.$self->stash->{tmp}->{docfile},
 						width 	=> $self->send_params->{width},
 						height 	=> $self->send_params->{height},
