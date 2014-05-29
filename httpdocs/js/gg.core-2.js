@@ -1,6 +1,4 @@
-// 29.04.2014
-
-// FUNCTIONS
+//    FUNCTIONS
 //	  GG.togglePopup(id)
 //	  GG.addClass(obj, class)		// non-jQuery
 //	  GG.removeClass(obj, class) 	// non-jQuery
@@ -16,7 +14,7 @@
 var GG = function(){
 	var $self = this;
 
-	$self.version = '2.08';
+	$self.version = '2.22';
 
 	$self.debug = function(arg){
 		if (typeof arg != 'undefined') {
@@ -76,126 +74,6 @@ var GG = function(){
 		}
 	};
 
-	$self.notify_warning = function(text, title, options){
-		if(typeof title == 'undefined') title = 'Уведомление';
-		options = $.extend({
-			icon : 'warning'
-		}, options);
-
-		$self.notify(text, title, options);
-	};
-	$self.notify_add = function(text, title, options){
-		if(typeof title == 'undefined') title = 'Товар добавлен в корзину';
-		options = $.extend({
-			icon : 'add'
-		}, options);
-		$self.notify(text, title, options);
-	};
-	$self.notify_delete = function(text, title, options){
-		if(typeof title == 'undefined') title = 'Изменения в корзине';
-		options = $.extend({
-			icon : 'delete'
-		}, options);
-		$self.notify(text, title, options);
-	};
-	$self.notify = function(text, title, options){
-		if(typeof title == 'undefined') title = 'Товар добавлен в корзину';
-		var stackContainer, messageWrap, messageBox, messageBody, messageTextBox, messagePicture, image;
-
-		options = $.extend({
-			lifeTime: 		4000,
-			click: 			undefined,
-			icon: 			'add'
-		}, options);
-
-		// находим контейнер с сообщениями, если его нет, тогда создаём
-		stackContainer = $('#notifier-box');
-		if (!stackContainer.length) {
-			stackContainer = $('<div>', {id: 'notifier-box'}).prependTo(document.body);
-		}
-
-		// создаём элементы вертски контейнера сообщения
-		messageWrap = $('<div>', {
-			'class': 'message-wrap',
-			css: {
-				display: 'none'
-			}
-		});
-
-		messageBox = $('<div>', {
-			'class': 'message-box'
-		});
-
-		messageHeader = $('<div>', {
-			'class': 'message-header',
-			text: title
-		});
-
-		messageBody = $('<div>', {
-			'class': 'message-body'
-		});
-
-		messageTextBox = $('<span>', {
-			html: text
-		});
-
-		closeButton = $('<a>', {
-			'class': 'message-close',
-			href: 'javascript:void(0);',
-			title: 'Закрыть',
-			click: function() {
-				$(this).parent().parent().fadeOut(300, function() {
-					$(this).remove();
-				});
-			}
-		});
-
-		// теперь расположим все на свои места
-		messageWrap.appendTo(stackContainer).fadeIn();
-		messageBox.appendTo(messageWrap);
-		closeButton.appendTo(messageBox);
-		messageHeader.appendTo(messageBox);
-		messageBody.appendTo(messageBox);
-
-		messagePicture = $('<div>', {
-			'class': 'thumb'
-		});
-
-		var notifyIcon = options.icon;
-		if(notifyIcon){
-			image = $('<img>', {
-				src: 	'/img/core/notify/notify_'+notifyIcon+'.png',
-				widht: 	48,
-				height: 48
-			});
-		}
-		messagePicture.appendTo(messageBody);
-		image.appendTo(messagePicture);
-
-		messageTextBox.appendTo(messageBody);
-
-		// если время жизни уведомления больше 0, ставим таймер
-		if (options.lifeTime > 0) {
-			setTimeout(function() {
-				$(messageWrap).fadeOut(300, function() {
-					$(this).remove();
-				});
-			}, options.lifeTime);
-		}
-
-		// если установлен колбек
-		if (options.click != undefined) {
-			messageWrap.click(function(e) {
-				if (!jQuery(e.target).is('.message-close')) {
-					options.click.call(this);
-				}
-			});
-		}
-
-		return this;
-	};
-
-
 	$self.isEmpty = function(obj){
 		return Object.keys(obj).length === 0;
 	}
@@ -208,7 +86,7 @@ var GG = function(){
 	$self.historyRestoreUrl = function(){
 		var title = window._history_backup_title ? window._history_backup_title : document.title;
 		var url = window._history_backup_url ? window._history_backup_url : location.protocol + '//' + location.host + location.pathname + window.location.search;
-		History.pushState({}, title, url);
+		if (typeof History.pushState != 'undefined') History.pushState({}, title, url);
 	}
 
 	$self.setUrlQs = function(qsArray, title) {
@@ -272,10 +150,13 @@ var GG = function(){
 							var errorText = '';
 
 							$error.html("<ul></ul>");
+
+							$parent.find("*").removeClass("field__input_error").removeClass("error");
+
 							for (var error in errors) {
 								if (errors.hasOwnProperty(error)) {
 									// add classes
-									$parent.find("input[name="+error+"], textarea[name="+error+"], select[name="+error+"]").addClass(".field__input_error").addClass(".error");
+									$parent.find("input[name="+error+"], textarea[name="+error+"], select[name="+error+"]").closest("label").addClass("error").end().addClass("field__input_error").addClass("error");
 
 									// fill errors container
 									$("<li/>").html(errors[error]).appendTo($error.find("ul"));
@@ -362,17 +243,23 @@ var GG = function(){
 
 			if (!$self.TOGGLE) $self.TOGGLE = true;
 
-			element.on("mouseup touchend", "a", function(e){
+			element.on("mouseup", "a", function(e){
 				var $parent  = $(this).parent(),
 					$wrapper = $parent.parent(),
 					regexp   = new RegExp( "^(.+)_current$", "i");
+
+				if ($(this).data("dispatch") && $($(this).data("dispatch")).length > 0) {
+					$parent  = $(this).closest($(this).data("dispatch")),
+					$wrapper = $parent.parent();
+				}
 
 				// check if parent is only one of class
 				var parentBlockClass = $parent[0].className.split(/\s+/), parentBlockClass = parentBlockClass[0],
 					thisBlockClass   = $(this)[0].className.split(/\s+/), thisBlockClass   = thisBlockClass[0],
 					flagNotSingle	= true;
 
-				if (!thisBlockClass || !parentBlockClass.length || ($("."+parentBlockClass+":visible").length == 1 && $("."+parentBlockClass+" ."+thisBlockClass+":visible").length == 1)) {
+				// if (!thisBlockClass || !parentBlockClass.length || ($("."+parentBlockClass+":visible").length == 1 && $("."+parentBlockClass+" ."+thisBlockClass+":visible").length == 1)) {
+				if (!thisBlockClass || (parentBlockClass.length && $("."+parentBlockClass+":visible").length == 1 && $("."+parentBlockClass+" ."+thisBlockClass+":visible").length == 1)) {
 					flagNotSingle = false;
 				}
 				//
@@ -388,7 +275,14 @@ var GG = function(){
 				var flagNoAutoCurrent = false;
 				if ($(this).closest(".noautocurrent").length > 0) {
 					flagNoAutoCurrent = true;
-					$self.log("Autocurrent is toggled off for this container");
+					$self.log("."+$(this).closest(".nouncurrent")[0].className.split(/\s+/)[0] + ": Autocurrent is toggled off for this container");
+				}
+
+				// check if one of parents are '.nouncurrent'
+				var flagNoUnCurrent = false;
+				if ($(this).closest(".nouncurrent").length > 0) {
+					flagNoUnCurrent = true;
+					$self.log("."+$(this).closest(".nouncurrent")[0].className.split(/\s+/)[0] + ": Uncurrent is toggled off for this container");
 				}
 
 				// check if toggle is turned on
@@ -427,8 +321,12 @@ var GG = function(){
 					var parentFirstClass  = $parent[0].className.split(/\s+/)[0],
 						parentCurrents = [];
 
-					if ($("."+parentBlockClass+":visible").length > 1 && $(this).closest("."+parentFirstClass).parent().find("."+parentBlockClass).length > 1) { // only if parent are not only one
-						$wrapper.find("."+parentFirstClass+"_current").removeClass(parentFirstClass+"_current").data("current", false);
+					if (parentBlockClass.length && $("."+parentBlockClass+":visible").length > 1 && $(this).closest("."+parentFirstClass).parent().find("."+parentBlockClass).length > 1) { // only if parent are not only one
+						if (!flagNoUnCurrent) $wrapper.find("."+parentFirstClass+"_current").removeClass(parentFirstClass+"_current").data("current", false);
+
+						if (flagNoUnCurrent && flagIsCurrent && flagToggleCurrent) {
+							$(this).closest("."+parentFirstClass+"_current").removeClass(parentFirstClass+"_current").data("current", false);
+						}
 
 						if (!flagToggleCurrent || !flagIsCurrent) {
 							parentCurrents.push(parentFirstClass+"_current");
@@ -442,11 +340,19 @@ var GG = function(){
 					// child loop (toggle currents for child)
 					var childFirstClass  = $(this)[0].className.split(/\s+/)[0],
 						childCurrents	= [],
-						parent		   = $(this).parent().parent();
+						parent		   = parentBlockClass.length ? $(this).parent().parent() : $(this).parent();
 
-					$("."+childFirstClass+"_current", parent).removeClass(childFirstClass+"_current").data("current", false);
+					if ($(this).data("dispatch") && $($(this).data("dispatch")).length > 0) {
+						parent  = $(this).closest($(this).data("dispatch"));
+					}
 
-					if (!flagToggleCurrent || !flagIsCurrent) {
+					if (!flagNoUnCurrent) $("."+childFirstClass+"_current", parent).removeClass(childFirstClass+"_current").data("current", false);
+
+					if (flagNoUnCurrent && flagIsCurrent && flagToggleCurrent) {
+						$("."+childFirstClass+"_current", parent).removeClass(parentFirstClass+"_current").data("current", false);
+					}
+
+					if (!$(this).data("dispatch") && (!flagToggleCurrent || !flagIsCurrent)) {
 						childCurrents.push(childFirstClass+"_current");
 
 						for (var i = 0, k = childCurrents.length; i < k; i++) {
@@ -462,7 +368,6 @@ var GG = function(){
 				if (href == '#' || href == '') {
 					e.preventDefault();
 				}
-
 			});
 			//
 		});
@@ -600,6 +505,281 @@ var GG = function(){
 			});
 		})
 	};
+
+	// $self.notify = function(text, title, options){
+	// 	if (typeof title == 'undefined') title = 'Товар добавлен в корзину';
+
+	// 	var stackContainer, messageWrap, messageBox, messageBody, messageTextBox, messagePicture, image;
+
+	// 	options = $.extend({
+	// 		lifeTime: 		4000,
+	// 		click: 			undefined,
+	// 		icon: 			'add'
+	// 	}, options);
+
+	// 	// находим контейнер с сообщениями, если его нет, тогда создаём
+	// 	stackContainer = $('#notifier-box');
+	// 	if (!stackContainer.length) {
+	// 		stackContainer = $('<div>', {id: 'notifier-box'}).prependTo(document.body);
+	// 	}
+
+	// 	// создаём элементы вертски контейнера сообщения
+	// 	messageWrap    = $('<div>',  {'class': 'message-wrap', 'css': { 'display': 'none'}});
+	// 	messageBox     = $('<div>',  {'class': 'message-box'});
+	// 	messageHeader  = $('<div>',  {'class': 'message-header', 'text': title});
+	// 	messageBody    = $('<div>',  {'class': 'message-body'});
+	// 	messageTextBox = $('<span>', {'html': text});
+
+	// 	closeButton = $('<a>', {
+	// 		'class': 'message-close',
+	// 		href: 'javascript:void(0);',
+	// 		title: 'Закрыть',
+	// 		click: function() {
+	// 			$(this).parent().parent().fadeOut(300, function() {
+	// 				$(this).remove();
+	// 			});
+	// 		}
+	// 	});
+
+	// 	// теперь расположим все на свои места
+	// 	messageWrap.appendTo(stackContainer).fadeIn();
+	// 	messageBox.appendTo(messageWrap);
+	// 	closeButton.appendTo(messageBox);
+	// 	messageHeader.appendTo(messageBox);
+	// 	messageBody.appendTo(messageBox);
+
+	// 	messagePicture = $('<div>', {'class': 'thumb'});
+
+	// 	var notifyIcon = options.icon;
+	// 	if(notifyIcon){
+	// 		image = $('<img>', {
+	// 			src: 	'/img/core/notify/notify_'+notifyIcon+'.png',
+	// 			widht: 	48,
+	// 			height: 48
+	// 		});
+	// 	}
+	// 	messagePicture.appendTo(messageBody);
+	// 	image.appendTo(messagePicture);
+
+	// 	messageTextBox.appendTo(messageBody);
+
+	// 	// если время жизни уведомления больше 0, ставим таймер
+	// 	if (options.lifeTime > 0) {
+	// 		setTimeout(function() {
+	// 			$(messageWrap).fadeOut(300, function() {
+	// 				$(this).remove();
+	// 			});
+	// 		}, options.lifeTime);
+	// 	}
+
+	// 	// если установлен колбек
+	// 	if (options.click != undefined) {
+	// 		messageWrap.click(function(e) {
+	// 			if (!jQuery(e.target).is('.message-close')) {
+	// 				options.click.call(this);
+	// 			}
+	// 		});
+	// 	}
+
+	// 	return this;
+	// };
+	// $self.notify_warning = function(text, title, options){
+	// 	if (typeof title == 'undefined') title = 'Уведомление';
+	// 	options = $.extend({
+	// 		icon : 'warning'
+	// 	}, options);
+
+	// 	$self.Notify(text, title, options);
+	// };
+	// $self.notify_add = function(text, title, options){
+	// 	if (typeof title == 'undefined') title = 'Товар добавлен в корзину';
+	// 	options = $.extend({
+	// 		icon : 'add'
+	// 	}, options);
+	// 	$self.Notify(text, title, options);
+	// };
+	// $self.notify_delete = function(text, title, options){
+	// 	if (typeof title == 'undefined') title = 'Изменения в корзине';
+	// 	options = $.extend({
+	// 		icon : 'delete'
+	// 	}, options);
+	// 	$self.Notify(text, title, options);
+	// };
+
+	// new version of Notifier
+	$self.Notify = function(){
+		var params = {};
+		
+		if (typeof arguments[0] == 'object') { // if object {} - new version
+			params = {
+				title:   arguments[0].title   || '',
+				text:    arguments[0].text    || '',
+				options: arguments[0].options || {},
+			};
+		} else if (typeof arguments[0] == 'string' && (!arguments[1] || typeof arguments[1] == 'string' || typeof arguments[1] == 'object')) { // combo
+
+			switch (typeof arguments[1]) {
+				case 'string':
+					params.text = arguments[1];
+
+					if (arguments[2] && typeof arguments[2] == 'string') {
+						params.title = arguments[2];
+					}
+
+					if (arguments[3] && typeof arguments[3] == 'object') {
+						params.options = arguments[3];
+					}
+
+					break;
+
+				case 'object':
+					params = $.extend(params, arguments[1]);
+					break;
+
+				case 'undefined':
+					break;
+			}
+
+			switch (arguments[0]) {
+				case 'add':
+					$self.log('Notify: add');
+					
+					if (!params.title) params.title = 'Товар добавлен в корзину';
+					params.options = $.extend(params.options, {icon : 'add'});
+
+					break;
+				case 'delete':
+					$self.log('Notify: delete');
+					
+					if (!params.title) params.title = 'Изменения в корзине';
+					params.options = $.extend(params.options, {icon : 'delete'});
+
+					break;
+				case 'warning':
+					$self.log('Notify: warning');
+
+					if (!params.title) params.title = 'Уведомление';
+					params.options = $.extend(params.options, {icon : 'warning'});
+
+					break;
+				case 'notify_add':
+					$self.log('Notify: add');
+					
+					if (!params.title) params.title = 'Товар добавлен в корзину';
+					params.options = $.extend(params.options, {icon : 'add'});
+
+					break;
+				case 'notify_delete':
+					$self.log('Notify: delete');
+					
+					if (!params.title) params.title = 'Изменения в корзине';
+					params.options = $.extend(params.options, {icon : 'delete'});
+
+					break;
+				case 'notify_warning':
+					$self.log('Notify: warning');
+
+					if (!params.title) params.title = 'Уведомление';
+					params.options = $.extend(params.options, {icon : 'warning'});
+
+					break;
+
+				default:
+					$self.log('Notify: warning');
+					params.text  = arguments[0];
+					params.title = arguments[1];
+
+					break;
+			}
+		} else if (arguments[1]) { // old version, deprecated
+			params = {
+				text:    arguments[0] || '',
+				title:   arguments[1] || '',
+				options: arguments[2] || {},
+			};
+		}
+
+		if (!params.title) params.title = 'Товар добавлен в корзину';
+
+		var stackContainer, messageWrap, messageBox, messageBody, messageTextBox, messagePicture, image;
+
+		params.options = $.extend({
+			lifeTime: 		4000,
+			click: 			undefined,
+			icon: 			'add'
+		}, params.options);
+
+		// находим контейнер с сообщениями, если его нет, тогда создаём
+		stackContainer = $('#notifier-box');
+		if (!stackContainer.length) {
+			stackContainer = $('<div>', {id: 'notifier-box'}).prependTo(document.body);
+		}
+
+		// создаём элементы вертски контейнера сообщения
+		messageWrap    = $('<div>',  {'class': 'message-wrap', 'css': { 'display': 'none'}});
+		messageBox     = $('<div>',  {'class': 'message-box'});
+		messageHeader  = $('<div>',  {'class': 'message-header', 'text': params.title});
+		messageBody    = $('<div>',  {'class': 'message-body'});
+		messageTextBox = $('<span>', {'html': params.text});
+
+		closeButton = $('<a>', {
+			'class': 'message-close',
+			href: 'javascript:void(0);',
+			title: 'Закрыть',
+			click: function() {
+				$(this).parent().parent().fadeOut(300, function() {
+					$(this).remove();
+				});
+			}
+		});
+
+		// теперь расположим все на свои места
+		messageWrap.appendTo(stackContainer).fadeIn();
+		messageBox.appendTo(messageWrap);
+		closeButton.appendTo(messageBox);
+		messageHeader.appendTo(messageBox);
+		messageBody.appendTo(messageBox);
+
+		messagePicture = $('<div>', {'class': 'thumb'});
+
+		var notifyIcon = params.options.icon;
+		if(notifyIcon){
+			image = $('<img>', {
+				src: 	$self.debug ? 'http://gg.dev.ifrog.ru/img/core/notify/notify_'+notifyIcon+'.png' : '/img/core/notify/notify_'+notifyIcon+'.png',
+				widht: 	48,
+				height: 48
+			});
+		}
+		messagePicture.appendTo(messageBody);
+		image.appendTo(messagePicture);
+
+		messageTextBox.appendTo(messageBody);
+
+		// если время жизни уведомления больше 0, ставим таймер
+		if (params.options.lifeTime > 0) {
+			setTimeout(function() {
+				$(messageWrap).fadeOut(300, function() {
+					$(this).remove();
+				});
+			}, params.options.lifeTime);
+		}
+
+		// если установлен колбек
+		if (params.options.click != undefined) {
+			messageWrap.click(function(e) {
+				if (!jQuery(e.target).is('.message-close')) {
+					params.options.click.call(this);
+				}
+			});
+		}
+	};
+
+	// deprecated in 3.0
+	$self.notify         = $self.Notify;
+	$self.notify_add     = function(){$self.Notify('add', {text: arguments[0], title: arguments[1], options: arguments[2]})};
+	$self.notify_delete  = function(){$self.Notify('delete', {text: arguments[0], title: arguments[1], options: arguments[2]})};
+	$self.notify_warning = function(){$self.Notify('warning', {text: arguments[0], title: arguments[1], options: arguments[2]})};
+	//
 
 	$self.addClass = function(o, c){
 		var re = new RegExp("(^|\\s)" + c + "(\\s|$)", "g")

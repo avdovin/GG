@@ -2,27 +2,26 @@
 % my $sch = 0;
 % my $totalTabCount = 2;
 
-<div class="filters">
-	<a href="<%= url_for('news_item') %>" class="button button_small button_black <% unless($year){ %>current<% } %>"><%= cl ru => 'Все', en => 'all' %></a>
 
-	% my $maxViewYears = scalar(@$items) > $totalTabCount ? $totalTabCount-1 : $totalTabCount;
+<a href="<%= $prefix %>" class="button button_black button_small <% unless($year){ %>current<% } %>"><%= cl ru => 'Все', en => 'all' %></a>
+
+% my $maxViewYears = scalar(@$items) > $totalTabCount ? $totalTabCount-1 : $totalTabCount;
+% foreach (@$items){
+	% last if($sch==$maxViewYears);
+	<a href="<%= $prefix %><%= $_->{year} %>" class="button button_black button_small <% if($year == $_->{year}){ %>current<% } %>"><%= $_->{year} %></a>
+	% $sch++;
+% }
+
+% $sch = 0;
+% if(scalar(@$items)>$totalTabCount){
+	% my $minYear = 0;
+	% my $maxYear = 0;
 	% foreach (@$items){
-		% last if($sch==$maxViewYears);
-		<a href="<%= url_for('news_item') %>?year=<%= $_->{year} %>" class="button button_small button_black <% if($year == $_->{year}){ %>current<% } %>"><%= $_->{year} %></a>
 		% $sch++;
+		% next if($sch <= 2);
+		% $minYear = $_->{year} if (!$minYear or $minYear > int($_->{year}) );
+		% $maxYear = $_->{year} if (!$maxYear or $maxYear < int($_->{year}) );
 	% }
-
-	% $sch = 0;
-	% if(scalar(@$items)>$totalTabCount){
-		% my $minYear = 0;
-		% my $maxYear = 0;
-		% foreach (@$items){
-			% $sch++;
-			% next if($sch <= 2);
-			% $minYear = $_->{year} if (!$minYear or $minYear > int($_->{year}) );
-			% $maxYear = $_->{year} if (!$maxYear or $maxYear < int($_->{year}) );
-		% }
-		<a href="<%= url_for('news_item') %>?year=<%= $minYear.'-'.$maxYear %>" class="button button_small button_black <% if($year == $minYear.'-'.$maxYear){ %>current<% } %>"><%= $maxYear.'-'.$minYear %></a>
-	% }
-</div>
+	<a href="<%= $prefix %><%= $minYear.'-'.$maxYear %>" class="button button_black button_small <% if($year == $minYear.'-'.$maxYear){ %>current<% } %>"><%= $maxYear.'-'.$minYear %></a>
+% }
 

@@ -6,8 +6,8 @@
         <div id="breadcrumbs">
             <a href="<%= url_for('main') %>">Главная</a> → Новости
         </div>
-		<%== news_dir_menu %>
-        
+		%== texts_year_navigator prefix => $self->url_for('news_list').'?year='
+
         <% foreach (@$items){ %>
 	        <div class="news-entry">
 	            <span><%= date_format( date => $_->{tdate}, format => 'dd month yyyy') %>г.</span>
@@ -17,12 +17,12 @@
 	            	<a href="<%= url_for('news_item_by_group', list_item_alias => $_->{alias}) %>"></a>
 	            <% } else { %>
 	            	<a href="<%= url_for('news_item', list_item_alias => $_->{alias}) %>"></a>
-	            <% } %>	
-	            
+	            <% } %>
+
 	        </div>
         <% } %>
     </div>
 
     <div style="clear: both"></div>
 </div>
-            
+

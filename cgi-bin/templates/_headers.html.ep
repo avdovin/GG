@@ -13,17 +13,16 @@ if (typeof jQuery == 'undefined') {
 }
 //--><!]]>
 </script>
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
-% js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if $self->config->{'jquery_history'};
+% js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if config 'jquery_history';
 % js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
-% js_files(file => '/js/common.js', template => '_headers.html.ep');
-% js_files_cdn(file => '/js/jquery/plugins/jquery.mask.min.js', template => '_headers.html.ep');
 
-% css_files( '/css/core.css' );
-% css_files( '/css/style.css' );
+%= asset 'app.css' if config 'pipeline';
 
 %= content_for 'headers'
 
-%= asset 'app.js';
-%= asset 'app.css';
+
+
+
 

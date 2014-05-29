@@ -29,10 +29,8 @@ sub register {
 	$app->_setup_inc($conf->{perl5lib});
 
 	# Pipeline assets
-	if($conf->{pipeline}){
-		$app->plugin('Pipeline');
-		$app->plugin('Pipeline::CSSCompressor');
-	}
+	$app->plugin('Pipeline');
+	$app->plugin('Pipeline::CSSCompressor');
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');

@@ -148,20 +148,25 @@ sub register {
 	$app->helper( texts_year_navigator => sub {
 		my $self   = shift;
 		my %params = (
-			key_razdel	=> "news",
-			where		=> "",
+			key_razdel	=> 'news',
+			where		=> '',
+			datefield 	=> 'tdate',
+			prefix 		=> '',
+			postfix 	=> '',
 			@_,
 		);
 
-		my 	$where = " AND `viewtext`='1' AND YEAR(`tdate`) > 0";
+		my 	$where = " AND `viewtext`='1' AND YEAR(`$params{datefield}`) > 0";
 			$where .= $params{where} if $params{where};
 
-		my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`tdate`) AS `year` FROM `texts_".$params{key_razdel}."_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`tdate`) ORDER BY `tdate` DESC")->hashes;
+		my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`$params{datefield}`) AS `year` FROM `texts_".$params{key_razdel}."_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`$params{datefield}`) ORDER BY `$params{datefield}` DESC")->hashes;
 
 		return $self->render(
-			items	=> $items,
-			template => 'Texts/_'.$params{key_razdel}.'_year_nav',
-			partial	=> 1
+			items		=> $items,
+			prefix 		=> $params{prefix},
+			postfix		=> $params{postfix},
+			template 	=> 'Texts/_'.$params{key_razdel}.'_year_nav',
+			partial		=> 1
 		);
 	});
 

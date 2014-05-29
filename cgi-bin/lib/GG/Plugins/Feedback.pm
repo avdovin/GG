@@ -53,7 +53,7 @@ sub register {
 					},
 					phone 		=> {
 						label 			=> 'Номер телефона',
-						required 		=> 1,
+						required 		=> 0,
 						error_text 	=> 'Укажите контактный номер телефона',
 					},
 					email 		=> {

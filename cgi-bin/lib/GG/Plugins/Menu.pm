@@ -122,7 +122,6 @@ sub menu_track {
 			if($current){
 				my $sch = 1;
 				foreach (reverse @trees){
-					warn "tree node: $_";
 					$levels->{$sch++} = $_;
 				}
 				$self->stash->{menu_active_id} = $pageId;
