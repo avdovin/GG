@@ -38,7 +38,6 @@ sub startup{
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
 		my $self = shift;
 
-		$self->stash->{lang} ||= 'ru';
 		return 1;
 	});
 

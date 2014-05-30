@@ -52,19 +52,25 @@ sub register {
 	});
 
 	# языковые версии сайта
-	# $self->plugin('I18N' =>  {
-	# 	support_url_langs 	=> [qw(ru en)],
-	# 	default 			=> 'ru',
-	# 	namespace 			=> 'GG::I18N',
-	# 	no_header_detect 	=> 1
-	# });
+	if($conf->{langs}){
+		$app->plugin('I18N' =>  {
+			support_url_langs 	=> $conf->{lang_supported},
+			default 			=> $conf->{lang_default},
+			namespace 			=> 'GG::I18N',
+			no_header_detect 	=> 1,
+			exclude_contains 	=> [qw(admin)],
+		});
+	}
 
 	$ENV{MOJO_MAX_MESSAGE_SIZE} = $conf->{upload_maxchanksize};
 
 	$app->hook(before_dispatch => sub {
 		my $self = shift;
 
-		$self->stash->{lang} = $conf->{lang_default};
+		# Ignore static files
+		return if $self->res->code;
+
+		$self->stash->{lang} ||= $conf->{lang_default};
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );

@@ -29,6 +29,10 @@
 	jquery_history		=> 0,					# Загрузить jQuery плагин - history
 	vfe_enabled			=> 0,					# Загружать vfe
 	minify_html 		=> 1,					# Сжатие html кода
+
+	images_quality 		=> 85,					# качество сохранение jpg файлов после обработки ImageMagick
+
+	langs 				=> 1,					# включить поддержку языковых версий
 	lang_default 		=> 'ru', 				# языковая версия по умолчанию
 	lang_supported	 	=> [qw(ru)], 			# доступные языковые версии
 
