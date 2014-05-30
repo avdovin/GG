@@ -12,10 +12,10 @@ BEGIN {
 
 my @EXT = qw(png jpg jpeg gif);
 
-my $QUALITY = 85;
-
 sub register {
 	my ( $self, $app, $opts ) = @_;
+
+	my $QUALITY = $app->config->{'images_quality'} || 85;
 
 	$opts ||= {};
 

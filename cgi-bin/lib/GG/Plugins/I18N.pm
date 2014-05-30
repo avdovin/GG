@@ -15,6 +15,8 @@ sub register {
   # Initialize
   my $namespace = $conf->{namespace} || ( (ref $app) . '::I18N' );
   my $default   = $conf->{default  } || 'en';
+  my $exclude_contains = $conf->{exclude_contains} || [];
+
   $default =~ tr/-A-Z/_a-z/;
   $default =~ tr/_a-z0-9//cd;
 
@@ -130,6 +132,12 @@ sub register {
 
       # No language detected
       elsif ( ref $langs ne 'ARRAY' or not scalar grep { $path->contains("/$_") } @$langs ) {
+
+        #TODO: exclude routes for i18n
+        foreach (@$exclude_contains){
+          return $url if $path->contains("/$_");
+        }
+
         unshift @{ $path->parts }, $lang;
       }
     }
