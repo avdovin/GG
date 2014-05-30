@@ -105,7 +105,6 @@ sub register {
 			$search_str .= $hash_table->{$table}->{where} if $hash_table->{$table}->{where};
 
 			if($search_str){
-				warn "SELECT $keyFieldSelect FROM `$table` WHERE $search_str";
 				for my $row  ($self->app->dbi->query("SELECT $keyFieldSelect FROM `$table` WHERE $search_str")->hashes){
 
 					$result_search_index[$sch] = {
@@ -206,9 +205,11 @@ sub print_search_result{
 			if( $node->{text} ) {
 				$node->{text} =~ s/<.*?>//gi;
 
-				if($node->{text} =~ /([\s\S]*?)$qsearch([\s\S]*)/){
+				if($node->{text} =~ /([\s\S]*?)($qsearch)([\s\S]*)/i){
 					my $pref = $1;
-					my $post = $2;
+					my $local_qsearch = $2;
+					my $post = $3;
+
 
 					if( length($pref) > $cutSize ){
 						$pref = substr( $pref, length($pref) - $cutSize);
@@ -230,7 +231,7 @@ sub print_search_result{
 						}
 					}
 
-					$node->{text} = "...".$pref." <b style='color:black;'>".$qsearch."</b> ".$post."...";
+					$node->{text} = "...".$pref." <b style='color:black;'>".$local_qsearch."</b> ".$post."...";
 				}
 				else {
 					$node->{text} = $self->cut(string => $node->{text}, size => 1000);
