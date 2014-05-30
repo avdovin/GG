@@ -56,14 +56,15 @@ sub texts_list{
 		order_field	=> $self->stash('date') || "tdate",
 		select		=> '*',
 		page		=> $self->stash('page') || 1,
+		where 		=> $self->stash->{'where'} || '',
+		lang_tables => defined $self->stash->{'lang_tables'} ? $self->stash->{'lang_tables'} : 1,
 		limit		=> 0,	# $self->get_var(name => 'news_limit', controller => 'texts', raw => 1),
 		@_
 	);
 
 	my $key_razdel	= delete $params{key_razdel};
-	my $table		= "texts_".$key_razdel."_".$self->lang;
+	my $table		= "texts_".$key_razdel."_".($params{lang_tables} ? $self->lang : 'ru');
 	my $template 	= $key_razdel.'_list';
-
 
 	if($self->stash->{alias}){
 

@@ -74,7 +74,19 @@ sub register {
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );
-			$self->app->log->level($mode eq 'development' ? 'debug' : 'error');
+
+			if($mode eq 'development'){
+				$self->app->log->level('debug');
+				BEGIN {
+					$ENV{MOJO_I18N_DEBUG} = 0
+				};
+			}
+			else {
+				$self->app->log->level('error');
+				BEGIN {
+					$ENV{MOJO_I18N_DEBUG} = 1
+				};
+			}
 		}
 
 		# --- SEO 301 redirect to none www domain ---------
