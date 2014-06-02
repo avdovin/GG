@@ -242,6 +242,9 @@ sub register {
 				$self->app->sysuser->set_settings($user->{settings});
 				$self->app->sysuser->userinfo->{cck} = $params{cck};
 				$self->app->sysuser->auth(1);
+
+				# восстанавливаем настройки из сессии пользователя
+				$self->app->sysuser->restore_ses_settings;
 			}
 			else {
 				$self->admin_msg_errors('Сессия прервана. Требуется повторная авторизация');

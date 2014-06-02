@@ -128,31 +128,6 @@ sub body{
 			return $self->render_not_found;
 		}
 
-
-		when('chrazdel') 				{
-			$self->changeRazdel;
-
-			$self->list_container;
-		}
-		when('chlang') 					{
-			$self->sysuser->save_settings(lang => $self->stash->{lang});
-			$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
-
-			delete $self->lkey(name => 'razdel', controller => $self->stash->{controller})->{list};
-
-			$self->render( json => {
-					content	=> 'Изменение языковой версии',
-					items	=> [
-						{
-							type	=> 'eval',
-							value	=> "ld_content('".$self->stash->{replaceme}."', '".$self->stash->{controller_url}."?do=list_container&".$self->stash->{param_default}."')",
-						},
-					]
-				})
-			#$self->list_container;
-		}
-
-
 		default							{
 			$self->default_actions($do);
 		}
@@ -164,8 +139,11 @@ sub body{
 sub changeRazdel{
 	my $self = shift;
 
-	$self->sysuser->save_settings(texts_razdel => $self->send_params->{razdel});
-	$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
+	$self->sysuser->save_ses_settings(texts_razdel => $self->send_params->{razdel});
+	$self->sysuser->save_ses_settings($self->stash->{replaceme}.'_sfield' => 'ID');
+
+	#$self->sysuser->save_settings(texts_razdel => $self->send_params->{razdel});
+	#$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
 	$self->stash->{razdel} = $self->send_params->{razdel};
 }
 

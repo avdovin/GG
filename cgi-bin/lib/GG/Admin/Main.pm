@@ -26,7 +26,7 @@ sub body{
 
 
 		when('chlang') 					{
-			$self->sysuser->save_settings(lang => $self->param('lang'));
+			$self->sysuser->save_ses_settings(lang => $self->param('lang'));
 			$self->mainpage;
 		}
 
@@ -100,7 +100,7 @@ sub settings_panel{
 sub mainpage{
 	my $self = shift;
 
-	$self->sysuser->save_settings(lang => "ru") if (!$self->sysuser->settings->{lang});
+	$self->sysuser->save_settings(lang => 'ru') unless $self->sysuser->settings->{lang};
 
 	$self->get_keys( type => ['lkey', 'button'], controller => 'global', no_global => 1);
 
@@ -116,10 +116,9 @@ sub mainpage{
 		my $button = $app->button( name => $$row{key_razdel}, controller => 'global');
 
 		unless($button){
-			$self->app->log->error(__PACKAGE__." button $$row{key_razdel} NOT FOUND!");
+			$app->log->debug(__PACKAGE__." button $$row{key_razdel} NOT FOUND!");
 			next;
 		}
-
 
 		$button->def_icons;
 

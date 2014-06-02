@@ -109,17 +109,6 @@ sub body{
 
 		when('list_container') 			{ $self->list_container; }
 
-		when('chrazdel') 				{
-			$self->changeRazdel;
-
-			$self->list_container;
-		}
-		when('chlang') 					{
-			$self->sysuser->save_settings(lang => $self->stash->{lang});
-			$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
-			$self->list_container;
-		}
-
 
 		default							{
 			$self->default_actions($do);
@@ -130,8 +119,11 @@ sub body{
 sub changeRazdel{
 	my $self = shift;
 
-	$self->sysuser->save_settings(images_razdel => $self->send_params->{razdel});
-	$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
+	$self->sysuser->save_ses_settings(images_razdel => $self->send_params->{razdel});
+	$self->sysuser->save_ses_settings($self->stash->{replaceme}.'_sfield' => 'ID');
+
+	#$self->sysuser->save_settings(images_razdel => $self->send_params->{razdel});
+	#$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
 	$self->stash->{razdel} = $self->send_params->{razdel};
 }
 
