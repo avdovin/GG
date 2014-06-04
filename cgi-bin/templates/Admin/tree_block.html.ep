@@ -1,4 +1,4 @@
-<div id="pane_tree_<%= $controller %>">
+<div id="pane_tree_<%= $controller %>" data-controller="<%= $controller %>" data-controller-url="<%= $self->stash->{controller_url} %>">
 	<ul id="tree_<%= $controller %>" class="dhtmlgoodies_tree">
 		<li id="node_<%= $controller %>0" noDrag="true" noSiblings="true" noDelete="true" noRename="true">
 			<a href="#"><span style="font-weight:bold;font-size:12px"><%= $controller_name %></span></a> [ <a href="#" onClick="ld_content('pane_tree_<%= $controller %>', '<%= $script_link %>?do=tree<%== $self->stash->{param_default} %>');">Обновить</a> ]
@@ -24,16 +24,16 @@
 											}
 								);
 							% }
-		                    % if($folder->{click_type} && ($folder->{click_type} eq 'list_filtered' or $folder->{click_type} eq 'list') ){
-		                        set_list_filter(
-		                                    '<%= $self->stash->{controller_url} %>',
-		                                    'replaceme',{
-		                                    % foreach (keys %{ $folder->{params} }){
-		                                        '<%= $_ %>' : '<%= $folder->{params}->{$_} %>',
-		                                    % }
-		                                    }
-		                        );
-		                    % }
+							% if($folder->{click_type} && ($folder->{click_type} eq 'list_filtered' or $folder->{click_type} eq 'list') ){
+								set_list_filter(
+											'<%= $self->stash->{controller_url} %>',
+											'replaceme',{
+											% foreach (keys %{ $folder->{params} }){
+												'<%= $_ %>' : '<%= $folder->{params}->{$_} %>',
+											% }
+											}
+								);
+							% }
 							">
 									<%== $folder->{name} =%>
 							</a>

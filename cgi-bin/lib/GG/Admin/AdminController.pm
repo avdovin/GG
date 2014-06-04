@@ -66,6 +66,7 @@ sub default_actions{
 		when('field_upload_swf') 		{ $self->field_upload_swf; }
 		when('file_upload_tmp') 		{ $self->render( text => $self->file_upload_tmp ); }
 
+
 		# Загрузка архива
 		when('zipimport')	 			{ $self->zipimport; }
 		when('zipimport_save')	 		{ $self->zipimport_save; }
@@ -76,6 +77,29 @@ sub default_actions{
 			$self->print_anketa(
 				title 	=> "Раздел «".$self->stash->{name_razdel}."»",
 			);
+		}
+
+		when('chrazdel') 				{
+			$self->changeRazdel;
+
+			$self->list_container;
+		}
+		when('chlang') 					{
+			$self->sysuser->save_ses_settings(lang => $self->stash->{lang});
+			$self->sysuser->save_ses_settings($self->stash->{replaceme}.'_sfield' => 'ID');
+
+			delete $self->lkey(name => 'razdel', controller => $self->stash->{controller})->{list};
+
+			$self->render( json => {
+					content	=> 'Изменение языковой версии',
+					items	=> [
+						{
+							type	=> 'eval',
+							value	=> "ld_content('".$self->stash->{replaceme}."', '".$self->stash->{controller_url}."?do=list_container&".$self->stash->{param_default}."')",
+						},
+					]
+				})
+			#$self->list_container;
 		}
 
 		default							{ $self->render( text => "действие не определенно"); }
@@ -100,7 +124,7 @@ sub item_copy{
 	my $index = delete $self->stash->{'index'};
 
 	my $anketa = delete $self->stash->{anketa};
-	foreach ( qw(ID rdate edate alias active viewtext viewimg) ){
+	foreach ( qw(ID rdate edate alias active viewtext viewimg tbl) ){
 		delete $anketa->{$_};
 	}
 
@@ -113,6 +137,10 @@ sub item_copy{
 			$self->send_params->{$f} = $anketa->{$f}.' копия';
 			$self->send_params->{'alias'} = $self->transliteration( $self->send_params->{$f} );
 
+		}
+		elsif($f eq 'lkey'){
+			$self->send_params->{$f} = $anketa->{$f};
+			$self->send_params->{'tbl'} = 'копия';
 		}
 		elsif($lkeyType eq 'pict'){
 

@@ -127,7 +127,6 @@ sub register {
 										loading_key	: 'init_main',
 										scripts		: [
 											'/admin/js/tablelist.js',
-											'/admin/js/jquery/ui/spinner/ui.spinner.min.js',
 											'/admin/js/calendar.js',
 											'/admin/js/urlify.js',
 											'/admin/js/drag-drop-folder-tree.js',

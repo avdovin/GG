@@ -41,6 +41,8 @@ sub register {
 	$r->route('/admin')->to(%defaults, cb => sub {
 		my $self = shift;
 
+		$self->admin_getUser;
+
 		$self->render(template	=> "Admin/page_start" );
 	})->name('login_form');
 
@@ -81,7 +83,7 @@ sub register {
 					undef, $self->app->sysuser->userinfo->{ID}, $self->app->sysuser->userinfo->{cck} );
 
 				$self->cookie('admin_cck', '', {
-						path 	=> '/admin/',
+						path 	=> '/admin',
 						expires	=> time-1000
 					}
 				);
@@ -150,7 +152,7 @@ sub register {
 
 
 				$self->cookie('admin_cck', $self->app->sysuser->userinfo->{cck}, {
-						path 	=> '/admin/',
+						path 	=> '/admin',
 						expires	=> $self->app->sysuser->userinfo->{cck} ? time+360000000 : time-1000
 					}
 				);
@@ -232,6 +234,7 @@ sub register {
 			}
 
 			if(my $session = $self->dbi->query("SELECT * FROM `sys_users_session` WHERE `id_user`='$$user{ID}' AND `cck`='$params{cck}'")->hash ){
+
 				$self->dbi->dbh->do("UPDATE `sys_users_session` SET `time`=NOW() WHERE `id_user`='$$user{ID}' AND `cck`='$params{cck}' ");
 
 				$self->app->sysuser->userinfo($user);
@@ -241,10 +244,11 @@ sub register {
 
 				$self->app->sysuser->set_settings($user->{settings});
 				$self->app->sysuser->userinfo->{cck} = $params{cck};
-				$self->app->sysuser->auth(1);
 
 				# восстанавливаем настройки из сессии пользователя
 				$self->app->sysuser->restore_ses_settings;
+
+				$self->app->sysuser->auth(1);
 			}
 			else {
 				$self->admin_msg_errors('Сессия прервана. Требуется повторная авторизация');
@@ -347,6 +351,7 @@ sub register {
 				id_program	=> 0,
 				eventtype	=> 0,
 				event		=> '',
+				id_sysuser  => 0,
 				@_
 			);
 			return unless $params{name};

@@ -4,10 +4,12 @@
 	<title>Панель управления. <%= get_var name => 'site_name', controller => 'global'	%></title>
 	<link rel="stylesheet" href="/admin/css/panel.css" media="screen" type="text/css">
 
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+
 	<script type="text/javascript">
 	if (typeof jQuery == 'undefined') {
-			document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
+			document.write(unescape("%3Cscript src='/admin/js/jquery/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
 	}
 	</script>
 
@@ -16,11 +18,11 @@
 	<script type="text/javascript" src="/admin/js/yepnope.min.js"></script>
 	<script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
 
-	<link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui.css" type="text/css" />
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.js"></script>
+	<link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui-1.10.4.custom.min.css" type="text/css" />
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 	<script type="text/javascript">
 	if (typeof jQuery.ui == 'undefined') {
-			document.write(unescape("%3Cscript src='/admin/js/jquery/ui/jquery-ui.min.js' type='text/javascript'%3E%3C/script%3E"));
+			document.write(unescape("%3Cscript src='/admin/js/jquery/ui/jquery-ui-1.10.4.custom.min.js' type='text/javascript'%3E%3C/script%3E"));
 	}
 	</script>
 
@@ -59,8 +61,10 @@ var paneEast = new DHTMLSuite.paneSplitterPaneModel( { position : "east", id:"ea
 paneEast.addContent( new DHTMLSuite.paneSplitterContentModel( { id:"eastContent",htmlElementId:'eastContent',title:'',tabTitle: '' } ) );
 var paneNorth = new DHTMLSuite.paneSplitterPaneModel( { position : "north", id:"northPane",size:111,scrollbars:false,resizable:false,collapsable:false } );
 paneNorth.addContent( new DHTMLSuite.paneSplitterContentModel( { id:"northContent",htmlElementId:'northContent',title:'' } ) );
+
 var paneCenter = new DHTMLSuite.paneSplitterPaneModel( { position : "center", id:"centerPane",size:150,minSize:100,maxSize:200 } );
 paneCenter.addContent( new DHTMLSuite.paneSplitterContentModel( { id:"center",contentUrl:'/admin/form_auth',title:' ',tabTitle:'Главная',closable:false  } ) );
+
 var paneSouth = new DHTMLSuite.paneSplitterPaneModel( { position : "south", id:"southPane",size:40,scrollbars:false,resizable:false,collapsable:false } );
 paneSouth.addContent( new DHTMLSuite.paneSplitterContentModel( { id:"southContent",htmlElementId:'southContent',title:' ',closable:false } ) );
 paneModel.addPane(paneSouth);
@@ -81,6 +85,17 @@ var menuBar = new Array();
 var menuTop = new DHTMLSuite.menuModel();
 DHTMLSuite.commonObj.setCssCacheStatus(false);
 var menuTopBar = new DHTMLSuite.menuBar();
+
+% if($self->app->sysuser->auth){
+	$(document).on('DOMSubtreeModified',function(){
+		if($("#replaceme").length){
+			ld_content("replaceme", "/admin/main/mainpage");
+			$(document).off('DOMSubtreeModified');
+		}
+	});
+
+% }
+
 </script>
 <ul id="menuButton" style="display:none"></ul>
 <div id="menuTop" style="display:none"></div>

@@ -838,3 +838,24 @@ function click_node_dtree(controller, div, url) {
 	var e = document.getElementById(div);
 	if (e) {tree_ld_content(div, url, 1);}
 }
+
+function init_tree(treeId){
+	if(!jQuery("#"+treeId).length) return false;
+
+	var $treeContainer = jQuery("#"+treeId);
+	var controllerUrl = $treeContainer.attr('data-controller-url');
+	var controller = $treeContainer.attr('data-controller');
+
+	initExpandedNodes = getCookies("tree");
+
+	treeObj[controller] = new JSDragDropTree();
+	treeObj[controller].setTreeId('tree_'+controller);
+	treeObj[controller].setFileNameRename(controllerUrl);
+	treeObj[controller].setFileNameDelete(controllerUrl);
+	treeObj[controller].setMaximumDepth(7);
+	treeObj[controller].setATag(controller);
+	treeObj[controller].setMessageMaximumDepthReached('Maximum depth reached');
+	treeObj[controller].initTree();
+
+	treeObj[controller].showHideNode(false,"node_"+controller+"0");
+}

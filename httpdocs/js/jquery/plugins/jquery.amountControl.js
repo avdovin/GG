@@ -147,7 +147,7 @@
 			});
 		},
 		setAmount: function(){
-			var $entry   = this,
+			var $entry   = arguments[2] || this,
 				$entrydata = $entry.data('amountcontrol') || $entry.attr('data-amountcontrol'),
 				$wrapper   = arguments[0],
 				newamount  = arguments[1],

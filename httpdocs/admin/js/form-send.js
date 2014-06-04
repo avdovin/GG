@@ -145,7 +145,6 @@ var Content_scripts = new Array();
 function get_content_scripts(_source) {
 	var source = _source;
 	if(typeof source == 'undefined') return '';
-
 	// Strip out tags
 	while(source.indexOf("<script") > -1 || source.indexOf("</script") > -1) {
 		var s = source.indexOf("<script");
@@ -883,8 +882,8 @@ function init_tableWidget() {
 			if(document.getElementsByTagName("table")[i].getAttribute("sorttable")) tableWidgetObj.sortTableByColumn(document.getElementsByTagName("table")[i].getAttribute("sorttable"), ascending);
 			else tableWidgetObj.sortTableByColumn(0, ascending);
 
-			if(jQuery.browser.mozilla) setTimeout("ff_init_tableWidget();", 1500);
-			//if (navigator.userAgent.indexOf("Firefox") != -1) setTimeout("ff_init_tableWidget();", 1500);
+			//if(jQuery.browser.mozilla) setTimeout("ff_init_tableWidget();", 1500);
+			if (navigator.userAgent.indexOf("Firefox") != -1) setTimeout("ff_init_tableWidget();", 1500);
 		}
 	}
 }

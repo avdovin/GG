@@ -298,7 +298,7 @@ sub register {
 		cdn	=> sub {
 			my $self = shift;
 
-			my $out = substr($self->config->{db_name},0,3) eq 'dev' ? "//gg.dev.ifrog.ru" : $self->config->{cdn} ? $self->config->{cdn} : "";
+			my $out = substr($self->config->{db_name},0,3) eq 'dev' ? "http://gg.dev.ifrog.ru" : $self->config->{cdn} ? $self->config->{cdn} : "";
 
 			return $out;
 		}
