@@ -27,6 +27,7 @@ sub register {
 		my $localtime = $self->setLocalTime;
 
 		# проверяем есть ли уже файл с погодой на сегодня
+
 		if(-e $tmpDir.$TmpFilename ){
 			my $data = $self->file_read_data( path => $tmpDir.$TmpFilename);
 
@@ -45,37 +46,29 @@ sub register {
 		my $city_id = $cityId || $CityId;
 		my $xmlUrl = "http://export.yandex.ru/weather-ng/forecasts/$city_id.xml";
 
-		$ua->get($xmlUrl => sub {
-			my ($ua, $tx) = @_;
+		my $tx = $self->ua->get($xmlUrl);
+		unless ($tx->success) {
+			return warn(scalar $tx->error);
+		}
+		my $dom = $tx->res->dom;
+		$dom->xml(1);
 
-			if(my $res = $tx->success){
-
-				my $dom = $tx->res->dom;
-				$dom->xml(1);
-
-				my $temp = $dom->at('fact temperature')->text;
-				my $icon = $dom->at('fact image-v2')->text;
-				my $data = $localtime.';'.$temp.';'.$icon;
+		my $temp = $dom->at('fact temperature')->text;
+		my $icon = $dom->at('fact image-v2')->text;
+		my $data = $localtime.';'.$temp.';'.$icon;
 
 
-				$self->file_save_data(
-					path  	=> $tmpDir.$TmpFilename,
-					data 	=> $data,
-				);
+		$self->file_save_data(
+			path  	=> $tmpDir.$TmpFilename,
+			data 	=> $data,
+		);
 
-				return $self->render(
-					temp 		=> $temp,
-					icon 		=> $icon,
-					template 	=> 'Plugins/Weather/_weather_by_city',
-					partial 	=> 1,
-				);
-			}
-			else {
-				my $err = $tx->error;
-				warn "$err->{code} response: $err->{message}" if $err->{code};
-				warn "Connection error: $err->{message}";
-			}
-		});
+		return $self->render(
+			temp 		=> $temp,
+			icon 		=> $icon,
+			template 	=> 'Plugins/Weather/_weather_by_city',
+			partial 	=> 1,
+		);
 
 		return '';
 	});
