@@ -27,7 +27,7 @@ sub register {
 		my $localtime = $self->setLocalTime;
 
 		# проверяем есть ли уже файл с погодой на сегодня
-		if(-f $tmpDir.$TmpFilename ){
+		if(-e $tmpDir.$TmpFilename ){
 			my $data = $self->file_read_data( path => $tmpDir.$TmpFilename);
 
 			my @dataVals = split(';', $data);
@@ -69,6 +69,11 @@ sub register {
 					template 	=> 'Plugins/Weather/_weather_by_city',
 					partial 	=> 1,
 				);
+			}
+			else {
+				my $err = $tx->error;
+				warn "$err->{code} response: $err->{message}" if $err->{code};
+				warn "Connection error: $err->{message}";
 			}
 		});
 
