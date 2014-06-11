@@ -124,7 +124,7 @@ sub item_copy{
 	my $index = delete $self->stash->{'index'};
 
 	my $anketa = delete $self->stash->{anketa};
-	foreach ( qw(ID rdate edate alias active viewtext viewimg tbl) ){
+	foreach ( qw(ID rdate edate created_at updated_at alias active viewtext viewimg tbl) ){
 		delete $anketa->{$_};
 	}
 

@@ -473,6 +473,14 @@ sub save{
 
 	$self->send_params->{size} = 0 if($self->send_params->{docfile} && !$self->stash->{index});
 
+	# проверяем что данный модуль уже не выбран на других страницах сайта
+	if(my $url_for = $self->send_params->{url_for}){
+		if (my $item = $self->dbi->query("SELECT `ID`, `name` FROM `".$self->stash->{list_table}."` WHERE `url_for`='$url_for' ".($self->stash->{index} ? ' AND `ID`!='.$self->stash->{index} : '') )->hash){
+			$self->admin_msg_errors("Данный модуль уже используется на странице - $item->{name} # $item->{ID}");
+			$self->edit;
+		}
+	}
+
 	if( $self->save_info( table => $self->stash->{list_table}) ){
 		# $self->file_save_pict( 	filename 	=> $self->send_params->{pict},
 		# 						lfield		=> 'pict',

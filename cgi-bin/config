@@ -3,7 +3,7 @@
 #######################################################
 {
 	"db_host"			=> "localhost:3306",
-	"db_name" 			=> "gg",
+	"db_name" 			=> "gg9",
 	"db_user"			=> "root",
 	"db_password" 		=> "root",
 	"db_no_disconnect" 	=> "0",

@@ -939,6 +939,8 @@ function editor_init(form) {
 		}
 		if(count == 0) loading_layout_show('ckeditor');
 		count = 1;
+		delete CKEDITOR.instances[ id ];
+
 		CKEDITOR.replace(id, {
 			toolbar: toolbar,
 			//resize_enabled: false,

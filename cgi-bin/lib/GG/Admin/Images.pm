@@ -286,13 +286,6 @@ sub save{
 			return $self->info;
 		}
 
-		if($params{restore}){
-			$self->stash->{tree_reload} = 1;
-			$self->save_logs( 	name 	=> 'Восстановление записи в таблице '.$self->stash->{list_table},
-								comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
-			return $self->info;
-		}
-
 		if($params{continue}){
 			$self->admin_msg_success("Данные сохранены");
 			return $self->edit;

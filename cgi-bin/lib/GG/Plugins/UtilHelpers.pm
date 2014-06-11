@@ -401,7 +401,7 @@ sub register {
 			my $rows = $self->dbi->query("
 				SELECT *
 				FROM `texts_$params{key_razdel}_ru`
-				WHERE 1 ORDER BY `rdate` DESC LIMIT 0,3"
+				WHERE 1 ORDER BY `created_at` DESC LIMIT 0,3"
 			)->hashes;
 
 			return $self->render(
