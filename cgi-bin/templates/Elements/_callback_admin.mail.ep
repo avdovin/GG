@@ -1,0 +1,27 @@
+<html>
+<head>
+		<title><%= site_name %></title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<style>
+			@media only screen and (max-width:600px) {
+				#wrapper {
+						width:100% !important;
+				}
+		}
+		</style>
+</head>
+<body>
+
+	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
+		<tr>
+				<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
+					<h2>Заказ обратного звонка с сайта <%= site_name %></h2><br />
+
+					Имя: <b><%= $self->stash->{name} %></b><br />
+					Телефон: <b><%= $self->stash->{phone} %></b><br />
+					Город: <b><%= $self->stash->{city} %></b><br />
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<div class="block">
+	<div class="header">
+		<a href="/" class="header__logo"></a>
+		<div class="header__slogan"></div>
+	</div>
+</div>
+<div class="block">
+	%== menu_track template => 'top'
+
+	<div class="lang">
+		<a href="/" class="lang__entry lang__entry_ru <%= lang eq 'ru' ? 'current' : '' %>">Rus</a>
+		<a href="/en" class="lang__entry lang__entry_en <%= lang eq 'en' ? 'current' : '' %>">Eng</a>
+	</div>
+</div>

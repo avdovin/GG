@@ -1,0 +1,21 @@
+<div class="footer">
+	<div class="footer__container block">
+		<p class="footer__copyright">© Swiss Center Group, 1993-2014</p>
+		<a class="footer__ifrog" href="http://www.ifrog.ru">Создание и продвижение сайта студия веб дизайна &mdash; <span>iFrog</span></a>
+
+		<div class="weather">
+			%== weather_by_city_id
+
+			<div class="time">
+				<div class="clock ru">
+					<div class="hour" style=""><div></div></div>
+					<div class="minute" style=""><div></div></div>
+				</div>
+				<div class="clock ch">
+					<div class="hour" style=""><div></div></div>
+					<div class="minute" style=""><div></div></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
