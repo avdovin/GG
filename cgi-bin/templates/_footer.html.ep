@@ -6,7 +6,7 @@
 %= content_for 'js_files'
 <!-- end content_for js_files -->
 
-% if( stash 'vfe' && config 'vfe_enabled'){
+% if( $self->stash->{'vfe'} && $self->config->{'vfe_enabled'}){
 	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>
 % }
 <!-- end _footer.html.ep -->
