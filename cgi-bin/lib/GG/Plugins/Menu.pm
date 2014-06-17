@@ -2,29 +2,30 @@ package GG::Plugins::Menu;
 
 use base 'Mojolicious::Plugin';
 
-our $VERSION = '0.5';
+our $VERSION = '0.53';
 
 sub register {
 	my ( $self, $app, $opts ) = @_;
 
 	$opts ||= {};
 
+	$app->helper( current_alias => sub { shift->stash->{alias} || ''});
+
 	$app->helper( menu_item  	=> \&menu_item );
 	$app->helper( menu_track 	=> \&menu_track );
 
 	$app->helper( navipoint 	=> \&navipoint );
 	$app->helper( breadcrumbs 	=> \&breadcrumbs );
-
-	$app->helper( breadcrumbs 	=> \&breadcrumbs );
-
 	return 1;
 }
 
 sub breadcrumbs{
 	my $self = shift;
 
-	unless($self->stash->{menu_active_id}){
-		menu_track($self);
+	unless($self->stash->{'gg.breadcrumbs_items'}){
+		$self->stash->{'gg.breadcrumbs_items'} = 1;
+		# забираем все текстовые страницы для хлебных крошек
+		$self->menu_track( where => "");
 	}
 
 	navipoint($self, @_);
@@ -82,9 +83,9 @@ sub menu_track {
 
 		$items = $self->app->dbi->query("
 			SELECT
-				`ID`, `name`, `alias`,`texts_main_".$self->stash->{lang}."` AS `texts_main`,`url_for`,`link`,`rating`
+				`ID`, `name`, `alias`,`texts_main_".$self->lang."` AS `texts_main`,`url_for`,`link`,`rating`
 			FROM
-				`texts_main_".$self->stash->{lang}."`
+				`texts_main_".$self->lang."`
 			WHERE
 				`viewtext`='1' $params{where}
 			ORDER BY
@@ -134,9 +135,11 @@ sub menu_track {
 			$items->{$pageId}->{level} = $tree_levels;
 		}
 
-		foreach my $lvl (sort keys %$levels){
-			my $pageId = $levels->{ $lvl };
-			$self->navipoint( $items->{$pageId}->{name} => $self->menu_item( $items->{$pageId} ) );
+		if($self->stash->{'gg.breadcrumbs_items'}){
+			foreach my $lvl (sort keys %$levels){
+				next unless my $pageId = $levels->{ $lvl };
+				$self->navipoint( $items->{$pageId}->{name} => $self->menu_item( $items->{$pageId} ) );
+			}
 		}
 
 		$self->stash->{$stash_key			   } = $items;
@@ -195,3 +198,4 @@ sub menu_item {
 }
 
 1;
+
