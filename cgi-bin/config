@@ -24,6 +24,7 @@
 	static_path 		=> '../../httpdocs/', 	# относительный путь к статике (относительно dispatch.cgi)
 	mail_from_addr 		=> 'no-reply@domain.com',
 	cdn                 => 'http://gg.dev.ifrog.ru', # включить загрузку статики через CDN
+	protocol 			=> 'http',				# протокол
 	seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
 	seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
 	jquery_history		=> 0,					# Загрузить jQuery плагин - history
@@ -36,7 +37,7 @@
 	lang_default 		=> 'ru', 				# языковая версия по умолчанию
 	lang_supported	 	=> [qw(ru)], 			# доступные языковые версии
 
-	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image)],
+	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image RSS)],
 
 	pipeline 			=> 1,
 	pipeline_assets		=> {'app.js' => ['/js/gg.core-2.js', '/js/common.js'], 'app.css' => ['/css/style.css', '/css/core.css'] },

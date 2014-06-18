@@ -117,6 +117,7 @@ sub register {
 		}
 
 		$self->req->url->base( Mojo::URL->new(q{/}) );
+		$self->req->url->scheme($conf->{'protocol'});
 
 		foreach my $k (keys %{$conf->{pipeline_assets}}){
 			if($conf->{pipeline}){

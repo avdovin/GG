@@ -30,6 +30,10 @@ sub register {
 		return $self->req->headers->host() || $self->stash->{'config'}->{'http_host'} || '';
 	});
 
+	$app->helper( protocol => sub {
+		return shift->req->url->scheme;
+	});
+
 	# caselang field name => name_ru => name_en
 	$app->helper( clf => sub {
 		my $self   	= shift;
