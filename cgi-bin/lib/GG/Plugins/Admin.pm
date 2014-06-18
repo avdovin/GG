@@ -112,7 +112,8 @@ sub register {
 
 		unless($self->admin_getUser){
 
-			return $self->redirect_to('login_form');
+			$self->redirect_to('login_form');
+			return;
 		}
 		$self->stash->{document_root} = $self->app->home->rel_dir( "../" )."/";
 
