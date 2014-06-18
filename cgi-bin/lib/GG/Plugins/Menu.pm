@@ -31,7 +31,7 @@ sub breadcrumbs{
 	navipoint($self, @_);
 
 	my $content = $self->render(
-		template    => 'Menu/breadcrumbs',
+		template    => 'Plugins/Menu/breadcrumbs',
 		partial 	=> 1,
 	);
 
@@ -159,7 +159,7 @@ sub menu_track {
 	return  $self->render(
 		levels		=> $levels,
 		order_ids	=> $menu_order_ids,
-		template   	=> 'Menu/'.$params{template},
+		template   	=> 'Plugins/Menu/'.$params{template},
 		_template   => $params{template},
 		parent_id  	=> $params{parent_id},
 		level      	=> $params{level},

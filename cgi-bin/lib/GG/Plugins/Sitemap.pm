@@ -62,7 +62,7 @@ sub register {
 					url 		=> $url,
 					priority 	=> $priority,
 					changefreq 	=> $changefreq,
-					template 	=> 'Sitemap/node',
+					template 	=> 'Plugins/Sitemap/node',
 					format 		=> 'xml',
 
 					partial 	=> 1,
@@ -71,7 +71,7 @@ sub register {
 			}
 		}
 
-		$self->render( nodes => $nodes, template => 'Sitemap/sitemap', format => 'xml');
+		$self->render( nodes => $nodes, template => 'Plugins/Sitemap/sitemap', format => 'xml');
 	});
 }
 

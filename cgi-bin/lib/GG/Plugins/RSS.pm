@@ -47,7 +47,7 @@ sub register {
 				$nodes .= $self->render(
 					node 		=> $row,
 					url 		=> $url,
-					template 	=> 'RSS/node',
+					template 	=> 'Plugins/RSS/node',
 					format 		=> 'xml',
 
 					partial 	=> 1,
@@ -56,7 +56,7 @@ sub register {
 			}
 		}
 
-		$self->render( nodes => $nodes, template => 'RSS/rss', format => 'xml');
+		$self->render( nodes => $nodes, template => 'Plugins/RSS/rss', format => 'xml');
 	});
 }
 

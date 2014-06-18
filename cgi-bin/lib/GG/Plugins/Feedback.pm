@@ -23,7 +23,7 @@ sub register {
 		feedback_form => sub {
 			my $self = shift;
 			my %params = (
-				template	=> "Feedback/form",
+				template	=> "Plugins/Feedback/form",
 				@_
 			);
 
@@ -83,7 +83,7 @@ sub register {
 
 				unless(keys %{ $json->{errors} }){
 					my $email_body = 	$self->render_mail(
-						template	=> "Feedback/_admin"
+						template	=> "Plugins/Feedback/_admin"
 					);
 
 					$self->mail(
@@ -93,7 +93,7 @@ sub register {
 					);
 
 					$json->{message_success} = $self->render(
-						template 	=> 'Feedback/_message_success',
+						template 	=> 'Plugins/Feedback/_message_success',
 						partial 	=> 1,
 					);
 				}
