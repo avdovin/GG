@@ -30,7 +30,7 @@ sub register {
 
 	# Pipeline assets
 	$app->plugin('AssetPack', {
-		minify 		=> $conf->{pipeline}
+		minify 			=> $conf->{pipeline} && $app->mode eq 'production',
 	});
 	#$app->plugin('Pipeline');
 	#$app->plugin('Pipeline::CSSCompressor');

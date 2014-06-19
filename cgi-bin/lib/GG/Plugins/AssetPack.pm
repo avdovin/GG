@@ -306,7 +306,7 @@ sub process {
   }
 
   if($self->_missing(@missing)) {
-    $self->{processed}{$moniker} = "/Mojolicious/Plugin/AssetPack/could/not/compile/$moniker";
+    $self->{processed}{$moniker} = "/GG/Plugin/AssetPack/could/not/compile/$moniker";
     return;
   }
 
@@ -361,6 +361,7 @@ sub register {
   else {
     for my $path (@{ $app->static->paths }) {
       next unless -w $path;
+
       $self->out_dir(File::Spec::Functions::catdir($path, 'packed'));
     }
   }
