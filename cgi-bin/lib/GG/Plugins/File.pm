@@ -604,6 +604,7 @@ sub register {
 			foreach my $f (@textFileMembers) {
 
 				next if ($f =~ /__MACOSX/i);
+				next if (substr($f,0,1) eq '.'); # пропускаем скрытые файлы
 
 				my $ext = ($f =~ m/([^.]+)$/)[0];
 				$ext =~ s{^\.}{};
