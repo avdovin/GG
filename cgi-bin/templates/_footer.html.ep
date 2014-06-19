@@ -3,7 +3,7 @@
 %= asset 'app.js' if config 'pipeline';
 
 <!-- start content_for js_files -->
-%= content_for 'js_files'
+%== js_files
 <!-- end content_for js_files -->
 
 % if( $self->stash->{'vfe'} && $self->config->{'vfe_enabled'}){

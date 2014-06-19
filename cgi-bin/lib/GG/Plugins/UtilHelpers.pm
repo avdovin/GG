@@ -250,12 +250,24 @@ sub register {
 
 			my $out;
 
-			if($params{file}) {
+			$self->stash->{'gg.js_files'} ||= [];
+
+			if(my $file = delete $params{file}) {
+				push @{$self->stash->{'gg.js_files'}}, $file;
+
 				$out .= '<!-- from template '.$params{template}." -->" if $params{template} && !$params{alone};
 				$out .= $self->javascript($params{file}).($params{alone} ? "": "\n");
 
 				$params{alone} ? return $out : $self->content_for(js_files => $out);
 			}
+
+ 			my $js_files = $self->stash->{'gg.js_files'} || [];
+ 			my $out;
+ 			foreach (@$js_files){
+ 				$out .= $self->javascript($_)."\n" if $_;
+ 			}
+
+ 			return $out;
 		}
 	);
 
