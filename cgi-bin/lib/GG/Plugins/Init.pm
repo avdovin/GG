@@ -29,8 +29,11 @@ sub register {
 	$app->_setup_inc($conf->{perl5lib});
 
 	# Pipeline assets
-	$app->plugin('Pipeline');
-	$app->plugin('Pipeline::CSSCompressor');
+	$app->plugin('AssetPack', {
+		minify 		=> $conf->{pipeline}
+	});
+	#$app->plugin('Pipeline');
+	#$app->plugin('Pipeline::CSSCompressor');
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
@@ -121,10 +124,10 @@ sub register {
 
 		foreach my $k (keys %{$conf->{pipeline_assets}}){
 			if($conf->{pipeline}){
-				$self->asset($k => $conf->{pipeline_assets}->{$k} );
+				$self->asset($k => @{ $conf->{pipeline_assets}->{$k} } );
+				#$self->asset($k => $conf->{pipeline_assets}->{$k} );
 			}
 			else {
-
 				foreach my $sources (@{ $conf->{pipeline_assets}->{$k} }){
 					$sources =~ /^(.+)\.(\w+)$/;
 					$self->css_files("$1.$2") if $2 eq 'css';
