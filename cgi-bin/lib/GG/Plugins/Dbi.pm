@@ -103,7 +103,7 @@ sub register {
 			}
 	});
 
-	unless ($args->{no_disconnect}) {
+	unless ($args->{db_no_disconnect}) {
 	    $app->plugins->on(
 	      after_dispatch => sub {
 	        my $self = shift;

@@ -13,8 +13,6 @@
 	# limit to 1GB
 	"upload_maxchanksize"	=> "1073741824",
 
-	"no_disconnect"			=> 1,
-
 	hypnotoad 			=> {
 		proxy 	=> 1,
 		listen 	=> ['http://*:9000'],
