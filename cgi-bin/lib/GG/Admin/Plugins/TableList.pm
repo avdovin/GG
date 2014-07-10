@@ -329,7 +329,7 @@ sub register {
 						$user_set{$lkey.'_'.$k} = '';
 
 					} else {
-						if($lkeys->{$k}->{settings}->{type} eq 'date' || $lkeys->{$k}->{settings}->{type} eq 'd'){
+						if($lkeys->{$k}->{settings}->{type} eq 'date' || $lkeys->{$k}->{settings}->{type} eq 'datetime' || $lkeys->{$k}->{settings}->{type} eq 'd'){
 							$user_set{$lkey.'_'.$k} = $self->stash->{$k};
 							$user_set{$lkey.'_'.$k.'pref'} = $self->param($k.'pref') || '=';
 
@@ -771,14 +771,11 @@ sub register {
 			foreach my $id (split(/,/, $list_items)) {
 				next unless $id;
 
+
 				if($self->getArraySQL( from => $table, where => $id, stash => 'anketa')){
 
 					if($self->delete_info( from => $table, where => $id )){
 						$self->stash->{tree_reload} = 1;
-
-						if($params{has_pict} && $self->stash->{anketa}->{pict}){
-							$self->file_delete_pict(lfield => 'pict', folder =>  $self->stash->{anketa}->{folder} || '', pict => $self->stash->{anketa}->{pict});
-						}
 
 						$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$params{table},
 										comment	=> "Удалена запись из таблицы [".$id."]. Таблица ".$params{table});
