@@ -262,7 +262,6 @@ sub register {
 			}
 
  			my $js_files = $self->stash->{'gg.js_files'} || [];
- 			my $out;
  			foreach (@$js_files){
  				$out .= $self->javascript($_)."\n" if $_;
  			}

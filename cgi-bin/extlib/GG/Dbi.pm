@@ -25,6 +25,16 @@ sub where_multiselect{
 };
 
 
+sub query{
+	my $self = shift;
+
+	my $sql = $_[0];
+	$sql =~ s{[\t\n]+}{ }gi;
+	warn "SQL: >>$sql<<\n" if $self->debug;
+
+	return $self->SUPER::query(@_);
+}
+
 # Get table fields (columns)
 sub getKeysSQL{
 	my $self = shift;
@@ -130,9 +140,9 @@ sub insert_hash {
 
 	$insType ||= 'INSERT';
 
-  	my $created_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
+  	my $rdate = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
 
-  	$field_values->{$_} ||= 0  foreach (qw(rdate edate updated_at created_at));
+  	$field_values->{$_} ||= 0  foreach (qw(rdate edate));
 
 	foreach my $k (keys %$field_values){
 
@@ -142,9 +152,7 @@ sub insert_hash {
 		}
 
 		   if($k eq 'edate'){ $field_values->{$k} ||= '0000-00-00 00:00:00';}
-		elsif($k eq 'rdate'){ $field_values->{$k} ||= $created_at;}
-		elsif($k eq 'updated_at'){ $field_values->{$k} ||= '0000-00-00 00:00:00';}
-		elsif($k eq 'created_at'){ $field_values->{$k} ||= $created_at;}
+		elsif($k eq 'rdate'){ $field_values->{$k} ||= $rdate;}
 	}
 
     my @fields = sort keys %$field_values;
@@ -174,11 +182,12 @@ sub update{
 	};
 	if($@){
 		$self->save_mysql_error($@, $sql, \@values);
+
 		$self->{error} = $@;
 		return;
 	}
 
-    return $count;
+		return $count;
 }
 
 # Обновление
@@ -188,9 +197,9 @@ sub update_hash {
 	my $dbh = $self->dbh;
 	my ($table,$field_values, $where) = @_;
 
-	if($self->exists_keys(from => $table, lkey => 'updated_at')){
-		my $updated_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
-		$field_values->{updated_at} = $updated_at;
+	if($self->exists_keys(from => $table, lkey => 'edate')){
+		my $edate = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
+		$field_values->{edate} = $edate;
 	}
 
 	return $self->update($table,$field_values, $where);
@@ -209,10 +218,18 @@ sub save_mysql_error{
 	$self->dbh->do("
 	INSERT INTO
 		`sys_mysql_error`
-		(`sql`, `error`, `qstring`, `created_at`)
+		(`sql`, `error`, `qstring`, `rdate`)
 	VALUES
 		(?, ?, ?, CURRENT_TIMESTAMP)
 	", undef, $sql, $error, '');
 
+}
+
+sub debug{
+	my $self = shift;
+	if(defined $_[0]){
+		$self->{'debug'} = $_[0];
+	}
+	return $self->{'debug'};
 }
 1;

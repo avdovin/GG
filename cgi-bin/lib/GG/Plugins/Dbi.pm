@@ -98,12 +98,14 @@ sub register {
 				$self->app->dbh($dbi->dbh);
 				$self->app->_dbh_requests_counter(1);
 
+				$dbi->debug(1) if $self->app->mode eq 'development';
+
 				# clear config access params
 				#delete $self->stash->{config}->{$_} foreach (qw(db_host db_name db_password db_user));
 			}
 	});
 
-	unless ($args->{db_no_disconnect}) {
+	unless ($args->{no_disconnect}) {
 	    $app->plugins->on(
 	      after_dispatch => sub {
 	        my $self = shift;
