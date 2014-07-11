@@ -1,4 +1,4 @@
-package GG::Admin::Seo;
+package GG::Admin::Redirects;
 
 use utf8;
 
@@ -7,7 +7,7 @@ use Mojo::Base 'GG::Admin::AdminController';
 sub _init{
 	my $self = shift;
 
-	$self->def_program('seo');
+	$self->def_program('redirects');
 
 	$self->get_keys( controller => $self->app->program->{key_razdel});
 
@@ -16,7 +16,7 @@ sub _init{
 		#controller		=> 'keys',
 	};
 
-	$self->stash->{list_table} ||= 'data_seo_meta';
+	$self->stash->{list_table} ||= 'data_redirects';
 
 	$self->stash($_, $config->{$_}) foreach (keys %$config);
 
@@ -36,6 +36,11 @@ sub _init{
 	$self->stash->{lkey} = $self->stash->{controller};
 	$self->stash->{lkey} .= '_'. $self->send_params->{list_table} if $self->send_params->{list_table};
 	$self->stash->{script_link} = '/admin/'.$self->stash->{controller}.'/body';
+
+	# if($self->stash->{list_table} =~ /data_catalog_([\s\S]+)/){
+	# 	$self->app->program->{groupname} = $self->app->program->{settings}->{'groupname_'.$1} if($1 && $self->app->program->{settings}->{'groupname_'.$1});
+	# }
+
 
 }
 
@@ -253,8 +258,8 @@ sub list_container{
 
 	$self->def_context_menu( lkey => 'table_list');
 
-	if($self->stash->{list_table} eq 'data_seo_meta'){
-		$self->stash->{win_name} = "Список заголовков";
+	if($self->stash->{list_table} eq 'data_redirect'){
+		$self->stash->{win_name} = "Список ссылок";
 
 	}
 

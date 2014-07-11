@@ -107,6 +107,18 @@ sub register {
 			$self->rendered;
 			return;
 		}
+		# --- END OF SEO MODULE --------------------------
+
+		# --- REDIRECT MODULE ---------------------------------
+		my $path = $url->to_string;
+		$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
+		if (
+			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirect` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
+				){
+			$self->res->code(301);
+			return $self->redirect_to($redirect_path);
+		}
+		# --- END OF REDIRECT MODULE --------------------------
 
 		# remove url trailing slash - /about/ => /about
 		if( $self->req->url->path->trailing_slash ){
