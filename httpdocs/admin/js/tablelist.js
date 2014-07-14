@@ -403,6 +403,7 @@ function parse_data_to_table(id, ajaxIndex) {
 
 					if(lkeys[lkeyindex].qedit){
 						var label = document.createElement('LABEL');
+
 						if (lkey_type=='list' || lkey_type=='tlist' || lkey_type=='chb') {
 							jQuery(label).addClass("list");
 							if (!listModel[lkey_name]) {
@@ -411,19 +412,24 @@ function parse_data_to_table(id, ajaxIndex) {
 							}
 						}
 
-						jQuery(label).attr('id',  "label"+td_str['ID']+"__"+lkey_name).html('');
 						jQuery(td).append(label);
 						div = document.createElement('DIV');
 						jQuery(div).attr('id',  td_str['ID']+"__"+lkey_name).html( td_str[lkey_name] );
-						jQuery(td).append(div);
+
+						jQuery(label).attr('id',  "label"+td_str['ID']+"__"+lkey_name).append(div);
+
+						jQuery(td).append(label);
 
 					} else{
 						jQuery(td).html( td_str[lkey_name] );
 					}
 
-				} else if(lkey_type=='pict'){
+				} else if(lkey_type=='pict' || lkey_type=='file'){
 
 					var ext = (/[.]/.exec(td_str[lkey_name])) ? /[^.]+$/.exec(td_str[lkey_name]) : undefined;
+
+					var valid_ext = new Array('jpg','png','gif','jpeg');
+
 					if(typeof ext != 'undefined' && ext == 'swf'){
 						var swf_width = 64;
 							swf_height = 64;
@@ -472,13 +478,17 @@ function parse_data_to_table(id, ajaxIndex) {
 
 						jQuery(td).append(swf);
 						jQuery(td).css("text-align", 'center');
-					} else {
+					}
+					else if(valid_ext.indexOf(ext[0].toLowerCase()) != -1) {
 						var img = new Image();
 						img.src =  td_str[lkey_name] == '/admin/img/no_img.png' ? td_str[lkey_name] : td_str[lkey_name]+"?"+Math.random();
 						jQuery(img).css('width', '64px');
 						jQuery(img).css('height', '64px');
 						jQuery(td).append(img);
 						jQuery(td).css("text-align", 'center');
+					}
+					else {
+						jQuery(td).html( td_str[lkey_name] );
 					}
 
 				} else{
