@@ -107,6 +107,7 @@ sub default_actions{
 	}
 }
 
+
 sub item_copy{
 	my $self = shift;
 
@@ -114,7 +115,8 @@ sub item_copy{
 			$self->getArraySQL(
 				from 	=> $self->stash->{list_table},
 				where	=> "`ID`='".$self->stash->{index}."'",
-				stash	=> 'anketa'
+				stash	=> 'anketa',
+				sys 	=> 1,
 			)
 		){
 		$self->admin_msg_errors("Перед созданием копии необходимо сохранить текущий объект");
@@ -124,42 +126,42 @@ sub item_copy{
 	my $index = delete $self->stash->{'index'};
 
 	my $anketa = delete $self->stash->{anketa};
-	foreach ( qw(ID rdate edate created_at updated_at alias active viewtext viewimg tbl) ){
+	foreach ( qw(ID rdate edate created_at updated_at active viewtext viewimg tbl) ){
 		delete $anketa->{$_};
 	}
 
+	my $table = $self->stash->{list_table};
 	$self->send_params({});
+
 	foreach my $f (keys %$anketa){
 		my $lkeyType = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'type');
 
 		if($f eq 'name'){
 
 			$self->send_params->{$f} = $anketa->{$f}.' копия';
-			$self->send_params->{'alias'} = $self->transliteration( $self->send_params->{$f} );
+			$self->send_params->{$f} = $self->check_unique_field(
+				field => $f,
+				value => $self->send_params->{$f},
+				table => $table,
+				index => $self->stash->{index}
+			);
+
+		}
+		elsif($f eq 'alias'){
+			$self->send_params->{$f} = $anketa->{$f}.'_copy';
+			$self->send_params->{$f} = $self->check_unique_field(
+				field => $f,
+				value => $self->send_params->{$f},
+				table => $table,
+				index => $self->stash->{index}
+			);
 
 		}
 		elsif($f eq 'lkey'){
 			$self->send_params->{$f} = $anketa->{$f};
 			$self->send_params->{'tbl'} = 'копия';
 		}
-		elsif($lkeyType eq 'pict'){
-
-			my $lkeyFolder = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'folder');
-			my $folder = $self->static_path.$lkeyFolder;
-
-			# пропускаем если вдруг нет файла
-			next unless -f $folder.$anketa->{$f};
-
-			my $filetmp = $self->file_copy_tmp($folder.$anketa->{$f});
-
-			$self->send_params->{$f} = $self->file_save_pict(
-				filename 	=> $filetmp,
-				lfield		=> $f,
-				fields		=> {pict => $f},
-			);
-
-		}
-		elsif($lkeyType ne 'table' && $lkeyType ne 'file' && $lkeyType ne 'filename'){
+		elsif($lkeyType ne 'pict' && $lkeyType ne 'table' && $lkeyType ne 'file' && $lkeyType ne 'filename'){
 
 			$self->send_params->{$f} = $anketa->{$f};
 		}
@@ -167,7 +169,7 @@ sub item_copy{
 
 	$self->stash->{group} = 1;
 
-	if( $self->save_info( table => $self->stash->{list_table}) ){
+	if( $self->save_info( table => $table) ){
 		my $copiedIndex = $self->stash->{'index'};
 
 		foreach my $f (keys %$anketa){
@@ -175,13 +177,31 @@ sub item_copy{
 
 			my $lkeyType = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'type');
 
-			if($lkeyType eq 'table'){
+			if($lkeyType eq 'pict'){
+				my $lkeyFolder = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'folder');
+				my $folder = $self->static_path.$lkeyFolder;
+
+				# пропускаем если вдруг нет файла
+				next unless -e $folder.$anketa->{$f};
+
+				my $filetmp = $self->file_copy_tmp($folder.$anketa->{$f});
+
+				$self->file_save_pict(
+					filename 	=> $filetmp,
+					lfield		=> $f,
+					fields		=> {pict => $f},
+				);
+			}
+			elsif($lkeyType eq 'table'){
+
 				my $dopTable = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'table');
 				my $svf_field = $self->lkey(name => $f, controller => $self->stash->{'controller'}, setting => 'table_svf');
 
 				for my $dopItems ($self->dbi->query("SELECT * FROM `$dopTable` WHERE `$svf_field`='$index'")->hashes){
 					delete $dopItems->{ID};
 					$dopItems->{ $svf_field } = $copiedIndex;
+
+					$self->dbi->insert_hash($dopTable, $dopItems);
 
 					foreach my $dopF (keys %$dopItems){
 						my $dlkeyType = $self->lkey(name => $dopF, controller => $self->stash->{'controller'}, setting => 'type');
@@ -203,7 +223,6 @@ sub item_copy{
 						);
 					}
 
-					$self->dbi->insert_hash($dopTable, $dopItems);
 				}
 			}
 
