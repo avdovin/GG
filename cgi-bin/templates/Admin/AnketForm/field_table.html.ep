@@ -164,102 +164,106 @@
 	</thead>
 	<tbody>
 
-<% my $table_info_link = $lkey->{settings}->{table_info_link} || '';
-<% foreach my $item (@{$self->stash->{'items_dp_'.$key}}){ =%>
+% my $table_info_link = $lkey->{settings}->{table_info_link} || '';
+% foreach my $item (@{$self->stash->{'items_dp_'.$key}}){
 <tr>
-	<% my $subitem_id = $item->{ID} || 0; %>
-	<% foreach my $header (@{$self->stash->{'listfield_header_dp_'.$key}}){ =%>
-		<% if($header eq 'type_file'){ %>
+	% my $subitem_id = $item->{ID} || 0;
+	% foreach my $header (@{$self->stash->{'listfield_header_dp_'.$key}}){
+		% if($header eq 'type_file'){
 			<td width="48px">
 				<% if($item->{type_file}){ %><img width="48" src="/admin/img/icons/file/<%= $item->{type_file} %>.png" alt="<%= $item->{type_file} %>"><% } %>
 			</td>
-		<% } elsif($header eq 'size'){ %>
+		% } elsif($header eq 'size'){
 			<td width="60px">
-				<%= file_nice_size($item->{size}) %>
+				%= file_nice_size($item->{size})
 			</td>
-		<% } elsif($header ne 'folder'){ %>
+		% } elsif($header ne 'folder'){
 			<td<% if($table_info_link){ %> onClick="openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','edit','edit')"<% } %> >
-			<% my $settings = $self->lkey(name => $header )->{settings}; %>
-			<% my $t_type = $settings->{type}; %>
+			% my $settings = $self->lkey(name => $header )->{settings};
+			% my $t_type = $settings->{type};
 
 
-			<% if($item->{$header}){ %>
-				<% if($t_type eq 'chb'){ %>
-					<% my $value = $item->{$header} ? $settings->{yes} : $settings->{no}; %>
-					<% if($settings->{qedit} && $subitem_id){ %>
-						<label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+			% if($t_type eq 'chb'){
+				% my $value = $item->{$header} ? $settings->{yes} : $settings->{no};
+				% if($settings->{qedit} && $subitem_id){
+					<label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>">
 						<div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $value %></div>
+					</label>
 
-%   init_items({
-%       type        => 'eval',
-%       value       => "if (!listModel['$header']) {
-%                           listModel['$header'] = new DHTMLSuite.listModel();
-%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
-%   });
+					%   init_items({
+					%       type        => 'eval',
+					%       value       => "if (!listModel['$header']) {
+					%                           listModel['$header'] = new DHTMLSuite.listModel();
+					%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
+					%   });
 
-					<% } else { %>
-						<%= $value %>
-					<% } %>
+				% } else {
+					%= $value
+				% }
 
-				<% } elsif($t_type =~ /list/){ %>
-					<% my $value = $self->VALUES(name => $header, value => $item->{$header}); %>
-					<% if($settings->{qedit} && $subitem_id){ %>
-						<label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+			% } elsif($t_type =~ /list/){
+				% my $value = $self->VALUES(name => $header, value => $item->{$header});
+				% if($settings->{qedit} && $subitem_id){
+					<label class="list" id="labeldoptable<%= $subitem_id %>__<%= $header %>">
 						<div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $value %></div>
-%   init_items({
-%       type        => 'eval',
-%       value       => "if (!listModel['$header']) {
-%                           listModel['$header'] = new DHTMLSuite.listModel();
-%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
-%   });
-					<% } else { %>
-						<%= $value %>
-					<% } %>
+					</label>
+					%   init_items({
+					%       type        => 'eval',
+					%       value       => "if (!listModel['$header']) {
+					%                           listModel['$header'] = new DHTMLSuite.listModel();
+					%                           listModel['$header'].createFromMarkupSelect('datasource_$header'); }"
+					%   });
 
-				<% } elsif($t_type eq 'pict'){ %>
-					<img width="100" src="<%= lfield_folder( lfield => $header, tbl => $lkey->{settings}->{table} ) =%><%= $item->{$header} %>">
+				% } else {
+					%= $value
+				% }
 
-				<% } else { %>
-					<% if($settings->{qedit} && $subitem_id){ %>
-						<label id="labeldoptable<%= $subitem_id %>__<%= $header %>"></label>
+			% } elsif($t_type eq 'pict'){
+				% if($item->{$header}){
+					<img width="100" src="<%= lfield_folder( lfield => $header, tbl => $lkey->{settings}->{table} ) =%><%= $item->{$header} %>" />
+				% } else {
+					<img border="0" src="/admin/img/no_img.png" alt="Нет картинки" />
+				% }
+
+			% } else {
+				% if($settings->{qedit} && $subitem_id){
+					<label id="labeldoptable<%= $subitem_id %>__<%= $header %>">
 						<div id="doptable<%= $subitem_id %>__<%= $header %>"><%= $item->{$header} %></div>
-					<% } else { %>
-						<%= $item->{$header} %>
-					<% } %>
+					</label>
+				% } else {
+					%= $item->{$header}
+				% }
 
-				<% } %>
-			<% } else { %>
-				<% if($t_type eq 'pict'){ %><img border="0" src="/admin/img/no_img.png" alt="Нет картинки" /><% } else { %>-<% } %>
-			<% } %>
-		<% } %>
-	<% } =%>
-	<% foreach my $button (@{$self->stash->{'buttons_key_dp_'.$key}}){ =%>
+			% }
+		% }
+	% }
+	% foreach my $button (@{$self->stash->{'buttons_key_dp_'.$key}}){
 	<td style="width: 16px;">
 		<div class="button16">
-			<% $button = 'delete' if ($button =~ /delete_select/);
-			<% if($button ne 'upload' and $button ne 'delete' and $button ne 'info'){ %>
+			% $button = 'delete' if ($button =~ /delete_select/);
+			% if($button ne 'upload' and $button ne 'delete' and $button ne 'info'){
 				<a onclick="<% if($self->stash->{'confirm_'.$button}){ %>if(confirm('<%= $self->stash->{'confirm_'.$button} %>'))<% } %>
 				displayMessage('<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&do=<%= $button %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&dop_table=<%= $lkey->{settings}->{table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>', 780, 580, 4); return false" title="" href="javascript:void(0);">
 				<img border="0" src="/admin/img/icons/menu/button.<%= $button %>.gif"/></a>
 
-			<% } elsif($button eq 'upload'){ %>
+			% } elsif($button eq 'upload'){
 				<a href="<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&do=<%= $button %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&dop_table=<%= $lkey->{settings}->{table} %>">
 				<img border="0" src="/admin/img/icons/menu/button.<%= $button %>.gif"/></a>
 
-			<% } elsif($button eq 'delete'){ %>
+			% } elsif($button eq 'delete'){
 				<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?index=<%= $item->{ID} %>&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&do=<%= $button %>&dop_table=<%= $lkey->{settings}->{table} %>&list_table=<%= $self->stash->{list_table} %>&lfield=<%= $key %>&<%= $lkey->{settings}->{table_svf} %>=<%= $index %>')">
 				<img border="0" src="/admin/img/icons/menu/button.delete.gif"/>
 				</a>
 
-			<% } elsif($button eq 'info'){ %>
+			% } elsif($button eq 'info'){
 				<a href="#" onClick="openPage('center', '<%= $lkey->{settings}->{table_info_replaceme} %>', 'openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>', 'Инфо', 'Инфо')">
 				<img border="0" src="/admin/img/icons/menu/button.info.gif"/></a>
-			<% } %>
+			% }
 		</div>
 	</td>
-	<% } %>
+	% }
 </tr>
-<% } %>
+% }
 </tbody>
 </table>
 </div>

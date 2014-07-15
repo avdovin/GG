@@ -113,7 +113,7 @@ sub register {
 		my $path = $url->to_string;
 		$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
 		if (
-			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirect` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
+			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
 				){
 			$self->res->code(301);
 			return $self->redirect_to($redirect_path);

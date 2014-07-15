@@ -307,35 +307,35 @@ function init_qedit(id) {
 }
 
 function init_qedit_info(id) {
-	var element_table = jQuery("table.tablelist").filter("#quickEditI"+id);
-	if(element_table){
-		var script_link = element_table.attr("script_link");
-		var script_param = element_table.attr("script_param");
+	var $table = jQuery("table.tablelist").filter("#quickEditI"+id);
+	if($table.length){
+		var script_link = $table.attr("script_link");
+		var script_param = $table.attr("script_param");
 
 		textEditObj[id] = new DHTMLSuite.textEdit();
 		textEditObj[id].setServersideFile(script_link + '?do=save_qedit_i&' + script_param);
-		var td_list = jQuery("tr td", element_table);
-		jQuery.each(td_list, function(index, value){
-			if(jQuery("label", value).size()){
-				var label = jQuery("label", value);
-				var div = jQuery("div", value);
-				if(!div || !label) return false;
-				var label_id = label.attr('id');
-				var div_id = div.attr('id');
-				if(!div_id || !label_id) return false;
 
-				if(label.hasClass("list")){
-					var lkey = div_id.split('__')[1]
-					if (!listModel[lkey]) {
-						listModel[lkey] = new DHTMLSuite.listModel();
-						listModel[lkey].createFromMarkupSelect('datasource_' + lkey);
-					}
-					textEditObj[id].addElement( { labelId: label_id, elementId: div_id, listModel: listModel[lkey] } );
-				} else{
-					textEditObj[id].addElement( { labelId: label_id, elementId: div_id } );
+		$table.find('td.read label').each(function(){
+			var $label = $(this);
+			var $div = $(this).find('div');
+
+			var label_id = $label.attr('id');
+			var div_id = $div.attr('id');
+
+			if($label.hasClass("list")){
+				var lkey = div_id.split('__')[1]
+				if (!listModel[lkey]) {
+					listModel[lkey] = new DHTMLSuite.listModel();
+					listModel[lkey].createFromMarkupSelect('datasource_' + lkey);
 				}
+				textEditObj[id].addElement( { labelId: label_id, elementId: div_id, listModel: listModel[lkey] } );
+			} else{
+				console.log( label_id );
+				console.log( div_id );
+				textEditObj[id].addElement( { labelId: label_id, elementId: div_id } );
 			}
-		});
+		})
+
 		if(textEditObj[id]) textEditObj[id].init();
 	}
 }
