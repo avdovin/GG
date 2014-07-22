@@ -711,7 +711,7 @@ sub register {
 				return $self->render( text =>'OK');
 			}
 
-			$self->render( text => "Ошибка - ".$self->admin_error('update_hash'));
+			$self->render( text => "Ошибка при обновлении записи -".$self->admin_error('update_hash'));
 		}
 	);
 

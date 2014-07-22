@@ -201,7 +201,7 @@ sub item_copy{
 					delete $dopItems->{ID};
 					$dopItems->{ $svf_field } = $copiedIndex;
 
-					$self->dbi->insert_hash($dopTable, $dopItems);
+					my $dop_index = $self->dbi->insert_hash($dopTable, $dopItems);
 
 					foreach my $dopF (keys %$dopItems){
 						my $dlkeyType = $self->lkey(name => $dopF, controller => $self->stash->{'controller'}, setting => 'type');
@@ -220,6 +220,7 @@ sub item_copy{
 							lfield		=> $dopF,
 							table 		=> $dopTable,
 							fields		=> {pict => $dopF},
+							db_index 	=> $dop_index,
 						);
 					}
 

@@ -84,6 +84,7 @@ sub register {
 				},
 				retina		=> 0,
 				watermark 	=> '',
+				db_index 	=> 0,
 				@_
 			);
 
@@ -118,7 +119,17 @@ sub register {
 			$values->{ $fields_hashref->{pict} } = $pict_saved if $fields_hashref->{pict};
 			$values->{ $fields_hashref->{type_file} } = $type_file if $fields_hashref->{type_file};
 
-			$self->save_info(send_params => 0, table => $table, field_values => $values );
+			# Если обновляем запись то предварительно бэкам текущий индекс
+			if($params{db_index}){
+				$self->stash->{'index_backup'} = $self->stash->{'index'};
+				$self->stash->{'index'} = $params{db_index};
+				$self->save_info(send_params => 0, table => $table, field_values => $values );
+				$self->stash->{'index'} = delete $self->stash->{'index_backup'};
+			}
+			else {
+				$self->save_info(send_params => 0, table => $table, field_values => $values );
+			}
+
 
 			if(my $mini = $self->lkey(name => $params{lfield}, setting => 'mini' )){
 
