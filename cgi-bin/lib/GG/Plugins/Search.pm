@@ -69,6 +69,9 @@ sub register {
 
 		$ksearch =~ s/["']+//g;
 
+		# удаляем старые запросы
+		$self->dbi->dbh->do("DELETE FROM `dtbl_search_results` WHERE `qsearch`=?", undef, $ksearch);
+
 		foreach my $table (keys %$hash_table) {
 			$hash_table->{$table}->{primary_key} ||= [qw(ID)];
 
