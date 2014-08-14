@@ -720,6 +720,7 @@ sub save_info{
 		# сохраняем сложные поля
 		foreach my $k (keys %$send_params){
 			next unless my $v = $send_params->{$k};
+			next unless $self->app->dbi->exists_keys(from => $table, lkey => $k);
 
 			my $lkey = $self->lkey(name => $k);
 			my $lkey_settings = $lkey->{settings};
