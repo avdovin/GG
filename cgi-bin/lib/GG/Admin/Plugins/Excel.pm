@@ -61,7 +61,6 @@ sub register {
 
 			} elsif ($group == 2) {
 				my $listfields = $self->stash->{listfields};
-				my $listfield_hash = {};
 				foreach my $k (split(/,/, $listfields)){
 					if ($self->dbi->exists_keys(from => $table, lkey => $k)
 						&& $access->{$k}->{r} || $sys_user
@@ -69,13 +68,12 @@ sub register {
 						&& !$types{ $lkeys->{$k}->{settings}->{type} }
 						){
 						push @anketa_keys, $k;
-						$listfield_hash->{$k} = 1;
 					}
 				}
-				$self->stash->{listfield_hash} = $listfield_hash;
+				$self->stash->{listfield_header} = \@anketa_keys;
 
 			} else {
-				return $self->file_download( abs_path => $self->file_tmpdir.$self->send_params->{filename}, format => 'xls');
+				return $self->file_download( abs_path => $self->file_tmpdir.$self->param('filename'), format => 'xls');
 			}
 
 			use strict "refs";
@@ -131,7 +129,6 @@ sub register {
 											sys    => 1
 				) || [];
 			}
-
 			$self->export_excel_build( items => $items );
 #			$params{filename} ||= int(rand(100000000)).".xls";
 #			$params{folder}	  = $ENV{'DOCUMENT_ROOT'}.$$self{envv}{tempory_dir}{envvalue};
@@ -159,10 +156,9 @@ sub register {
 			my $dir = $self->file_tmpdir;
 			my $items = delete $params{items};
 			my $sheetname = $params{sheetname} || $self->stash->{controller_name};
-			my $listfield_headers = $self->stash->{listfield_header};
+			my $listfield_headers = $self->stash->{listfields};
 			my $eexcel_key = $self->param('eexcel_key') ? 1 : 0; 		# ключ поля заменить на описание
 			my $lkeys = $self->lkey(controller => $controller);
-
 
 			$self->stash->{_rowcount} = 0;
 			$self->stash->{_colcount} = 0;
@@ -178,7 +174,6 @@ sub register {
 
 			#  	Add and define a format
 			my $formats = _eAddFormats($oBook);
-
 			# записываем ключи в первую строку
 			foreach my $key (@{$listfield_headers}) {
 				next if($eexcel_key && $key eq 'ID');
@@ -198,7 +193,7 @@ sub register {
 					if($type eq 'chb'){
 						$value = $value ?  $lkeys->{settings}->{yes} :  $lkeys->{$key}->{settings}->{'no'};
 					} elsif($type =~ /list/){
-						$value = $self->VALUES( name => $key, value => $value );
+						$value = $self->VALUES( name => $key, value => $value, controller => $controller );
 					}
 
 					$value ||= "----------";
