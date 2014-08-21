@@ -35,7 +35,7 @@
 	lang_default 		=> 'ru', 				# языковая версия по умолчанию
 	lang_supported	 	=> [qw(ru)], 			# доступные языковые версии
 
-	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image RSS)],
+	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image RSS YMarket)],
 
 	# Enable pipeline and minify if config option is enabled and mode eq production
 	# NOTE! This functionality required some modules:
