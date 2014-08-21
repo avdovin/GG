@@ -228,27 +228,36 @@ sub register {
 			my $self = shift;
 			my %args     = (
 				abs_path 	=> '', 			# полный путь к файлу
-				path 		=> '',			# относительный путь
+				path 			=> '',			# относительный путь
 				filename 	=> '',			# имя файла (ОПЦИОНАЛЬНО)
 				status 		=> '', 			# код ответа (ОПЦИОНАЛЬНО)
 				content_disposition => '',
 				format 		=> '',			# формат файла (ОПЦИОНАЛЬНО)
-				data 		=> '',			# отдаваемый данные (ОПЦИОНАЛЬНО)
+				data 			=> '',			# отдаваемый данные (ОПЦИОНАЛЬНО)
+				cleanup 	=> 0,				# удалить файл после отдачи
 				@_
 			);
 
 			unless ($args{filepath}) {
 				$args{filepath} =  $args{'abs_path'} || $self->app->static->paths->[0].$args{path};
 			}
-			my $filename            = decode_utf8($args{filename});
+
+      utf8::decode($args{filename}) if $args{filename} && !utf8::is_utf8($args{filename});
+      utf8::decode($args{filepath}) if $args{filepath} && !utf8::is_utf8($args{filepath});
+
+			my $filename            = $args{filename};
 			my $status              = $args{status}               || 200;
 			my $content_disposition = $args{content_disposition}  || 'attachment';
+			my $cleanup             = $args{cleanup} // 0;
+
+			unless($args{format}){
+				$args{format} = ($args{filepath} =~ m/([^.]+)$/)[0];
+			}
 
 			# Content type based on format
 			my $content_type;
 			$content_type = $self->app->types->type( $args{format} ) if $args{format};
 			$content_type ||= 'application/x-download';
-
 			# Create asset
 			my $asset;
 
@@ -260,6 +269,8 @@ sub register {
 
 				$filename ||= File::Basename::fileparse($filepath);
 				$asset = Mojo::Asset::File->new( path => $filepath );
+				$asset->cleanup($cleanup);
+
 			} elsif ( $args{data} ) {
 				$filename ||= $self->req->url->path->parts->[-1] || 'download';
 				$asset = Mojo::Asset::Memory->new();
@@ -272,45 +283,32 @@ sub register {
 			# Create response headers
 			$filename = quote($filename); # quote the filename, per RFC 5987
 			$filename = encode("UTF-8", $filename);
-
+			$content_type = 'text/plain';
 			my $headers = Mojo::Headers->new();
 			$headers->add( 'Content-Type', $content_type . ';name=' . $filename );
 			$headers->add( 'Content-Disposition', $content_disposition . ';filename=' . $filename );
 
-			# Range
-			# Partially based on Mojolicious::Static
-			if ( my $range = $self->req->headers->range ) {
-				my $start = 0;
-				my $size  = $asset->size;
-				my $end   = $size - 1 >= 0 ? $size - 1 : 0;
+		  # Range
+		  my $size  = $asset->size;
+		  my $start = 0;
+		  my $end   = $size - 1;
+		  if (my $range = $self->req->headers->range) {
 
-				# Check range
-				if ( $range =~ m/^bytes=(\d+)-(\d+)?/ && $1 <= $end ) {
-					$start = $1;
-					$end = $2 if defined $2 && $2 <= $end;
+		    # Not satisfiable
+		    return $self->res->code(416) unless $size && $range =~ m/^bytes=(\d+)?-(\d+)?/;
+		    $start = $1 if defined $1;
+		    $end = $2 if defined $2 && $2 <= $end;
+		    return $self->res->code(416) if $start > $end || $end > ($size - 1);
 
-					$status = 206;
-					$headers->add( 'Content-Length' => $end - $start + 1 );
-					$headers->add( 'Content-Range'  => "bytes $start-$end/$size" );
-				} else {
-					# Not satisfiable
-					return $self->rendered(416);
-				}
+		    # Satisfiable
+		    $self->res->code(206)->headers->content_length($end - $start + 1)
+		      ->content_range("bytes $start-$end/$size");
+		  }
+		  $self->res->content->headers($headers);
 
-				# Set range for asset
-				$asset->start_range($start)->end_range($end);
-			} else {
-				$headers->add( 'Content-Length' => $asset->size );
-			}
-
-			# Set response headers
-			$self->res->content->headers($headers);
-
-			# Stream content directly from file
-			$self->res->content->asset($asset);
-			return $self->rendered($status);
-		}
-	);
+  		$self->res->content->asset($asset->start_range($start)->end_range($end));
+  		return $self->rendered($status);
+	});
 
 	$app->helper(
 		file_save => sub {

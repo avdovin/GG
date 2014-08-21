@@ -59,7 +59,9 @@ sub body{
 
 			$elFinder->run(  %{$self->req->params->to_hash} );
 
-			$self->render( json => $elFinder->{RES} );
+			unless( $elFinder->{rendered} ){
+				$self->render( json => $elFinder->{RES} );
+			}
 
 		}
 	}

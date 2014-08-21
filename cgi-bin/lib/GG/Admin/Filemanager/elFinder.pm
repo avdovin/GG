@@ -87,6 +87,9 @@ sub new
 	# по умолчанию считаем что кэш включен (есть доступ к таблице sys_filemanager_cache)
 	$self->{cache_on} = 1;
 
+	# Не нужно повторно рендерить ответ на выходе (скачка файла)
+	$self->{rendered} = 0;
+
 	%{$self->{REQUEST}} = ();
 
 	return $self;
@@ -1172,6 +1175,7 @@ sub _file{
 	my $app = $self->{app};
 
 	$app->file_download(abs_path => $path);
+	$self->{rendered} = 1;
 }
 
 sub _open
