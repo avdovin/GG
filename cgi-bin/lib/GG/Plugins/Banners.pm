@@ -89,8 +89,8 @@ sub register {
 			my $week  = $wdays{(localtime)[6]};
 			$params{url_id} =  $self->dbi->query("SELECT `ID` FROM `lst_urls` WHERE `name`='".'/'.$self->req->url->path->to_string."'")->list || '0';
 
-		    my $where  = "`view` = 1";
-			   $where .= " AND (`id_advert_block` = $params{place} OR (`id_advert_block` LIKE '$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}'))";
+      my $where  = "`view` = 1";
+			  $where .= " AND (`id_advert_block` = $params{place} OR (`id_advert_block` LIKE '$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}'))";
 			   $where .= " AND (`docfile` != '' OR `textlink` != '' OR `code` != '')";
 			   $where .= " AND (`type_show` = 0 OR (`type_show` > 0 AND `cash` > 0))";
 			   $where .= " AND (`showdatefirst` <= NOW()) AND (`showdateend` = '0000-00-00' OR `showdateend` >= NOW())";
@@ -100,18 +100,18 @@ sub register {
 			   $where .= "
 			   AND (`target_url`=0 
 			   OR (`target_url`=1
-			   AND (`id_url` = $params{url_id}
-			   		OR `id_url` LIKE '$params{url_id}=%'
-			   		OR `id_url` LIKE '%=$params{url_id}=%'
-			   		OR `id_url` LIKE '%=$params{url_id}')
+			   AND (`urls` = $params{url_id}
+			   		OR `urls` LIKE '$params{url_id}=%'
+			   		OR `urls` LIKE '%=$params{url_id}=%'
+			   		OR `urls` LIKE '%=$params{url_id}')
 				OR (`target_url`=2
-					AND NOT (`id_url` = $params{url_id} 
-					OR `id_url` LIKE '$params{url_id}=%' 
-					OR `id_url` LIKE '%=$params{url_id}=%' 
-					OR `id_url` LIKE '%=$params{url_id}'))))";
+					AND NOT (`urls` = $params{url_id} 
+					OR `urls` LIKE '$params{url_id}=%' 
+					OR `urls` LIKE '%=$params{url_id}=%' 
+					OR `urls` LIKE '%=$params{url_id}'))))";
 			   $where .= " ORDER BY `rating`,RAND() $limit";
 
-			my $ip = $ENV{'REMOTE_ADDR'};
+			my $ip = $self->ip;
 
 			my $banners = [];
 
