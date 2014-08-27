@@ -60,7 +60,7 @@ sub register {
 			$item->{categoryId} = $item->{category_id};
 			$item->{market_category} = $CONFIG->{group_replaces}->{$item->{id_group}} || $CONFIG->{group_replaces}->{'default'};
 			$item->{picture} = $host."/image/catalog/items/$$item{pict}";
-			$item->{vendor} = $brands->{$item->{id_brand}}{name};
+			$item->{vendor} = $item->{brand} || '';
 			$item->{vendorCode} = $item->{articul} || '';
 			$item->{description} = strXhtmlValid($item->{text});
 			$item->{pickup} = $item->{pickup} || $CONFIG->{pickup};
