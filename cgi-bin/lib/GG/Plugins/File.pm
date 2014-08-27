@@ -516,14 +516,17 @@ sub register {
 			my $self = shift;
 			my %params = (
 				field	=> 'Filedata[]',
-				size	=> 1,			# флаг добавления к возвращаемому значению размера файла (админка)
+				size	=> 1, # флаг добавления к возвращаемому значению размера файла (админка)
 				@_
 			);
 
-			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
+      return $self->render(message => 'File is too big.', status => 200)
+         if $self->req->is_limit_exceeded;
 
-			if (my $upload = $self->req->upload( $params{field} )) {
-				my $filename = $upload->filename;
+         #$self->req->upload( $params{field}
+			if (my $upload = $self->param( $params{field} ) ) {
+  			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
+				return unless my $filename = $upload->filename;
 				$filename = $self->transliteration($filename);
 
 				# чистка старых файлов
@@ -539,17 +542,16 @@ sub register {
 					$filename = $self->file_check_free_name($dir.$filename);
 				}
 				$upload->move_to($dir.$filename);
-				my $size = -s $dir.$filename;
+				my $size = $upload->size;
 
-				$size = $self->file_nice_size($size) if $size;
-
-				$filename .= "| $size" if $params{'size'};
+        if(delete $params{size}){
+          $size = $self->file_nice_size($size);
+          $filename .= "| $size";
+        }
 				return $filename;
 			}
 			return;
-
-		}
-	);
+	});
 
 	$app->helper(
 		transliteration => sub {
