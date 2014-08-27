@@ -42,7 +42,7 @@ sub register {
 
 
 		$controller ||= $self->stash->{controller} || 'global';
-
+		
 		if(my $var = $self->app->vars->{ 'controller_'.$controller }->{$varName}){
 
 			return $var->{envvalue} if $raw;
@@ -92,9 +92,9 @@ sub register {
 		return _loadVars(shift);
 	});
 
-	$app->hook( before_dispatch => sub {
-		return _loadVars(shift);
-	});
+	# $app->hook( before_dispatch => sub {
+	# 	return _loadVars(shift);
+	# });
 }
 
 sub _loadVars{

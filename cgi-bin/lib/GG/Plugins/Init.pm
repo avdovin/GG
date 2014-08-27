@@ -38,6 +38,7 @@ sub register {
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
 	$app->plugin('dbi', $conf );
+	$app->dbi_connect();
 
 	# Load plugins from config
 	foreach (@{$conf->{plugins}}){
@@ -46,13 +47,36 @@ sub register {
 
 	$app->plugin('vfe') if $conf->{'vfe_enabled'};
 
-	$app->plugin(mail => {
-		from     => $conf->{mail_from_addr},
-		encoding => 'base64',
-		how      => 'sendmail',
-		howargs  => [ '/usr/sbin/sendmail -t' ],
-		type	 => 'text/html;charset=utf-8',
-	});
+	$app->loadVars;
+	my %mail_smtp = (
+		'smtp_server' => $app->get_var(name => 'smtp_server'),
+		'smtp_port' => $app->get_var(name => 'smtp_port'),
+		'smtp_login' => $app->get_var(name => 'smtp_login'),
+		'smtp_password' => $app->get_var(name => 'smtp_password'),
+	);
+	if ($app->get_var(name => 'mail_program') == 1){
+		$app->plugin(mail => {
+			from     => $conf->{mail_from_addr},
+			encoding => 'base64',
+			how      => 'smtp',
+			howargs  => [ 
+				$mail_smtp{'smtp_server'},
+				Port 	 => $mail_smtp{'smtp_port'} || '587',
+				AuthUser => $mail_smtp{'smtp_login'},
+				AuthPass => $mail_smtp{'smtp_password'},
+        	],
+			type	 => 'text/html;charset=utf-8',
+		});
+	}else{
+		$app->plugin(mail => {
+			from     => $conf->{mail_from_addr},
+			encoding => 'base64',
+			how      => 'sendmail',
+			howargs  => [ '/usr/sbin/sendmail -t' ],
+			type	 => 'text/html;charset=utf-8',
+		});
+	};
+
 
 	# языковые версии сайта
 	if($conf->{langs}){
