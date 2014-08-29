@@ -5,23 +5,23 @@ use Carp 'croak';
 use Mojo::Message::Request;
 use Mojo::Message::Response;
 
-has [qw(kept_alive local_address local_port remote_port)];
+has [
+  qw(kept_alive local_address local_port original_remote_address remote_port)];
 has req => sub { Mojo::Message::Request->new };
 has res => sub { Mojo::Message::Response->new };
 
 sub client_close {
   my ($self, $close) = @_;
 
-  # Remove code from parser errors
-  my $res = $self->res->finish;
-  if (my $err = $res->error) { $res->error($err) }
-
   # Premature connection close
-  elsif ($close && !$res->code) { $res->error('Premature connection close') }
+  my $res = $self->res->finish;
+  if ($close && !$res->code && !$res->error) {
+    $res->error({message => 'Premature connection close'});
+  }
 
   # 400/500
   elsif ($res->is_status_class(400) || $res->is_status_class(500)) {
-    $res->error($res->message, $res->code);
+    $res->error({message => $res->message, code => $res->code});
   }
 
   return $self->server_close;
@@ -36,13 +36,7 @@ sub connection {
   return $self->{connection};
 }
 
-sub error {
-  my $self = shift;
-  my $req  = $self->req;
-  return $req->error if $req->error;
-  my $res = $self->res;
-  return $res->error ? $res->error : undef;
-}
+sub error { $_[0]->req->error || $_[0]->res->error }
 
 sub is_finished { (shift->{state} // '') eq 'finished' }
 
@@ -53,20 +47,12 @@ sub is_writing { (shift->{state} // 'write') eq 'write' }
 sub remote_address {
   my $self = shift;
 
-  # New address
-  if (@_) {
-    $self->{remote_address} = shift;
-    return $self;
-  }
+  return $self->original_remote_address(@_) if @_;
+  return $self->original_remote_address unless $self->req->reverse_proxy;
 
   # Reverse proxy
-  if ($self->req->reverse_proxy) {
-    return $self->{forwarded_for} if $self->{forwarded_for};
-    my $forwarded = $self->req->headers->header('X-Forwarded-For') // '';
-    $forwarded =~ /([^,\s]+)$/ and return $self->{forwarded_for} = $1;
-  }
-
-  return $self->{remote_address};
+  return ($self->req->headers->header('X-Forwarded-For') // '')
+    =~ /([^,\s]+)$/ ? $1 : $self->original_remote_address;
 }
 
 sub resume       { shift->_state(qw(write resume)) }
@@ -162,6 +148,13 @@ Local interface address.
 
 Local interface port.
 
+=head2 original_remote_address
+
+  my $address = $tx->original_remote_address;
+  $tx         = $tx->original_remote_address('127.0.0.1');
+
+Remote interface address.
+
 =head2 remote_port
 
   my $port = $tx->remote_port;
@@ -219,10 +212,10 @@ Connection identifier or socket.
 
 =head2 error
 
-  my $err          = $tx->error;
-  my ($err, $code) = $tx->error;
+  my $err = $tx->error;
 
-Error and code.
+Return transaction error or C<undef> if there is no error, commonly used
+together with L</"success">.
 
 =head2 is_finished
 
@@ -253,7 +246,9 @@ Resume transaction.
   my $address = $tx->remote_address;
   $tx         = $tx->remote_address('127.0.0.1');
 
-Remote interface address.
+Same as L</"original_remote_address"> or the last value of the
+C<X-Forwarded-For> header if L</"req"> has been performed through a reverse
+proxy.
 
 =head2 server_close
 
@@ -286,8 +281,9 @@ message in L</"error">, 400 and 500 responses also a code.
   # Sensible exception handling
   if (my $res = $tx->success) { say $res->body }
   else {
-    my ($err, $code) = $tx->error;
-    say $code ? "$code response: $err" : "Connection error: $err";
+    my $err = $tx->error;
+    die "$err->{code} response: $err->{message}" if $err->{code};
+    die "Connection error: $err->{message}";
   }
 
 =head1 SEE ALSO

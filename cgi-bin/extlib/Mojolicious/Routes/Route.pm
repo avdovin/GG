@@ -2,6 +2,7 @@ package Mojolicious::Routes::Route;
 use Mojo::Base -base;
 
 use Carp 'croak';
+use Mojo::Util;
 use Mojolicious::Routes::Pattern;
 use Scalar::Util qw(blessed weaken);
 
@@ -12,7 +13,7 @@ has pattern    => sub { Mojolicious::Routes::Pattern->new };
 sub AUTOLOAD {
   my $self = shift;
 
-  my ($package, $method) = split /::(\w+)$/, our $AUTOLOAD;
+  my ($package, $method) = our $AUTOLOAD =~ /^(.+)::(.+)$/;
   croak "Undefined subroutine &${package}::$method called"
     unless blessed $self && $self->isa(__PACKAGE__);
 
@@ -122,13 +123,15 @@ sub remove {
 sub render {
   my ($self, $path, $values) = @_;
 
-  # Render pattern
-  my $prefix = $self->pattern->render($values, !$path);
-  $path = "$prefix$path" unless $prefix eq '/';
-  $path ||= '/' unless my $parent = $self->parent;
+  # Render pattern (if necessary)
+  if (defined((my $pattern = $self->pattern)->pattern) || !$path) {
+    my $prefix = $pattern->render($values, !$path);
+    $path = "$prefix$path" unless $prefix eq '/';
+  }
 
   # Let parent render
-  return $parent ? $parent->render($path, $values) : $path;
+  return $path || '/' unless my $parent = $self->parent;
+  return $parent->render($path, $values);
 }
 
 sub root {
@@ -150,7 +153,7 @@ sub to {
 
   my $pattern = $self->pattern;
   return $pattern->defaults unless @_;
-  my ($shortcut, %defaults) = _defaults(@_);
+  my ($shortcut, %defaults) = Mojo::Util::_options(@_);
 
   if ($shortcut) {
 
@@ -166,7 +169,7 @@ sub to {
     }
   }
 
-  $pattern->defaults({%{$pattern->defaults}, %defaults});
+  @{$pattern->defaults}{keys %defaults} = values %defaults;
 
   return $self;
 }
@@ -192,18 +195,6 @@ sub websocket {
   my $route = shift->get(@_);
   $route->{websocket} = 1;
   return $route;
-}
-
-sub _defaults {
-
-  # Hash or shortcut (one)
-  return ref $_[0] eq 'HASH' ? (undef, %{shift()}) : @_ if @_ == 1;
-
-  # Shortcut and values (odd)
-  return shift, @_ if @_ % 2;
-
-  # Shortcut and hash or just values (even)
-  return ref $_[1] eq 'HASH' ? (shift, %{shift()}) : (undef, @_);
 }
 
 sub _generate_route {
@@ -316,12 +307,15 @@ current parent if necessary.
 
 =head2 any
 
+  my $route = $r->any('/:foo');
+  my $route = $r->any('/:foo' => sub {...});
+  my $route = $r->any('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->any('/:foo' => [foo => qr/\w+/] => sub {...});
   my $route = $r->any([qw(GET POST)] => '/:foo' => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching any of the listed HTTP
-request methods or all. See also the L<Mojolicious::Lite> tutorial for more
-argument variations.
+request methods or all. See also the L<Mojolicious::Lite> tutorial for many
+more argument variations.
 
   $r->any('/user')->to('user#whatever');
 
@@ -341,10 +335,13 @@ object.
 
 =head2 delete
 
+  my $route = $r->delete('/:foo');
+  my $route = $r->delete('/:foo' => sub {...});
+  my $route = $r->delete('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->delete('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<DELETE>
-requests. See also the L<Mojolicious::Lite> tutorial for more argument
+requests. See also the L<Mojolicious::Lite> tutorial for many more argument
 variations.
 
   $r->delete('/user')->to('user#remove');
@@ -370,10 +367,13 @@ generated ones.
 
 =head2 get
 
+  my $route = $r->get('/:foo');
+  my $route = $r->get('/:foo' => sub {...});
+  my $route = $r->get('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->get('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<GET> requests.
-See also the L<Mojolicious::Lite> tutorial for more argument variations.
+See also the L<Mojolicious::Lite> tutorial for many more argument variations.
 
   $r->get('/user')->to('user#show');
 
@@ -428,10 +428,13 @@ if necessary.
 
 =head2 options
 
+  my $route = $r->options('/:foo');
+  my $route = $r->options('/:foo' => sub {...});
+  my $route = $r->options('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->options('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<OPTIONS>
-requests. See also the L<Mojolicious::Lite> tutorial for more argument
+requests. See also the L<Mojolicious::Lite> tutorial for many more argument
 variations.
 
   $r->options('/user')->to('user#overview');
@@ -458,28 +461,37 @@ Parse pattern.
 
 =head2 patch
 
+  my $route = $r->patch('/:foo');
+  my $route = $r->patch('/:foo' => sub {...});
+  my $route = $r->patch('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->patch('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<PATCH> requests.
-See also the L<Mojolicious::Lite> tutorial for more argument variations.
+See also the L<Mojolicious::Lite> tutorial for many more argument variations.
 
   $r->patch('/user')->to('user#update');
 
 =head2 post
 
+  my $route = $r->post('/:foo');
+  my $route = $r->post('/:foo' => sub {...});
+  my $route = $r->post('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->post('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<POST> requests.
-See also the L<Mojolicious::Lite> tutorial for more argument variations.
+See also the L<Mojolicious::Lite> tutorial for many more argument variations.
 
   $r->post('/user')->to('user#create');
 
 =head2 put
 
+  my $route = $r->put('/:foo');
+  my $route = $r->put('/:foo' => sub {...});
+  my $route = $r->put('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->put('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only C<PUT> requests.
-See also the L<Mojolicious::Lite> tutorial for more argument variations.
+See also the L<Mojolicious::Lite> tutorial for many more argument variations.
 
   $r->put('/user')->to('user#replace');
 
@@ -546,10 +558,12 @@ Stringify the whole route.
 =head2 under
 
   my $bridge = $r->under(sub {...});
-  my $bridge = $r->under('/:foo');
+  my $bridge = $r->under('/:foo' => sub {...});
+  my $bridge = $r->under('/:foo' => [foo => qr/\w+/]);
+  my $bridge = $r->under({format => 0});
 
 Generate L<Mojolicious::Routes::Route> object for bridge route. See also the
-L<Mojolicious::Lite> tutorial for more argument variations.
+L<Mojolicious::Lite> tutorial for many more argument variations.
 
   my $auth = $r->under('/user')->to('user#auth');
   $auth->get('/show')->to('#show');
@@ -569,10 +583,13 @@ restrictions.
 
 =head2 websocket
 
+  my $route = $r->websocket('/:foo');
+  my $route = $r->websocket('/:foo' => sub {...});
+  my $route = $r->websocket('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->websocket('/:foo' => [foo => qr/\w+/] => sub {...});
 
 Generate L<Mojolicious::Routes::Route> object matching only WebSocket
-handshakes. See also the L<Mojolicious::Lite> tutorial for more argument
+handshakes. See also the L<Mojolicious::Lite> tutorial for many more argument
 variations.
 
   $r->websocket('/echo')->to('example#echo');
@@ -582,11 +599,13 @@ variations.
 In addition to the L</"ATTRIBUTES"> and L</"METHODS"> above you can also call
 shortcuts provided by L</"root"> on L<Mojolicious::Routes::Route> objects.
 
+  # Add a "firefox" shortcut
   $r->root->add_shortcut(firefox => sub {
     my ($r, $path) = @_;
     $r->get($path, agent => qr/Firefox/);
   });
 
+  # Use "firefox" shortcut to generate routes
   $r->firefox('/welcome')->to('firefox#welcome');
   $r->firefox('/bye')->to('firefox#bye');
 

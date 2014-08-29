@@ -31,8 +31,6 @@ my %ESCAPE = (
 my %REVERSE = map { $ESCAPE{$_} => "\\$_" } keys %ESCAPE;
 for (0x00 .. 0x1f) { $REVERSE{pack 'C', $_} //= sprintf '\u%.4X', $_ }
 
-my $WHITESPACE_RE = qr/[\x20\x09\x0a\x0d]*/;
-
 sub decode {
   my $self = shift->error(undef);
   my $value;
@@ -77,23 +75,23 @@ sub _decode {
   my $value = _decode_value();
 
   # Leftover data
-  _exception('Unexpected data') unless m/\G$WHITESPACE_RE\z/gc;
+  _exception('Unexpected data') unless m/\G[\x20\x09\x0a\x0d]*\z/gc;
 
   return $value;
 }
 
 sub _decode_array {
   my @array;
-  until (m/\G$WHITESPACE_RE\]/gc) {
+  until (m/\G[\x20\x09\x0a\x0d]*\]/gc) {
 
     # Value
     push @array, _decode_value();
 
     # Separator
-    redo if m/\G$WHITESPACE_RE,/gc;
+    redo if m/\G[\x20\x09\x0a\x0d]*,/gc;
 
     # End
-    last if m/\G$WHITESPACE_RE\]/gc;
+    last if m/\G[\x20\x09\x0a\x0d]*\]/gc;
 
     # Invalid character
     _exception('Expected comma or right square bracket while parsing array');
@@ -104,27 +102,27 @@ sub _decode_array {
 
 sub _decode_object {
   my %hash;
-  until (m/\G$WHITESPACE_RE\}/gc) {
+  until (m/\G[\x20\x09\x0a\x0d]*\}/gc) {
 
     # Quote
-    m/\G$WHITESPACE_RE"/gc
+    m/\G[\x20\x09\x0a\x0d]*"/gc
       or _exception('Expected string while parsing object');
 
     # Key
     my $key = _decode_string();
 
     # Colon
-    m/\G$WHITESPACE_RE:/gc
+    m/\G[\x20\x09\x0a\x0d]*:/gc
       or _exception('Expected colon while parsing object');
 
     # Value
     $hash{$key} = _decode_value();
 
     # Separator
-    redo if m/\G$WHITESPACE_RE,/gc;
+    redo if m/\G[\x20\x09\x0a\x0d]*,/gc;
 
     # End
-    last if m/\G$WHITESPACE_RE\}/gc;
+    last if m/\G[\x20\x09\x0a\x0d]*\}/gc;
 
     # Invalid character
     _exception('Expected comma or right curly bracket while parsing object');
@@ -191,7 +189,7 @@ sub _decode_string {
 sub _decode_value {
 
   # Leading whitespace
-  m/\G$WHITESPACE_RE/gc;
+  m/\G[\x20\x09\x0a\x0d]*/gc;
 
   # String
   return _decode_string() if m/\G"/gc;
@@ -220,8 +218,7 @@ sub _decode_value {
 }
 
 sub _encode_array {
-  my $array = shift;
-  return '[' . join(',', map { _encode_value($_) } @$array) . ']';
+  '[' . join(',', map { _encode_value($_) } @{$_[0]}) . ']';
 }
 
 sub _encode_object {
@@ -233,7 +230,7 @@ sub _encode_object {
 
 sub _encode_string {
   my $str = shift;
-  $str =~ s!([\x00-\x1f\x{2028}\x{2029}\\"/])!$REVERSE{$1}!gs;
+  $str =~ s!([\x00-\x1f\x{2028}\x{2029}\\"])!$REVERSE{$1}!gs;
   return "\"$str\"";
 }
 
@@ -263,8 +260,10 @@ sub _encode_value {
   return 'null' unless defined $value;
 
   # Number
-  my $flags = B::svref_2object(\$value)->FLAGS;
-  return 0 + $value if $flags & (B::SVp_IOK | B::SVp_NOK) && $value * 0 == 0;
+  return $value
+    if B::svref_2object(\$value)->FLAGS & (B::SVp_IOK | B::SVp_NOK)
+    && 0 + $value eq $value
+    && $value * 0 == 0;
 
   # String
   return _encode_string($value);
@@ -273,7 +272,7 @@ sub _encode_value {
 sub _exception {
 
   # Leading whitespace
-  m/\G$WHITESPACE_RE/gc;
+  m/\G[\x20\x09\x0a\x0d]*/gc;
 
   # Context
   my $context = 'Malformed JSON: ' . shift;
@@ -321,9 +320,8 @@ It supports normal Perl data types like scalar, array reference, hash
 reference and will try to call the C<TO_JSON> method on blessed references, or
 stringify them if it doesn't exist. Differentiating between strings and
 numbers in Perl is hard, depending on how it has been used, a scalar can be
-both at the same time. Since numeric comparisons on strings are very unlikely
-to happen intentionally, the numeric value always gets priority, so any
-scalar that has been used in numeric context is considered a number.
+both at the same time. The string value gets precedence unless both
+representations are equivalent.
 
   [1, -2, 3]     -> [1, -2, 3]
   {"foo": "bar"} -> {foo => 'bar'}

@@ -1,8 +1,8 @@
 package Mojo::IOLoop::Delay;
 use Mojo::Base 'Mojo::EventEmitter';
 
-use Mojo;
 use Mojo::IOLoop;
+use Mojo::Util;
 use Hash::Util::FieldHash 'fieldhash';
 
 has ioloop => sub { Mojo::IOLoop->singleton };
@@ -16,7 +16,7 @@ sub begin {
   return sub { $self->_step($id, $offset // 1, $len, @_) };
 }
 
-sub data { shift->Mojo::_dict(data => @_) }
+sub data { Mojo::Util::_stash(data => @_) }
 
 sub pass { $_[0]->begin->(@_) }
 
@@ -35,13 +35,10 @@ sub steps {
 
 sub wait {
   my $self = shift;
-
-  my @args;
+  return if $self->ioloop->is_running;
   $self->once(error => \&_die);
-  $self->once(finish => sub { shift->ioloop->stop; @args = @_ });
+  $self->once(finish => sub { shift->ioloop->stop });
   $self->ioloop->start;
-
-  return wantarray ? @args : $args[0];
 }
 
 sub _die { $_[0]->has_subscribers('error') ? $_[0]->ioloop->stop : die $_[1] }
@@ -50,7 +47,7 @@ sub _step {
   my ($self, $id, $offset, $len) = (shift, shift, shift, shift);
 
   $self->{args}[$id]
-    = [defined $len ? splice(@_, $offset, $len) : splice(@_, $offset)];
+    = [@_ ? defined $len ? splice @_, $offset, $len : splice @_, $offset : ()];
   return $self if $self->{fail} || --$self->{pending} || $self->{lock};
   local $self->{lock} = 1;
   my @args = map {@$_} @{delete $self->{args}};
@@ -88,11 +85,10 @@ Mojo::IOLoop::Delay - Manage callbacks and control the flow of events
       $end->();
     });
   }
-  $delay->wait unless Mojo::IOLoop->is_running;
+  $delay->wait;
 
   # Sequentialize multiple events
-  my $delay = Mojo::IOLoop::Delay->new;
-  $delay->steps(
+  Mojo::IOLoop::Delay->new->steps(
 
     # First step (simple timer)
     sub {
@@ -114,14 +110,28 @@ Mojo::IOLoop::Delay - Manage callbacks and control the flow of events
       my ($delay, @args) = @_;
       say 'And done after 5 seconds total.';
     }
-  );
-  $delay->wait unless Mojo::IOLoop->is_running;
+  )->wait;
+
+  # Handle exceptions in all steps
+  Mojo::IOLoop::Delay->new->steps(
+    sub {
+      my $delay = shift;
+      die 'Intentional error';
+    },
+    sub {
+      my ($delay, @args) = @_;
+      say 'Never actually reached.';
+    }
+  )->catch(sub {
+    my ($delay, $err) = @_;
+    say "Something went wrong: $err";
+  })->wait;
 
 =head1 DESCRIPTION
 
 L<Mojo::IOLoop::Delay> manages callbacks and controls the flow of events for
-L<Mojo::IOLoop>, which can help you avoid deep nested closures that often
-result from continuation-passing style.
+L<Mojo::IOLoop>, which can help you avoid deep nested closures and memory
+leaks that often result from continuation-passing style.
 
 =head1 EVENTS
 
@@ -178,19 +188,28 @@ L</"wait"> method, the argument offset defaults to C<1> with no default
 length.
 
   # Capture all arguments except for the first one (invocant)
-  my $delay = Mojo::IOLoop->delay;
+  my $delay = Mojo::IOLoop->delay(sub {
+    my ($delay, $err, $stream) = @_;
+    ...
+  });
   Mojo::IOLoop->client({port => 3000} => $delay->begin);
-  my ($err, $stream) = $delay->wait;
+  $delay->wait;
 
   # Capture all arguments
-  my $delay = Mojo::IOLoop->delay;
+  my $delay = Mojo::IOLoop->delay(sub {
+    my ($delay, $loop, $err, $stream) = @_;
+    ...
+  });
   Mojo::IOLoop->client({port => 3000} => $delay->begin(0));
-  my ($loop, $err, $stream) = $delay->wait;
+  $delay->wait;
 
   # Capture only the second argument
-  my $delay = Mojo::IOLoop->delay;
+  my $delay = Mojo::IOLoop->delay(sub {
+    my ($delay, $err) = @_;
+    ...
+  });
   Mojo::IOLoop->client({port => 3000} => $delay->begin(1, 1));
-  my $err = $delay->wait;
+  $delay->wait;
 
 =head2 data
 
@@ -227,25 +246,18 @@ circular references.
 
   $delay = $delay->steps(sub {...}, sub {...});
 
-Sequentialize multiple events, the first callback will run right away, and the
-next one once the active event counter reaches zero. This chain will continue
-until there are no more callbacks, a callback does not increment the active
-event counter or an error occurs in a callback.
+Sequentialize multiple events, every time the active event counter reaches
+zero a callback will run, the first one automatically runs during the next
+reactor tick unless it is delayed by incrementing the active event counter.
+This chain will continue until there are no more callbacks, a callback does
+not increment the active event counter or an error occurs in a callback.
 
 =head2 wait
 
-  my $arg  = $delay->wait;
-  my @args = $delay->wait;
+  $delay->wait;
 
 Start L</"ioloop"> and stop it again once an L</"error"> or L</"finish"> event
-gets emitted, only works when L</"ioloop"> is not running already.
-
-  # Use a single step to synchronize portably
-  $delay->steps(sub {
-    my ($delay, @args) = @_;
-    ...
-  });
-  $delay->wait unless $delay->ioloop->is_running;
+gets emitted, does nothing when L</"ioloop"> is already running.
 
 =head1 SEE ALSO
 

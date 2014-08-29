@@ -521,9 +521,8 @@ sub register {
 			);
 
       return $self->render(message => 'File is too big.', status => 200)
-         if $self->req->is_limit_exceeded;
+        if $self->req->is_limit_exceeded;
 
-         #$self->req->upload( $params{field}
 			if (my $upload = $self->param( $params{field} ) ) {
   			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
 				return unless my $filename = $upload->filename;
@@ -548,7 +547,7 @@ sub register {
           $size = $self->file_nice_size($size);
           $filename .= "| $size";
         }
-				return $filename;
+        return $filename;
 			}
 			return;
 	});

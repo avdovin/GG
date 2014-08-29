@@ -10,7 +10,7 @@ has [qw(input output)] => sub { {} };
 sub AUTOLOAD {
   my $self = shift;
 
-  my ($package, $method) = split /::(\w+)$/, our $AUTOLOAD;
+  my ($package, $method) = our $AUTOLOAD =~ /^(.+)::(.+)$/;
   croak "Undefined subroutine &${package}::$method called"
     unless blessed $self && $self->isa(__PACKAGE__);
 
@@ -44,10 +44,13 @@ sub csrf_protect {
 }
 
 sub error {
-  my ($self, $name) = (shift, shift);
+  my $self = shift;
+
+  return sort keys %{$self->{error}} unless defined(my $name = shift);
   return $self->{error}{$name} unless @_;
   $self->{error}{$name} = shift;
   delete $self->output->{$name};
+
   return $self;
 }
 
@@ -172,6 +175,7 @@ Validate C<csrf_token> and protect from cross-site request forgery.
 
 =head2 error
 
+  my @names   = $validation->error;
   my $err     = $validation->error('foo');
   $validation = $validation->error(foo => ['custom_check']);
 
