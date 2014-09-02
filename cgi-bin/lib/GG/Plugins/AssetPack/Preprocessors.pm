@@ -10,7 +10,8 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Cwd;
 use File::Basename;
 use File::Which;
-use IPC::Run3;
+use IPC::Run3 ();
+use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
 our $VERSION = '0.01';
 
@@ -18,7 +19,10 @@ our $VERSION = '0.01';
 
 =head2 add
 
-  $self->add($extension => $cb);
+  $self->add($extension => sub {
+    my ($assetpack, $text, $file) = @_;
+    $$text =~ s/foo/bar/ if $file =~ /baz/ and $assetpack->minify;
+  });
 
 Define a preprocessor which is run on a given file extension. These
 preprocessors will be chained. The callbacks will be called in the order they
@@ -35,6 +39,17 @@ sub add { shift->on(@_) }
 Will add the following preprocessors, if they are available:
 
 =over 4
+
+=item * jsx
+
+JSX is a JavaScript XML syntax transform recommended for use with
+L<React|http://facebook.github.io/react>. See
+L<http://facebook.github.io/react/docs/jsx-in-depth.html> for more information.
+
+Installation on Ubuntu and Debian:
+
+  $ sudo apt-get install npm
+  $ npm install -g react-tools
 
 =item * less
 
@@ -107,15 +122,20 @@ Installation on Ubuntu and Debian:
 sub detect {
   my $self = shift;
 
+  if(my $app = which('jsx')) {
+    $self->add(jsx => sub {
+      my($assetpack, $text, $file) = @_;
+      $self->_run(['jsx'], $text, $text); # TODO: Add --follow-requires ?
+      _js_minify($text, $file) if $assetpack->minify;
+    });
+  }
   if(my $app = which('lessc')) {
-    $self->map_type(less => 'css');
     $self->add(less => sub {
       my($assetpack, $text, $file) = @_;
-      run3([$app, '-', $assetpack->minify ? ('-x') : ()], $text, $text);
+      $self->_run([$app, '-', $assetpack->minify ? ('-x') : ()], $text, $text);
     });
   }
   if(my $app = which('sass')) {
-    $self->map_type(scss => 'css');
     $self->add(scss => sub {
       my($assetpack, $text, $file) = @_;
       my @cmd = ( $app, '-I' => dirname $file );
@@ -124,23 +144,21 @@ sub detect {
       push @cmd, qw( -t compressed) if $assetpack->minify;
       push @cmd, qw( --compass ) if !$ENV{MOJO_ASSETPACK_NO_COMPASS} and $$text =~ m!\@import\W+compass\/!;
 
-      run3(\@cmd, $text, $text);
+      $self->_run(\@cmd, $text, $text);
     });
-    $self->map_type(sass => 'css');
     $self->add(sass => sub {
       my($assetpack, $text, $file) = @_;
       my $include_dir = dirname $file;
-      run3([$app, '-I', $include_dir, '--stdin', $assetpack->minify ? ('-t', 'compressed') : ()], $text, $text);
+      $self->_run([$app, '-I', $include_dir, '--stdin', $assetpack->minify ? ('-t', 'compressed') : ()], $text, $text);
     });
   }
   if(my $app = which('coffee')) {
-    $self->map_type(coffee => 'js');
     $self->add(coffee => sub {
       my($assetpack, $text, $file) = @_;
       my $err;
-      run3([$app, '--compile', '--stdio'], $text, $text, \$err);
+      $self->_run([$app, '--compile', '--stdio'], $text, $text, \$err);
       if ($assetpack->minify && eval 'require JavaScript::Minifier::XS; 1') {
-        $$text = JavaScript::Minifier::XS::minify($$text);
+        _js_minify($text, $file) if $assetpack->minify;
       }
       if ($err) {
         $assetpack->{log}->warn("Error processing $file: $err");
@@ -151,7 +169,7 @@ sub detect {
   if(eval 'require JavaScript::Minifier::XS; 1') {
     $self->add(js => sub {
       my($assetpack, $text, $file) = @_;
-      $$text = JavaScript::Minifier::XS::minify($$text) if $assetpack->minify and $file !~ /\bmin\b/;
+      _js_minify($text, $file) if $assetpack->minify and $file !~ /\bmin\b/;
     });
   }
   if(eval 'require CSS::Minifier::XS; 1') {
@@ -174,37 +192,26 @@ called with the C<$assetpack> object as the first argument.
 sub process {
   my($self, $extension, $assetpack, $text, $filename) = @_;
   my $old_dir = getcwd;
+  my $err = '';
+
+  local $@;
 
   eval {
     chdir dirname $filename;
     $_->($assetpack, $text, $filename) for @{ $self->subscribers($extension) };
     1;
   } or do {
-    $self->emit(error => "process $filename: $@");
+    $err = $@ || "AssetPack failed with unknown error while processing $filename.\n";
   };
 
   chdir $old_dir;
-
+  die $err if $err;
   $self;
 }
 
 =head2 map_type
 
-  $self = $self->map_type($from => $to);
-  $to = $self->map_type($from);
-
-Method used to map one file type that should be transformed to another file
-type. Example:
-
-  $self->map_type(coffee => "js");
-
-=cut
-
-sub map_type {
-  return $_[0]->{extensions}{$_[1]} || '' if @_ == 2;
-  $_[0]->{extensions}{$_[1]} = $_[2];
-  return $_[0];
-}
+DEPRECATED: The mapping is already done based on input files.
 
 =head2 remove
 
@@ -217,6 +224,22 @@ given C<$cb>.
 =cut
 
 sub remove { shift->unsubscribe(@_) }
+
+sub _js_minify {
+  my ($text, $file) = @_;
+  $$text = JavaScript::Minifier::XS::minify($$text);
+  $$text = '' unless defined $$text;
+}
+
+sub _run {
+  my ($self, @args) = @_;
+  local ($?, $@, $!);
+  warn "[ASSETPACK] \$ @{ $args[0] }\n" if DEBUG;
+  eval { IPC::Run3::run3(@args); };
+  return $self unless $?;
+  chomp $@ if $@;
+  die sprintf "AssetPack failed to run '%s'. exit_code=%s (%s)\n", join(' ', @{ $args[0] }), $? <= 0 ? $? : $? >> 8, $@ || $?;
+}
 
 =head1 AUTHOR
 

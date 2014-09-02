@@ -32,8 +32,6 @@ sub register {
 	$app->plugin('AssetPack', {
 		minify 			=> $conf->{pipeline} && $app->mode eq 'production',
 	});
-	#$app->plugin('Pipeline');
-	#$app->plugin('Pipeline::CSSCompressor');
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
@@ -59,7 +57,7 @@ sub register {
 			from     => $conf->{mail_from_addr},
 			encoding => 'base64',
 			how      => 'smtp',
-			howargs  => [ 
+			howargs  => [
 				$mail_smtp{'smtp_server'},
 				Port 	 => $mail_smtp{'smtp_port'} || '587',
 				AuthUser => $mail_smtp{'smtp_login'},
