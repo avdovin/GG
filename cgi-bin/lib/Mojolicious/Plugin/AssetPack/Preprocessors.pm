@@ -1,4 +1,4 @@
-package GG::Plugins::AssetPack::Preprocessors;
+package Mojolicious::Plugin::AssetPack::Preprocessors;
 
 =head1 NAME
 

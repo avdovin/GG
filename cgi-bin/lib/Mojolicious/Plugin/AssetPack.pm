@@ -1,4 +1,4 @@
-package GG::Plugins::AssetPack;
+package Mojolicious::Plugin::AssetPack;
 
 =head1 NAME
 
@@ -132,14 +132,14 @@ See also L<https://developers.google.com/speed/docs/best-practices/request#Serve
 use Mojo::Base 'Mojolicious::Plugin';
 use Mojo::ByteStream 'b';
 use Mojo::Util qw( md5_sum slurp spurt );
-use GG::Plugins::AssetPack::Preprocessors;
+use Mojolicious::Plugin::AssetPack::Preprocessors;
 use File::Basename qw( basename );
 use File::Spec::Functions qw( catdir catfile );
 use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
 our $VERSION = '0.22';
 our %MISSING_ERROR = (
-  default => '%s has no preprocessor. https://metacpan.org/pod/GG::Plugins::AssetPack::Preprocessors#detect',
+  default => '%s has no preprocessor. https://metacpan.org/pod/Mojolicious::Plugin::AssetPack::Preprocessors#detect',
   coffee => '%s require "coffee". http://coffeescript.org/#installation',
   jsx => '%s require "jsx". http://facebook.github.io/react',
   less => '%s require "less". http://lesscss.org/#usage',
@@ -177,7 +177,7 @@ unless a L<static directory|Mojolicious::Static/paths> is writeable.
 
 has base_url => '/packed/';
 has minify => 0;
-has preprocessors => sub { GG::Plugins::AssetPack::Preprocessors->new };
+has preprocessors => sub { Mojolicious::Plugin::AssetPack::Preprocessors->new };
 has out_dir => sub { catdir File::Spec::Functions::tmpdir(), 'mojo-assetpack' };
 
 =head2 rebuild
