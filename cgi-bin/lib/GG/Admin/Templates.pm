@@ -250,13 +250,13 @@ sub mainpage{
        		"script"		=> $script
    		);
 
-		$body .= $self->render( partial => 1, template => 'Admin/icon', button => \%button_conf);
+		$body .= $self->render_to_string( template => 'Admin/icon', button => \%button_conf);
 	}
 
 	$self->def_context_menu( lkey => 'templates_list');
 
 	my $win_name = $self->stash->{win_name} = $dir ? 'Папка: '.$self->cut( string => $dir, size => 100 ) : '';
-	my $content = $self->render( partial => 1, template => 'Admin/page_admin_main', body => $body);
+	my $content = $self->render_to_string( template => 'Admin/page_admin_main', body => $body);
 
 	my $items = [];
 

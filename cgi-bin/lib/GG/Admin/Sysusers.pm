@@ -95,7 +95,7 @@ sub tree_block{
 	}
 
 	$self->render( json => {
-					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
+					content	=> $self->render_to_string( items => $items, template => 'Admin/tree_elements'),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"
@@ -138,6 +138,7 @@ sub save{
 	$self->stash->{index} = 0 if $params{restore};
 
 
+	$self->send_params->{'password_digest'} = $self->encrypt_password( $self->send_params->{'password_digest'} );
 
 	if(my $ok = $self->save_info( table => $self->stash->{list_table})){
 		# Добавляем текущего пользователя в список

@@ -237,7 +237,7 @@ sub register {
 
 			} elsif($type eq 'tlist'){
 				my $where = $lkey->{settings}->{where} || '';
-				$where = $self->render( inline => $where, partial => 1 ) if $where;
+				$where = $self->render_to_string( inline => $where ) if $where;
 
 				eval{
 					$list_vals = $self->app->dbi->query(qq/

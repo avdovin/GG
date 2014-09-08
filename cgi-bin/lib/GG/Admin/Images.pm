@@ -145,7 +145,7 @@ sub zipimport_save{
 
 	my $files = $self->file_extract_zip( path => $self->file_tmpdir.$self->send_params->{zip} );
 
-	my $html = $self->render( files => $files, template => 'Admin/Plugins/File/zipimport_img_node', partial => 1);
+	my $html = $self->render_to_string( files => $files, template => 'Admin/Plugins/File/zipimport_img_node');
 
 	$self->render( json => {html => $html, count => scalar(@$files)});
 }
@@ -473,7 +473,7 @@ sub tree_block{
 	}
 
 	$self->render( json => {
-					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
+					content	=> $self->render_to_string( items => $items, template => 'Admin/tree_elements'),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"

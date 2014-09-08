@@ -401,7 +401,7 @@ sub tree_block{
 	}
 
 	$self->render( json => {
-					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
+					content	=> $self->render_to_string( items => $items, template => 'Admin/tree_elements'),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$controller."'].initTree();"
@@ -634,7 +634,6 @@ sub list_items{
 	} else {
 		$self->stash->{listfield_buttons} =  [qw(delete edit)]
 	}
-
 	$params{table} = $list_table;
 
 	$self->define_table_list(%params);

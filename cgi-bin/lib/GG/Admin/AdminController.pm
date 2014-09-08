@@ -256,7 +256,7 @@ sub zipimport_save{
 
 	my $files = $self->file_extract_zip( path => $self->file_tmpdir.$self->send_params->{zip} );
 
-	my $html = $self->render( files => $files, template => 'Admin/Plugins/File/zipimport_img_node', partial => 1);
+	my $html = $self->render_to_string( files => $files, template => 'Admin/Plugins/File/zipimport_img_node');
 
 	$self->render( json => {html => $html, count => scalar(@$files)});
 }
@@ -429,7 +429,7 @@ HEAD
 sub block_null{
 	my $self = shift;
 
-	my $body = $self->render(	template	=> 'Admin/block_null', partial => 1);
+	my $body = $self->render_to_string(	template	=> 'Admin/block_null');
 
 	$self->render( json => {
 			content	=> $body,
@@ -535,7 +535,7 @@ sub save_history{
 	$params{name} = "<img width='21' height='21' src='".$self->app->program->{pict}."' align='absmiddle'>$params{name}";
 
 	my $link = "<a href='#' onClick=\"openPage('center', '$replaceme', '$script_link?do=info&index=".$self->stash->{index}.$self->stash->{param_default}."', 'Документ', 'Документ')\">$params{name}</a>";
-	my $sql = "REPLACE INTO `sys_history` (`id_user`, `link`, `replaceme`, `rdate`) VALUES (?, ?, ?, NOW())";
+	my $sql = "REPLACE INTO `sys_history` (`id_user`, `link`, `replaceme`, `created_at`) VALUES (?, ?, ?, NOW())";
 	my $sth = $self->dbh->do($sql, undef, $id_user, $link, $replaceme);
 }
 
@@ -1002,7 +1002,7 @@ sub def_context_menu{
 		$button->def_params_button($stash);
 		$button->def_script_button($stash);
 
-		$context_menu .= $self->render( template => 'Admin/anchor_html', button => $button, partial => 1);
+		$context_menu .= $self->render_to_string( template => 'Admin/anchor_html', button => $button);
 	}
 
 	return $self->stash->{context_menu} = $context_menu;

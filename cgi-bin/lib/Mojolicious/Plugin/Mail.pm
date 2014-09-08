@@ -10,7 +10,7 @@ use constant FROM     => 'no-reply@ifrog.ru';
 use constant CHARSET  => 'UTF-8';
 use constant ENCODING => 'base64';
 
-our $VERSION = '1.1';
+our $VERSION = '1.3';
 
 has conf => sub { +{} };
 
@@ -59,13 +59,7 @@ sub register {
   );
 
   $app->helper(
-    render_mail => sub {
-      my $self = shift;
-      my $data = $self->render(@_, format => 'mail', partial => 1);
-
-      delete @{$self->stash}{ qw(partial cb format mojo.captures mojo.started mojo.content mojo.routed) };
-      $data;
-    },
+    render_mail => sub { shift->render_to_string(@_, format => 'mail') }
   );
 }
 

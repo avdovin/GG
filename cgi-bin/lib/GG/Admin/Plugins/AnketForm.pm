@@ -221,7 +221,7 @@ sub register {
 				$self->render( template	=> $self->stash->{template_dir}.$params{template})
 
 			} else {
-				my $body = $self->render(	template	=> $self->stash->{template_dir}.$params{template}, partial => 1);
+				my $body = $self->render_to_string(	template	=> $self->stash->{template_dir}.$params{template});
 
 				my $init_inems = 'init_'.$template_blocks{$params{access}};
 

@@ -90,8 +90,9 @@ sub register {
 					$self->stash->{listfield_header} = [];
 				}
 
-				my $body = $self->render(	template	=> 'Admin/TableList/tablelist_container', partial => 1);
+				my $body = $self->render_to_string(template	=> 'Admin/TableList/tablelist_container');
 
+				$self->res->headers->content_type('application/json');
 				return $self->render( json => {
 					content	=> $body,
 					items	=> $self->get_init_items( init => 'init_modul'),
@@ -291,7 +292,7 @@ sub register {
 
 			if($self->stash->{flag_win}){
 				$self->render( json => {
-						content	=> $self->render( template => "Admin/TableList/defcol", partial => 1),
+						content	=> $self->render_to_string( template => "Admin/TableList/defcol"),
 						items	=> $self->get_init_items(),
 				});
 			} else {

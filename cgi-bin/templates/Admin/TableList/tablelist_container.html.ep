@@ -127,7 +127,7 @@
 %	}
 
 <table width="96%" align=center><tr><td>
-	<%= page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container' %>
+	%== page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container'
 </td>
 			<td width="*" align=right style="line-height:13px;">
 %	if($self->app->program->{settings}->{qedit}) {

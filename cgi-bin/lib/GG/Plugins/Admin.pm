@@ -174,10 +174,10 @@ sub register {
 
 				# Очистка логов
 				if( my $days_count = $self->app->get_var(name => 'time_log', controller => 'global') ){
-					$self->app->dbh->do("DELETE FROM `sys_datalogs` WHERE TO_DAYS(NOW())-TO_DAYS(`rdate`)>$days_count");
+					$self->app->dbh->do("DELETE FROM `sys_datalogs` WHERE TO_DAYS(NOW())-TO_DAYS(`created_at`)>$days_count");
 
 					# 	Очистка юзер хистори
-					$self->app->dbh->do("DELETE FROM `sys_history` WHERE TO_DAYS(NOW())-TO_DAYS(`rdate`)>$days_count");
+					$self->app->dbh->do("DELETE FROM `sys_history` WHERE TO_DAYS(NOW())-TO_DAYS(`updated_at`)>$days_count");
 					$self->app->dbh->do("OPTIMIZE TABLE `sys_history`");
 				}
 				# очистка старых сессий
@@ -310,7 +310,9 @@ sub register {
 				$self->app->dbi->query($sql);
 			}
 
-			if ($user->{password} && $params{password} && $user->{password} ne $params{password}) {  # Неверный пароль
+			$params{'password_digest'} = $self->encrypt_password($params{password});
+
+			if ($user->{'password_digest'} && $params{'password'} && !$self->check_password($params{'password'}, $user->{'password_digest'})  ) {  # Неверный пароль
 				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`bip`='$ip' WHERE `login` = '$$user{login}'";
 				$self->app->dbi->query($sql);
 
@@ -379,11 +381,11 @@ sub register {
 			}
 
 			$self->app->dbi->insert_hash('sys_datalogs', {
-				name 			=> $params{name},
-				id_sysuser		=> $params{id_sysuser},
+				name 						=> $params{name},
+				id_sysuser			=> $params{id_sysuser},
 				id_sysusergroup		=> $params{id_sysusergroup},
 				id_program		=> $params{id_program},
-				ip				=> $params{ip},
+				ip					=> $params{ip},
 				comment			=> $params{comment},
 				eventtype		=> $params{eventtype},
 			});

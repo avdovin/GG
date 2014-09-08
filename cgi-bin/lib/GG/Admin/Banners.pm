@@ -182,7 +182,7 @@ sub tree_block{
 	}
 
 	$self->render( json => {
-					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
+					content	=> $self->render_to_string( items => $items, template => 'Admin/tree_elements'),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"

@@ -92,7 +92,7 @@ sub mainpage{
 		<iframe src="/admin/filemanager/body?do=elfinder" style="border:0px;" width="100%" height="100%;"></iframe>
 HEAD
 
-	my $content = $self->render( partial => 1, template => 'Admin/page_admin_main', body => $body);
+	my $content = $self->render_to_string( template => 'Admin/page_admin_main', body => $body);
 
 	my $items = [
 		{

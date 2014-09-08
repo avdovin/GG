@@ -119,11 +119,10 @@ sub register {
 
 			return $items if $params{items};
 
-			my $html = $self->render(
+			my $html = $self->render_to_string(
 									lfield		=> $params{lfield},
 									items		=> $items,
 									template	=> "Admin/AnketForm/tree_elements_select",
-									partial		=> 1,
 									);
 
 			$self->render( json => {
@@ -188,12 +187,10 @@ sub register {
 				$self->save_info( table => $params{table}, field_values => $clear_fields);
 			}
 
-			my $content = $self->render(
+			my $content = $self->render_to_string(
 				key => $lfield,
 				lkey => $self->lkey(name => $lfield),
 				template => '/Admin/AnketForm/Reload/field_pict_reload',
-
-				partial => 1
 			);
 			$self->render( json => {
 					content	=> $content,
@@ -235,7 +232,7 @@ sub register {
 				$self->save_info( table => $params{table}, field_values => $clear_fields);
 			}
 
-			my $content = $self->render(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload', partial => 1);
+			my $content = $self->render_to_string(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload');
 			$self->render( json => {
 					content	=> $content,
 					items	=> $self->get_init_items(),

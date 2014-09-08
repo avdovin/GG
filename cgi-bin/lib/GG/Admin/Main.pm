@@ -134,7 +134,7 @@ sub mainpage{
 		);
 
 		if( $self->sysuser->sys or exists($self->sysuser->access->{modul}->{ $$row{ID} }) ){
-			$main_menu{ $$row{prgroup} } .= $self->render(template => 'Admin/icon', button => \%button_conf, partial => 1 );
+			$main_menu{ $$row{prgroup} } .= $self->render_to_string(template => 'Admin/icon', button => \%button_conf );
 		}
 	}
 
@@ -147,9 +147,10 @@ sub mainpage{
 	}
 
 	my $result = {
-			content	=> $self->render(	body		=> $body,
-										partial		=> 1,
-										template	=> 'Admin/block_admin_main'),
+			content	=> $self->render_to_string(
+				body			=> $body,
+				template	=> 'Admin/block_admin_main'
+			),
 			items	=> $self->init_main,
 	};
 

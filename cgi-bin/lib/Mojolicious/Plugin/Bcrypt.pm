@@ -1,4 +1,4 @@
-package GG::Plugins::Bcrypt;
+package Mojolicious::Plugin::Bcrypt;
 
 use warnings;
 use strict;

@@ -163,7 +163,7 @@ sub tree_block{
 	}
 
 	$self->render( json => {
-					content	=> $self->render( items => $items, template => 'Admin/tree_elements', partial => 1),
+					content	=> $self->render_to_string( items => $items, template => 'Admin/tree_elements'),
 					items	=> [{
 							type	=> 'eval',
 							value	=> "treeObj['".$self->stash->{controller}."'].initTree();"
@@ -324,11 +324,11 @@ sub mainpage{
 	       		"script"		=> "ld_content('replaceme','$controller_url?do=list_container&list_table=$table')"
 	   		);
 
-			$body .= $self->render( partial => 1, template => 'Admin/icon', button => \%button_conf);
+			$body .= $self->render_to_string( template => 'Admin/icon', button => \%button_conf);
 		}
 	}
 
-	my $content = $self->render( partial => 1, template => 'Admin/page_admin_main', body => $body);
+	my $content = $self->render_to_string( template => 'Admin/page_admin_main', body => $body);
 
 	$self->stash->{enter} = 1;
 	my $result = {

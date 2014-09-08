@@ -165,12 +165,11 @@ sub register {
 
 		my $items = $self->app->dbi->query("SELECT `ID`,YEAR(`$params{datefield}`) AS `year` FROM `texts_".$params{key_razdel}."_".$self->lang."` WHERE 1 $where GROUP BY YEAR(`$params{datefield}`) ORDER BY `$params{datefield}` DESC")->hashes;
 
-		return $self->render(
+		return $self->render_to_string(
 			items		=> $items,
 			prefix 		=> $params{prefix},
 			postfix		=> $params{postfix},
 			template 	=> 'Texts/_'.$params{key_razdel}.'_year_nav',
-			partial		=> 1
 		);
 	});
 
@@ -333,7 +332,7 @@ sub register {
 		my $self = shift;
 		my $tmpl = shift || return '';
 
-		my $html = $self->render($tmpl, partial => 1, format => 'html', @_);
+		my $html = $self->render_to_string($tmpl, format => 'html', @_);
 		$html =~ s{\n+}{}sg; $html =~ s{\t+}{}sg;
 
 		$html;
@@ -419,12 +418,10 @@ sub register {
 				WHERE 1 ORDER BY `created_at` DESC LIMIT 0,3"
 			)->hashes;
 
-			return $self->render(
+			return $self->render_to_string(
 				template => "Texts/anons/$params{template}",
 				handler  => $params{handler},
 				rows     => $rows,
-
-				partial  => 1,
 			);
 		}
 	);
@@ -823,12 +820,11 @@ sub register {
 				$end_page = $total_page;
 			}
 		}
-		return $self->render(
+		return $self->render_to_string(
 			first_page 	=> $first_page,
 			end_page	=> $end_page,
 			page		=> $page,
 			total_page  => $total_page,
-			partial		=> 1,
 			%params
 		);
 	});

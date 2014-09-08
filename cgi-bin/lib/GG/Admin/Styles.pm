@@ -220,10 +220,10 @@ sub mainpage{
        		"script"		=> $script
    		);
 
-		$body .= $self->render( partial => 1, template => 'Admin/icon', button => \%button_conf);
+		$body .= $self->render_to_string( template => 'Admin/icon', button => \%button_conf);
 	}
 
-	my $content = $self->render( partial => 1, template => 'Admin/page_admin_main', body => $body);
+	my $content = $self->render_to_string( template => 'Admin/page_admin_main', body => $body);
 
 	my $win_name = $self->cut( string => $dir, size => 15 );
 	$self->stash->{win_name} = $win_name;

@@ -35,8 +35,8 @@ sub register {
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
+	$app->plugin('crypt');
 	$app->plugin('dbi', $conf );
-	$app->dbi_connect();
 
 	# Load plugins from config
 	foreach (@{$conf->{plugins}}){
@@ -45,23 +45,16 @@ sub register {
 
 	$app->plugin('vfe') if $conf->{'vfe_enabled'};
 
-	$app->loadVars;
-	my %mail_smtp = (
-		'smtp_server' => $app->get_var(name => 'smtp_server'),
-		'smtp_port' => $app->get_var(name => 'smtp_port'),
-		'smtp_login' => $app->get_var(name => 'smtp_login'),
-		'smtp_password' => $app->get_var(name => 'smtp_password'),
-	);
-	if ($app->get_var(name => 'mail_program') == 1){
+	if ($conf->{'mail_type'}){
 		$app->plugin(mail => {
 			from     => $conf->{mail_from_addr},
 			encoding => 'base64',
 			how      => 'smtp',
 			howargs  => [
-				$mail_smtp{'smtp_server'},
-				Port 	 => $mail_smtp{'smtp_port'} || '587',
-				AuthUser => $mail_smtp{'smtp_login'},
-				AuthPass => $mail_smtp{'smtp_password'},
+				$conf->{'smtp_server'},
+				Port 	 		=> $conf->{'smtp_port'} || '587',
+				AuthUser 	=> $conf->{'smtp_login'},
+				AuthPass 	=> $conf->{'smtp_password'},
         	],
 			type	 => 'text/html;charset=utf-8',
 		});
@@ -74,7 +67,6 @@ sub register {
 			type	 => 'text/html;charset=utf-8',
 		});
 	};
-
 
 	# языковые версии сайта
 	if($conf->{langs}){
