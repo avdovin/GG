@@ -6,7 +6,7 @@ Mojolicious::Plugin::AssetPack - Compress and convert css, less, sass, javascrip
 
 =head1 VERSION
 
-0.22
+0.23
 
 =head1 SYNOPSIS
 
@@ -21,7 +21,7 @@ In your application:
   app->asset('app.css' => '/css/foo.less', '/css/bar.scss', '/css/main.css');
 
   # you can combine with assets from web
-  app->asset('bundle.js' => (
+  app->asset('ie8.js' => (
     'http://cdnjs.cloudflare.com/ajax/libs/es5-shim/2.3.0/es5-shim.js',
     'http://cdnjs.cloudflare.com/ajax/libs/es5-shim/2.3.0/es5-sham.js',
     'http://code.jquery.com/jquery-1.11.0.js',
@@ -137,7 +137,7 @@ use File::Basename qw( basename );
 use File::Spec::Functions qw( catdir catfile );
 use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our %MISSING_ERROR = (
   default => '%s has no preprocessor. https://metacpan.org/pod/Mojolicious::Plugin::AssetPack::Preprocessors#detect',
   coffee => '%s require "coffee". http://coffeescript.org/#installation',
@@ -217,8 +217,7 @@ sub add {
     $self->process($moniker => @files);
   }
   elsif(!$ENV{MOJO_ASSETPACK_NO_CACHE}) {
-    my @processed_files = $self->_process_many($moniker, @files);
-    $self->{processed}{$moniker} = \@processed_files;
+    $self->{processed}{$moniker} = [$self->_process_many($moniker, @files)];
   }
 
   $self;
@@ -280,10 +279,8 @@ sub fetch {
 
   $lookup =~ s![^\w-]!_!g;
 
-  opendir (my $DH, $self->out_dir) or die "opendir @{[$self->out_dir]}: $!";
-  for my $f (readdir $DH) {
-    next unless $f =~ m!^$lookup\.!;
-    return catfile $self->out_dir, $f;
+  if (my $name = $self->_fluffy_find(qr{^$lookup\.\w+$})) {
+    return catfile $self->out_dir, $name;
   }
 
   my $res = $self->_ua->get($url)->res;
@@ -298,7 +295,7 @@ sub fetch {
     die "AssetPack could not download asset from '$url': $e->{message}\n";
   }
 
-  $path = catfile($self->out_dir, "$lookup.$ext");
+  $path = catfile $self->out_dir, "$lookup.$ext";
   spurt $res->body, $path;
   $self->{log}->info("Downloaded asset $url to $path");
   return $path;
@@ -338,15 +335,17 @@ sub process {
   my ($md5_sum, $files) = $self->_read_files(@files);
   my $out_file = $moniker;
   my $processed = '';
-  my @missing;
+  my (@missing, $name);
 
-  $out_file =~ s/\.(\w+)$/-$md5_sum.$1/;
+  $out_file =~ s/\.(\w+)$// or die "Moniker ($moniker) need to have an extension, like .css, .js, ...";
 
-  if (!$ENV{MOJO_ASSETPACK_NO_CACHE} and $self->{static}->file(catfile 'packed', $out_file)) {
+  if (!$ENV{MOJO_ASSETPACK_NO_CACHE} and $name = $self->_fluffy_find(qr{^$out_file(-$md5_sum)?\.\w+$})) {
     $self->{log}->debug("Using existing asset for $moniker");
-    $self->{processed}{$moniker} = $self->base_url .$out_file;
+    $self->{processed}{$moniker} = $self->base_url .$name;
     return $self;
   }
+
+  $out_file .= "-$md5_sum" .($moniker =~ m!(\.\w+)$!)[0];
 
   for my $file (@files) {
     my $data = $files->{$file};
@@ -365,7 +364,7 @@ sub process {
   if (@missing) {
     $self->{processed}{$moniker} = "/Mojolicious/Plugin/AssetPack/could/not/compile/$moniker";
   }
-  elsif ($md5_sum eq md5_sum $processed and $files[0] !~ /^http\s?:/) {
+  elsif ($md5_sum eq md5_sum($processed) and $files[0] !~ /^http\s?:/) {
     warn "[ASSETPACK] Same input as output for $files[0]\n" if DEBUG;
     $self->{processed}{$moniker} = $files[0];
   }
@@ -432,13 +431,31 @@ sub register {
   });
 }
 
+sub _fluffy_find {
+  my ($self, $re) = @_;
+
+  opendir (my $DH, $self->out_dir) or die "opendir @{[$self->out_dir]}: $!";
+  for my $f (readdir $DH) {
+    next unless $f =~ $re;
+    return $f;
+  }
+
+  return;
+}
+
 sub _process_many {
   my($self, $moniker, @files) = @_;
   my $ext = $moniker =~ /\.(\w+)$/ ? $1 : 'unknown_extension';
 
   for my $file (@files) {
     my $moniker = basename $file;
-    $moniker =~ s!\.(\w+)$!.$ext!;
+
+    unless ($moniker =~ s!\.(\w+)$!.$ext!) {
+      $moniker = $file;
+      $moniker =~ s![^\w-]!_!g;
+      $moniker .= ".$ext";
+    }
+
     $self->process($moniker => $file);
     $file = $self->{processed}{$moniker};
   }
@@ -448,7 +465,7 @@ sub _process_many {
 
 sub _read_files {
   my ($self, @files) = @_;
-  my ($md5_sum, %files);
+  my (@checksum, %files);
 
   FILE:
   for my $file (@files) {
@@ -465,9 +482,14 @@ sub _read_files {
     else {
       die "AssetPack cannot find input file '$file'\n";
     }
+
+    push @checksum, $self->preprocessors->checksum($data->{ext}, \$data->{body}, $data->{path});
   }
 
-  md5_sum(join '', map { $files{$_}{body} } @files), \%files;
+  return(
+    @checksum == 1 ? $checksum[0] : md5_sum(join '', @checksum),
+    \%files,
+  );
 }
 
 =head1 COPYRIGHT AND LICENSE

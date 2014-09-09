@@ -7,6 +7,8 @@ Mojolicious::Plugin::AssetPack::Preprocessors - Holds preprocessors
 =cut
 
 use Mojo::Base 'Mojo::EventEmitter';
+use Mojo::Util ();
+use Mojolicious::Plugin::AssetPack::Preprocessor;
 use Cwd;
 use File::Basename;
 use File::Which;
@@ -19,6 +21,8 @@ our $VERSION = '0.01';
 
 =head2 add
 
+  $self->add($extension => $object);
+
   $self->add($extension => sub {
     my ($assetpack, $text, $file) = @_;
     $$text =~ s/foo/bar/ if $file =~ /baz/ and $assetpack->minify;
@@ -30,9 +34,48 @@ where added.
 
 The default preprocessor defined is described under L</detect>.
 
+In case of C<$object>, the object need to be able to have the C<process()>
+method.
+
 =cut
 
-sub add { shift->on(@_) }
+sub add {
+  my ($self, $type, $arg) = @_;
+
+  # back compat
+  if (ref $arg eq 'CODE') {
+    $arg = Mojolicious::Plugin::AssetPack::Preprocessor->new(processor => $arg);
+  }
+
+  $self->on($type => $arg);
+}
+
+=head2 checksum
+
+  $str = $self->checksum($extension => \$text, $filename);
+
+=cut
+
+sub checksum {
+  my($self, $extension, $text, $filename) = @_;
+  my $old_dir = getcwd;
+  my $err = '';
+  my @checksum;
+
+  local $@;
+
+  eval {
+    chdir dirname $filename if $filename;
+    push @checksum, $_->checksum($text, $filename) for @{ $self->subscribers($extension) };
+    1;
+  } or do {
+    $err = $@ || "AssetPack failed with unknown error while processing $filename.\n";
+  };
+
+  chdir $old_dir;
+  die $err if $err;
+  return @checksum == 1 ? $checksum[0] : Mojo::Util::md5_sum(join '', @checksum);
+}
 
 =head2 detect
 
@@ -122,6 +165,12 @@ Installation on Ubuntu and Debian:
 sub detect {
   my $self = shift;
 
+  require Mojolicious::Plugin::AssetPack::Preprocessor::Sass;
+  $self->add(sass => Mojolicious::Plugin::AssetPack::Preprocessor::Sass->new);
+
+  require Mojolicious::Plugin::AssetPack::Preprocessor::Scss;
+  $self->add(scss => Mojolicious::Plugin::AssetPack::Preprocessor::Scss->new);
+
   if(my $app = which('jsx')) {
     $self->add(jsx => sub {
       my($assetpack, $text, $file) = @_;
@@ -133,23 +182,6 @@ sub detect {
     $self->add(less => sub {
       my($assetpack, $text, $file) = @_;
       $self->_run([$app, '-', $assetpack->minify ? ('-x') : ()], $text, $text);
-    });
-  }
-  if(my $app = which('sass')) {
-    $self->add(scss => sub {
-      my($assetpack, $text, $file) = @_;
-      my @cmd = ( $app, '-I' => dirname $file );
-
-      push @cmd, qw( --stdin --scss );
-      push @cmd, qw( -t compressed) if $assetpack->minify;
-      push @cmd, qw( --compass ) if !$ENV{MOJO_ASSETPACK_NO_COMPASS} and $$text =~ m!\@import\W+compass\/!;
-
-      $self->_run(\@cmd, $text, $text);
-    });
-    $self->add(sass => sub {
-      my($assetpack, $text, $file) = @_;
-      my $include_dir = dirname $file;
-      $self->_run([$app, '-I', $include_dir, '--stdin', $assetpack->minify ? ('-t', 'compressed') : ()], $text, $text);
     });
   }
   if(my $app = which('coffee')) {
@@ -198,7 +230,7 @@ sub process {
 
   eval {
     chdir dirname $filename;
-    $_->($assetpack, $text, $filename) for @{ $self->subscribers($extension) };
+    $_->($_, $assetpack, $text, $filename) for @{ $self->subscribers($extension) };
     1;
   } or do {
     $err = $@ || "AssetPack failed with unknown error while processing $filename.\n";
@@ -232,11 +264,11 @@ sub _js_minify {
 }
 
 sub _run {
-  my ($self, @args) = @_;
+  my ($class, @args) = @_;
   local ($?, $@, $!);
   warn "[ASSETPACK] \$ @{ $args[0] }\n" if DEBUG;
   eval { IPC::Run3::run3(@args); };
-  return $self unless $?;
+  return $class unless $?;
   chomp $@ if $@;
   die sprintf "AssetPack failed to run '%s'. exit_code=%s (%s)\n", join(' ', @{ $args[0] }), $? <= 0 ? $? : $? >> 8, $@ || $?;
 }
