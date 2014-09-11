@@ -146,7 +146,8 @@ sub register {
 	});
 
 	$app->helper( lang => sub {
-		shift->stash->{lang} || 'ru';
+    my $self = shift;
+		$self->stash->{lang} || $self->stash->{'lang_default'};
 	});
 
 	$app->helper( texts_year_navigator => sub {

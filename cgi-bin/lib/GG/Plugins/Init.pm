@@ -87,7 +87,8 @@ sub register {
 		# Ignore static files
 		return if $self->res->code;
 
-		$self->stash->{lang} ||= $conf->{lang_default};
+    $self->stash->{'lang_default'} = $conf->{lang_default};
+		$self->stash->{lang} ||= $conf->{lang_default} unless $conf->{langs};
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );
