@@ -92,9 +92,8 @@ sub register {
 						data    => $email_body,
 					);
 
-					$json->{message_success} = $self->render(
+					$json->{message_success} = $self->render_to_string(
 						template 	=> 'Plugins/Feedback/_message_success',
-						partial 	=> 1,
 					);
 				}
 

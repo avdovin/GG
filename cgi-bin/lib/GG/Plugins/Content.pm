@@ -68,9 +68,8 @@ sub register {
 					# 	data    => $email_body,
 					# );
 
-					$json->{message_success} = $self->render(
+					$json->{message_success} = $self->render_to_string(
 						template 	=> 'Texts/_callback_message_success',
-						partial 	=> 1,
 					);
 				}
 
@@ -116,10 +115,9 @@ sub register {
 			WHERE $where
 		")->hashes;
 
-		return $self->render(
+		return $self->render_to_string(
 			items		=> $items,
 			template 	=> 'Texts/_news_list_items',
-			partial		=> 1
 		);
 	});
 
@@ -130,10 +128,9 @@ sub register {
 		my $dbTable = 'texts_news_'.$self->lang;
 		my $items = $self->app->dbi->query("SELECT * FROM `$dbTable` WHERE `viewtext`='1' ORDER BY `tdate` DESC LIMIT 0,2")->hashes;
 
-		return $self->render(
+		return $self->render_to_string(
 			items	=> $items,
 			template => 'Texts/news_anons',
-			partial	=> 1
 		);
 	});
 

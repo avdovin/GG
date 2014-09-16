@@ -55,9 +55,8 @@ sub register {
 	$app->helper( render_footer => sub {
 		my $self	= shift;
 
-		return $self->render(
+		return $self->render_to_string(
 			template 	=> '_footer',
-			partial		=> 1,
 		);
 	});
 
@@ -81,9 +80,8 @@ sub register {
 			}
 		}
 
-		return $self->render(
+		return $self->render_to_string(
 			template 	=> '_headers',
-			partial		=> 1,
 		);
 	});
 

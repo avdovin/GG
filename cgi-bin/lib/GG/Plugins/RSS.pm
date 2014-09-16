@@ -36,21 +36,19 @@ sub register {
 			for my $row ( $self->app->dbi->query("SELECT `name`,`text`, DATE_FORMAT(  `tdate` ,  '%a, %e %b %Y %H:%i:%s +0400' ) AS `tdate`, $fields_str FROM `$$routeConfig{table}` WHERE ".$routeConfig->{where} )->hashes ){
 
 				my $url_vals = {};
-				
+
 				foreach (keys %{$routeConfig->{placeholders}}){
 					$url_vals->{ $_ } = $row->{$routeConfig->{placeholders}->{$_}};
 				}
 
 				my $url = 'http://'.$host.$self->url_for($route, %$url_vals);
-			
 
-				$nodes .= $self->render(
+
+				$nodes .= $self->render_to_string(
 					node 		=> $row,
 					url 		=> $url,
 					template 	=> 'Plugins/RSS/node',
 					format 		=> 'xml',
-
-					partial 	=> 1,
 				);
 
 			}

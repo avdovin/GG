@@ -34,11 +34,10 @@ sub register {
 			my @dataVals = split(';', $data);
 			if($dataVals[0] eq $localtime){
 
-				return $self->render(
+				return $self->render_to_string(
 					temp 		=> $dataVals[1],
 					icon 		=> $dataVals[2],
 					template 	=> 'Plugins/Weather/_weather_by_city',
-					partial 	=> 1,
 				);
 			}
 		}

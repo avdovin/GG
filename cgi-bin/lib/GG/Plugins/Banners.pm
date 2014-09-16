@@ -98,16 +98,16 @@ sub register {
 			   $where .= " AND (`week` = -1 OR `week` = $week OR (`week` LIKE '$week=%' OR `week` LIKE '%=$week=%' OR `week` LIKE '%=$week'))";
 			   $where .= sprintf(" AND (`target` = 0 OR (`target` = 1 AND `list_page` REGEXP '[[:<:]]%s[[:>:]]') OR (`target` = 2 AND `list_page` NOT REGEXP '[[:<:]]%s[[:>:]]'))", $params{page}, $params{page}) if ($params{page});
 			   $where .= "
-			   AND (`target_url`=0 
+			   AND (`target_url`=0
 			   OR (`target_url`=1
 			   AND (`urls` = $params{url_id}
 			   		OR `urls` LIKE '$params{url_id}=%'
 			   		OR `urls` LIKE '%=$params{url_id}=%'
 			   		OR `urls` LIKE '%=$params{url_id}')
 				OR (`target_url`=2
-					AND NOT (`urls` = $params{url_id} 
-					OR `urls` LIKE '$params{url_id}=%' 
-					OR `urls` LIKE '%=$params{url_id}=%' 
+					AND NOT (`urls` = $params{url_id}
+					OR `urls` LIKE '$params{url_id}=%'
+					OR `urls` LIKE '%=$params{url_id}=%'
 					OR `urls` LIKE '%=$params{url_id}'))))";
 			   $where .= " ORDER BY `rating`,RAND() $limit";
 
@@ -144,13 +144,11 @@ sub register {
 				}
 			}
 
-			my $banner_content = 	$self->render(
+			my $banner_content = 	$self->render_to_string(
 				%params,
 				banners			=> $banners || [],
 				banner_block	=> $banner_block,
 				template		=> $params{template},
-
-				partial			=> 1
 			);
 
 			return $params{before_html} . $banner_content . $params{after_html};
