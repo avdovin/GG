@@ -13,11 +13,11 @@
 	# limit to 1GB
 	"upload_maxchanksize"	=> "1073741824",
 
-	mail_type						=> 'sendmail',				# sendmail/smtp
-	smtp_server 				=> 'smtp.server.ru',
-	smtp_port		 				=> '587',
-	smtp_login 					=> 'username',
-	smtp_password 			=> 'password',
+	mail_type			=> 'sendmail',				# sendmail/smtp
+	smtp_server 		=> 'smtp.server.ru',
+	smtp_port		 	=> '587',
+	smtp_login 			=> 'username',
+	smtp_password 		=> 'password',
 
 	hypnotoad 			=> {
 		proxy 	=> 1,
@@ -25,21 +25,20 @@
 		workers => 10
 	},
 
-	static_path 				=> '../../httpdocs/', 	# относительный путь к статике (относительно dispatch.cgi)
-	mail_from_addr 			=> 'no-reply@domain.com',
+	static_path 		=> '../../httpdocs/', 	# относительный путь к статике (относительно dispatch.cgi)
+	mail_from_addr 		=> 'no-reply@domain.com',
 	cdn                 => 'http://s3-eu-west-1.amazonaws.com/ifrogcdn', # включить загрузку статики через CDN
 	protocol 						=> 'http',				# протокол
 	seo_custom_tags 	=> 1,					# учитывать seo-meta теги (title, keywords, description) из таблицы data_seo_meta
 	seo_title_sitename	=> 1,					# Показывать вначале тега title имя сайта
-	jquery_history		=> 0,					# Загрузить jQuery плагин - history
 	vfe_enabled			=> 0,					# Loading vfe
 	minify_html 		=> 1,					# Сжатие html кода
 
 	images_quality 		=> 85,					# качество сохранение jpg файлов после обработки ImageMagick
 
-	langs 					=> 0,					# включить поддержку языковых версий
+	langs 				=> 0,					# включить поддержку языковых версий
 	lang_default 		=> 'ru', 				# языковая версия по умолчанию
-	lang_supported	=> [qw(ru)], 			# доступные языковые версии
+	lang_supported		=> [qw(ru)], 			# доступные языковые версии
 
 	plugins 			=> [qw(vars keys seo admin menu content banners file feedback image RSS YMarket)],
 
@@ -50,8 +49,15 @@
 
 	pipeline 			=> 1,
 	pipeline_assets		=> {
-		'app.js' 	=> ['/js/gg.core-2.js', '/js/common.js'],
-		'app.css' 	=> ['/css/style.css', '/css/core.css']
+		'app.js' 	=> [
+			'/js/common.js', 
+			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/gg.core-2.js', 
+			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/jquery/plugins/jquery.mask.min.js'
+		],
+		'app.css' 	=> [
+			'/css/style.css', 
+			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/css/core.css'
+		]
 	},
 
 	perl5lib 			=> '',					# Доп. пути к perl библиотекам. '' || [];
