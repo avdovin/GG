@@ -87,8 +87,7 @@ sub register {
 		# Ignore static files
 		return if $self->res->code;
 
-    $self->stash->{'lang_default'} = $conf->{lang_default};
-		$self->stash->{lang} ||= $conf->{lang_default} unless $conf->{langs};
+		$self->stash->{lang} ||= $conf->{lang_default};
 
 		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
 			$self->app->mode( $ENV{MOJO_MODE} = $mode );
@@ -124,17 +123,6 @@ sub register {
 		}
 		# --- END OF SEO MODULE --------------------------
 
-		# --- REDIRECT MODULE ---------------------------------
-		my $path = $url->to_string;
-		$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
-		if (
-			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
-				){
-			$self->res->code(301);
-			return $self->redirect_to($redirect_path);
-		}
-		# --- END OF REDIRECT MODULE --------------------------
-
 		# remove url trailing slash - /about/ => /about
 		if( $self->req->url->path->trailing_slash ){
 			next if $self->req->url->path->contains('/admin');
@@ -145,6 +133,22 @@ sub register {
 			$self->res->code(301);
 			return $self->redirect_to($path);
 		}
+    
+		# --- REDIRECT MODULE ---------------------------------
+		my $path = $url->to_string;
+		#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
+    # Ignore static files
+    unless( $self->res->code ){
+  		if (
+  			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
+  				){
+  			$self->res->code(301);
+  			return $self->redirect_to($redirect_path);
+  		}
+    }
+		# --- END OF REDIRECT MODULE --------------------------
+
+
 
 		$self->req->url->base( Mojo::URL->new(q{/}) );
 		$self->req->url->scheme($conf->{'protocol'});
