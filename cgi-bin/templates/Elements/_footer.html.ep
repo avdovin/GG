@@ -1,21 +1,38 @@
-<div class="footer">
-	<div class="footer__container block">
-		<p class="footer__copyright">© Swiss Center Group, 1993-2014</p>
-		<a class="footer__ifrog" href="http://www.ifrog.ru">Создание и продвижение сайта студия веб дизайна &mdash; <span>iFrog</span></a>
-
-		<div class="weather">
-			%== weather_by_city_id
-
-			<div class="time">
-				<div class="clock ru">
-					<div class="hour" style=""><div></div></div>
-					<div class="minute" style=""><div></div></div>
-				</div>
-				<div class="clock ch">
-					<div class="hour" style=""><div></div></div>
-					<div class="minute" style=""><div></div></div>
-				</div>
-			</div>
+<div class="block">
+	<div class="footer">
+	<div class="bottom__links">
+		<div class="col">
+			<a class="bottom__link" href="#">Оформление заказа</a>
+			<a class="bottom__link" href="#">Доставка</a>
+			<a class="bottom__link" href="#">Оплата</a>
+			<a class="bottom__link" href="#">Обмен / Возврат</a>
+			<a class="bottom__link" href="#">Бесплатная доставка</a>
+		</div>
+		<div class="col">
+			<a class="bottom__link" href="#">О магазине</a>
+			<a class="bottom__link" href="#">Контактная информация</a>
+			<a class="bottom__link" href="#">Блог</a>
+			<a class="bottom__link" href="#">Акции</a>
+			<a class="bottom__link" href="#">Гарантия</a>
+		</div>
+		<div class="col">
+			<a class="bottom__link" href="#">Весь каталог</a>
+			<a class="bottom__link" href="#">Одежда</a>
+			<a class="bottom__link" href="#">Обувь</a>
+			<a class="bottom__link" href="#">Аксессуfры</a>
+		</div>
+		<div class="col">
+			<a class="bottom__link" href="#">VK</a>
+			<a class="bottom__link" href="#">Facebook</a>
+			<a class="bottom__link" href="#">Youtube</a>
+			<a class="bottom__link" href="#">Instagram</a>
 		</div>
 	</div>
+	<p class="footer__copyright">
+		&copy; 2014, Fab Store. Все права защищены.
+	</p>
+	<a class="footer__ifrog" href="http://ifrog.ru/">
+		Создание и продвижение сайта - студия веб-дизайна <span class="ifrog__green">iFrog</span>
+	</a>
+	<img class="footer__pay" src="img/icon-pay.jpg" />
 </div>
