@@ -7,15 +7,7 @@
 
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script>
-<!--//--><![CDATA[//><!--
-if (typeof jQuery == 'undefined') {
-	document.write('<%== js_files_cdn(file => '/js/jquery/lib/jquery-1.9.1.min.js', template => '_headers.html.ep', alone => 1) %>');
-}
-//--><!]]>
-</script>
-<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 % js_files_cdn(file => '/js/bundled/html4+html5/jquery.history.js', template => '_headers.html.ep') if config 'jquery_history';
 % js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
