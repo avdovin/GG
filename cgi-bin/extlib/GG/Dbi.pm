@@ -5,6 +5,7 @@ use warnings;
 use Carp ();
 use utf8;
 use base qw(DBIx::Simple);
+use Term::ANSIColor qw(:constants);
 
 $Carp::Internal{$_} = 1 for qw( GG::Dbi );
 
@@ -30,7 +31,11 @@ sub query{
 
 	my $sql = $_[0];
 	$sql =~ s{[\t\n]+}{ }gi;
-	warn "SQL: >>$sql<<\n" if $self->debug;
+  
+  if($self->debug){
+    print CYAN, ">>$sql<<";
+    print RESET, "\n";
+  }
 
 	return $self->SUPER::query(@_);
 }
