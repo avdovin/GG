@@ -1,7 +1,6 @@
 $(function(){
-
-	GG.attachForm(".contacts__form", ".contacts__form .form__send", {url: '/feedback'});
-
+    GG.attachForm(".contacts__form", ".contacts__form .form__send");
+    ymaps.ready( YMapsInit );
 });
 
 
@@ -14,15 +13,10 @@ var myMap,
     myPlacemark;
 
 function YMapsInit(){
-    myMap = new ymaps.Map ("Gmap", {
+    myMap = new ymaps.Map("Gmap", {
         center: [59.936026,30.318344],
         zoom: 14
     });
-
-    myMap.controls
-        .add('zoomControl')
-        .add('typeSelector')
-        .add('mapTools');
 
     myPlacemark = new ymaps.Placemark([59.936026,30.318344], {
         hintContent: 'Невский проспект, 15'
