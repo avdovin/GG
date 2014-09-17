@@ -40,12 +40,6 @@ sub _init{
 		$self->sysuser->save_settings(texts_razdel => $self->stash->{razdel});
 	}
 
-
-	unless($self->send_params->{replaceme}){
-		$self->send_params->{replaceme} = $self->stash->{controller};
-		$self->stash->{replaceme} = $self->send_params->{replaceme} .= '_'.$self->stash->{list_table} if $self->stash->{list_table};
-	}
-
 	if($self->send_params->{razdel} and $self->param('do') ne 'chrazdel'){
 		$self->changeRazdel;
 	}
@@ -79,6 +73,11 @@ sub _init{
 
 	$self->stash->{list_table} = "texts_".$self->stash->{key_razdel}."_".$self->sysuser->settings->{'lang'};
 
+	unless($self->send_params->{replaceme}){
+		$self->send_params->{replaceme} = $self->stash->{controller};
+		$self->send_params->{replaceme} .= '_'.$self->stash->{list_table} if $self->stash->{list_table};
+	}
+  
 	foreach ( qw(list_table replaceme)){
 		$self->param_default($_ => $self->send_params->{$_} ) if $self->send_params->{$_};
 	}
@@ -298,7 +297,7 @@ sub tree_block{
 
 				$items->[$i]->{flag_plus} = 1;
 				$items->[$i]->{icon} = 'folder';
-				$items->[$i]->{replaceme} = $controller;
+				$items->[$i]->{replaceme} = $controller.'_'.$table;
 				$items->[$i]->{click_type} = 'list';
 
 				if (!$send_params->{year} and !$send_params->{month} and !$send_params->{day}) {
@@ -417,8 +416,15 @@ sub delete{
 	my $table = $self->stash->{list_table};
 	if ($self->getArraySQL( from => $table, where => $index, stash => 'anketa')) {
 
-		my $dir_field = $self->stash->{dir_field};
+		if($self->stash->{dop_table}){
+			if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index})){
 
+				$self->restore_doptable;
+				return $self->field_dop_table_reload;
+			}
+		}
+    
+		my $dir_field = $self->stash->{dir_field};
 		if($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => $dir_field)){
 			if($self->dbi->query("SELECT `ID` FROM `$table` WHERE `$dir_field`='$index'")->hash){
 				$self->admin_msg_errors('Удалить нельзя: в папке есть документы');
@@ -469,6 +475,8 @@ sub save{
 	my $self = shift;
 	my %params = @_;
 
+  $self->backup_doptable;
+
 	$self->stash->{index} = 0 if $params{restore};
 
 	$self->send_params->{size} = 0 if($self->send_params->{docfile} && !$self->stash->{index});
@@ -508,12 +516,20 @@ sub save{
 			$self->admin_msg_success("Данные сохранены");
 			return $self->edit;
 		}
-		elsif( $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
+		elsif(!$self->stash->{dop_table} && $self->stash->{group} >= $#{$self->app->program->{groupname}} + 1){
 			return $self->info;
 		}
 		$self->stash->{group}++;
 	}
 
+	if($self->stash->{dop_table}){
+		$self->restore_doptable;
+		return $self->render( json => {
+				content	=> $self->has_errors ? "ERROR" : "OK",
+				items	=> $self->init_dop_tablelist_reload(),
+		});
+	}
+  
 	return $self->edit;
 }
 
@@ -541,6 +557,10 @@ sub edit{
 
 	$self->def_context_menu( lkey => 'edit_info');
 
+	if($self->stash->{dop_table}){
+		$self->backup_doptable();
+	}
+  
 	# Создание папки
 	if($params{dir}){
 		$self->stash->{page_name} = "Создание новой папки в разделе «".$self->stash->{name_razdel}."»";

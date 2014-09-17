@@ -24,7 +24,7 @@
 </div>
 <% if($index){ %><input type=hidden name=index value="<%= $index %>"><% } %>
 <input type="hidden" name="do" value="save">
-<input type="hidden" name="dop_table" value="<%= $self->stash->{dop_table} %>">
+<!--<input type="hidden" name="dop_table" value="<%= $self->stash->{dop_table} %>"> -->
 %	foreach (keys %$param_default_keys){
 		<input type="hidden" name="<%= $_ %>" value="<%= $param_default_keys->{$_} %>">
 %	}
