@@ -37,7 +37,13 @@ sub query{
     print RESET, "\n";
   }
 
-	return $self->SUPER::query(@_);
+	my $query = $self->SUPER::query(@_);
+  if($self->{reason}){
+    print RED, ">>$sql<<", "\n";
+    print $self->{reason};
+    print RESET, "\n";   
+  }
+  return $query;
 }
 
 # Get table fields (columns)
