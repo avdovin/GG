@@ -45,7 +45,7 @@ sub body{
 		}
 		#when('lists_select') 			{ $self->lists_select; }
 
-		when('load_table') 				{ $self->field_dop_table_reload; }
+		when('load_table') 			{ $self->field_dop_table_reload; }
 		when('hot_link') 				{ $self->hot_link; }
 
 		default							{ $self->render( text => "действие не определенно"); }
@@ -60,7 +60,7 @@ sub hot_link{
 	my $items = $self->dbi->query(qq/
 		SELECT `link`
 		FROM `sys_history`
-		WHERE `id_user`='$id_user' ORDER BY `rdate` DESC LIMIT 0,20/)->hashes;
+		WHERE `id_user`='$id_user' ORDER BY `created_at` DESC LIMIT 20/)->hashes;
 
 	$self->render( items => $items, template => 'Admin/Main/hot_link');
 }
