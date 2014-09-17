@@ -100,9 +100,10 @@ sub texts_list{
 
 
 # Условия выборки:
-	my 	$where  = "`viewtext`='1' ";
+	my 	$where  = " `viewtext`='1' ";
 		$where .= " AND `dir`='0'" 												if $self->dbi->exists_keys(from => $table, lkey => 'dir');
 		$where .= " AND YEAR($params{order_field})='".$self->param('year')."' "	if $self->param('year');
+		$where .= " AND MONTH($params{order_field})='".$self->param('month')."' "	if $self->param('month');
 		$where .= " $params{where} " 											if $params{where};	# Дополнительные параметры выборки
 
 	# Список с учетом выбранной папки (по alias)
@@ -134,7 +135,6 @@ sub texts_list{
 
 sub text_main_item{
 	my $self = shift;
-
 	my $alias = $self->stash('alias');
 
 

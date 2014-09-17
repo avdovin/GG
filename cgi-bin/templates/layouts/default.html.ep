@@ -4,10 +4,8 @@
 	%== render_headers
 
 	% js_files_cdn(file => '/js/jquery/plugins/jquery.galleryCarousel.js', template => '_headers.html.ep');
-	<link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+  %= stylesheet 'http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300,700&subset=latin,cyrillic'
 </head>
-
-<!-- обратить внимание! класс main применяется только для главной страницы! поэтому тут его нет!!! -->
 
 <body>
 	<div class="wrapper">
