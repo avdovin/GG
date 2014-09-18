@@ -225,9 +225,11 @@ sub register {
 			return unless my $controller = shift || $self->stash->{controller};
 
 			$controller = lc $controller;
-
+      
+      my @files = ();
 			if(-f $self->static_path.'/js/controllers/'.$controller.'.js'){
-				$self->js_files( '/js/controllers/'.$controller.'.js' );
+				#$self->js_files( '/js/controllers/'.$controller.'.js' );
+        push @files, '/js/controllers/'.$controller.'.js';
 			}
 			if(-d $self->static_path.'/js/controllers/'.$controller){
 				opendir(DIR, $self->app->static->paths->[0].'/js/controllers/'.$controller);
@@ -235,11 +237,16 @@ sub register {
 					next if ($file =~ m/^\./);
 					my $ext = ($file =~ m/([^.]+)$/)[0];
 
-					$self->js_files('/js/controllers/'.$controller.'/'.$file)
-						if ($ext eq 'js');
+					#$self->js_files('/js/controllers/'.$controller.'/'.$file)
+					push @files, '/js/controllers/'.$controller.'/'.$file	if ($ext eq 'js');
 				}
 				closedir(DIR);
 			}
+      if(scalar(@files)){
+        $self->asset($controller.'.js' => @files);
+        return $self->asset($controller.'.js');
+      }
+      return '';
 		}
 	);
 

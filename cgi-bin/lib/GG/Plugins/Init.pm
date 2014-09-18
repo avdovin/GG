@@ -183,9 +183,9 @@ sub register {
 	$app->hook(before_render => sub {
 		my ($self, $args) = @_;
 
-		return unless my $template = $args->{template};
+		#return unless my $template = $args->{template};
 
-		$self->js_controller() if ($template eq '_footer');
+		#$self->js_controller() if ($template eq '_footer');
 	});
 };
 
