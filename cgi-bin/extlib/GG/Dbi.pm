@@ -6,6 +6,7 @@ use Carp ();
 use utf8;
 use base qw(DBIx::Simple);
 use Term::ANSIColor qw(:constants);
+use Time::HiRes qw( time );
 
 $Carp::Internal{$_} = 1 for qw( GG::Dbi );
 
@@ -32,17 +33,29 @@ sub query{
 	my $sql = $_[0];
 	$sql =~ s{[\t\n]+}{ }gi;
   
+  my ($start, $end);
+  
   if($self->debug){
     print CYAN, ">>$sql<<";
     print RESET, "\n";
+    $start = time();
   }
-
+  
+  my $start = time();
 	my $query = $self->SUPER::query(@_);
   if($self->{reason}){
     print RED, ">>$sql<<", "\n";
     print $self->{reason};
     print RESET, "\n";   
   }
+  
+  if($self->debug){
+    $end = time();
+    my $elapsed_type = sprintf("%.4f", $end - $start);
+    print CYAN, "Execution time(seconds) :$elapsed_type";
+    print RESET, "\n";
+  }
+  
   return $query;
 }
 
