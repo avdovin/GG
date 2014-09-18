@@ -186,6 +186,20 @@ sub edit{
 
 	unless($self->stash->{index}){
 		$self->stash->{anketa}->{object} = 'lkey';
+    
+    # default key setting
+    $self->stash->{anketa}->{settings} = qq{
+type=s
+rating=99
+group=1
+qview=1
+qedit=1
+filter=1
+table_list=0
+table_list_width=0
+fileview=1
+required=0
+    };
 	}
 
 	$self->define_anket_form( access => 'w');
