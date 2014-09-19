@@ -29,9 +29,6 @@ sub startup{
 	$self->hook(before_dispatch => sub {
 		my $self = shift;
 
-		#if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-		#	$self->session( cck => $cck );
-		#}
 	});
 
 

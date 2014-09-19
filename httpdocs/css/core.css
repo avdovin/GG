@@ -47,7 +47,7 @@
 		position: relative;
 		top: 4px;
 		left: -4px;
-		background: #000 url(/img/core/notify/message-close.gif) center no-repeat;
+		background: #000 url(http://s3-eu-west-1.amazonaws.com/ifrogcdn/img/core/notify/message-close.gif) center no-repeat;
 		width: 7px; height: 7px;
 		display: block; float: right;
 	}

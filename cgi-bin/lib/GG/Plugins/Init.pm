@@ -133,7 +133,7 @@ sub register {
 			$self->res->code(301);
 			return $self->redirect_to($path);
 		}
-    
+
 		# --- REDIRECT MODULE ---------------------------------
 		my $path = $url->to_string;
 		#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
@@ -165,6 +165,10 @@ sub register {
 					$self->js_files("$1.$2") if $2 eq 'js';
 				}
 			}
+		}
+
+		if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+			$self->session( cck => $cck );
 		}
 	});
 

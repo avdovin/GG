@@ -110,7 +110,6 @@ var GG = function(){
 			$loading = $parent.find(".form__loading"),
 			$wrapper = $parent.find(".form__wrapper"),
 			$error   = $parent.find(".form__error");
-
 		var defaults = {
 			type: $form.attr('method'),
 			url: $form.attr('action'),
@@ -609,7 +608,7 @@ var GG = function(){
 	// new version of Notifier
 	$self.Notify = function(){
 		var params = {};
-		
+
 		if (typeof arguments[0] == 'object') { // if object {} - new version
 			params = {
 				title:   arguments[0].title   || '',
@@ -643,14 +642,14 @@ var GG = function(){
 			switch (arguments[0]) {
 				case 'add':
 					$self.log('Notify: add');
-					
+
 					if (!params.title) params.title = 'Товар добавлен в корзину';
 					params.options = $.extend(params.options, {icon : 'add'});
 
 					break;
 				case 'delete':
 					$self.log('Notify: delete');
-					
+
 					if (!params.title) params.title = 'Изменения в корзине';
 					params.options = $.extend(params.options, {icon : 'delete'});
 
@@ -664,14 +663,14 @@ var GG = function(){
 					break;
 				case 'notify_add':
 					$self.log('Notify: add');
-					
+
 					if (!params.title) params.title = 'Товар добавлен в корзину';
 					params.options = $.extend(params.options, {icon : 'add'});
 
 					break;
 				case 'notify_delete':
 					$self.log('Notify: delete');
-					
+
 					if (!params.title) params.title = 'Изменения в корзине';
 					params.options = $.extend(params.options, {icon : 'delete'});
 
@@ -745,7 +744,7 @@ var GG = function(){
 		var notifyIcon = params.options.icon;
 		if(notifyIcon){
 			image = $('<img>', {
-				src: 	$self.debug ? 'http://gg.dev.ifrog.ru/img/core/notify/notify_'+notifyIcon+'.png' : '/img/core/notify/notify_'+notifyIcon+'.png',
+				src: 	'http://s3-eu-west-1.amazonaws.com/ifrogcdn/img/core/notify/notify_'+notifyIcon+'.png',
 				widht: 	48,
 				height: 48
 			});
