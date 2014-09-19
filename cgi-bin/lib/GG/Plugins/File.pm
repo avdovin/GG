@@ -91,7 +91,7 @@ sub register {
 			$params{filename} ||= $self->send_params->{ $params{lfield} } if $self->send_params->{ $params{lfield} };
 			$params{folder} ||= $self->lkey(name => $params{lfield}, tbl => $params{table}, setting => 'folder' );
 			$params{retina} = 1 if $self->lkey(name => $params{lfield}, tbl => $params{table}, setting => 'retina' );
-
+			$params{origin} ||= 1 if $self->lkey(name => $params{lfield}, tbl => $params{table}, setting => 'origin' );
 
 			$params{filename} ||= $params{file} if $params{file};
 			my $table = delete $params{table};
@@ -106,10 +106,10 @@ sub register {
 
 			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
-				file	=> $pict_path,
+				file	  => $pict_path,
 				fsize 	=> $MAX_IMAGE_SIZE,
 				retina 	=> $params{retina},
-			);
+			) unless $params{origin};
 
 			foreach (keys %$fields_hashref){
 				delete $fields_hashref->{$_} unless $self->dbi->exists_keys(from => $table, lkey => $fields_hashref->{$_} );
