@@ -6,6 +6,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+%== javascript '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
 %= asset 'app.css' if config 'pipeline';
 %= content_for 'headers'
