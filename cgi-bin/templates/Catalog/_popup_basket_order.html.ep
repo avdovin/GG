@@ -1,56 +1,129 @@
-<table class="popup" id="popup-order">
-	<tr>
-		<td>
-			<div class="popup-container form__wrapper">
-				<a href="#" class="popup-close"></a>
-				<div class="popup__loading"></div>
-				<h2 class="popup__title">Оформляем заказ</h2>
-				<form class="order__wrapper" action="/catalog/ajax/order/checkout" method="POST">
-					<div class="popup-error form__error" style="display:none;"></div>
-					<table class="order__container">
-						<tr>
-							<td class="order__field">
-								<span class="field__title">Ваше имя<span class="red">*</span></span>
-								<input name="name" class="field__input field__input_text error" type="text"/>
-							</td>
-							<td class="order__field">
-								<span class="field__title">Номер телефона<span class="red">*</span></span>
-								<input name="phone" class="field__input field__input_text field__input_phone" type="text" placeholder="+7 (123) 123-45-67"/>
-
-							</td>
-						</tr>
-						<tr>
-							<td class="order__field">
-							   	<span class="field__title">Город</span>
-								<input name="city" class="field__input field__input_text" type="text"/>
-							</td>
-							<td class="order__field">
-								<span class="field__title">Электронная почта<span class="red">*</span></span>
-								<input name="email" class="field__input field__input_text" type="email"/>
-							</td>
-						</tr>
-						<tr>
-							<td class="order__field" colspan="2">
-								<span class="field__title">Ваш комментарий</span>
+<div id="popup-zakaz" class="popup">
+	<div class="popup-container form__wrapper">
+		<a class="popup-close" href="#"></a>
+		<div class="popup__loading"></div>
+		<h2 class="popup__title">Оформить заказ</h2>
+		<div class="popup-form">
+      %= form_for 'catalog_order_submit' => begin
+        %= csrf_field
+				<div class="popup-error form__error"></div>
+				<table class="order__container">
+					<tr>
+						<td class="order__field">
+							<label>
+								<span class="field__title required">Фамилия, Имя, Отчество</span>
+								<input type="text" name="name" class="field__input field__input_text wide">
+							</label>
+						</td>
+						<td class="order__field index">
+							<label>
+								<span class="field__title required">Индекс</span>
+								<input type="text" name="addressindex" class="field__input field__input_text small">
+							</label>
+						</td>
+						<td class="order__field city" colspan="2">
+							<label>
+								<span class="field__title required">Город</span>
+								<input type="text" name="city" class="field__input field__input_text medium">
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="order__field">
+							<label>
+								<span class="field__title required">Улица</span>
+								<input type="text" name="street" class="field__input field__input_text wide">
+							</label>
+						</td>
+						<td class="order__field">
+							<label>
+								<span class="field__title required">Дом</span>
+								<input type="text" name="house"  class="field__input field__input_text small">
+							</label>
+						</td>
+						<td class="order__field">
+							<label>
+								<span class="field__title">Корпус</span>
+								<input type="text" name="korpus" class="field__input field__input_text small">
+							</label>
+						</td>
+						<td class="order__field">
+							<label>
+								<span class="field__title required">Квартира</span>
+								<input type="text" name="apartment" class="field__input field__input_text small">
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="order__field">
+							<label>
+								<span class="field__title required">Электронная почта</span>
+								<input type="email" name="email" class="field__input field__input_text wide">
+							</label>
+						</td>
+						<td class="order__field" colspan="3">
+							<label>
+								<span class="field__title required">Телефон</span>
+								<input type="text" name="phone" class="field__input field__input_text field__input_phone wide">
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<td class="order__field" colspan="4">
+							<label>
+								<span class="field__title">Комментарий</span>
 								<textarea name="comment" class="field__input field__input_textarea"></textarea>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<p class="field__help"><span class="red">*</span> – поля, обязательные для заполнения</p>
-							</td>
-							<td>
-								<p class="right"><a href="#" class="button button_big button_red order__submit">Оформить заказ</a></p>
-							</td>
-						</tr>
-					</table>
-					<div class="order__ok content">
-						<div class="order__text">
-							<p class="text__text">Наш менеджер свяжется с Вами в ближайшее время</p>
-						</div>
-					</div>
-				</form>
+							</label>
+						</td>
+					</tr>
+					<tr class="button__tr">
+						<td colspan="2">
+							<p class="help__text">
+								<span style="font-size: 14px; color: #f01010; font-weight: 700;">*</span> &mdash; поля, обязательные для заполнения
+							</p>
+						</td>
+						<td colspan="2">
+							<p class="right"><a class="button button_black order__submit" href="#">Подтвердить заказ</a></p>
+						</td>
+					</tr>
+				</table>
+      % end
+			<div class="attention__block">
+				<p>К сожалению, мы не доставляем заказы по Санкт-Петербургу. Вы можете посетить 
+				наш магазин по адресу: Санкт-Петербург, Банковский пер., д. 3</p>
 			</div>
-		</td>
-	</tr>
-</table>
+		</div>
+		<div class="popup-ok">
+			<div class="popup-ok_thank">
+				<div class="popup-ok_thank_block">
+					<h2 class="popup-ok_thank_title">
+						Спасибо! Ваш заказ принят.
+					</h2>
+					<p class="popup-ok_thank_text">
+						Наш менеджер свяжется с вами в ближайшее время!
+					</p>
+				</div>
+			</div>
+			<div class="popup-ok_advantages">
+				<ul class="advantages__list">
+					<li class="list__entry first">
+						<p class="entry__text">8 (812) 448 83 06<br />
+						ежедневно с 12:00 до 21:00</p>
+					</li>
+					<li class="list__entry second">
+						<p class="entry__text">Санкт-Петербург,<br />
+						Банковский, д. 3</p>
+					</li>
+					<li class="list__entry third">
+						<p class="entry__text">Быстрая доставка<br />
+						по всей России</p>
+					</li>
+					<li class="list__entry fourth">
+						<p class="entry__text">Возврат в течение<br />
+						14 дней</p>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

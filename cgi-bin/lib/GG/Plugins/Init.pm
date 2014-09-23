@@ -45,7 +45,7 @@ sub register {
 
 	$app->plugin('vfe') if $conf->{'vfe_enabled'};
 
-	if ($conf->{'mail_type'}){
+	if ($conf->{'mail_type'} eq 'smtp'){
 		$app->plugin(mail => {
 			from     => $conf->{mail_from_addr},
 			encoding => 'base64',
@@ -110,7 +110,7 @@ sub register {
 		my $url = $self->req->url->clone;
 		my $host = $url->base->host || '';
 
-		if($host =~ /^www\./){
+		if( !$conf->{'www_prefix'} && $host =~ /^www\./ or $conf->{'www_prefix'} && $host !~ /^www\./ ){
 			$host =~ s{^www\.}{};
 
 			$url->base->host($host);
@@ -133,7 +133,7 @@ sub register {
 			$self->res->code(301);
 			return $self->redirect_to($path);
 		}
-
+    
 		# --- REDIRECT MODULE ---------------------------------
 		my $path = $url->to_string;
 		#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
@@ -168,7 +168,7 @@ sub register {
 		}
 
 		if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-			$self->session( cck => $cck );
+		  $self->session( cck => $cck );
 		}
 	});
 

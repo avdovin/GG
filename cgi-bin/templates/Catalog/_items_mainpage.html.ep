@@ -1,0 +1,12 @@
+<div class="goods">
+	<h2>Новинки</h2>
+	<ul class="goods__list noautocurrent">
+    % foreach (@$items){	
+  		<li class="list__entry">
+  			<a class="entry__link" href="<%= url_for 'catalog_iteminfo', item_alias => $_->{alias} %>"></a>
+  			<img class="entry__pic" src="/image/catalog/items/188x180_<%= $_->{pict} %>" alt="<%= $_->{name} %>" />
+  		</li>
+    % }
+	</ul>
+	<a href="<%= url_for 'catalog_list' %>" class="goods__all">Весь каталог</a>
+</div>

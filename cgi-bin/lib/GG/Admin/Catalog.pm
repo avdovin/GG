@@ -150,6 +150,29 @@ sub delete{
 
 }
 
+sub _update_sizes{
+  my $self = shift;
+  my $item_id = shift;
+  my $sizes = shift;
+
+  $self->dbi->dbh->do("DELETE FROM dtbl_catalog_item_sizes WHERE item_id=?", undef, $item_id);  
+  my @sizes = ();
+  foreach my $size (split(',', $sizes)){
+    my ($k, $v) = split('=', $size);
+    $v =~ s{\D}{}gi;
+    $v =~ s{^\s+|\s+$}{}gi;
+    $k =~ s{^\s+|\s+$}{}gi;
+    next unless $v;
+    
+    push @sizes, "$k=$v";
+    
+    $self->dbi->dbh->do("REPLACE INTO dtbl_catalog_item_sizes(item_id, size, qnt) VALUES ('$item_id', '$k', '$v')");
+  }
+  $self->dbi->query("OPTIMIZE TABLE `dtbl_catalog_item_sizes`");
+  
+  return join(',', @sizes);
+}
+
 sub save{
 	my $self = shift;
 	my %params = @_;
@@ -160,12 +183,18 @@ sub save{
 
 	$self->stash->{index} = 0 if $params{restore};
 
+  if($self->stash->{list_table} eq 'data_catalog_items' && defined $self->send_params->{'sizes'} ){
+    $self->send_params->{'sizes'} = $self->_update_sizes($self->stash->{index}, $self->send_params->{'sizes'});
+  }
+  
 	if( $self->save_info( table => $self->stash->{list_table}) ){
-
+    
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
-			$self->save_logs( 	name 	=> 'Восстановление записи в таблице '.$self->stash->{list_table},
-								comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
+			$self->save_logs( 	
+        name 	=> 'Восстановление записи в таблице '.$self->stash->{list_table},
+				comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap
+      );
 			return $self->info;
 		}
 
@@ -226,11 +255,9 @@ sub edit{
 		$self->getArraySQL(	from 	=> $self->stash->{list_table},
 							where	=> "`ID`='".$self->stash->{index}."'",
 							stash	=> 'anketa');
-
 	}
-
-
-	$self->define_anket_form( access => 'w', noget => 1);
+  
+  $self->define_anket_form( access => 'w', noget => 1);
 }
 
 sub list_container{

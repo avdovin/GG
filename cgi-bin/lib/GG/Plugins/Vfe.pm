@@ -8,7 +8,7 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-use Digest::SHA1 qw(sha1_hex);
+use Digest::MD5 qw();
 
 sub register {
 	my ($self, $app, $conf) = @_;
@@ -30,7 +30,7 @@ sub register {
 			$params{id}     = vfe_getIDbyAlias($self, $params{alias}) unless $params{id};
 			$params{alias}  = vfe_getAliasByID($self, $params{id}) unless $params{alias};
 
-			my $sha_id      = $params{id}.'-'.sha1_hex($params{id}.$self->stash->{vfe_salt});
+			my $sha_id      = $params{id}.'-'.Digest::MD5::md5_hex($params{id}.$self->stash->{vfe_salt});
 
 			if ($self->cookie('vfe')) {
 				return qq~<ins class="vfe-dummy" data-vfe-textid="$sha_id" style="display:none;"></ins>~
@@ -67,7 +67,7 @@ sub register {
 
 				my $plugins = $params{plugins} ? $params{plugins} : '';
 
-				my $template = $params{name}.'-'.sha1_hex($params{name}.$self->stash->{vfe_salt});
+				my $template = $params{name}.'-'.Digest::MD5::md5_hex($params{name}.$self->stash->{vfe_salt});
 
 				if ($self->cookie('vfe')) {
 					return '<ins class="vfe-dummy" data-vfe-template="'.$template.'" data-vfe-revisions="'.$revisions.'" data-vfe-revision="'.($revisions+1).'" data-vfe-plugins="'.$plugins.'" style="display:none;"></ins>'
@@ -376,7 +376,7 @@ sub vfe_checkTemplate() {
 
 	($template, $sha) = split(/-/, $template);
 
-	if ($sha eq sha1_hex($template.$salt)) {
+	if ($sha eq Digest::MD5::md5_hex($template.$salt)) {
 		return $template;
 	} else {
 		return 0;

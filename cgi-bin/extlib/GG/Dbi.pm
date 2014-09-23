@@ -39,13 +39,13 @@ sub query{
   }
   
 	my $query = $self->SUPER::query(@_);
-  if($self->{reason}){
+  if($ENV{MORBO_REV} && $self->{reason}){
     print RED, ">>$sql<<", "\n";
     print $self->{reason};
     print RESET, "\n";   
   }
   else{
-    if($self->debug){
+    if($ENV{MORBO_REV} && $self->debug){
       $end = time();
       
       my $elapsed_type = sprintf("%.4f", $end - $start);

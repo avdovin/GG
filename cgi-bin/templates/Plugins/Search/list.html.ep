@@ -1,36 +1,62 @@
 % layout 'default';
 
-<h1>Результаты поиска</h1>
-
-<ul class="breadcrumbs clearfix">
-	<li class="breadcrumbs__entry"><a class="entry__link" href="/">Главная</a></li>
-	<li class="breadcrumbs__entry"><span class="entry__link">Поиск</span></li>
-</ul>
-
-<div class="block block_background block_shadowed block_padding content">
-    <div id="search-container">
-       	<h2>Вы искали: <b><%= $qsearch %></b></h2>
-        <label>Найдено страниц: <%= $count %></label>
-        <div id="search-result">
-			<% if(scalar(@$items)==0) { %>
-				<br/><h2>По Вашему запросу ничего не найдено</h2>
-			<% } else { %>
-				<% foreach my $item (@$items){ %>
-                    <div class="search-entry clearfix">
-                    	<span><%= $item->{index} %></span>
-                    	<div>
-	                    	<% if ($item->{pict}) { %>
-				        		<a href="<%= $item->{link} %>"><img width="90" height="90" src="/image/catalog/items/180x180_<%= $item->{pict} %>" alt=""/></a>
-					        <% } %>
-	                    	<h3><a href="<%= $item->{link} %>"><%= $item->{name} %></a></h3>
-	                    	<p><%== $item->{text} %></p>
-
-	                    	<% if ($item->{price}) { %>
-		                    	<p style="float: left; margin-right: 15px;">Цена: <%== $item->{price} %> руб.</p>
-	                    	<% } %>
-                    	</div>
-                    </div>
-                <% } %>
-			<% } %>
+% content wrapper => begin
+<div class="content">
+  <h1>Результаты поиска</h1>
+		%== breadcrumbs 'Результаты поиска'
+	</div>
+	<div class="search">
+		<div class="search_words noautocurrent">
+			<span class="search_words__find">Вы искали</span> 
+      %= form_for search => begin
+        <div class="search_bar">
+				  <input class="search__input" name="qsearch" value="<%= param('qsearch') || '' %>" type="text" placeholder="Поиск" /> <a href="#" class="search_button submit"></a>
         </div>
-</div>
+      % end
+		</div>
+
+		<p class="search__results"> Найдено страниц: <%= $count %>
+		</p>
+<!-- Класс search_pagenav добавляется только если в поиске нужен pagenav, в противном случае этот класс убирается!!!!!!!!--> 	
+<!-- Ячейка td с изображением появляется только если это изображение есть. Если его нет - ячейки нет!--> 					
+		% if(scalar(@$items)==0){
+		  <br/><h2>По Вашему запросу ничего не найдено</h2>
+		% } else {
+    	<div class="search__list pagenav_block">
+        % foreach my $item (@$items){
+    		<div class="list__entry" data-count="<%= $item->{index} %>">
+    			<table class="entry__container">
+    				<tr>
+    					<td class="image__cell">
+              	% if ($item->{pict}) {
+                  <a class="entry__image-link" href="<%= $item->{link} %>"><img width="90" height="90" class="entry__image" src="/image/catalog/items/188x180_<%= $item->{pict} %>" alt="" /></a>
+    				    % }
+    					</td>
+    					<td>
+    						<a class="entry__link" href="<%= $item->{link} %>"><%= $item->{name} %></a>
+    						<p class="entry__description"><%== $item->{text} %></p>
+    					</td>
+    				</tr>
+    			</table>
+    		</div>
+        % } 
+        <!--
+    		<div class="pagenav noautocurrent">
+    			<div class="pagenav__container">
+    				<a class="pagenav__button pagenav__button_prev pagenav__button_disabled" href="#">&nbsp;</a>
+    				... <a class="pagenav__button pagenav__button_current" href="#">3</a>
+    				<a class="pagenav__button" href="#">4</a>
+    				<a class="pagenav__button" href="#">5</a> 
+    				<a class="pagenav__button" href="#">6</a>
+    				<a class="pagenav__button" href="#">7</a> 
+    				...
+    				<a class="pagenav__button pagenav__button_next" href="#">&nbsp;</a>
+    			</div>
+    			<a class="totop" href="#">Наверх</a>
+    		</div>
+        -->
+    	</div>
+    % }  
+	</div>
+</div>        
+% end

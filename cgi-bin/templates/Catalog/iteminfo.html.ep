@@ -1,16 +1,3 @@
 % content wrapper => begin
-<div class="body clearfix">
-
-	<div class="catalog block">
-		%== catalog__categorys_menu
-
-		<div class="catalog__wrapper">
-			%== include 'Catalog/_iteminfo_inner'
-		</div>
-	</div>
-</div>
+  %== include 'Catalog/_iteminfo_inner'
 % end
-
-% js_files_cdn('/js/jquery/plugins/jquery.amountControl.js');
-% js_files_cdn('/js/cloudzoom/cloudzoom.js');
-% css_files_cdn('/js/cloudzoom/cloudzoom.css');

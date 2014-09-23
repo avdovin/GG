@@ -15,7 +15,7 @@
 	<table id="wrapper" align="center" width="600" cellpadding="20" cellspacing="0" style="border-collapse: collapse;">
 		<tr>
 			<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
-				<h2>Получен письмо с сайта <%= site_name %></h2><br />
+				<h2>Получено письмо с сайта <%= site_name %></h2><br />
 
 				Имя: <b><%= stash 'name' %></b><br />
 				Телефон: <b><%= stash 'phone' %></b><br />

@@ -1,95 +1,99 @@
 %= content_for popup => begin
-	<%== include 'Catalog/_popup_basket_order' %>
+	%= include 'Catalog/_popup_basket_order'
 % end
 
 %= content wrapper => begin
-<div class="body clearfix">
+<div class="korzina">
+	<h1>Корзина</h1>
+  
+  %== $self->breadcrumbs( 'Каталог' => '/catalog', 'Корзина' => '' );
 
-	<div class="block content">
-
-		<h1>Корзина</h1>
-		<ul class="breadcrumbs clearfix">
-			<li class="breadcrumbs__entry"><a class="entry__link" href="#">Главная</a></li>
-			<li class="breadcrumbs__entry"><span class="entry__link">Корзина</span></li>
-		</ul>
-
-		<div class="block">
-
-			<div class="korzina content">
-				% if(scalar(@$items)==0){
-					<div class="korzina__empty" style="display:block;">
-						<h3>На данный момент в корзине нет ни одного товара</h3>
-					</div>
-				% }
-				% else {
-					<div class="korzina__list">
-						% foreach (@$items){
-							% my $url = $self->url_for('catalog_iteminfo', item_alias => $_->{alias});
-							<div class="korzina__entry" data-amountControl='{"price":"<%= $_->{price} %>","amount":"<%= $basket->{ $_->{ID}}->{count} =%>","total":"<%= $basket->{ $_->{ID}}->{count} * $_->{price} =%>"}'>
-								<div class="block block_shadowed block_margin">
-									<div class="entry__loading"></div>
-									<div class="entry__thumb-container">
-										<a href="<%= $url %>" class="entry__link"><img class="entry__thumb" src="/image/catalog/items/180x180_<%= $_->{pict} %>" width="124" height="124" alt="<%= $_->{name} %>"/></a>
-									</div>
-									<div class="entry__title-container">
-										<h3 class="entry__title"><a href="<%= $url %>" class="entry__link"><%= $_->{name} %></a></h3>
-									</div>
-									<div class="entry__price-container">
-										<h3 class="entry__price"><b><%= numberformat $_->{price} %></b> руб.</h3>
-									</div>
-									<div class="entry__amount-container">
-										<span class="amount__prefix">Количество:</span>
-										<div class="amount__control"><input data-color-id="<%= $basket->{ $_->{ID}}->{color} %>" data-item-id="<%= $_->{ID} %>" name="count-<%= $_->{ID} %>" type="text" value="<%= $basket->{ $_->{ID}}->{count} =%>" data-min="1" data-max="99" /></div>
-										<span class="amount__postfix">шт.</span>
-									</div>
-									<div class="entry__total-container">
-										<span class="total__itemprice"><%= $_->{price} %></span>
-										<span class="total__multiply">x</span>
-										<span class="total__amount"></span>
-										<span class="total__equal">=</span>
-										<span class="total__price"></span>
-										<span class="total__postfix">руб.</span>
-									</div>
-									<div class="entry__delete-container">
-										<a href="#" data-item-id="<%= $_->{ID} %>" class="button button_white button_del">Удалить</a>
-									</div>
-								</div>
-							</div>
-						% }
-					</div>
-
-					<div class="korzina__empty">
-						<h3>На данный момент в корзине нет ни одного товара</h3>
-					</div>
-
-					<div class="block block_background block_margin block_padding block_shadowed korzina__form">
-						<div class="korzina__comment">
-							<h2 class="comment__title">Комментарий к заказу</h2>
-							<div class="gray">
-								<textarea name="order-comment"></textarea>
-							</div>
-						</div>
-
-						<div class="korzina__zakaz clearfix">
-							<div class="zakaz__total">
-								<span class="total__prefix">Всего</span>
-								<span class="total__items"></span>
-								<span class="total__middle">товара</span>
-								<span class="total__text">на сумму</span>
-								<span class="total__price"></span>
-								<span class="total__postfix">руб.</span>
-							</div>
-
-							<div class="zakaz__controls">
-								<a href="/catalog/basket/checkout" class="button button_red button_big korzina__order">Оформить заказ</a>
-								<a href="<%= url_for 'catalog_basket_flush' %>" class="noautocurrent button button_white button_big button_del korzina__clear">Очистить корзину</a>
-							</div>
-						</div>
-					</div>
-				% }
-			</div>
-
+	<div class="korzina__block">
+		<div class="korzina__loading"></div>
+		<div class="korzina__list">
+			% if(scalar(@$items)==0){
+    		<div class="korzina__empty" style="display:block;">
+          <h3>На данный момент в корзине нет ни одного товара</h3>
+        </div>
+			% }
+			% else {
+        % foreach (@$items){
+				  % my $url = $self->url_for('catalog_iteminfo', item_alias => $_->{alias});      
+      		<div class="korzina__entry" data-amountControl='{"price":"<%= $_->{price} %>","amount":"<%= $basket->{ $_->{ID}}->{count} =%>","total":"<%= $basket->{ $_->{ID}}->{count} * $_->{price} =%>"}'>
+      			<div class="entry__loading"></div>
+      			<div class="entry__thumb-container">
+              <a href="<%= $url %>" class="entry__link"><img class="entry__thumb" src="/image/catalog/items/102x136_<%= $_->{pict} %>" width="99" height="132" alt="<%= $_->{name} %>"/></a>
+            </div>
+            <div class="entry__title-container">
+              <a href="<%= $url %>" class="entry__link"><h3 class="entry__title"><%= $_->{name} %></h3></a>
+          	</div>
+          	<div class="entry__param-container">
+            	<div class="entry__sizes-container">
+                  <h3 class="entry__title">Размер</h3>
+                  <div class="entry__button"><%= $basket->{ $_->{ID}}->{size} =%></div>
+            	</div>
+      <!-- этот контейнер появляется только в обуви, указанное значение соответствует заданному размеру-->
+              % if($_->{category_id} == 2){
+            	<div class="entry__foot-container">
+                <h3 class="entry__title">Размер стопы в мм</h3>
+                <div class="param__help">
+                	<a href="#" class="foot-container__help"></a>
+                	<div class="help__block">
+                    <p class="help__text"><b>Размер стопы в мм</b> — краткое пояснение, крупнейший в Петербурге магазин молодежной обуви и одежды, единственное официальное представительство многих </p>
+                  </div>
+                </div>
+                <div class="entry__button"><input name="footsize" data-item-id="<%=  $_->{ID} %>" value="<%= $basket->{ $_->{ID}}->{footsize} =%>" ></div>
+              </div>
+              % }
+          % if($_->{color_name}){
+          <div class="entry__color-container">
+            <h3 class="entry__title">Цвет</h3>
+            <div class="entry__button"><%= $_->{color_name} =%></div>
+          </div>
+          % }
+        	<div class="entry__amount-container">
+         		<span class="amount__prefix entry__title">Количество:</span>
+          	<div class="amount__control">
+          		<input type="text" data-item-id="<%=  $_->{ID} %>" value="<%= $basket->{ $_->{ID}}->{count} =%>" data-min="1" data-max="5" />
+          	</div>
+          </div>
+          </div>
+          <div class="entry__total-container">
+              <span class="total__itemprice"></span>
+              <span class="total__amount"></span>
+              <span class="total__price"></span>
+              <span class="total__postfix"></span>
+          </div>
+          <div class="entry__delete-container">
+            <a href="#" data-item-id="<%= $_->{ID} %>" class="filters__reset button_del">удалить</a>
+          </div>
+        </div>
+        % }
+      % }
 		</div>
+<!-- Блок, который должен появляться для пустой корзины-->
+    
+    % if(scalar(@$items)){
+    <div class="korzina__zakaz">
+        <div class="zakaz__total">
+            <span class="total__prefix">Всего</span>
+            <span class="total__items"></span>
+            <span class="total__middle" data-text="товар" data-one="товар" data-few="товара" data-many="товаров">товара</span>
+            <span class="total__text"> на </span>
+            <span class="total__price"></span>
+            <span class="total__postfix"></span>
+        </div>
+
+        <div class="zakaz__controls">
+        	<div class="korzina__order">
+        		<a href="#" class="korzina__order__link">Оформить заказ</a>
+        	</div>
+        	<div class="korzina__order korzina__back">
+        		<a href="<%= url_for 'catalog_list' %>" class="korzina__back__link">Вернуться к выбору</a>
+        	</div>
+        </div>
+  	</div>
+    % }
 	</div>
 </div>
 

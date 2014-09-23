@@ -1,0 +1,105 @@
+<div class="col col_left clearfix">
+<!-- Класс button_block появляется только когда появляется нижняя кнопка "Очистить", кнопки нет - класса нет -->
+  %= form_for catalog_list => begin
+	<div class="col_padding button_block">
+		<div class="filter filter__padding">
+			<span class="filter__title">Пол</span>
+			<ul class="filter__list filter__sex">
+				<li class="list__entry">
+					<label class="entry__label">
+						<input type="checkbox" value="1" name="filter[gender]" class="entry__input" <%= param('gender') == 2 ? 'checked=cheched' : '' %> >
+						<span data-value="Женское" class="entry__text">Женское</span>
+					</label>
+				</li>
+				<li class="list__entry">
+					<label class="entry__label">
+						<input type="checkbox" value="2" name="filter[gender]" class="entry__input" <%= param('gender') == 1 ? 'checked=cheched' : '' %> >
+						<span data-value="Мужское" class="entry__text">Мужское</span>
+					</label>
+				</li>
+				<li class="list__entry">
+					<label class="entry__label">
+						<input type="checkbox" value="3" name="filter[gender]" class="entry__input" <%= param('gender') == 3 ? 'checked=cheched' : '' %> >
+						<span data-value="Детское" class="entry__text">Детское</span>
+					</label>
+				</li>
+			</ul>
+			<a href="#" class="filter_reset" style="display:none;" >очистить</a>
+		</div>
+		<div class="filter category togglecurrent">
+      % foreach my $cat (@$categorys){
+        % next if $cat->{parent_category_id};
+        <a data-category-id="<%= $cat->{ID} %>" class="category__link <% if($self->stash->{category_alias} eq $cat->{alias}){ %>category__link_current<% } %>" href="<%= url_for 'catalog_list_by_category', category_alias => $cat->{alias} %>"><%= $cat->{name} %></a>
+        % my $has_subcategory = 0;
+        % foreach my $subcat (@$categorys){
+          % next if ($cat->{ID} != $subcat->{parent_category_id});
+    			%== $has_subcategory ? "" : "<ul class='category__list'>";
+          % $has_subcategory = 1;
+    				<li class="list__entry">
+    					<a data-category-id="<%= $subcat->{ID} %>" href="<%= url_for 'catalog_list_by_subcategory', subcategory_alias => $subcat->{alias}, category_alias => $cat->{alias} %>" class="entry__link <% if($self->stash->{subcategory_alias} eq $subcat->{alias}){ %>subcategory__link_current<% } %>"><%= $subcat->{name} %></a>
+    				</li>
+        % }
+        %== $has_subcategory ? '</ul>' : '';
+      % }
+  		<a href="#" class="filter_reset" style="display:none;">очистить</a>
+		</div>
+		<div class="filter filter__padding brands">
+			<span class="filter__title">Бренды</span>
+			<div class="scroll__wrapper">
+				<div class="scroll__block">
+					<ul class="filter__list filter__brand">
+            % foreach my $brand (@$brands){
+  						<li class="list__entry">
+  							<label class="entry__label">
+  								<input type="radio" class="entry__input" name="filter[brand]" value="<%= $brand->{ID} %>" <%= param('brand') == $brand->{ID} ? 'checked=cheched' : '' %> >
+  								<span data-value="<%= $brand->{id} %>" class="entry__text"><%= $brand->{name} %></span>
+  							</label>
+  						</li>
+            % }
+					</ul>
+				</div>
+			</div>
+			<a href="#" class="filter_reset" style="display:none;">очистить</a>
+		</div>
+		<div class="filter filter__padding">
+			<span class="filter__title">Размер</span>
+			<div class="scroll__wrapper">
+				<div class="scroll__block">
+					<ul class="filter__list filter__size">
+            % foreach (@$sizes){
+						<li class="list__entry">
+							<label class="entry__label">
+								<input type="checkbox" class="entry__input" name="filter[size]" value="<%= $_ %>" >
+								<span data-value="Женское" class="entry__text"><%= $_ %></span>
+							</label>
+						</li>
+            % }
+					</ul>
+				</div>
+			</div>
+			<a href="#" class="filter_reset" style="display:none;">очистить</a>
+		</div>
+    <!--
+		<div class="filter filter__padding">
+			<span class="filter__title">Цвет</span>
+			<div class="scroll__wrapper">
+				<div class="scroll__block">
+					<ul class="filter__list filter__color">
+            % foreach (@$colors){
+						<li class="list__entry">
+							<label class="entry__label">
+								<input type="checkbox" class="entry__input" name="filter[color]" value="<%= $_->{ID} %>" >
+								<span data-value="Женское" class="entry__text"><%= $_->{name} %></span>
+							</label>
+						</li>
+            % }
+					</ul>
+				</div>
+			</div>
+			<a href="#" class="filter_reset" style="display:none;">очистить</a>
+		</div>
+      -->
+    <a href="#" class="catalog_reset" style="display:none;">Очистить фильтр</a>
+	</div>
+  % end
+</div>

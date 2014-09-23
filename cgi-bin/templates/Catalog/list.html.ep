@@ -3,38 +3,34 @@
 % end
 
 % content wrapper => begin
-
-<div class="body clearfix">
-
-	<div class="catalog block">
-		%== catalog__categorys_menu
-
-		<div class="catalog__wrapper">
-			<div class="catalog__filters">
-				<span>Сортировать по: <a href="#" data-field="price" data-direction="asc" class="button button_small button_greengray">цене</a></span>
+<div class="catalog clearfix">
+  %== catalog__filters
+  
+	<div class="col_right col clearfix pagenav_block">
+		<div class="top_filters__block">
+			<span class="filter__all">Всего <b id="total-items-count-string"></b></span>
+			<ul class="filters__list">
+				<li class="list__entry">
+					<a class="entry__link entry__link_current" href="/catalog" data-lkey="">Все товары</a>
+				</li>
+				<li class="list__entry">
+					<a class="entry__link" href="/catalog?is_sale=1" data-lkey="is_sale">Распродажи</a>
+				</li>
+				<li class="list__entry">
+					<a class="entry__link" href="/catalog?is_new=1" data-lkey="is_new">Новинки</a>
+				</li>
+			</ul>
+			<div class="filter__price">
+			    <a class="price__link asc" href="#">Цена</a> 
 			</div>
-			<h1>Продукция</h1>
-
-			% if($self->stash->{subcategory_alias}){
-				% my $catlink = $self->url_for('catalog_list_by_category', category_alias => $category->{alias} );
-				% my $subcatlink = $self->url_for('catalog_list_by_sub_category', subcategory_alias => $subcategory->{alias}, category_alias => $category->{alias} );
-				%== breadcrumbs $category->{name} => $catlink, $subcategory->{name} => $subcatlink;
-
-			% }elsif($self->stash->{category_alias}){
-				% my $link = $self->url_for('catalog_list_by_category', category_alias => $category->{alias} );
-				%== breadcrumbs $category->{name} => $link;
-
-			% } else {
-				%== breadcrumbs
-			% }
-
-			<div class="catalog__list clearfix" id="catalog-list-inner"></div>
 		</div>
+<!-- Класс new добавляется к товарам из новинок, класс sale из распродажи -->
+		<div class="catalog__list clearfix">
+			<div class="catalog__loading" style="display:block;"></div>
+			<div id="catalog-list-inner"></div>
+		</div>
+    <div id="pagenav-container"></div>
 	</div>
 </div>
-
 % end
 
-% js_files_cdn('/js/jquery/plugins/jquery.amountControl.js');
-% js_files_cdn('/js/cloudzoom/cloudzoom.js');
-% css_files_cdn('/js/cloudzoom/cloudzoom.css');

@@ -1,4 +1,4 @@
-% js_controller 'feedback';
+% js_files '/js/controllers/feedback.js';
 % js_files 'http://api-maps.yandex.ru/2.1/?lang=ru_RU';
 
 % content wrapper => begin
@@ -78,8 +78,8 @@
       %= form_for feedback_submit => begin
         %= csrf_field
 				<div class="form__loading"></div>
-				<div class="form__error">Вы не заполнили все обязательные поля</div>
-				<table class="form__container">
+				<div class="form__error"></div>
+				<table class="form__container form__wrapper">
 					<tr>
 						<td class="form__cell form__cell_left">
 							<label>

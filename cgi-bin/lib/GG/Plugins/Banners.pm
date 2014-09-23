@@ -87,7 +87,7 @@ sub register {
 			my $time  = (localtime)[2]+1;
 			my %wdays = (0 => 7, 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6);
 			my $week  = $wdays{(localtime)[6]};
-			$params{url_id} =  $self->dbi->query("SELECT `ID` FROM `lst_urls` WHERE `name`='".'/'.$self->req->url->path->to_string."'")->list || '0';
+			$params{url_id} =  $self->dbi->query("SELECT `ID` FROM `lst_banner_urls` WHERE `name`='".'/'.$self->req->url->path->to_string."'")->list || '0';
 
       my $where  = "`view` = 1";
 			  $where .= " AND (`id_advert_block` = $params{place} OR (`id_advert_block` LIKE '$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}=%' OR `id_advert_block` LIKE '%=$params{place}'))";
@@ -98,16 +98,16 @@ sub register {
 			   $where .= " AND (`week` = -1 OR `week` = $week OR (`week` LIKE '$week=%' OR `week` LIKE '%=$week=%' OR `week` LIKE '%=$week'))";
 			   $where .= sprintf(" AND (`target` = 0 OR (`target` = 1 AND `list_page` REGEXP '[[:<:]]%s[[:>:]]') OR (`target` = 2 AND `list_page` NOT REGEXP '[[:<:]]%s[[:>:]]'))", $params{page}, $params{page}) if ($params{page});
 			   $where .= "
-			   AND (`target_url`=0
+			   AND (`target_url`=0 
 			   OR (`target_url`=1
 			   AND (`urls` = $params{url_id}
 			   		OR `urls` LIKE '$params{url_id}=%'
 			   		OR `urls` LIKE '%=$params{url_id}=%'
 			   		OR `urls` LIKE '%=$params{url_id}')
 				OR (`target_url`=2
-					AND NOT (`urls` = $params{url_id}
-					OR `urls` LIKE '$params{url_id}=%'
-					OR `urls` LIKE '%=$params{url_id}=%'
+					AND NOT (`urls` = $params{url_id} 
+					OR `urls` LIKE '$params{url_id}=%' 
+					OR `urls` LIKE '%=$params{url_id}=%' 
 					OR `urls` LIKE '%=$params{url_id}'))))";
 			   $where .= " ORDER BY `rating`,RAND() $limit";
 
@@ -149,6 +149,8 @@ sub register {
 				banners			=> $banners || [],
 				banner_block	=> $banner_block,
 				template		=> $params{template},
+
+				partial			=> 1
 			);
 
 			return $params{before_html} . $banner_content . $params{after_html};

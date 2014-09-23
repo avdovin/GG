@@ -412,6 +412,8 @@ sub tree_block{
 sub delete{
 	my $self = shift;
 
+  $self->backup_doptable;
+  
 	my $index = $self->stash->{index};
 	my $table = $self->stash->{list_table};
 	if ($self->getArraySQL( from => $table, where => $index, stash => 'anketa')) {
@@ -423,7 +425,7 @@ sub delete{
 				return $self->field_dop_table_reload;
 			}
 		}
-    
+        
 		my $dir_field = $self->stash->{dir_field};
 		if($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => $dir_field)){
 			if($self->dbi->query("SELECT `ID` FROM `$table` WHERE `$dir_field`='$index'")->hash){
@@ -432,8 +434,9 @@ sub delete{
 			}
 		}
 
-		if($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => 'delnot') && ( $self->stash->{anketa}->{delnot} || $self->dbi->query("SELECT `ID` FROM `$table` WHERE `ID`='$index' AND `delnot`='1'")->hash ) ){
-			$self->admin_msg_errors('Удалить нельзя: системная запись');
+		if(
+      $self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => 'delnot') && ( $self->stash->{anketa}->{delnot} ||                 $self->dbi->query("SELECT `ID` FROM `$table` WHERE `ID`='$index' AND `delnot`='1'")->hash ) ){
+      $self->admin_msg_errors('Удалить нельзя: системная запись');
 			return $self->edit();
 		}
 

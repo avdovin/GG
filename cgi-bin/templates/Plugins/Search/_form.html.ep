@@ -1,6 +1,6 @@
-<div class="topbar__search">
-    <form id="search-form" method="get" action="<%= url_for 'search' %>">
-        <input class="search__input" type="text" placeholder="Поиск" value="<%= param('qsearch') || '' %>" name="qsearch"/>
-        <input type="submit" class="search__button" value="">
-    </form>
+<div class="header__search">
+	%= form_for search => begin
+		<input type="text" name="qsearch" value="<%= param('qsearch') || '' %>" placeholder="Поиск" class="search__input">
+		<a href="#" class="search__button submit"></a>
+  % end
 </div>

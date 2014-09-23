@@ -21,7 +21,7 @@ sub _config{
 				mapfields 		=> {},
 				where 			=> " AND `viewtext`=1 ",
 			},
-		'texts_news_ru' => {
+		'texts_blog_ru' => {
 				searchfields 	=> [qw(name text)],
 				primary_key 	=> [qw(ID)],
 				controller 		=> 'text',
@@ -47,9 +47,8 @@ sub _config{
 
 sub register {
 	my ($self, $app, $conf) = @_;
-
-
-	$app->routes->route("search/result")->to( seo_title_sitename => 1, lang => 'ru', cb => sub{
+  
+	$app->routes->get("search/result")->to( seo_title_sitename => 1, lang => 'ru', cb => sub{
 		my $self   = shift;
 		my %params = @_;
 
@@ -144,6 +143,12 @@ sub register {
 
 	})->name('search');
 
+	$app->helper( search_form => sub {
+		my $self = shift;
+		
+    return $self->render_to_string(template => 'Plugins/Search/_form');
+	}); 
+  
 }
 
 sub _buildKeyFieldsSelect{
@@ -234,7 +239,7 @@ sub print_search_result{
 						}
 					}
 
-					$node->{text} = "...".$pref." <b style='color:black;'>".$local_qsearch."</b> ".$post."...";
+					$node->{text} = "...".$pref." <span class='red found'>".$local_qsearch."</span> ".$post."...";
 				}
 				else {
 					$node->{text} = $self->cut(string => $node->{text}, size => 1000);
@@ -275,8 +280,9 @@ sub print_search_result{
 	$self->render(
 		%params,
 		items		=> $result_items,
-		template	=> "Search/list"
+		template	=> "Plugins/Search/list"
 	);
+  
 }
 
 
