@@ -25,13 +25,8 @@ sub register {
 
 	my $conf = $app->plugin('Config', {	file      => 'config', 	default   => {} });
 	$app->static->paths([$conf->{static_path}]);
-
-	$app->_setup_inc($conf->{perl5lib});
-
-	# Pipeline assets
-	$app->plugin('AssetPack', {
-		minify 			=> $conf->{pipeline} && $app->mode eq 'production',
-	});
+  
+  $app->_setup_inc($conf->{perl5lib});
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
@@ -81,6 +76,11 @@ sub register {
 
 	$ENV{MOJO_MAX_MESSAGE_SIZE} = $conf->{upload_maxchanksize};
 
+	# Pipeline assets
+	$app->plugin('AssetPack', {
+		minify 			=> $conf->{pipeline_minify} && $app->mode eq 'production',
+	});
+  
 	$app->hook(before_dispatch => sub {
 		my $self = shift;
 
@@ -89,22 +89,37 @@ sub register {
 
 		$self->stash->{lang} ||= $conf->{lang_default};
 
-		if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
-			$self->app->mode( $ENV{MOJO_MODE} = $mode );
-
-			if($mode eq 'development'){
-				$self->app->log->level('debug');
-				BEGIN {
-					$ENV{MOJO_I18N_DEBUG} = 0
-				};
-			}
-			else {
-				$self->app->log->level('error');
-				BEGIN {
-					$ENV{MOJO_I18N_DEBUG} = 1
-				};
-			}
-		}
+    if($self->app->mode eq 'development'){
+      $self->app->log->level('debug');
+      BEGIN {
+        $ENV{'MOJO_I18N_DEBUG'} = 1;
+        #$ENV{'MOJO_ASSETPACK_DEBUG'} = $ENV{'MOJO_ASSETPACK_NO_CACHE'} = 1;
+      };
+    }
+    else {
+      $self->app->log->level('error');
+      BEGIN {
+        $ENV{'MOJO_I18N_DEBUG'} = 0;
+        #$ENV{'MOJO_ASSETPACK_DEBUG'} = $ENV{'MOJO_ASSETPACK_NO_CACHE'} = 0;
+      };
+    }
+        
+    # if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
+    #   $self->app->mode( $ENV{MOJO_MODE} = $mode );
+    #
+    #   if($mode eq 'development'){
+    #     $self->app->log->level('debug');
+    #     BEGIN {
+    #       $ENV{MOJO_I18N_DEBUG} = 0
+    #     };
+    #   }
+    #   else {
+    #     $self->app->log->level('error');
+    #     BEGIN {
+    #       $ENV{MOJO_I18N_DEBUG} = 1
+    #     };
+    #   }
+    # }
 
 		# --- SEO 301 redirect to none www domain ---------
 		my $url = $self->req->url->clone;

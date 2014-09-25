@@ -29,10 +29,10 @@
 			<input type="checkbox" value="1" name="rightwin_hidden" <% if($self->sysuser->settings->{rightwin_hidden}){ %>checked="checked"<% } %> > Скрывать правую панель<br />
 
 
-			<% my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 ); %>
-			<% if(is_sysuser_sys){ %>
-				<input type="checkbox" name="mode" value="development" <% if($mode eq 'development'){ %> checked="checked"<% } %> /> <span <% if($mode eq 'development'){ %>style="background-color:red;"<% } %>>Режим отладки</span><br />
-			<% } %>
+			% my $mode = $ENV{MOJO_MODE};
+			% if(is_sysuser_sys){
+				<!--<input type="checkbox" name="mode" value="development" <% if($mode eq 'development'){ %> checked="checked"<% } %> /> <span <% if($mode eq 'development'){ %>style="background-color:red;"<% } %>>Режим отладки</span><br /> -->
+			% }
 			<!-- <input type="checkbox" name="auth_rem" <% if($self->sysuser->settings->{auth_rem}){ %>checked="checked"<% } %> > Запоминать при входе<br /> -->
 <br />
 <br />

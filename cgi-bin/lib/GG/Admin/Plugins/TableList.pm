@@ -696,7 +696,7 @@ sub register {
 	$app->helper(
 		save_qedit => sub {
 			my $self = shift;
-			my $table = $self->stash->{list_table};
+			my $table = $self->param('list_table') || $self->stash->{list_table};
 
 			my ($index, $sfield) = split(/__/, $self->send_params->{textEditElementId});
 			$index =~ s{\D+}{}gi;
@@ -712,7 +712,7 @@ sub register {
 				return $self->render( text =>'OK');
 			}
 
-			$self->render( text => "Ошибка при обновлении записи -".$self->admin_error('update_hash'));
+			$self->render( text => "Ошибка при обновлении записи");
 		}
 	);
 
