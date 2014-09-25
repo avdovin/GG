@@ -1,6 +1,6 @@
 package GG::Plugins::Vfe;
 
-# Visual Front-end Editor v. 2
+# Visual Front-end Editor v. 3
 # Code: Nikita Korobochkin
 # Date: 18.07.2012
 
@@ -21,7 +21,31 @@ sub register {
 	});
 
 	$app->helper(
-		vfe_text => sub {
+		vfe_text_block => sub {
+			my $self   = shift;
+			return unless my $alias  = shift;
+      
+      return 'vfe block \'$alias\' not found' 
+        unless my $block = $self->app->dbi->query("SELECT ID,alias,text FROM `data_vfe_blocks_ru` WHERE `alias`='$alias'")->hash;
+        
+      my $sha_id = 'blocks'.$block->{ID}.'-'.Digest::MD5::md5_hex('blocks'.$block->{ID}.$self->stash->{vfe_salt});
+      
+			if ($self->cookie('vfe')){
+        my $lang = $self->lang;
+				return qq~
+        <div id="$$block{ID}-$$block{alias}" data-lang="$lang" class="vfe-editablecontent">
+          <ins class="vfe-dummy" data-vfe-textid="$sha_id" style="display:none;"></ins>
+          $block->{text}
+        </div>
+        ~
+			} else {
+				return $block->{text};
+			}
+		}
+	);
+
+	$app->helper(
+		vfe_text_main => sub {
 			my $self   = shift;
 			my %params = @_;
 
@@ -29,14 +53,19 @@ sub register {
 
 			$params{id}     = vfe_getIDbyAlias($self, $params{alias}) unless $params{id};
 			$params{alias}  = vfe_getAliasByID($self, $params{id}) unless $params{alias};
-
-			my $sha_id      = $params{id}.'-'.Digest::MD5::md5_hex($params{id}.$self->stash->{vfe_salt});
+      return '' unless $params{alias};
+      
+			my $sha_id = $params{id}.'-'.Digest::MD5::md5_hex($params{id}.$self->stash->{vfe_salt});
 
 			if ($self->cookie('vfe')) {
-				return qq~<ins class="vfe-dummy" data-vfe-textid="$sha_id" style="display:none;"></ins>~
-				.$self->text_by_alias($params{alias}) if $params{alias};
+        my $lang = $self->lang;
+				return qq~
+        <div id="editablecontent" data-lang="$lang" class="vfe-editablecontent">
+          <ins class="vfe-dummy" data-vfe-textid="$sha_id" style="display:none;"></ins>~.
+          $self->text_by_alias($params{alias}).
+          qq~</div>~
 			} else {
-				return $self->text_by_alias($params{alias}) if $params{alias};
+				return $self->text_by_alias($params{alias});
 			}
 
 		}
@@ -82,11 +111,9 @@ sub register {
 		}
 	);
 
-	$app->routes->route("admin/vfe-text-save")->to( cb => sub{
-
+	$app->routes->post("/admin/vfe-text-save")->to( cb => sub{
 		my $self   = shift;
 		my %params = @_;
-
 		my $vals = {
 			error   => '',
 		};
@@ -98,9 +125,8 @@ sub register {
 
 		my $content = $self->param('content');
 		my $id = $self->param('id');
-
 		if ($content && $id) {
-
+      
 			# Проверка соли
 			unless ($id = vfe_checkTemplate($id,$self->stash->{vfe_salt})) {
 				$vals->{error} = "Ай-ай-ай! :)";
@@ -112,20 +138,28 @@ sub register {
 			$content =~ s/\s+/ /g;
 			$content =~ s/\r\n/\n/g;
 			chomp($content);
-
+      
+      my $lang = $self->param('lang') || 'ru';
 			# Load controller
-			my $e = Mojo::Loader->load('GG::Admin::AdminController');
-			if(!ref $e and !$e){
-				$self->app->dbi->update_hash(
-					'texts_main_ru',
-					{
-					text => $content
-					},
-					"`ID`='$id'"
-				);
-			} else {
-				return $self->render( text => "Ошибка при сохранении: ".$e);
-			}
+      # vfe content blocks
+      if(substr($id, 0, 6) eq 'blocks'){
+        my $block_id = substr($id, 6);
+        $self->dbi->dbh->do("UPDATE `data_vfe_blocks_$lang` SET text=? WHERE ID=?", undef, $content, $block_id);
+      }
+      else {
+  			my $e = Mojo::Loader->load('GG::Admin::AdminController');
+  			if(!ref $e and !$e){
+  				$self->app->dbi->update_hash(
+  					'texts_main_'.$lang,
+  					{
+  					text => $content
+  					},
+  					"`ID`='$id'"
+  				);
+  			} else {
+  				return $self->render( text => "Ошибка при сохранении: ".$e);
+  			}
+      }
 
 			return $self->render( text => "Текст успешно сохранен.");
 

@@ -8,7 +8,8 @@
 <!-- end content_for js_files -->
 
 % if( $self->stash->{'vfe'} && $self->config->{'vfe_enabled'}){
-	<script type="text/javascript" src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link"></script>
+	<script type="text/javascript" src="/js/vfe/vfe-2.1.js" data-vfe-plugins="link"></script>
+	<script type="text/javascript" src="/admin/ckeditor/ckeditor.js"></script>
 % }
 <!-- end _footer.html.ep -->
 
