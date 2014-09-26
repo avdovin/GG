@@ -32,10 +32,10 @@ sub register {
 	$app->plugin('http_cache');
 	$app->plugin('crypt');
 	$app->plugin('dbi', $conf );
-
+  
 	# Load plugins from config
 	foreach (@{$conf->{plugins}}){
-		$app->plugin($_);
+		$app->plugin($_, $conf);
 	}
 
 	$app->plugin('vfe') if $conf->{'vfe_enabled'};

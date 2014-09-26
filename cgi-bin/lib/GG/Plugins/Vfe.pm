@@ -144,7 +144,8 @@ sub register {
       # vfe content blocks
       if(substr($id, 0, 6) eq 'blocks'){
         my $block_id = substr($id, 6);
-        $self->dbi->dbh->do("UPDATE `data_vfe_blocks_$lang` SET text=? WHERE ID=?", undef, $content, $block_id);
+        $self->dbi->dbh->do("UPDATE `data_vfe_blocks_$lang` SET text=?,sysuser_id=?,updated_at=NOW() WHERE ID=?", 
+          undef, $content, $self->app->sysuser->{ID}, $block_id);
       }
       else {
   			my $e = Mojo::Loader->load('GG::Admin::AdminController');
