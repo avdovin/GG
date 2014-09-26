@@ -6,9 +6,12 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '0.02';
 
+my $USE_SEO_META = 0;
+
 sub register {
 	my ($self, $app, $conf) = @_;
-
+  
+  $USE_SEO_META = $conf->{seo_custom_tags} || 0;
 
 	$app->hook( before_dispatch => sub {
 		my ($self) = @_;
@@ -65,7 +68,8 @@ sub register {
 
 		my $metaTags = $self->stash->{'_meta_tags'};
 
-		if($self->stash->{seo_custom_tags} && $self->seo_custom_tags ){
+		if($USE_SEO_META && $self->seo_custom_tags ){
+
 			# заданы кастомные теги
 		}
 		else {
