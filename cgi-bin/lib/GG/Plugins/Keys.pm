@@ -793,17 +793,21 @@ sub def_script_button { # определение скрипта выполнен
 				$settings->{id}		 ||= $$self{replaceme};
 				$$self{title}    ||= $$self{settings}{id};
 				$$self{tabtitle} ||= $$self{settings}{id};
+
+        my $link = $$settings{program};
+        $link .= "&".$$settings{params_string} if $$settings{params_string};
+
 				if ($settings->{confirm}) {
-					$settings->{script} = "if (confirm('$$settings{confirm}')) openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+					$settings->{script} = "if (confirm('$$settings{confirm}')) openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
 
 				}
 				elsif( $settings->{id} eq 'newentry'){
 					$settings->{tabtitle} = 'Новая запись';
 					my $replaceme = $stash->{controller}.'_'.$stash->{list_table}.'0';
-					$settings->{script} = "openPage('$$settings{position}','$replaceme','$$settings{program}&$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+					$settings->{script} = "openPage('$$settings{position}','$replaceme','$link','$$settings{title}','$$settings{tabtitle}')";
 				}
 				else {
-					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$$settings{program}?$$settings{params_string}','$$settings{title}','$$settings{tabtitle}')";
+					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
 				}
 		}
 	}
