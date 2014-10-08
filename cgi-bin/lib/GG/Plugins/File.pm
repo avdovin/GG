@@ -541,12 +541,13 @@ sub register {
 					$filename = $self->file_check_free_name($dir.$filename);
 				}
 				$upload->move_to($dir.$filename);
-				my $size = $upload->size;
 
         if(delete $params{size}){
+          my $size = $upload->size;
           $size = $self->file_nice_size($size);
           $filename .= "| $size";
         }
+
         return $filename;
 			}
 			return;
