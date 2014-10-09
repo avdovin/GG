@@ -158,6 +158,12 @@ sub register {
 							$item->{$v} = $folders->{$v}.$item->{$v};
 						}
 
+  				}elsif($type eq 'file'){
+            next unless my $filename = $item->{$v};
+
+            my $ext = ($filename =~ m/([^.]+)$/)[0];
+  					$item->{$v} = $self->image('/admin/img/icons/file/'.$ext.'.png', alt => $filename, width => 32, height => 32);
+
 					}elsif($type eq 'site' ){
 						$item->{$v} = "<a href='$$item{$v}' target='_blank'>$$item{$v}</a>";
 

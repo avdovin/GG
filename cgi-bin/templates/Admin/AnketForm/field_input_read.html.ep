@@ -1,17 +1,18 @@
 <tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey ? $lkey->{name} : $key %>:</td>
   <td class=read valign=top>
-%	if($key ne 'ID' and $lkey->{settings}->{qedit} and $self->sysuser->settings->{$controller.'_qedit'} and ($self->sysuser->access->{lkey}->{$lkey}->{w} or $self->sysuser->sys)){
-    	<label id="label<%= $index %>__<%= $key %>">
-    		<div id="<%= $index %>__<%= $key %>"><%= $value =%></div>
-    	</label>
-%	} else {
+    % if($key ne 'ID' and $lkey->{settings}->{qedit} and $self->sysuser->settings->{$controller.'_qedit'} and ($self->sysuser->access->{lkey}->{$lkey}->{w} or $self->sysuser->sys)){
+      <div id="<%= $index %>__<%= $key %>"><%= $value =%></div>
+      <label id="label<%= $index %>__<%= $key %>"></label>
+    % } else {
+      % if($key eq 'size'){
+        %= $self->file_nice_size($value)
 
-		<% if($key eq 'size'){ %>
-			<%= $self->file_nice_size($value) =%>
-		<% } else { %>
-			<%= $value =%>
-		<% } %>
-%	}
+      % } elsif($lkey->{settings}->{type} eq 'site'){
+        %= link_to $value => $value => (target => '_blank')
+      % } else {
+        %= $value
+      % }
+    % }
   </td>
 </tr>
