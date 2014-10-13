@@ -1,23 +1,26 @@
-User-Agent: Googlebot
-Disallow: /*?
-Disallow: /admin/
-Disallow: /userfiles/
-Disallow: /docfiles/
-Crawl-delay: 10
-Sitemap: /sitemap.xml
+User-agent: *
+Disallow: /
 
-User-Agent: Yandex
-Disallow: /*?
-Disallow: /admin/
-Disallow: /userfiles/
-Disallow: /docfiles/
-Crawl-delay: 10
-Sitemap: /sitemap.xml
+# User-Agent: Googlebot
+# Disallow: /*?
+# Disallow: /admin/
+# Disallow: /userfiles/
+# Disallow: /docfiles/
+# Crawl-delay: 10
+# Sitemap: /sitemap.xml
 
-User-Agent: *
-Disallow: /*?
-Disallow: /admin/
-Disallow: /userfiles/
-Disallow: /docfiles/
-Crawl-delay: 10
-Sitemap: /sitemap.xml
+# User-Agent: Yandex
+# Disallow: /*?
+# Disallow: /admin/
+# Disallow: /userfiles/
+# Disallow: /docfiles/
+# Crawl-delay: 10
+# Sitemap: /sitemap.xml
+
+# User-Agent: *
+# Disallow: /*?
+# Disallow: /admin/
+# Disallow: /userfiles/
+# Disallow: /docfiles/
+# Crawl-delay: 10
+# Sitemap: /sitemap.xml
