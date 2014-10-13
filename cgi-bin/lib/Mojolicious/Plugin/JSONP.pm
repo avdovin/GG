@@ -3,6 +3,9 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '0.03';
 
+use utf8;
+use Mojo::Util qw(decode);
+
 sub register {
   my ($self, $app, $conf) = @_;
 
@@ -19,7 +22,7 @@ sub register {
 
       return $callback
         ?   $self->render(text => $callback . '('
-          . $self->render(json => $ref, partial => 1) . ')')
+          . decode 'UTF-8', $self->render_to_string(json => $ref) . ')')
         : $self->render(json => $ref);
     }
   );
@@ -48,7 +51,7 @@ Mojolicious::Plugin::JSONP - Render JSONP with transparent fallback to JSON
 
 =head1 DESCRIPTION
 
-L<Mojolicious::Plugin::JSONP> is a helper for rendering JSONP 
+L<Mojolicious::Plugin::JSONP> is a helper for rendering JSONP
 with a transparent fallback to JSON if a callback parameter is not specified.
 
 The B<render_jsonp> helper renders a Perl reference as JSON, wrapped in a supplied callback.
