@@ -32,27 +32,27 @@ sub query{
 
 	my $sql = $_[0];
 	$sql =~ s{[\t\n]+}{ }gi;
-  
+
   my ($start, $end);
   if($self->debug){
     $start = time();
   }
-  
+
 	my $query = $self->SUPER::query(@_);
   if($ENV{MORBO_REV} && $self->{reason}){
     print RED, ">>$sql<<", "\n";
     print $self->{reason};
-    print RESET, "\n";   
+    print RESET, "\n";
   }
   else{
     if($ENV{MORBO_REV} && $self->debug){
       $end = time();
-      
+
       my $elapsed_type = sprintf("%.4f", $end - $start);
       print CYAN, ">>$sql<< ($elapsed_type sec) ";
       print RESET, "\n";
       $start = time();
-    }    
+    }
   }
 
   return $query;
@@ -123,16 +123,71 @@ sub getTablesSQL {
 	return (@array);
 } # end of &getTablesSQL
 
+sub upsert{
+ 	my $self = shift;
+ 	my ($table, $field_values) = @_;
+ 	my $dbh = $self->dbh;
+
+	my $created_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
+
+
+	foreach my $k (keys %$field_values){
+
+		unless($self->exists_keys(from => $table, lkey => $k) ){
+			delete $field_values->{$k};
+			next;
+		}
+
+		   if($k eq 'updated_at'){ $field_values->{$k} ||= 'NULL';}
+		elsif($k eq 'created_at'){ $field_values->{$k} ||= $created_at;}
+	}
+
+	my @fields = sort keys %$field_values;
+	my @values = @{$field_values}{@fields};
+
+	my $update_fields = [];
+	foreach my $f (@fields){
+		push @$update_fields, $f if (
+			$f ne 'updated_at' and
+			$f ne 'created_at'
+		);
+	}
+
+		my $sql = sprintf "INSERT INTO %s (%s) VALUES (%s)",
+		$table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
+
+	$sql .= " ON DUPLICATE KEY UPDATE ";
+	$sql .= sprintf " %s, updated_at=NOW() ",
+		join(",", map{ "`$_`=VALUES($_)" }@$update_fields);
+
+
+	my $index = 0;
+	eval{
+		my $sth = $dbh->prepare($sql);
+		$sth->execute(@values) || die $DBI::errstr;
+		$index = $dbh->{'mysql_insertid'};
+		$sth->finish();
+	};
+	if($@){
+		$self->save_mysql_error($@, $sql, \@values);
+		$self->{error} = $@;
+		return;
+	}
+	$index = $field_values->{ID} if $field_values->{ID};
+	return $index;
+}
+
+
 sub insert{
  	my $self = shift;
  	my ($table, $field_values, $insType) = @_;
  	my $dbh = $self->dbh;
 
-    my @fields = sort keys %$field_values;
-    my @values = @{$field_values}{@fields};
+	my @fields = sort keys %$field_values;
+	my @values = @{$field_values}{@fields};
 
-    my $sql = sprintf "$insType INTO %s (%s) VALUES (%s)",
-    	$table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
+	my $sql = sprintf "$insType INTO %s (%s) VALUES (%s)",
+			$table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
 
 
     # USING SQL::Abstract
@@ -194,7 +249,7 @@ sub update{
 	#my($stmt, @bind) = $self->SUPER::update($table, $field_values,  $where);
 
 	my @fields = sort keys %$field_values;
-    my @values = @{$field_values}{@fields};
+	my @values = @{$field_values}{@fields};
 	my $sql = sprintf "UPDATE `%s` SET %s WHERE $where", $table, join(",", map{"`$_`=?"}@fields);
 
 	my $count = 0;

@@ -15,7 +15,7 @@ use File::Path ();
 use File::stat;
 
 use Encode qw( encode decode_utf8 );
-use Mojo::Util 'quote';
+use Mojo::Util qw(decode quote);
 
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
@@ -623,6 +623,10 @@ sub register {
 
 				my ($filename, undef) = File::Basename::fileparse($f);
 				$filename = $self->transliteration($filename);
+
+				$filename = decode 'UTF-8', $filename;
+				next if $filenames->{ $filename };
+				$filenames->{ $filename } = 1;
 
 				my $Upload = $zip -> contents( $f );
 
