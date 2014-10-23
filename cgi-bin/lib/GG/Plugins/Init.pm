@@ -25,14 +25,14 @@ sub register {
 
 	my $conf = $app->plugin('Config', {	file      => 'config', 	default   => {} });
 	$app->static->paths([$conf->{static_path}]);
-  
+
   $app->_setup_inc($conf->{perl5lib});
 
 	$app->plugin('util_helpers');
 	$app->plugin('http_cache');
 	$app->plugin('crypt');
 	$app->plugin('dbi', $conf );
-  
+
 	# Load plugins from config
 	foreach (@{$conf->{plugins}}){
 		$app->plugin($_, $conf);
@@ -80,7 +80,7 @@ sub register {
 	$app->plugin('AssetPack', {
 		minify 			=> $conf->{pipeline_minify} && $app->mode eq 'production',
 	});
-  
+
 	$app->hook(before_dispatch => sub {
 		my $self = shift;
 
@@ -103,7 +103,7 @@ sub register {
         #$ENV{'MOJO_ASSETPACK_DEBUG'} = $ENV{'MOJO_ASSETPACK_NO_CACHE'} = 0;
       };
     }
-        
+
     # if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
     #   $self->app->mode( $ENV{MOJO_MODE} = $mode );
     #
@@ -148,7 +148,7 @@ sub register {
 			$self->res->code(301);
 			return $self->redirect_to($path);
 		}
-    
+
 		# --- REDIRECT MODULE ---------------------------------
 		my $path = $url->to_string;
 		#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
@@ -157,8 +157,16 @@ sub register {
   		if (
   			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
   				){
-  			$self->res->code(301);
-  			return $self->redirect_to($redirect_path);
+				my %qs=();
+				if ($redirect_path =~ /\%3F(\S*)/){
+					foreach (split('\&',$1)){
+						my ($name,$val) = split('=',$_);
+						$qs{$name} = $val;
+					}
+					$redirect_path =~ s/\%3F$1//;
+				}
+				$self->res->code(301);
+				return $self->redirect_to($self->url_for($redirect_path)->query(\%qs) );
   		}
     }
 		# --- END OF REDIRECT MODULE --------------------------
