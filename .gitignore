@@ -14,6 +14,7 @@
 *.tar.gz
 gg.sublime-project
 gg.sublime-workspace
+*.chproj
 httpdocs/userfiles/*
 
 # OS generated files #
