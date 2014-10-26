@@ -182,3 +182,23 @@ dd {
 	margin: 0 0 0 11em;
 	padding: 0 0 0.5em 0;
 }
+
+/* Action buttons */
+.button16 div a{
+    width: 16px;
+    height:16px;
+    display:block;
+    background-size: cover;
+}
+    .button16 .delete a{
+        background-image: url('/admin/img/icons/menu/button.delete.gif');
+    }
+    .button16 .edit a{
+        background-image: url('/admin/img/icons/menu/button.edit.gif');
+    }
+    .button16 .text a{
+        background-image: url('/admin/img/icons/menu/button.text.gif');
+    }
+    .button16 .print a{
+        background-image: url('/admin/img/icons/menu/button.print.gif');
+    }

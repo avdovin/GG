@@ -612,6 +612,7 @@ sub register {
 			die 'read error' if $zip -> read( $params{path} ) != AZ_OK;
 			@textFileMembers = $zip -> memberNames( '.*' );
 			my $tmp_dir = $self->file_tmpdir();
+			my $filenames = [];
 			foreach my $f (@textFileMembers) {
 
 				next if ($f =~ /__MACOSX/i);

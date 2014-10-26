@@ -52,10 +52,8 @@
 		'app.js' 	=> [
 			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/gg.core-2.js',
 			'/js/common.js',
-			'/js/customScroll.js',
-			'/js/jquery-ui-1.9.2.customDraggable.min.js',
-			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/jquery/plugins/jquery.mask.min.js',
-			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/bundled/html4andhtml5/jquery.history.js',
+			#'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/jquery/plugins/jquery.mask.min.js',
+			#'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/bundled/html4andhtml5/jquery.history.js',
 			'http://s3-eu-west-1.amazonaws.com/ifrogcdn/js/jquery.quickSubmit.js',
 		],
 		'app.css' 	=> [

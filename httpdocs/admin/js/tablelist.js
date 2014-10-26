@@ -138,7 +138,7 @@ function init_tablelist(id) {
 							fI_a.onmouseover = function(event) { JT_show(event, this.href_link,this.id,this.name); }
 							formInfo.appendChild(fI_a);
 							fI_img = document.createElement('IMG');
-							fI_img.src = "/admin/img/icons/menu/icon_view.gif";
+							fI_img.src = "/admin/img/icons/flat/qview.png";
 							fI_img.border = 0;
 							fI_a.appendChild(fI_img);
 						}
@@ -148,78 +148,94 @@ function init_tablelist(id) {
 								element_div = element_td.getElementsByTagName("div")[d];
 								if (element_div.className) {
 									action = element_div.className;
-									var img = document.createElement('IMG');
-									    img.src = "/admin/img/icons/menu/button." + action + ".gif";
-									    img.border = 0;
-									    img.className = action + " " + index;
-
-									    if(action == 'delete'){
-											var confirm_msg = 'Вы действительно хотите удалить запись?';
-											img.alt = confirm_msg;
-											img.onclick = function() {
-												array = this.className.split(' ');
-												if (confirm(this.alt)) openPage('center', script_replaceme + array[1], script_link + '?do=' + array[0] + '&index=' + array[1] +'&replaceme=' + script_replaceme + array[1] + script_param, 'info','info');
-											}
-									    } else if(action == 'send' ){
-											var confirm_msg = 'Вы действительно хотите разослать?';
-											img.alt = confirm_msg;
-											img.onclick = function() {
-												array = this.className.split(' ');
-												if (confirm(this.alt)) openPage('center', script_replaceme + array[1], script_link + '?do=' + array[0] + '&index=' + array[1] +'&replaceme=' + script_replaceme + array[1] + script_param, 'info','info');
-											}
-										} else if (action == 'print'){
-											img.onclick = function() {
-												array = this.className.split(' ');
-												displayMessage(script_link + '?do=' + array[0] + '&index=' + array[1], 400, 350, 3)
-//												loadfile(script_link + '?action=' + array[0] + '&index=' + array[1]);
-											}
-
-										} else if (action == 'link'){
-											// img.onclick = function() {
-											// 	array = this.className.split(' ');
-											// 	open_url(script_link + '?do=' + array[0] + '&index=' + array[1]);
-											// }
-
-											img.onclick = function() {
-												array = this.className.split(' ');
-
-												var $img = $("#tr"+array[1]).find(".button16 img.restore"),
-												     src = $img.attr("src");
-
-												if (window.openURLtimer) {
-													$img.attr("src", "/admin/img/preloader_16x16.gif");
-
-													$.ajax({
-														url: script_link + '?do=' + array[0] + '&index=' + array[1]
-													}).done(function(data){
-														$img.attr("src", src);
-														if (data) {
-															prompt("URL страницы", data);
-														}
-													});
-
-													clearTimeout(window.openURLtimer);
-													window.openURLtimer = null;
-
-													return false;
-												}
-
-    											window.openURLtimer = setTimeout(function() { open_url(script_link + '?do=' + array[0] + '&index=' + array[1]); window.openURLtimer = null; }, 250);
-											}
-
-
-										} else if (action != 'upload') {
-											img.onclick = function() {
-												array = this.className.split(' ');
-												openPage('center', script_replaceme + array[1], script_link + '?do=' + array[0] + '&index=' + array[1] + '&replaceme=' + script_replaceme + array[1] + script_param, 'info','info');
-											}
-										} else {
-											img.onclick = function() {
-												array = this.className.split(' ');
-												open_url(script_link + '?do=' + array[0] + '&index=' + array[1]);
-											}
+									var a = document.createElement('a');
+									a.href =  '#';
+									a.dataset.action = action;
+									a.dataset.index = index;
+									if(action == 'delete'){
+										var confirm_msg = 'Вы действительно хотите удалить запись?';
+										a.alt = confirm_msg;
+										a.title = 'Удалить запись';
+										a.onclick = function() {
+											var data = this.dataset;
+											if (confirm(this.alt)) openPage('center', script_replaceme + data.index, script_link + '?do=' + data.action + '&index=' + data.index +'&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
 										}
-									element_div.appendChild(img);
+									}
+									else if(action == 'send' ){
+										var confirm_msg = 'Вы действительно хотите разослать?';
+										a.alt = confirm_msg;
+										a.title = 'Разослать';
+										a.onclick = function() {
+											var data = this.dataset;
+											if (confirm(this.alt)) openPage('center', script_replaceme + data.index, script_link + '?do=' + data.action + '&index=' + data.index +'&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+										}
+									}
+									else if(action == 'print' ){
+										a.title = 'Печать';
+										a.onclick = function() {
+											var data = this.dataset;
+											displayMessage(script_link + '?do=' + data.action + '&index=' + data.index, 400, 350, 3)
+//												loadfile(script_link + '?action=' + array[0] + '&index=' + array[1]);
+										}
+									}
+									else if(action == 'link' ){
+										a.title = 'Перейти';
+										a.onclick = function() {
+											var data = this.dataset;
+
+											var $img = jQuery("#tr"+data.index).find(".button16 img.restore"),
+											     src = $img.attr("src");
+
+											if (window.openURLtimer) {
+												$img.attr("src", "/admin/img/preloader_16x16.gif");
+
+												jQuery.ajax({
+													url: script_link + '?do=' + data.action + '&index=' + data.index
+												}).done(function(data){
+													$img.attr("src", src);
+													if (data) {
+														prompt("URL страницы", data);
+													}
+												});
+
+												clearTimeout(window.openURLtimer);
+												window.openURLtimer = null;
+
+												return false;
+											}
+
+  											window.openURLtimer = setTimeout(function() { open_url(script_link + '?do=' + data.action + '&index=' + data.index); window.openURLtimer = null; }, 250);
+										}
+									}
+									else if(action == 'upload' ){
+										a.title = 'Скачать';
+										a.onclick = function(){
+
+											var data = this.dataset;
+											open_url(script_link + '?do=' + data.action + '&index=' + data.index);
+										}
+									}
+									else if(action == 'edit' ){
+										a.title = 'Редактировать';
+										a.onclick = function() {
+											var data = this.dataset;
+											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+										}
+									}
+									else if(action == 'text' ){
+										a.title = 'Редактировать текст';
+										a.onclick = function() {
+											var data = this.dataset;
+											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+										}
+									} else {
+										a.title = 'Текст';
+										a.onclick = function() {
+											var data = this.dataset;
+											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+										}
+									}
+									element_div.appendChild(a);
 								}
 							}
 						}
@@ -499,14 +515,13 @@ function parse_data_to_table(id, ajaxIndex) {
 
 			for(var j=0; j<buttons_key.length; j++) {
 				var td = document.createElement('TD');
-				jQuery(td).addClass("button16");
+				td.className = "button16";
 				var div = document.createElement('DIV');
-				jQuery(div).addClass(  buttons_key[j].lkey );
-
+				div.className = buttons_key[j].lkey;
 				if(buttons_key[j].confirm) div.setAttribute("confirm", buttons_key[j].confirm);
 
-				jQuery(td).append(div);
-				jQuery(tr).append(td);
+				td.appendChild(div);
+				tr.appendChild(td);
 			};
 
 			jQuery(tr).insertBefore(element_header);
