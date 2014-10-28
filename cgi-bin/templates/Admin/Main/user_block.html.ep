@@ -36,13 +36,13 @@
 			<!-- <input type="checkbox" name="auth_rem" <% if($self->sysuser->settings->{auth_rem}){ %>checked="checked"<% } %> > Запоминать при входе<br /> -->
 <br />
 <br />
-			<input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class=submit_save style="width:200px; text-align: center;">
+			<input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class="btn btn-block btn-lg btn-info" style="width:200px; text-align: center;">
 </form>
 </div>
 <div width='80%' style="margin-top:15px;padding:5px">
 	<form name="clear_settings" method="post" style="margin-left:15px">
 		<input type="hidden" name="do" value="clear_settings">
-		<input type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сбросить все настройки" class=submit_save style="width:200px">
+		<input type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сбросить все настройки" class="btn btn-block btn-lg btn-info" style="width:200px">
 	</form>
 </div>
 

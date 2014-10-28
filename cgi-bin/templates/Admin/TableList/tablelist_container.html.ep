@@ -116,7 +116,7 @@
 						<input type=hidden name="do" value="list_container">
 					</td>
 					<td width="30px" valign="middle">
-						<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?<%= $self->stash->{param_default} %>'); return false;" value="Искать" style="width:100px;" class="submit_save">
+						<input type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?<%= $self->stash->{param_default} %>'); return false;" value="Искать" style="width:100px;" class="btn btn-block btn-lg btn-info">
 					</td>
 					<td align="left" valign="top">
 						<p style="text-align:left;margin-left:10px"><a href="#" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&qsearch=')">Очистить</a></p>
