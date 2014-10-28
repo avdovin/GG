@@ -130,6 +130,7 @@ sub upsert{
 
 	my $created_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
 
+	$field_values->{$_} ||= 'NULL'  foreach (qw(created_at updated_at));
 
 	foreach my $k (keys %$field_values){
 
@@ -148,6 +149,8 @@ sub upsert{
 	my $update_fields = [];
 	foreach my $f (@fields){
 		push @$update_fields, $f if (
+			$f ne 'alias' and
+			$f ne 'active' and
 			$f ne 'updated_at' and
 			$f ne 'created_at'
 		);
@@ -160,19 +163,19 @@ sub upsert{
 	$sql .= sprintf " %s, updated_at=NOW() ",
 		join(",", map{ "`$_`=VALUES($_)" }@$update_fields);
 
-
 	my $index = 0;
 	eval{
-		my $sth = $dbh->prepare($sql);
-		$sth->execute(@values) || die $DBI::errstr;
-		$index = $dbh->{'mysql_insertid'};
-		$sth->finish();
+	    my $sth = $dbh->prepare($sql);
+	    $sth->execute(@values) || die $DBI::errstr;
+	    $index = $dbh->{'mysql_insertid'};
+	    $sth->finish();
 	};
 	if($@){
 		$self->save_mysql_error($@, $sql, \@values);
 		$self->{error} = $@;
 		return;
 	}
+
 	$index = $field_values->{ID} if $field_values->{ID};
 	return $index;
 }
@@ -219,7 +222,7 @@ sub insert_hash {
 	$insType ||= 'INSERT';
 
   my $created_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
-	$field_values->{$_} ||= 0  foreach (qw(created_at updated_at));
+	$field_values->{$_} ||= 'NULL'  foreach (qw(created_at updated_at));
 
 	foreach my $k (keys %$field_values){
 
