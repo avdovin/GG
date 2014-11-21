@@ -85,6 +85,7 @@ sub register {
 				retina		=> 0,
 				watermark 	=> '',
 				db_index 	=> 0,
+				replace 	=> 0,
 				@_
 			);
 
@@ -104,7 +105,7 @@ sub register {
 			# Создаем папку если ее нет
 			$self->file_make_static_path($params{folder});
 
-			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$params{filename} );
+			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( %params, to => $params{folder}.$params{filename} );
 			$self->resize_pict(
 				file	  => $pict_path,
 				fsize 	=> $MAX_IMAGE_SIZE,
@@ -138,7 +139,7 @@ sub register {
 						my ($w, $h) = ($1, $2);
 						my %type = ($3 	=> 1);
 
-						my ($path, $pict, $ext) = $self->file_save_from_tmp(filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
+						my ($path, $pict, $ext) = $self->file_save_from_tmp(%params, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
 
 						$self->resize_pict(
 							file		=> $path,
@@ -151,7 +152,7 @@ sub register {
 					} elsif($d =~ /([\d]+)x([\d]+)/){
 						my ($w, $h) = ($1, $2);
 
-						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
+						my ($path, $pict, $ext) = $self->file_save_from_tmp(%params, to => $params{folder}.$pict_saved, prefix => $w."x".$h );
 
 						$self->resize_pict(
 							file		=> $path,
@@ -161,7 +162,7 @@ sub register {
 							watermark 	=> $params{watermark},
 						);
 					} else {
-						my ($path, $pict, $ext) = $self->file_save_from_tmp( filename => $params{filename}, to => $params{folder}.$pict_saved, prefix => $d );
+						my ($path, $pict, $ext) = $self->file_save_from_tmp(%params, to => $params{folder}.$pict_saved, prefix => $d );
 
 						$self->resize_pict(
 							file	=> $path,
@@ -374,10 +375,11 @@ sub register {
 				$filename = $params{prefix}.$params{prefix_delimiter}.$filename;
 				$to = $directories.$filename;
 			} else {
+				unlink($to) if ($params{replace} && -e $to);
+
 				($directories, $filename, $ext) = $self->file_check_free_name($to);
 				$to = $directories.$filename;
 			}
-			unlink($to) if ($params{replace} && -f $to);
 			eval{
 				File::Copy::copy($from, $to)
 			};

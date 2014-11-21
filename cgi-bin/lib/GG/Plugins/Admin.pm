@@ -177,7 +177,7 @@ sub register {
 					$self->app->dbh->do("DELETE FROM `sys_datalogs` WHERE TO_DAYS(NOW())-TO_DAYS(`created_at`)>$days_count");
 
 					# 	Очистка юзер хистори
-					$self->app->dbh->do("DELETE FROM `sys_history` WHERE TO_DAYS(NOW())-TO_DAYS(`updated_at`)>$days_count");
+					$self->app->dbh->do("DELETE FROM `sys_history` WHERE TO_DAYS(NOW())-TO_DAYS(`created_at`)>$days_count");
 					$self->app->dbh->do("OPTIMIZE TABLE `sys_history`");
 				}
 				# очистка старых сессий
