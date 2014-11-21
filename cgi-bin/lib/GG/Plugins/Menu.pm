@@ -91,7 +91,7 @@ sub menu_track {
 				`rating`, `ID`
 		")->map_hashes('ID');
 
-		my $cur_alias = $self->stash->{alias};
+		my $cur_alias = lc($self->stash->{alias});
 
 		$self->stash->{menu_active_levels} ||= {};
 
@@ -99,7 +99,7 @@ sub menu_track {
 			my $row         = $items->{$pageId};
 			my $parentID    = $items->{$pageId}->{texts_main};
 			my $tree_levels = 1;
-			my $current		= $cur_alias && $items->{$pageId}->{alias} eq $cur_alias ? 1 : 0;
+			my $current		= $cur_alias && lc($items->{$pageId}->{alias}) eq $cur_alias ? 1 : 0;
 
 			my @trees = ();
 
