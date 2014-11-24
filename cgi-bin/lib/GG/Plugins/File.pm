@@ -105,7 +105,9 @@ sub register {
 			# Создаем папку если ее нет
 			$self->file_make_static_path($params{folder});
 
-			($pict_path, $pict_saved, $type_file) = $self->file_save_from_tmp( %params, to => $params{folder}.$params{filename} );
+			($pict_path, $params{'pict'}, $params{'type_file'}) = $self->file_save_from_tmp(%params, to => $params{folder}.$params{filename});
+			my $pict_saved = $params{'pict'};
+
 			$self->resize_pict(
 				file	  => $pict_path,
 				fsize 	=> $MAX_IMAGE_SIZE,
@@ -116,9 +118,9 @@ sub register {
 				delete $fields_hashref->{$_} unless $self->dbi->exists_keys(from => $table, lkey => $fields_hashref->{$_} );
 			}
 			my $values = {};
-			$values->{ $fields_hashref->{folder} } = $params{folder} if $fields_hashref->{folder};
-			$values->{ $fields_hashref->{pict} } = $pict_saved if $fields_hashref->{pict};
-			$values->{ $fields_hashref->{type_file} } = $type_file if $fields_hashref->{type_file};
+			foreach my $k (keys %$fields_hashref){
+				$values->{$k} = $params{$k} if $params{$k}
+			}
 
 			# Если обновляем запись то предварительно бэкам текущий индекс
 			if($params{db_index}){
