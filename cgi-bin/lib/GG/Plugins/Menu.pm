@@ -21,15 +21,11 @@ sub register {
 
 sub breadcrumbs{
 	my $self = shift;
-
-	unless($self->stash->{'gg.breadcrumbs_items'}){
-		$self->stash->{'gg.breadcrumbs_items'} = 1;
-		# забираем все текстовые страницы для хлебных крошек
-		$self->menu_track( where => "");
-	}
+	# забираем все текстовые страницы для хлебных крошек
+	$self->menu_track( where => "", build_bc => 1);
 
 	navipoint($self, @_);
-
+	
 	my $content = $self->render_to_string(
 		template    => 'Plugins/Menu/breadcrumbs',
 	);
@@ -44,13 +40,11 @@ sub navipoint {
 		for (my $i = 0; $i <= $#_; $i += 2) {
 			push @points, {'name' => $_[$i], 'url' => $_[$i + 1]};
 		}
-		#@points = @points;
 	}
-
 	my $store = $self->stash('_navipoints') || [];
+	
 	push @$store, @points;
 	$self->stash('_navipoints', $store);
-
 	return scalar @$store;
 }
 
@@ -134,13 +128,13 @@ sub menu_track {
 			$items->{$pageId}->{level} = $tree_levels;
 		}
 
-		if($self->stash->{'gg.breadcrumbs_items'}){
+		if(delete $params{build_bc}){
 			foreach my $lvl (sort keys %$levels){
 				next unless my $pageId = $levels->{ $lvl };
 				$self->navipoint( $items->{$pageId}->{name} => $self->menu_item( $items->{$pageId} ) );
 			}
 		}
-
+		
 		$self->stash->{$stash_key			   } = $items;
 		$self->stash->{$stash_key.'_levels'	   } = $levels;
 		$self->stash->{$stash_key.'_toplevel'  } = $params{toplevel};
