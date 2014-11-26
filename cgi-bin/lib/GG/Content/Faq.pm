@@ -22,7 +22,7 @@ sub list{
 	}
 
 	my $items = $self->dbi->query("SELECT * FROM `data_faq` WHERE $where")->hashes;
-	return $self->render_not_found unless my $item = $self->dbi->query("SELECT * FROM `texts_main_ru` WHERE `alias`='faq' AND `viewtext`=1")->hash;
+	return $self->render_not_found unless my $item = $self->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='faq' AND `viewtext`=1")->hash;
 	$self->stash->{'faq_form_errors'} = {};
 	# Добавление нового отзыва
 	if($self->req->method eq 'POST'){
