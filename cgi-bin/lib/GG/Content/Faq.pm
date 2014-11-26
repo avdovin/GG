@@ -12,7 +12,7 @@ sub list{
 		@_
 	);
 
-	my $where = " `active`='1' ORDER BY `rdate` DESC ";
+	my $where = " `active`='1' ORDER BY `updated_at` DESC ";
 
 	if($params{limit}){
 		my $count = $self->dbi->getCountCol(from => 'data_faq', where => $where);
@@ -22,12 +22,12 @@ sub list{
 	}
 
 	my $items = $self->dbi->query("SELECT * FROM `data_faq` WHERE $where")->hashes;
-
+	return $self->render_not_found unless my $item = $self->dbi->query("SELECT * FROM `texts_main_ru` WHERE `alias`='faq' AND `viewtext`=1")->hash;
 	$self->stash->{'faq_form_errors'} = {};
 	# Добавление нового отзыва
 	if($self->req->method eq 'POST'){
 		my $send_params = $self->req->params->to_hash;
-
+		my $JSON = {};
 
 		my $fields = {
 			author_name 		=> {
@@ -58,13 +58,13 @@ sub list{
 
 			}
 			elsif($fields->{ $f }->{required}){
-				$self->stash->{'faq_form_errors'}->{$f} = $fields->{ $f }->{'error_text'};
+				$self->stash->{'faq_form_errors'}->{$f} = $JSON->{errors}->{$f} = $fields->{ $f }->{'error_text'};
 			}
 		}
 
 		# check captcha
 		if(!$send_params->{captcha} or $send_params->{captcha} != 31){
-			$self->stash->{'faq_form_errors'}->{'captcha'} = 'Похоже вы робот';
+			$self->stash->{'faq_form_errors'}->{'captcha'} = $JSON->{errors}->{'captcha'} = 'Похоже вы робот';
 		}
 
 		if(!keys %{ $self->stash->{'faq_form_errors'} }){
@@ -73,8 +73,8 @@ sub list{
 				email 			=> $self->stash->{'email'},
 				phone		 	=> $self->stash->{'phone'},
 				name 			=> $self->stash->{'name'},
-
-				active 			=> 1,
+				created_at 		=> ' NOW() ',
+				active 			=> 0,
 			});
 			my $email_body = 	$self->render_mail(
 				template	=> "Faq/_admin"
@@ -88,13 +88,21 @@ sub list{
 				);
 			};
 
-			$self->flash( faq_form_success => 1);
-			return $self->redirect_to('faq');
+			$JSON->{message_success} = $self->render_to_string(template => 'Faq/_message_success');
+			return $self->render(
+					json => $JSON,
+				)
+		}else{
+			$JSON->{message_success} = '';
+			return $self->render(
+				json => $JSON,
+			)
 		}
 	}
 
 	$self->render(
 		items		=> $items,
+		item 		=> $item,
 		template	=> 'Faq/list',
 	);
 }
