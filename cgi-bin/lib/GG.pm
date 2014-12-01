@@ -12,7 +12,7 @@ sub startup{
 
 	# Init config & plugins and other ...
 	$self->plugins->namespaces( [ 'GG::Plugins', 'Mojolicious::Plugin'] );
-	$self->commands->namespaces (['GG::Command']);
+	push @{$self->commands->namespaces ()},'GG::Command';
 	$self->plugin('init');
 
 
