@@ -210,7 +210,7 @@ sub text_list_item{
 	$self->meta_keywords( $item->{keywords} );
 	$self->meta_description( $item->{description} );
 
-	$self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' ) if ($text->{'updated_at'} ne '0000-00-00 00:00:00');
+	$self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' ) if ($item->{'updated_at'} ne '0000-00-00 00:00:00');
 
 	#$text->{index_after} = $self->get_index_after(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 	#$text->{index_befor} = $self->get_index_befor(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
