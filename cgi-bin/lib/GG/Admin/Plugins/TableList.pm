@@ -140,7 +140,7 @@ sub register {
 					}elsif($type =~ /list/){
 						$item->{$v} = $self->VALUES( name => $v, type => 'list', value => $item->{$v}, value_split => "=", )
 
-					}elsif($type eq 'pict' or $type eq 'file'){
+					}elsif($type eq 'pict'){
 						if(!$item->{$v}){
 							$item->{$v} = '/admin/img/no_img.png';
 						} else {

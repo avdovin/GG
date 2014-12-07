@@ -269,3 +269,6 @@ dd {
     .button16 .print a{
         background-image: url('/admin/img/icons/menu/button.print.gif');
     }
+    .button16 .upload a{
+        background-image: url('/admin/img/icons/menu/icon_upload.gif');
+    }

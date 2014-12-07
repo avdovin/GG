@@ -274,7 +274,7 @@
 				if (initExpandedNodes.indexOf('.' + inputId + '.') < 0) initExpandedNodes = initExpandedNodes + inputId + '.';
 			} else {
 				thisNode.src = thisNode.src.replace(JSTreeObj.minusImage,JSTreeObj.plusImage);
-				parentNode.getElementsByTagName('UL')[0].style.display='none';
+				if(parentNode.getElementsByTagName('UL')[0]) parentNode.getElementsByTagName('UL')[0].style.display='none';
 				initExpandedNodes = initExpandedNodes.replace('.' + inputId,'');
 			}
 			document.cookie = "tree=" + initExpandedNodes + ";expires=Wed, 10-Feb-2077 00:00:00 GMT;";

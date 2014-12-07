@@ -225,7 +225,7 @@ sub register {
 			return unless my $controller = shift || $self->stash->{controller};
 
 			$controller = lc $controller;
-      
+
       my @files = ();
 			if(-f $self->static_path.'/js/controllers/'.$controller.'.js'){
 				#$self->js_files( '/js/controllers/'.$controller.'.js' );
@@ -665,16 +665,25 @@ sub register {
 			$m += 0;
 			my $month;
 
-			if ($params{format} =~ m/dd|day/){
+			if ($params{format} =~ m/dd|day/ && $d > 0){
 				$month = $month1{$m};
-			};
+			}
+			elsif($params{format} =~ m/dd|day/ && $d == 0){
+				$month = ucfirst $month2{$m};
+			}
 
 			# вариант с отсутствием даты
 			$month ||= '';
 
 			$params{date} = $params{format};
 			$params{date} =~ s/month/$month/;
-			$params{date} =~ s/dd|day/$d/e;
+			if($d > 0){
+				$params{date} =~ s/dd|day/$d/e;
+			}
+			else {
+				$params{date} =~ s/dd|day//e;
+			}
+
 			$params{date} =~ s/yyyy/sprintf("%04d", $y)/e;
 			$params{date} =~ s/yy/sprintf("%02d", $ys)/e;
 			$params{date} =~ s/mm/sprintf("%02d", $m)/e;

@@ -40,7 +40,7 @@ function clear_list_filter(url, replaceme, params){
 	ajaxform[out].onCompletion = function() {
 		var qs = '';
 		for(var field in params){
-			qs = '&'+field+'='+params[field];
+			qs += '&'+field+'='+params[field];
 		}
 
 		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
@@ -58,15 +58,16 @@ function set_list_filter(url, replaceme, params){
 	for(var field in params){
 		ajaxform[out].setVar(field , params[field]);
 	}
+
+	if (!document.getElementById(replaceme)) replaceme = 'replaceme';
 	ajaxform[out].setVar("replaceme", replaceme);
 
 	ajaxform[out].onCompletion = function() {
 		var qs = '';
 		for(var field in params){
-			qs = '&'+field+'='+params[field];
+			qs += '&'+field+'='+params[field];
 		}
-
-		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
+		ld_content(replaceme, url+'?do=list_container'+qs, '', 1)
 	}
 	ajaxform[out].runAJAX();
 }
@@ -210,7 +211,6 @@ function init_tablelist(id) {
 									else if(action == 'upload' ){
 										a.title = 'Скачать';
 										a.onclick = function(){
-
 											var data = this.dataset;
 											open_url(script_link + '?do=' + data.action + '&index=' + data.index);
 										}
