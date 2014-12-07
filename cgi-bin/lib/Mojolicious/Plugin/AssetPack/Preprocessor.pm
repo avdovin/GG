@@ -11,16 +11,33 @@ L<Mojolicious::Plugin::AssetPack::Preprocessor> is a base class for preprocessor
 =cut
 
 use Mojo::Base -base;
+use Mojo::JSON 'encode_json';
 use Mojo::Util ();
+use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
-use overload (
-  q(&{}) => sub { shift->can('process') },
-  fallback => 1,
-);
+use overload (q(&{}) => sub { shift->can('process') }, fallback => 1,);
 
 =head1 ATTRIBUTES
 
+=head2 errmsg
+
+Holds the error from last L</process>.
+
+=cut
+
+has errmsg => '';
+
 =head1 METHODS
+
+=head2 can_process
+
+  $bool = $self->can_process;
+
+Returns true.
+
+=cut
+
+sub can_process {1}
 
 =head2 checksum
 
@@ -53,6 +70,53 @@ sub process {
   $self->{processor}->($assetpack, $text, $path);
   $self;
 }
+
+sub _make_css_error {
+  my ($self, $err, $text) = @_;
+  $err =~ s!"!'!g;
+  $err =~ s!\n!\\A!g;
+  $err =~ s!\s! !g;
+  $$text
+    = qq(html:before{background:#f00;color:#fff;font-size:14pt;position:absolute;padding:20px;z-index:9999;content:"$err";});
+  $self->errmsg($err);
+  $self;
+}
+
+sub _make_js_error {
+  my ($self, $err, $text) = @_;
+  my $code = encode_json([split /\n/, $$text]);
+
+  $err =~ s!'!"!g;
+  $err =~ s!\n!\\n!g;
+  $err =~ s!\s! !g;
+  $$text = "alert('$err');console.log(@{[encode_json({code => [split /\n/, $$text], err => $err})]});";
+  $self->errmsg($err);
+  $self;
+}
+
+sub _run {
+  my ($self, $cmd, $in, $out, $err) = @_;
+
+  $self->errmsg('');
+  local ($!, $?) = (0, -1, '');
+  IPC::Run3::run3($cmd, $in, $out, $err, {return_if_system_error => 1});
+
+  warn "[ASSETPACK] @$cmd \$?=$? \$!=$! $$err\n" if DEBUG;
+
+  if (!$?) {
+    $$err = '';
+  }
+  elsif ($! == 2) {
+    $$err = sprintf "Cannot execute '%s'. See %s", $cmd->[0], $self->_url;
+  }
+  else {
+    $$err = sprintf "Failed to run '%s' (\$?=%s, \$!=%s) %s", join(' ', @$cmd), $? >> 8, int($!), $$err;
+  }
+
+  return $self;
+}
+
+sub _url {'https://metacpan.org/pod/Mojolicious::Plugin::AssetPack::Preprocessors'}
 
 =head1 COPYRIGHT AND LICENSE
 
