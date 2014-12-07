@@ -1,8 +1,8 @@
 package Mojolicious::Validator::Validation;
 use Mojo::Base -base;
 
-use Carp 'croak';
-use Scalar::Util 'blessed';
+use Carp         ();
+use Scalar::Util ();
 
 has [qw(csrf_token topic validator)];
 has [qw(input output)] => sub { {} };
@@ -11,10 +11,10 @@ sub AUTOLOAD {
   my $self = shift;
 
   my ($package, $method) = our $AUTOLOAD =~ /^(.+)::(.+)$/;
-  croak "Undefined subroutine &${package}::$method called"
-    unless blessed $self && $self->isa(__PACKAGE__);
+  Carp::croak "Undefined subroutine &${package}::$method called"
+    unless Scalar::Util::blessed $self && $self->isa(__PACKAGE__);
 
-  croak qq{Can't locate object method "$method" via package "$package"}
+  Carp::croak qq{Can't locate object method "$method" via package "$package"}
     unless $self->validator->checks->{$method};
   return $self->check($method => @_);
 }
@@ -54,6 +54,8 @@ sub error {
   return $self;
 }
 
+sub every_param { shift->_param(@_) }
+
 sub has_data { !!keys %{shift->input} }
 
 sub has_error { $_[1] ? exists $_[0]{error}{$_[1]} : !!keys %{$_[0]{error}} }
@@ -75,20 +77,23 @@ sub param {
   my ($self, $name) = @_;
 
   # Multiple names
-  return map { scalar $self->param($_) } @$name if ref $name eq 'ARRAY';
+  return map { $self->param($_) } @$name if ref $name eq 'ARRAY';
 
   # List names
   return sort keys %{$self->output} unless defined $name;
 
-  my $value = $self->output->{$name};
-  my @values = ref $value eq 'ARRAY' ? @$value : ($value);
-  return wantarray ? @values : $values[0];
+  return $self->_param($name)->[-1];
 }
 
 sub required {
   my ($self, $name) = @_;
   return $self if $self->optional($name)->is_valid;
   return $self->error($name => ['required']);
+}
+
+sub _param {
+  return [] unless defined(my $value = shift->output->{shift()});
+  return [ref $value eq 'ARRAY' ? @$value : $value];
 }
 
 1;
@@ -122,8 +127,8 @@ L<Mojolicious::Validator::Validation> implements the following attributes.
 
 =head2 csrf_token
 
-  my $token   = $validation->token;
-  $validation = $validation->token('fa6a08...');
+  my $token   = $validation->csrf_token;
+  $validation = $validation->csrf_token('fa6a08...');
 
 CSRF token.
 
@@ -184,6 +189,16 @@ only be one per field.
 
   my ($check, $result, @args) = @{$validation->error('foo')};
 
+=head2 every_param
+
+  my $values = $validation->every_param('foo');
+
+Similar to L</"param">, but returns all values sharing the same name as an
+array reference.
+
+  # Get first value
+  my $first = $validation->every_param('foo')->[0];
+
 =head2 has_data
 
   my $bool = $validation->has_data;
@@ -214,11 +229,12 @@ Change validation L</"topic">.
 =head2 param
 
   my @names       = $validation->param;
-  my $foo         = $validation->param('foo');
-  my @foo         = $validation->param('foo');
+  my $value       = $validation->param('foo');
   my ($foo, $bar) = $validation->param(['foo', 'bar']);
 
-Access validated parameters, similar to L<Mojolicious::Controller/"param">.
+Access validated parameters. If there are multiple values sharing the same
+name, and you want to access more than just the last one, you can use
+L</"every_param">.
 
 =head2 required
 
@@ -233,9 +249,13 @@ In addition to the L</"ATTRIBUTES"> and L</"METHODS"> above, you can also call
 validation checks provided by L</"validator"> on
 L<Mojolicious::Validator::Validation> objects, similar to L</"check">.
 
+  # Call validation checks
   $validation->required('foo')->size(2, 5)->like(qr/^[A-Z]/);
   $validation->optional('bar')->equal_to('foo');
   $validation->optional('baz')->in(qw(test 123));
+
+  # Longer version
+  $validation->required('foo')->check('size', 2,5)->check('like', qr/^[A-Z]/);
 
 =head1 SEE ALSO
 

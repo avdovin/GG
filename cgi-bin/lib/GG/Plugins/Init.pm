@@ -149,11 +149,13 @@ sub register {
 			return $self->redirect_to($path);
 		}
 
-		# --- REDIRECT MODULE ---------------------------------
-		my $path = $url->to_string;
-		#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
-    # Ignore static files
-    unless( $self->res->code ){
+
+    # If not static request
+    if( $self->res->code ){
+
+			# --- REDIRECT MODULE ---------------------------------
+			my $path = $url->to_string;
+			#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
   		if (
   			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
   				){
@@ -168,8 +170,13 @@ sub register {
 				$self->res->code(301);
 				return $self->redirect_to($self->url_for($redirect_path)->query(\%qs) );
   		}
+			# --- END OF REDIRECT MODULE --------------------------
+			#
+  		# check sessions
+			if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+		  	$self->session( cck => $cck );
+			}
     }
-		# --- END OF REDIRECT MODULE --------------------------
 
 
 
@@ -188,10 +195,6 @@ sub register {
 					$self->js_files("$1.$2") if $2 eq 'js';
 				}
 			}
-		}
-
-		if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-		  $self->session( cck => $cck );
 		}
 	});
 

@@ -160,7 +160,7 @@ sub _listen {
       warn "-- Accept (@{[$stream->handle->peerhost]})\n" if DEBUG;
       $stream->timeout($self->inactivity_timeout);
 
-      $stream->on(close => sub { $self->_close($id) });
+      $stream->on(close => sub { $self && $self->_close($id) });
       $stream->on(error =>
           sub { $self && $self->app->log->error(pop) && $self->_close($id) });
       $stream->on(read => sub { $self->_read($id => pop) });
@@ -264,12 +264,12 @@ L<Mojo::Server::Daemon> is a full featured, highly portable non-blocking I/O
 HTTP and WebSocket server, with IPv6, TLS, Comet (long polling), keep-alive
 and multiple event loop support.
 
-For better scalability (epoll, kqueue) and to provide IPv6, SOCKS5 as well as
-TLS support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+),
-L<IO::Socket::Socks> (0.64+) and L<IO::Socket::SSL> (1.84+) will be used
-automatically if they are installed. Individual features can also be disabled
-with the C<MOJO_NO_IPV6>, C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment
-variables.
+For better scalability (epoll, kqueue) and to provide non-blocking name
+resolution, SOCKS5 as well as TLS support, the optional modules L<EV> (4.0+),
+L<Net::DNS::Native> (0.12+), L<IO::Socket::Socks> (0.64+) and
+L<IO::Socket::SSL> (1.84+) will be used automatically if they are installed.
+Individual features can also be disabled with the C<MOJO_NO_NDN>,
+C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 

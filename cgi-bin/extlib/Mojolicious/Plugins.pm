@@ -32,15 +32,10 @@ sub emit_hook_reverse {
 sub load_plugin {
   my ($self, $name) = @_;
 
-  # Try all namespaces
-  my $class = $name =~ /^[a-z]/ ? camelize($name) : $name;
-  for my $ns (@{$self->namespaces}) {
-    my $module = "${ns}::$class";
-    return $module->new if _load($module);
-  }
-
-  # Full module name
-  return $name->new if _load($name);
+  # Try all namespaces and full module name
+  my $suffix = $name =~ /^[a-z]/ ? camelize($name) : $name;
+  my @classes = map {"${_}::$suffix"} @{$self->namespaces};
+  for my $class (@classes, $name) { return $class->new if _load($class) }
 
   # Not found
   die qq{Plugin "$name" missing, maybe you need to install it?\n};

@@ -4,11 +4,13 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-use Mojo::Util qw/b64_decode b64_encode/;
 use Mojo::JSON;
+use Mojo::Util qw(b64_decode b64_encode);
 
-# JSON serializer
-my $JSON = Mojo::JSON->new;
+has default_expiration => 3600;
+
+## JSON serializer
+#my $JSON = Mojo::JSON->new;
 
 my $user = {
 			login	=> '',
@@ -22,13 +24,10 @@ my $user = {
 sub register {
 	my ($self, $app, $conf) = @_;
 
-	unless (ref($app)->can('user'))
-	{
+	unless (ref($app)->can('user')){
 		ref($app)->attr('user');
 	}
-
-	unless (ref($app)->can('userdata'))
-	{
+	unless (ref($app)->can('userdata')){
 		ref($app)->attr('userdata');
 	}
 
@@ -69,8 +68,10 @@ sub register {
 
 		    # Serialize
 		    my $data = $self->userdata;
-		    my $encodeData = b64_encode $JSON->encode($data), '';
-    		$encodeData =~ s/\=/\-/g;
+		    my $encodeData = b64_encode(Mojo::JSON::encode_json($data), '');
+		    #my $encodeData = b64_encode $JSON->encode($data), '';
+		    $encodeData =~ y/=/-/;
+    		#$encodeData =~ s/\=/\-/g;
 
 			my $cck = $self->app->user->{cck};
 
@@ -139,8 +140,8 @@ sub register {
 
 			$self->app->userdata({});
 
-			$session->{data} =~ s/\-/\=/g;
-			if(my $userData = $JSON->decode(b64_decode $session->{data})){
+			$session->{data} =~ s/\-/\=/;
+			if(my $userData = Mojo::JSON::j(b64_decode $session->{data}) ){
   				$self->app->userdata($userData);
 			}
 

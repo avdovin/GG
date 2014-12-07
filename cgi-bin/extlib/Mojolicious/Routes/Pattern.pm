@@ -57,7 +57,7 @@ sub parse {
 }
 
 sub render {
-  my ($self, $values, $render) = @_;
+  my ($self, $values, $endpoint) = @_;
 
   # Placeholders can only be optional without a format
   my $optional = !(my $format = $values->{format});
@@ -85,8 +85,7 @@ sub render {
   }
 
   # Format can be optional
-  $str ||= '/';
-  return $render && $format ? "$str.$format" : $str;
+  return $endpoint && $format ? "$str.$format" : $str;
 }
 
 sub _compile {
@@ -117,7 +116,7 @@ sub _compile {
       unshift @$placeholders, $value;
 
       # Placeholder
-      if ($op eq 'placeholder') { $fragment = '([^/\.]+)' }
+      if ($op eq 'placeholder') { $fragment = '([^/.]+)' }
 
       # Relaxed
       elsif ($op eq 'relaxed') { $fragment = '([^/]+)' }
@@ -196,17 +195,20 @@ sub _tokenize {
     # Quote end
     elsif ($char eq $quote_end) { ($inside, $quoted) = (0, 0) }
 
-    # Slash (first slash is text for optimizations)
+    # Slash
     elsif ($char eq '/') {
-      push @tree, @tree ? ['slash'] : ['text', '/'];
+      push @tree, ['slash'];
       $inside = 0;
     }
 
     # Placeholder, relaxed or wildcard
     elsif ($inside) { $tree[-1][-1] .= $char }
 
-    # Text (optimize text followed by slash followed by text)
+    # Text (optimize slash+text and *+text+slash+text)
     elsif ($tree[-1][0] eq 'text') { $tree[-1][-1] .= $char }
+    elsif (!$tree[-2] && $tree[-1][0] eq 'slash') {
+      @tree = (['text', "/$char"]);
+    }
     elsif ($tree[-2] && $tree[-2][0] eq 'text' && $tree[-1][0] eq 'slash') {
       pop @tree && ($tree[-1][-1] .= "/$char");
     }

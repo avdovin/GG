@@ -106,7 +106,7 @@ sub register {
 			$self->file_make_static_path($params{folder});
 
 			($pict_path, $params{'pict'}, $params{'type_file'}) = $self->file_save_from_tmp(%params, to => $params{folder}.$params{filename});
-			my $pict_saved = $params{'pict'};
+			$pict_saved = $params{'pict'};
 
 			$self->resize_pict(
 				file	  => $pict_path,

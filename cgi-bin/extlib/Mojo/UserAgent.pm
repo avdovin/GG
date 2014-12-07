@@ -119,8 +119,7 @@ sub _connect {
       return $self->_error($id, $err) if $err;
 
       # Connection established
-      $stream->on(
-        timeout => sub { $self->_error($id, 'Inactivity timeout', 1) });
+      $stream->on(timeout => sub { $self->_error($id, 'Inactivity timeout') });
       $stream->on(close => sub { $self && $self->_finish($id, 1) });
       $stream->on(error => sub { $self && $self->_error($id, pop) });
       $stream->on(read => sub { $self->_read($id, pop) });
@@ -235,12 +234,9 @@ sub _enqueue {
 }
 
 sub _error {
-  my ($self, $id, $err, $timeout) = @_;
-
-  if (my $tx = $self->{connections}{$id}{tx}) {
-    $tx->res->error({message => $err});
-  }
-  elsif (!$timeout) { return $self->emit(error => $err) }
+  my ($self, $id, $err) = @_;
+  my $tx = $self->{connections}{$id}{tx};
+  $tx->res->error({message => $err}) if $tx;
   $self->_finish($id, 1);
 }
 
@@ -320,8 +316,7 @@ sub _start {
     $url->scheme($base->scheme)->authority($base->authority);
   }
 
-  $self->proxy->inject($tx);
-  if (my $jar = $self->cookie_jar) { $jar->inject($tx) }
+  $_ && $_->inject($tx) for $self->proxy, $self->cookie_jar;
 
   # Connect and add request timeout if necessary
   my $id = $self->emit(start => $tx)->_connection($nb, $tx, $cb);
@@ -383,10 +378,11 @@ Mojo::UserAgent - Non-blocking I/O HTTP and WebSocket user agent
     ->res->json('/results/0/title');
 
   # Extract data from HTML and XML resources
-  say $ua->get('www.perl.org')->res->dom->html->head->title->text;
+  say $ua->get('www.perl.org')->res->dom->at('title')->text;
 
   # Scrape the latest headlines from a news site with CSS selectors
-  say $ua->get('blogs.perl.org')->res->dom('h2 > a')->text->shuffle;
+  say $ua->get('blogs.perl.org')
+    ->res->dom->find('h2 > a')->map('text')->join("\n");
 
   # Search DuckDuckGo anonymously through Tor
   $ua->proxy->http('socks://127.0.0.1:9050');
@@ -398,7 +394,8 @@ Mojo::UserAgent - Non-blocking I/O HTTP and WebSocket user agent
     = $ua->put('[::1]:3000' => {'Content-Type' => 'text/plain'} => 'Hello!');
 
   # Follow redirects to grab the latest Mojolicious release :)
-  $ua->max_redirects(5)->get('latest.mojolicio.us')
+  $ua->max_redirects(5)
+    ->get('https://www.github.com/kraih/mojo/tarball/master')
     ->res->content->asset->move_to('/Users/sri/mojo.tar.gz');
 
   # TLS certificate authentication and JSON POST
@@ -406,18 +403,18 @@ Mojo::UserAgent - Non-blocking I/O HTTP and WebSocket user agent
     ->post('https://example.com' => json => {top => 'secret'});
 
   # Non-blocking concurrent requests
-  my $delay = Mojo::IOLoop->delay(sub {
-    my ($delay, @titles) = @_;
-    say for @titles;
-  });
-  for my $url ('mojolicio.us', 'cpan.org') {
-    my $end = $delay->begin(0);
-    $ua->get($url => sub {
-      my ($ua, $tx) = @_;
-      $end->($tx->res->dom->at('title')->text);
-    });
-  }
-  $delay->wait;
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $ua->get('mojolicio.us' => $delay->begin);
+      $ua->get('cpan.org'     => $delay->begin);
+    },
+    sub {
+      my ($delay, $mojo, $cpan) = @_;
+      say $mojo->res->dom->at('title')->text;
+      say $cpan->res->dom->at('title')->text;
+    }
+  )->wait;
 
   # Non-blocking WebSocket connection sending and receiving JSON messages
   $ua->websocket('ws://example.com/echo.json' => sub {
@@ -443,12 +440,12 @@ All connections will be reset automatically if a new process has been forked,
 this allows multiple processes to share the same L<Mojo::UserAgent> object
 safely.
 
-For better scalability (epoll, kqueue) and to provide IPv6, SOCKS5 as well as
-TLS support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+),
-L<IO::Socket::Socks> (0.64+) and L<IO::Socket::SSL> (1.84+) will be used
-automatically if they are installed. Individual features can also be disabled
-with the C<MOJO_NO_IPV6>, C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment
-variables.
+For better scalability (epoll, kqueue) and to provide non-blocking name
+resolution, SOCKS5 as well as TLS support, the optional modules L<EV> (4.0+),
+L<Net::DNS::Native> (0.12+), L<IO::Socket::Socks> (0.64+) and
+L<IO::Socket::SSL> (1.84+) will be used automatically if they are installed.
+Individual features can also be disabled with the C<MOJO_NO_NDN>,
+C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"USER AGENT"> for more.
 
@@ -456,21 +453,6 @@ See L<Mojolicious::Guides::Cookbook/"USER AGENT"> for more.
 
 L<Mojo::UserAgent> inherits all events from L<Mojo::EventEmitter> and can emit
 the following new ones.
-
-=head2 error
-
-  $ua->on(error => sub {
-    my ($ua, $err) = @_;
-    ...
-  });
-
-Emitted if an error occurs that can't be associated with a transaction, fatal
-if unhandled.
-
-  $ua->on(error => sub {
-    my ($ua, $err) = @_;
-    say "This looks bad: $err";
-  });
 
 =head2 start
 
@@ -525,11 +507,11 @@ environment variable or C<10>.
   my $cookie_jar = $ua->cookie_jar;
   $ua            = $ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 
-Cookie jar to use for this user agents requests, defaults to a
+Cookie jar to use for requests performed by this user agent, defaults to a
 L<Mojo::UserAgent::CookieJar> object.
 
-  # Disable cookie jar
-  $ua->cookie_jar(0);
+  # Disable extraction of cookies from responses
+  $ua->cookie_jar->extracting(0);
 
 =head2 inactivity_timeout
 
@@ -832,8 +814,9 @@ implied). You can also append a callback to perform requests non-blocking.
 
   my $tx = $ua->start(Mojo::Transaction::HTTP->new);
 
-Perform blocking request. You can also append a callback to perform requests
-non-blocking.
+Perform blocking request for a custom L<Mojo::Transaction::HTTP> object, which
+can be prepared manually or with L</"build_tx">. You can also append a
+callback to perform requests non-blocking.
 
   my $tx = $ua->build_tx(GET => 'http://example.com');
   $ua->start($tx => sub {
@@ -851,7 +834,8 @@ non-blocking.
 Open a non-blocking WebSocket connection with transparent handshake, takes the
 same arguments as L<Mojo::UserAgent::Transactor/"websocket">. The callback
 will receive either a L<Mojo::Transaction::WebSocket> or
-L<Mojo::Transaction::HTTP> object.
+L<Mojo::Transaction::HTTP> object, depending on if the handshake was
+successful.
 
   $ua->websocket('ws://example.com/echo' => sub {
     my ($ua, $tx) = @_;

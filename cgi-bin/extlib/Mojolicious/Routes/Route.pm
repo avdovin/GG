@@ -1,10 +1,10 @@
 package Mojolicious::Routes::Route;
 use Mojo::Base -base;
 
-use Carp 'croak';
+use Carp ();
 use Mojo::Util;
 use Mojolicious::Routes::Pattern;
-use Scalar::Util qw(blessed weaken);
+use Scalar::Util ();
 
 has [qw(inline parent partial)];
 has 'children' => sub { [] };
@@ -14,18 +14,18 @@ sub AUTOLOAD {
   my $self = shift;
 
   my ($package, $method) = our $AUTOLOAD =~ /^(.+)::(.+)$/;
-  croak "Undefined subroutine &${package}::$method called"
-    unless blessed $self && $self->isa(__PACKAGE__);
+  Carp::croak "Undefined subroutine &${package}::$method called"
+    unless Scalar::Util::blessed $self && $self->isa(__PACKAGE__);
 
   # Call shortcut with current route
-  croak qq{Can't locate object method "$method" via package "$package"}
+  Carp::croak qq{Can't locate object method "$method" via package "$package"}
     unless my $shortcut = $self->root->shortcuts->{$method};
   return $self->$shortcut(@_);
 }
 
 sub add_child {
   my ($self, $route) = @_;
-  weaken $route->remove->parent($self)->{parent};
+  Scalar::Util::weaken $route->remove->parent($self)->{parent};
   push @{$self->children}, $route;
   return $self;
 }
@@ -58,7 +58,10 @@ sub find {
 
 sub get { shift->_generate_route(GET => @_) }
 
+# DEPRECATED in Tiger Face!
 sub has_conditions {
+  Mojo::Util::deprecated
+    'Mojolicious::Routes::Route::has_conditions is DEPRECATED';
   my $self = shift;
   return 1 if @{$self->over || []};
   return undef unless my $parent = $self->parent;
@@ -69,9 +72,8 @@ sub has_custom_name { !!shift->{custom} }
 
 sub has_websocket {
   my $self = shift;
-  return 1 if $self->is_websocket;
-  return undef unless my $parent = $self->parent;
-  return $parent->is_websocket;
+  return $self->{has_websocket} if exists $self->{has_websocket};
+  return $self->{has_websocket} = grep { $_->is_websocket } @{$self->_chain};
 }
 
 sub is_endpoint { $_[0]->inline ? undef : !@{$_[0]->children} }
@@ -97,7 +99,7 @@ sub over {
   my $conditions = ref $_[0] eq 'ARRAY' ? $_[0] : [@_];
   return $self unless @$conditions;
   $self->{over} = $conditions;
-  $self->root->cache(0);
+  $self->root->cache->max_keys(0);
 
   return $self;
 }
@@ -121,24 +123,14 @@ sub remove {
 }
 
 sub render {
-  my ($self, $path, $values) = @_;
-
-  # Render pattern (if necessary)
-  if (defined((my $pattern = $self->pattern)->pattern) || !$path) {
-    my $prefix = $pattern->render($values, !$path);
-    $path = "$prefix$path" unless $prefix eq '/';
-  }
-
-  # Let parent render
-  return $path || '/' unless my $parent = $self->parent;
-  return $parent->render($path, $values);
+  my ($self, $values) = @_;
+  my $path = join '',
+    map { $_->pattern->render($values, !@{$_->children} && !$_->partial) }
+    @{$self->_chain};
+  return $path || '/';
 }
 
-sub root {
-  my $root = my $parent = shift;
-  $root = $parent while $parent = $parent->parent;
-  return $root;
-}
+sub root { shift->_chain->[0] }
 
 sub route {
   my $self   = shift;
@@ -175,10 +167,7 @@ sub to {
 }
 
 sub to_string {
-  my $self = shift;
-  my $pattern = $self->parent ? $self->parent->to_string : '';
-  $pattern .= $self->pattern->pattern if $self->pattern->pattern;
-  return $pattern;
+  join '', map { $_->pattern->pattern // '' } @{shift->_chain};
 }
 
 sub under { shift->_generate_route(under => @_) }
@@ -195,6 +184,12 @@ sub websocket {
   my $route = shift->get(@_);
   $route->{websocket} = 1;
   return $route;
+}
+
+sub _chain {
+  my @chain = (my $parent = shift);
+  unshift @chain, $parent while $parent = $parent->parent;
+  return \@chain;
 }
 
 sub _generate_route {
@@ -222,12 +217,9 @@ sub _generate_route {
     elsif (ref $arg eq 'HASH') { %defaults = (%defaults, %$arg) }
   }
 
-  # Create bridge or route
   my $route
-    = $methods eq 'under'
-    ? $self->bridge($pattern, @constraints)
-    : $self->route($pattern, @constraints)->via($methods);
-  $route->over(\@conditions)->to(\%defaults);
+    = $self->route($pattern, @constraints)->over(\@conditions)->to(\%defaults);
+  $methods eq 'under' ? $route->inline(1) : $route->via($methods);
 
   return defined $name ? $route->name($name) : $route;
 }
@@ -267,7 +259,7 @@ The children of this route, used for nesting routes.
   my $bool = $r->inline;
   $r       = $r->inline($bool);
 
-Allow L</"bridge"> semantics for this route.
+Allow L</"under"> semantics for this route.
 
 =head2 parent
 
@@ -312,6 +304,7 @@ current parent if necessary.
   my $route = $r->any('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->any('/:foo' => [foo => qr/\w+/] => sub {...});
   my $route = $r->any([qw(GET POST)] => '/:foo' => sub {...});
+  my $route = $r->any([qw(GET POST)] => '/:foo' => [foo => qr/\w+/]);
 
 Generate L<Mojolicious::Routes::Route> object matching any of the listed HTTP
 request methods or all. See also the L<Mojolicious::Lite> tutorial for many
@@ -321,13 +314,13 @@ more argument variations.
 
 =head2 bridge
 
-  my $bridge = $r->bridge;
-  my $bridge = $r->bridge('/:action');
-  my $bridge = $r->bridge('/:action', action => qr/\w+/);
-  my $bridge = $r->bridge(format => 0);
+  my $route = $r->bridge;
+  my $route = $r->bridge('/:action');
+  my $route = $r->bridge('/:action', action => qr/\w+/);
+  my $route = $r->bridge(format => 0);
 
-Low-level generator for bridge routes, returns a L<Mojolicious::Routes::Route>
-object.
+Low-level generator for nested routes with their own intermediate destination,
+returns a L<Mojolicious::Routes::Route> object.
 
   my $auth = $r->bridge('/user')->to('user#auth');
   $auth->get('/show')->to('#show');
@@ -377,12 +370,6 @@ See also the L<Mojolicious::Lite> tutorial for many more argument variations.
 
   $r->get('/user')->to('user#show');
 
-=head2 has_conditions
-
-  my $bool = $r->has_conditions;
-
-Check if this route has active conditions.
-
 =head2 has_custom_name
 
   my $bool = $r->has_custom_name;
@@ -393,7 +380,8 @@ Check if this route has a custom name.
 
   my $bool = $r->has_websocket;
 
-Check if this route has a WebSocket ancestor.
+Check if this route has a WebSocket ancestor and cache the result for future
+checks.
 
 =head2 is_endpoint
 
@@ -509,8 +497,7 @@ Remove route from parent.
 
 =head2 render
 
-  my $path = $r->render($suffix);
-  my $path = $r->render($suffix, {foo => 'bar'});
+  my $path = $r->render({foo => 'bar'});
 
 Render route with parameters into a path.
 
@@ -518,9 +505,7 @@ Render route with parameters into a path.
 
   my $root = $r->root;
 
-The L<Mojolicious::Routes> object this route is an descendent of.
-
-  $r->root->cache(0);
+The L<Mojolicious::Routes> object this route is a descendant of.
 
 =head2 route
 
@@ -557,13 +542,15 @@ Stringify the whole route.
 
 =head2 under
 
-  my $bridge = $r->under(sub {...});
-  my $bridge = $r->under('/:foo' => sub {...});
-  my $bridge = $r->under('/:foo' => [foo => qr/\w+/]);
-  my $bridge = $r->under({format => 0});
+  my $route = $r->under(sub {...});
+  my $route = $r->under('/:foo' => sub {...});
+  my $route = $r->under('/:foo' => {foo => 'bar'});
+  my $route = $r->under('/:foo' => [foo => qr/\w+/]);
+  my $route = $r->under([format => 0]);
 
-Generate L<Mojolicious::Routes::Route> object for bridge route. See also the
-L<Mojolicious::Lite> tutorial for many more argument variations.
+Generate L<Mojolicious::Routes::Route> object for a nested route with its own
+intermediate destination. See also the L<Mojolicious::Lite> tutorial for many
+more argument variations.
 
   my $auth = $r->under('/user')->to('user#auth');
   $auth->get('/show')->to('#show');

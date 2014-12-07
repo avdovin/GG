@@ -3,42 +3,27 @@ use Mojo::Base -base;
 
 # "Professor: These old Doomsday devices are dangerously unstable. I'll rest
 #             easier not knowing where they are."
-use Carp 'croak';
+use Carp ();
 use Mojo::Home;
 use Mojo::Log;
 use Mojo::Transaction::HTTP;
 use Mojo::UserAgent;
 use Mojo::Util;
-use Scalar::Util 'weaken';
+use Scalar::Util ();
 
-has home => sub { Mojo::Home->new };
+has home => sub { Mojo::Home->new->detect(ref shift) };
 has log  => sub { Mojo::Log->new };
 has ua   => sub {
-  my $self = shift;
-
   my $ua = Mojo::UserAgent->new;
-  weaken $ua->server->app($self)->{app};
-  weaken $self;
-  return $ua->catch(sub { $self->log->error($_[1]) });
+  Scalar::Util::weaken $ua->server->app(shift)->{app};
+  return $ua;
 };
 
 sub build_tx { Mojo::Transaction::HTTP->new }
 
 sub config { Mojo::Util::_stash(config => @_) }
 
-sub handler { croak 'Method "handler" not implemented in subclass' }
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-
-  # Check if we have a log directory
-  my $home = $self->home;
-  $home->detect(ref $self) unless @{$home->parts};
-  $self->log->path($home->rel_file('log/mojo.log'))
-    if -w $home->rel_file('log');
-
-  return $self;
-}
+sub handler { Carp::croak 'Method "handler" not implemented in subclass' }
 
 1;
 
@@ -152,14 +137,6 @@ be overloaded in a subclass.
     my ($self, $tx) = @_;
     ...
   }
-
-=head2 new
-
-  my $app = Mojo->new;
-
-Construct a new L<Mojo> application. Will automatically detect your home
-directory if necessary and set up logging to C<log/mojo.log> if there's a
-C<log> directory.
 
 =head1 SEE ALSO
 

@@ -2,9 +2,9 @@ package Mojolicious;
 use Mojo::Base 'Mojo';
 
 # "Fry: Shut up and take my money!"
-use Carp 'croak';
+use Carp ();
 use Mojo::Exception;
-use Mojo::Util 'decamelize';
+use Mojo::Util;
 use Mojolicious::Commands;
 use Mojolicious::Controller;
 use Mojolicious::Plugins;
@@ -14,17 +14,17 @@ use Mojolicious::Sessions;
 use Mojolicious::Static;
 use Mojolicious::Types;
 use Mojolicious::Validator;
-use Scalar::Util qw(blessed weaken);
-use Time::HiRes 'gettimeofday';
+use Scalar::Util ();
+use Time::HiRes  ();
 
 has commands => sub {
   my $commands = Mojolicious::Commands->new(app => shift);
-  weaken $commands->{app};
+  Scalar::Util::weaken $commands->{app};
   return $commands;
 };
 has controller_class => 'Mojolicious::Controller';
 has mode => sub { $ENV{MOJO_MODE} || $ENV{PLACK_ENV} || 'development' };
-has moniker  => sub { decamelize ref shift };
+has moniker  => sub { Mojo::Util::decamelize ref shift };
 has plugins  => sub { Mojolicious::Plugins->new };
 has renderer => sub { Mojolicious::Renderer->new };
 has routes   => sub { Mojolicious::Routes->new };
@@ -43,17 +43,17 @@ has types     => sub { Mojolicious::Types->new };
 has validator => sub { Mojolicious::Validator->new };
 
 our $CODENAME = 'Tiger Face';
-our $VERSION  = '5.34';
+our $VERSION  = '5.69';
 
 sub AUTOLOAD {
   my $self = shift;
 
   my ($package, $method) = our $AUTOLOAD =~ /^(.+)::(.+)$/;
-  croak "Undefined subroutine &${package}::$method called"
-    unless blessed $self && $self->isa(__PACKAGE__);
+  Carp::croak "Undefined subroutine &${package}::$method called"
+    unless Scalar::Util::blessed $self && $self->isa(__PACKAGE__);
 
   # Call helper with fresh controller
-  croak qq{Can't locate object method "$method" via package "$package"}
+  Carp::croak qq{Can't locate object method "$method" via package "$package"}
     unless my $helper = $self->renderer->get_helper($method);
   return $self->build_controller->$helper(@_);
 }
@@ -72,7 +72,7 @@ sub build_controller {
   @$stash{keys %$defaults} = values %$defaults;
   my $c
     = $self->controller_class->new(app => $self, stash => $stash, tx => $tx);
-  weaken $c->{app};
+  Scalar::Util::weaken $c->{app};
 
   return $c;
 }
@@ -89,13 +89,10 @@ sub defaults { Mojo::Util::_stash(defaults => @_) }
 sub dispatch {
   my ($self, $c) = @_;
 
-  # Prepare transaction
-  my $tx = $c->tx;
-  $tx->res->code(undef) if $tx->is_websocket;
-  $self->sessions->load($c);
   my $plugins = $self->plugins->emit_hook(before_dispatch => $c);
 
   # Try to find a static file
+  my $tx = $c->tx;
   $self->static->dispatch($c) and $plugins->emit_hook(after_static => $c)
     unless $tx->res->code;
 
@@ -106,16 +103,13 @@ sub dispatch {
     my $method = $req->method;
     my $path   = $req->url->path->to_abs_string;
     $self->log->debug(qq{$method "$path".});
-    $stash->{'mojo.started'} = [gettimeofday];
+    $stash->{'mojo.started'} = [Time::HiRes::gettimeofday];
   }
 
   # Routes
   $plugins->emit_hook(before_routes => $c);
-  my $res = $tx->res;
-  return if $res->code;
-  if (my $code = ($tx->req->error // {})->{advice}) { $res->code($code) }
-  elsif ($tx->is_websocket) { $res->code(426) }
-  $c->render_not_found unless $self->routes->dispatch($c) || $tx->res->code;
+  $c->render_not_found
+    unless $tx->res->code || $self->routes->dispatch($c) || $tx->res->code;
 }
 
 sub handler {
@@ -129,7 +123,7 @@ sub handler {
 
   # Process with chain
   my $c = $self->build_controller(@_);
-  weaken $c->{tx};
+  Scalar::Util::weaken $c->{tx};
   $self->plugins->emit_chain(around_dispatch => $c);
 
   # Delayed response
@@ -157,17 +151,18 @@ sub new {
   # Default to controller and application namespace
   my $r = $self->routes->namespaces(["@{[ref $self]}::Controller", ref $self]);
 
-  # Hide controller attributes/methods and "handler"
-  $r->hide(qw(app continue cookie finish flash handler helpers match on));
-  $r->hide(qw(param redirect_to render render_exception render_later));
-  $r->hide(qw(render_maybe render_not_found render_static render_to_string));
-  $r->hide(qw(rendered req res respond_to send session signed_cookie stash));
-  $r->hide(qw(tx url_for validation write write_chunk));
+  # Hide controller attributes/methods
+  $r->hide(qw(app continue cookie every_cookie every_param));
+  $r->hide(qw(every_signed_cookie finish flash helpers match on param));
+  $r->hide(qw(redirect_to render render_exception render_later render_maybe));
+  $r->hide(qw(render_not_found render_to_string rendered req res respond_to));
+  $r->hide(qw(send session signed_cookie stash tx url_for validation write));
+  $r->hide(qw(write_chunk));
 
-  # Check if we have a log directory
+  # Check if we have a log directory that is writable
   my $mode = $self->mode;
   $self->log->path($home->rel_file("log/$mode.log"))
-    if -w $home->rel_file('log');
+    if -d $home->rel_file('log') && -w _;
 
   $self->plugin($_)
     for qw(HeaderCondition DefaultHelpers TagHelpers EPLRenderer EPRenderer);
@@ -253,7 +248,8 @@ parsed.
 
 This is a very powerful hook and should not be used lightly, it makes some
 rather advanced features such as upload progress bars possible. Note that this
-hook will not work for embedded applications. (Passed the transaction and
+hook will not work for embedded applications, because only the host
+application gets to build transactions. (Passed the transaction and
 application object)
 
 =head2 before_dispatch
@@ -361,8 +357,9 @@ Useful for rewriting outgoing responses and other post-processing tasks.
 Emitted right before the L</"before_dispatch"> hook and wraps around the whole
 dispatch process, so you have to manually forward to the next hook if you want
 to continue the chain. Default exception handling with
-L<Mojolicious::Controller/"render_exception"> is the first hook in the chain
-and a call to L</"dispatch"> the last, yours will be in between.
+L<Mojolicious::Plugin::DefaultHelpers/"reply-E<gt>exception"> is the first
+hook in the chain and a call to L</"dispatch"> the last, yours will be in
+between.
 
   $app->hook(around_dispatch => sub {
     my ($next, $c) = @_;
@@ -669,7 +666,11 @@ Note that application helpers are always called with a new default controller
 object, so they can't depend on or change controller state, which includes
 request, response and stash.
 
-  $app->log->debug($app->dumper({foo => 'bar'}));
+  # Call helper
+  say $app->dumper({foo => 'bar'});
+
+  # Longer version
+  say $app->build_controller->helpers->dumper({foo => 'bar'});
 
 =head1 BUNDLED FILES
 
@@ -882,6 +883,8 @@ Kevin Old
 
 Kitamura Akatsuki
 
+Klaus S. Madsen
+
 Lars Balker Rasmussen
 
 Leon Brocard
@@ -889,6 +892,10 @@ Leon Brocard
 Magnus Holm
 
 Maik Fischer
+
+Mark Fowler
+
+Mark Grimes
 
 Mark Stosberg
 
@@ -934,6 +941,8 @@ Peter Edwards
 
 Pierre-Yves Ritschard
 
+Piotr Roszatycki
+
 Quentin Carbonneaux
 
 Rafal Pocztarski
@@ -973,6 +982,8 @@ Stephane Este-Gracias
 Tatsuhiko Miyagawa
 
 Terrence Brannon
+
+Tianon Gravi
 
 Tomas Znamenacek
 

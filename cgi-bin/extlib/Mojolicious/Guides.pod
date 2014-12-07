@@ -8,11 +8,14 @@ Mojolicious::Guides - Mojolicious guide to the galaxy
 =head1 DON'T PANIC!
 
 We are constantly working on new documentation, follow us on
-L<Twitter|http://twitter.com/kraih>, L<GitHub|http://github.com/kraih/mojo>
-or join the official IRC channel C<#mojo> on C<irc.perl.org> to get all the
-latest updates.
+L<GitHub|http://github.com/kraih/mojo> or join the official IRC channel
+C<#mojo> on C<irc.perl.org> to get all the latest updates.
 
-=head1 LEARNING PERL
+=head1 BASICS
+
+=over 2
+
+=item Learning Perl
 
 If you are new to Perl, we recommend
 L<Learn Perl in 2 hours 30 minutes|http://qntm.org/files/perl/perl.html> for a
@@ -21,6 +24,14 @@ L<Modern Perl book|http://modernperlbooks.com/books/modern_perl/>, freely
 available in many formats. Both are excellent introductions to the language.
 For more books and documentation, check out
 L<learn.perl.org|http://learn.perl.org/>.
+
+=item Learning Web Technologies
+
+All web development starts with HTML, CSS and JavaScript, to learn the basics
+we recommend the
+L<Mozilla Developer Network|https://developer.mozilla.org/en-US/docs/Web>.
+
+=back
 
 =head1 TUTORIAL
 
@@ -44,7 +55,7 @@ therefore considered a prerequisite, you should definitely take a look!
 =item L<Mojolicious::Guides::Growing>
 
 Starting a L<Mojolicious::Lite> prototype from scratch and growing it into a
-well structured L<Mojolicious> application.
+well-structured L<Mojolicious> application.
 
 =item L<Mojolicious::Guides::Routing>
 
@@ -129,13 +140,15 @@ designed to be used with it and are being developed under the same umbrella.
 
 =over 2
 
-=item L<Mango>
+=item L<Mojo::Pg>
 
-Pure-Perl non-blocking I/O MongoDB driver.
+A tiny wrapper around L<DBD::Pg> that makes
+L<PostgreSQL|http://www.postgresql.org> a lot of fun to use with
+L<Mojolicious>.
 
 =item L<Minion>
 
-Job queue.
+A job queue for L<Mojolicious> with support for multiple backends.
 
 =back
 
@@ -287,8 +300,6 @@ This is the class hierarchy of the L<Mojolicious> distribution.
 
 =item * L<Mojo::IOLoop>
 
-=item * L<Mojo::JSON>
-
 =item * L<Mojo::JSON::Pointer>
 
 =item * L<Mojo::Loader>
@@ -424,6 +435,8 @@ This is the class hierarchy of the L<Mojolicious> distribution.
 =item * L<Mojo::Collection>
 
 =item * L<Mojo::DOM>
+
+=item * L<Mojo::JSON>
 
 =item * L<Mojo::Util>
 

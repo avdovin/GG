@@ -1,4 +1,5 @@
 package GG::CLS::Users;
+use Mojo::Base -base;
 
 use utf8;
 
@@ -8,11 +9,13 @@ use utf8;
 use Mojo::Util qw/b64_decode b64_encode/;
 use Mojo::JSON;
 
+has deserialize        => sub { \&Mojo::JSON::j };
+has serialize          => sub { \&Mojo::JSON::encode_json };
 
 use base 'Mojo::Base';
 
 # JSON serializer
-my $JSON = Mojo::JSON->new;
+#my $JSON = Mojo::JSON->new;
 
 __PACKAGE__->attr( userinfo    => sub { shift->{userinfo} }  );
 __PACKAGE__->attr( auth		   => sub { shift->{auth} }  );
@@ -82,8 +85,10 @@ sub save_ses_settings{
 		}
 	}
 	my $data = $self->ses_settings;
-	my $encodeData = b64_encode $JSON->encode($data), '';
-	$encodeData =~ s/\=/\-/g;
+  my $encodeData = b64_encode($self->serialize->($data), '');
+  $encodeData =~ y/=/-/;
+	#my $encodeData = b64_encode $JSON->encode($data), '';
+	#$encodeData =~ s/\=/\-/g;
 
 	$self->{dbi}->{dbh}->do("UPDATE `sys_users_session` SET `data`=? WHERE `id_user`=? AND `cck`=?", undef, $encodeData, $$self{userinfo}{ID}, $$self{userinfo}{cck});
 }
@@ -92,10 +97,10 @@ sub restore_ses_settings{
 	my $self  = shift;
 	$self->ses_settings({});
 
-	my $data  = $self->{userinfo}->{session}->{data} || return;
+	return unless my $data  = $self->{userinfo}->{session}->{data};
 
-	$data =~ s/\-/\=/g;
-	if(my $userData = $JSON->decode(b64_decode $data)){
+	$data =~ s/\-/\=/;
+	if(my $userData = $self->deserialize->(b64_decode $data)){
 		$self->ses_settings($userData);
 
 		$self->settings->{$_} = $userData->{$_} foreach (keys %$userData);
@@ -189,8 +194,8 @@ sub store_access{
 
 	my $access = $self->access || $Access;
 
-	my $encodeData = b64_encode $JSON->encode($access), '';
-	$encodeData =~ s/\=/\-/g;
+	my $encodeData = b64_encode($self->serialize->($access), '');
+	$encodeData =~ s/\=/\-/;
 
 	$self->{dbi}->{dbh}->do("UPDATE `sys_users` SET `access`=? WHERE `ID`=?", undef, $encodeData, $self->userinfo->{ID});
 	return 1;
@@ -199,10 +204,10 @@ sub store_access{
 sub restore_access{
 	my $self   = shift();
 
-	my $data = $self->userinfo->{access} || '';
+	return unless my $data = $self->userinfo->{access};
 
-	$data =~ s/\-/\=/g;
-	if(my $access = $JSON->decode(b64_decode $data)){
+	$data =~ s/\-/\=/;
+	if(my $access = $self->deserialize->(b64_decode $data)){
 
 		foreach (keys %$Access){
 			if(exists $access->{$_}){
