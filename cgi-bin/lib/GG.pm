@@ -85,7 +85,8 @@ sub startup{
 	$routes->any("/images")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery', admin_name => 'Фотогалерея')->name('gallery_dir_list');
 	$routes->any("/images/:dir_alias")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')->name('gallery_items_list');
 
-	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
+	$routes->get('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
+	$routes->post('/faq')->to("Faq#list", alias => "faq", submit => 1 )->name('faq_submit');
 
 	$routes->any("/:alias")->to("Texts#text_main_item", redirect_to_url_for => 1 )->name('text');
 

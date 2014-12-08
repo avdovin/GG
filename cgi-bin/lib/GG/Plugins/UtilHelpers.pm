@@ -807,8 +807,8 @@ sub register {
 		my %params = (
 			prefix		=> '',
 			postfix 	=> '',
-			template	=> 'Texts/_nav_container',
-			page		=> $self->stash->{page} || $self->param('page') || 1,
+			template	=> 'Elements/_nav_container',
+			page			=> $self->stash->{page} || $self->param('page') || 1,
 			@_
 		);
 

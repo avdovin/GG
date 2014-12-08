@@ -12,8 +12,8 @@ BEGIN { unshift @INC, "$FindBin::Bin/../lib", "$FindBin::Bin/../extlib" }
 use lib '/System/Library/Perl/Extras/5.16';
 
 $ENV{MOJO_APP} ||= 'GG';
-$ENV{'MOJO_HOME'} =  "../"; #'/www/gg9.local/cgi-bin';
-$ENV{'MOJO_MODE'} = 'development'; #(production)(development)
+$ENV{'MOJO_HOME'} ||=  "../"; #'/www/gg9.local/cgi-bin';
+$ENV{'MOJO_MODE'} ||= 'development'; #(production)(development)
 $ENV{'MOJO_NO_IPV6'} = 1;
 $ENV{'MOJO_NO_TLS'} = 1;
 $ENV{'SCRIPT_NAME'} = "/";
