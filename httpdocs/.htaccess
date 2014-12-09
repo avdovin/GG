@@ -21,8 +21,8 @@ RewriteRule \.git - [F,L]
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.+)/$ $1.html [L]
 
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteCond %{REQUEST_FILENAME} !-l
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
 #RewriteCond %{REQUEST_FILENAME} !-d
 
-#RewriteRule ^(.*)$ /cgi-bin/script/dispatch.cgi/$1 [QSA,L]
+RewriteRule ^(.*)$ /cgi-bin/script/dispatch.cgi/$1 [QSA,L]

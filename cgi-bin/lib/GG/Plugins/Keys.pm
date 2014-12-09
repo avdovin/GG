@@ -76,6 +76,8 @@ sub register {
 				@$values = split($values_split, $_);
 			}
 
+			my $lkey_settings = $lkey->{settings};
+
 			if($type eq 'user'){
 				my $result = $$params{param} ?  $self->app->sysuser->settings->{$name} : $self->app->sysuser->userinfo->{$name};
 				$result = 'checked' if $$params{chbox};
@@ -89,8 +91,8 @@ sub register {
 				$self->def_list( name => $name, controller => $controller);
 
 				my $attr = {
-					split 	=> '<br />',
-					name	=> 'name',
+					split 	=> $lkey_settings->{'values_join_delimiter_tablelist'} || $lkey_settings->{'values_join_delimiter'} || '<br />',
+					name		=> 'name',
 					%{$params},
 				};
 
@@ -104,7 +106,7 @@ sub register {
 				return;
 
 			} elsif($type eq 'chb'){
-				return $values->[0] && $values->[0] == 1 ? $lkey->{settings}->{yes} : $lkey->{settings}->{no};
+				return $values->[0] && $values->[0] == 1 ? $lkey_settings->{yes} : $lkey_settings->{no};
 
 			} else {
 				return join(' ', @$values);
@@ -190,7 +192,7 @@ sub register {
 
 					#my $selected = ( grep(/^$k$/, @$values ) or (!$k and !scalar(@$values)) ) ? "checked='checked'" : "";
 					my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
-					$code .= "<input value='$k' name='$name' id='${replaceme}${name}_$k' $list_style type='checkbox' $list_class $required class='checkbox' $selected><label for='${replaceme}${name}_$k' ".($replaceme ? 'style=\'float:none;cursor:pointer;\'' : '')."'>".$list->{$k}."</label>";
+					$code .= "<label style=\"float:none;cursor:pointer;\"><input value='$k' name='$name' id='${replaceme}${name}_$k' $list_style type='checkbox' $list_class $required class='checkbox' $selected>".$list->{$k}."</label>";
 					$code .= $list_delimetr
 				}
 

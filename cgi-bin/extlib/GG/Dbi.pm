@@ -222,7 +222,11 @@ sub insert_hash {
 	$insType ||= 'INSERT';
 
   my $created_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
-	$field_values->{$_} ||= 'NULL'  foreach (qw(created_at updated_at));
+
+	$field_values->{'created_at'} ||= $created_at;
+
+	$field_values->{'updated_at'} = undef
+		if($field_values->{'updated_at'} eq '0000-00-00 00:00:00' or $field_values->{'updated_at'} eq '0000-00-00');
 
 	foreach my $k (keys %$field_values){
 
@@ -230,9 +234,6 @@ sub insert_hash {
 			delete $field_values->{$k};
 			next;
 		}
-
-		   if($k eq 'updated_at'){ $field_values->{$k} ||= '0000-00-00 00:00:00';}
-		elsif($k eq 'created_at'){ $field_values->{$k} ||= $created_at;}
 	}
 
   my @fields = sort keys %$field_values;
@@ -278,8 +279,14 @@ sub update_hash {
 	my ($table,$field_values, $where) = @_;
 
 	if($self->exists_keys(from => $table, lkey => 'updated_at')){
-		my $updated_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
-		$field_values->{updated_at} = $updated_at;
+
+		if($field_values->{'updated_at'} eq '0000-00-00 00:00:00' or $field_values->{'updated_at'} eq '0000-00-00'){
+			$field_values->{'updated_at'} = undef
+		}
+		else {
+			my $updated_at = sprintf ("%04d-%02d-%02d %02d:%02d:%02d", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3], (localtime)[2], (localtime)[1], (localtime)[0]);
+			$field_values->{'updated_at'} = $updated_at;
+		}
 	}
 
 	return $self->update($table,$field_values, $where);

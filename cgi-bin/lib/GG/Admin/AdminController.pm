@@ -400,10 +400,10 @@ HEAD
 				$value = $self->VALUES( name => $key, value => $value );
 
 			} elsif($type eq 'date' ){
-				$value = 'не указана' if ($value eq '0000-00-00');
+				$value = 'не указана' if (!$value or $value eq '0000-00-00');
 
 			} elsif($type eq 'datetime' or $type eq 'time' ){
-				$value = 'не указана' if ($value eq '0000-00-00 00:00:00');
+				$value = 'не указана' if (!$value or $value eq '0000-00-00 00:00:00');
 			}
 			$HTML .=
 			"<tr>
