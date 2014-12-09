@@ -202,7 +202,7 @@ sub register {
 			$self->stash->{group}++;
 
 			if($self->param('clear')){
-				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => "");
+				$self->app->sysuser->save_ses_settings($self->stash->{replaceme}."_defcol" => "");
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
 
@@ -288,7 +288,7 @@ sub register {
 				}
 				$self->stash->{listfields} = $result;
 
-				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
+				$self->app->sysuser->save_ses_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
 
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
@@ -354,7 +354,7 @@ sub register {
 
 			use strict "refs";
 
-			$self->sysuser->save_settings(%user_set);
+			$self->sysuser->save_ses_settings(%user_set);
 
 			$self->render( json => {
 					content	=> "OK!",
@@ -387,7 +387,7 @@ sub register {
 
 			use strict "refs";
 
-			$self->sysuser->save_settings();
+			$self->sysuser->save_ses_settings();
 
 		}
 	);
@@ -448,7 +448,7 @@ sub register {
 
 			if($params{render}){
 				$value = $value ? 0 : 1;
-				$self->sysuser->save_settings($params{lkey}.'_filter_take' => $value );
+				$self->sysuser->save_ses_settings($params{lkey}.'_filter_take' => $value );
 			}
 
 			$self->stash->{filter_take_text} = $filter_take{ $value };
@@ -563,8 +563,8 @@ sub register {
 	$app->helper(
 		def_tablelist_param => sub {
 			my $self = shift;
-
 			my (%params) = @_;
+
 			my $send_params = $self->send_params->{ $params{key} };#$self->req->params->to_hash;
 
 			my $key = $params{lkey}.'_'.$params{key};# $self->stash->{replaceme}.'_'.$params{key};
@@ -574,7 +574,7 @@ sub register {
 				$value = $self->sysuser->settings->{$key};
 			} elsif (defined $send_params) {
 				$value = $send_params;
-				$self->sysuser->save_settings($key => $value);
+				$self->sysuser->save_ses_settings($key => $value);
 			}
 
 			$self->stash->{$params{key}} = $value;
@@ -736,7 +736,7 @@ sub register {
 			if (!$self->sysuser->settings->{$controller.'_qedit'}) {
 				#$self->stash->{flag_reload} = 1;
 				#$self->stash->{key_reload}  = $params{info} ? "_i_".$lkey : $lkey;
-				$self->sysuser->save_settings($controller.'_qedit' => 1);
+				$self->sysuser->save_ses_settings($controller.'_qedit' => 1);
 
 				$self->render( json => {
 					content	=> 'Выключить QEdit',
@@ -749,7 +749,7 @@ sub register {
 				})
 			} else {
 				#$self->stash->{flag_reload} = 0;
-				$self->sysuser->save_settings($controller.'_qedit' => 0);
+				$self->sysuser->save_ses_settings($controller.'_qedit' => 0);
 
 				$self->render( json => {
 					content	=> 'Включить QEdit',

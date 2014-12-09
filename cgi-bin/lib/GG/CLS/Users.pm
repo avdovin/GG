@@ -84,7 +84,7 @@ sub save_ses_settings{
 			$self->settings->{ $_[$i] } = $self->ses_settings->{ $_[$i] } = $_[$i + 1];
 		}
 	}
-	my $data = $self->ses_settings;
+	my $data = $self->settings;
   my $encodeData = b64_encode($self->serialize->($data), '');
   $encodeData =~ y/=/-/;
 	#my $encodeData = b64_encode $JSON->encode($data), '';
@@ -108,23 +108,23 @@ sub restore_ses_settings{
 }
 
 sub save_settings {
-	my $self   = shift;
-	if (@_ > 0) {
-		for (my $i = 0; $i <= $#_; $i += 2) {
-			next if ($_ eq 'table');
+	return shift->save_ses_settings(@_);
+	# if (@_ > 0) {
+	# 	for (my $i = 0; $i <= $#_; $i += 2) {
+	# 		next if ($_ eq 'table');
 
-			$self->settings->{ $_[$i] } = $_[$i + 1];
-		}
-	}
-	my (@settings, %settings);
+	# 		$self->settings->{ $_[$i] } = $_[$i + 1];
+	# 	}
+	# }
+	# my (@settings, %settings);
 
-	foreach (keys %{$$self{settings}}) {
-		push(@settings, "$_=$$self{settings}{$_}") if ($$self{settings}{$_} and length($$self{settings}{$_}) > 0 and !exists($settings{$_}));
-		$settings{$_} = 1;
-	}
-	my $set_save = join("\n", @settings);
+	# foreach (keys %{$$self{settings}}) {
+	# 	push(@settings, "$_=$$self{settings}{$_}") if ($$self{settings}{$_} and length($$self{settings}{$_}) > 0 and !exists($settings{$_}));
+	# 	$settings{$_} = 1;
+	# }
+	# my $set_save = join("\n", @settings);
 
-	return $self->{dbi}->{dbh}->do("UPDATE `sys_users` SET `settings`=? WHERE `ID`=?", undef, $set_save, $$self{userinfo}{ID}) ? 1 : 0;
+	# return $self->{dbi}->{dbh}->do("UPDATE `sys_users` SET `settings`=? WHERE `ID`=?", undef, $set_save, $$self{userinfo}{ID}) ? 1 : 0;
 }
 
 sub check_modul_access {
