@@ -5,9 +5,8 @@
       <div id="<%= $index %>__<%= $key %>"><%= $value =%></div>
       <label id="label<%= $index %>__<%= $key %>"></label>
     % } else {
-      % if($key eq 'size'){
-        %= $self->file_nice_size($value)
-
+      % if($lkey->{settings}->{type} eq 'filesize'){
+        %= file_nice_size $value
       % } elsif($lkey->{settings}->{type} eq 'site'){
         %= link_to $value => $value => (target => '_blank')
       % } else {

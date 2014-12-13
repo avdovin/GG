@@ -47,7 +47,7 @@ sub _config{
 
 sub register {
 	my ($self, $app, $conf) = @_;
-  
+
 	$app->routes->get("search/result")->to( seo_title_sitename => 1, lang => 'ru', cb => sub{
 		my $self   = shift;
 		my %params = @_;
@@ -145,10 +145,10 @@ sub register {
 
 	$app->helper( search_form => sub {
 		my $self = shift;
-		
+
     return $self->render_to_string(template => 'Plugins/Search/_form');
-	}); 
-  
+	});
+
 }
 
 sub _buildKeyFieldsSelect{
@@ -254,7 +254,7 @@ sub print_search_result{
 			};
 
 			if($hash_table->{$table}->{route}){
-				$vals->{'link'} = $self->url_for($hash_table->{$table}->{route}, %$node);
+				$vals->{'link'} = $node->{link} ? $node->{link} : $self->url_for($hash_table->{$table}->{route}, %$node);
 			}
 			elsif(my $linktmlp = $hash_table->{$table}->{linktmlp}){
 				while ($linktmlp =~ m/\%([\d\w~]+)\%/ig) {
@@ -282,7 +282,7 @@ sub print_search_result{
 		items		=> $result_items,
 		template	=> "Plugins/Search/list"
 	);
-  
+
 }
 
 

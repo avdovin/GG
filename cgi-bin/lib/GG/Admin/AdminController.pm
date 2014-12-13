@@ -742,13 +742,16 @@ sub save_info{
 				my $folder = $lkey_settings->{folder};
 
 				my $fv = {$k => $file_name_saved};
-				if(defined $send_params->{size}){
+				warn $k.'_size';
+				warn $self->dbi->exists_keys(from => $table, lkey => $k.'_size' );
+				if($self->dbi->exists_keys(from => $table, lkey => $k.'_size' )){
 					my $size = -s $self->static_path.$folder.$file_name_saved || 0;
-					$fv->{size} = $size;
+					$fv->{$k.'_size'} = $size;
 				}
-				if(defined $send_params->{file_type}){
-					$fv->{file_type} = $fileType;
+				if($self->dbi->exists_keys(from => $table, lkey => $k.'_file_type' )){
+					$fv->{$k.'_file_type' } = $fileType;
 				}
+				warn $self->dumper($fv);
 
 				$self->save_info(
 					send_params 	=> 0,

@@ -159,16 +159,16 @@ sub register {
 						}
 
   				}elsif($type eq 'file'){
-            next unless my $filename = $item->{$v};
+            #next unless my $filename = $item->{$v};
 
-            my $ext = ($filename =~ m/([^.]+)$/)[0];
-  					$item->{$v} = $self->image('/admin/img/icons/file/'.$ext.'.png', alt => $filename, width => 32, height => 32);
+            #my $ext = ($filename =~ m/([^.]+)$/)[0];
+  					#$item->{$v} = $self->image('/admin/img/icons/file/'.$ext.'.png', alt => $filename, width => 16, height => 16).' '.$filename;
 
 					}elsif($type eq 'site' ){
 						$item->{$v} = "<a href='$$item{$v}' target='_blank'>$$item{$v}</a>";
 
 					# размер файла
-					}elsif($v eq 'size'){
+					}elsif($type eq 'filesize'){
 						$item->{$v} = $self->file_nice_size($$item{$v});
 					}
 				}

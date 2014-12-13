@@ -17,7 +17,7 @@
 							% if($folder->{click_type} && $folder->{click_type} eq 'list_filtered_clear'){
 								clear_list_filter(
 											'<%= $self->stash->{controller_url} %>',
-											'replaceme',{
+											'<%= $self->stash->{'replaceme'} %>',{
 											% foreach (keys %{ $folder->{params} }){
 												'<%= $_ %>' : '<%= $folder->{params}->{$_} %>',
 											% }
@@ -27,7 +27,7 @@
 							% if($folder->{click_type} && ($folder->{click_type} eq 'list_filtered' or $folder->{click_type} eq 'list') ){
 								set_list_filter(
 											'<%= $self->stash->{controller_url} %>',
-											'replaceme',{
+											'<%= $self->stash->{'replaceme'} %>',{
 											% foreach (keys %{ $folder->{params} }){
 												'<%= $_ %>' : '<%= $folder->{params}->{$_} %>',
 											% }

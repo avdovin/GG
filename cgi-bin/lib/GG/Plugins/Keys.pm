@@ -401,6 +401,31 @@ sub register {
 		}
 	);
 
+	$app->helper( lkey_folder => sub {
+		my $self = shift;
+		my %params = @_;
+
+		return '' unless my $lkey = delete $params{'lkey'};
+		my $controller = delete $params{'controller'} || $self->stash->{'controller'};
+
+		unless($self->app->lkeys->{$controller}){
+			$self->get_keys( type => ['lkey'], controller => $controller);
+		}
+		return $self->lkey(name => $lkey, setting => 'folder', controller => $controller);
+	});
+
+	$app->helper( lkey_path => sub {
+		my $self = shift;
+		my %params = @_;
+
+		return '' unless my $lkey = $params{'lkey'};
+		return '' unless my $value = delete $params{'value'};
+
+		my $folder = $self->lkey_folder(%params);
+
+		return $folder.$value
+	});
+
 	$app->helper(
 		lkey => sub {
 			my $self   		= shift;
