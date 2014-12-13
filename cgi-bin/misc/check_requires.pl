@@ -11,6 +11,7 @@ my %modules = (
 	'JavaScript::Minifier::XS2' 	=> '0',
 	'Socket' 										=> '1.97',
 	'CSS::Minifier::XS2' 				=> '0',
+	'Crypt::Eksblowfish::Bcrypt' => '0',
 );
 
 print "Module\tVersion\n";
