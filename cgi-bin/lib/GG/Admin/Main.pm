@@ -23,7 +23,7 @@ sub body{
 		when('reload_settings') 		{ $self->user_block; }
 
 		when('restart_hypnotoad') 		{ $self->restart_hypnotoad; }
-
+		when('restart_fcgi') 					{ $self->restart_fcgi; }
 
 		when('chlang') 					{
 			$self->sysuser->save_ses_settings(lang => $self->param('lang'));
@@ -63,6 +63,15 @@ sub hot_link{
 		WHERE `id_user`='$id_user' ORDER BY `created_at` DESC LIMIT 20/)->hashes;
 
 	$self->render( items => $items, template => 'Admin/Main/hot_link');
+}
+
+sub restart_fcgi{
+	my $self = shift;
+
+	system("killall app.fcgi") == 0
+		or die "system failed: $?";
+
+	$self->render( text => 'restart fcgi from admin');
 }
 
 sub restart_hypnotoad{
