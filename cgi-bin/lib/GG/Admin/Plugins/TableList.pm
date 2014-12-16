@@ -202,16 +202,16 @@ sub register {
 			$self->stash->{group}++;
 
 			if($self->param('clear')){
-				$self->app->sysuser->save_ses_settings($self->stash->{replaceme}."_defcol" => "");
+				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => "");
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
 
 			if($self->stash->{group} == 2){
 				my $lkeys = $self->lkey(controller => $controller);
-				my $lkeys_access = $self->sysuser->access->{lkeys};
+				my $lkeys_access = $self->sysuser->access->{lkey};
 				my $user_sys = $self->sysuser->sys;
 
-				my $defcol;
+				my $defcol = '';
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
 					$defcol = $self->sysuser->settings->{$self->stash->{replaceme}."_defcol"};
 				} else {
@@ -253,7 +253,7 @@ sub register {
 
 			} elsif($self->stash->{group} == 3){
 				my $lkeys = $self->lkey(controller => $controller);
-				my $lkeys_access = $self->sysuser->access->{lkeys};
+				my $lkeys_access = $self->sysuser->access->{lkey};
 				my $user_sys = $self->sysuser->sys;
 
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
@@ -280,7 +280,7 @@ sub register {
 			} elsif($self->stash->{group} == 4){
 
 				my $list_fields = $self->stash->{listfields};
-				my $result;
+				my $result = '';
 				foreach my $item ( split(/,/, $list_fields) ){
 					my ($lkey, $size) = split("~", $item);
 					$size = 100 if ($size !~ /\d+/);
@@ -288,7 +288,7 @@ sub register {
 				}
 				$self->stash->{listfields} = $result;
 
-				$self->app->sysuser->save_ses_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
+				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
 
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
@@ -637,7 +637,7 @@ sub register {
 					my ($k, $size) = split("~", $item);
 					my $lkey = $self->lkey(name => $k);
 
-					if (($self->dbi->exists_keys(table => $params{table}, lkey => $k)) and ($self->sysuser->access->{lkeys}->{$k}->{r} || $self->app->sysuser->sys)) {
+					if (($self->dbi->exists_keys(table => $params{table}, lkey => $k)) and ($self->sysuser->access->{lkey}->{$k}->{r} || $self->app->sysuser->sys)) {
 						$lkey->{settings}->{table_list_width} = $size || 100;
 						push(@table_list_keys, "`$params{table}`.`$k`");
 						push(@table_list_keys_header, $k);
