@@ -45,7 +45,7 @@ sub startup{
 
 	$routes->post("callback")->to( cb => sub {
 		shift->callbackSend;
-	});
+	})->name('callback_submit');
 
 
 	my $routesCatalog = $routes->bridge('/catalog')->to(alias => 'catalog',layout => 'default', cb => sub {

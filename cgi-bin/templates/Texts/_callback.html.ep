@@ -1,35 +1,22 @@
-<table class="popup" id="popup-callback">
-	<tr>
-		<td>
-			<div class="popup-container">
-				<a href="#" class="popup-close"></a>
-				<div class="popup__loading"></div>
-				<h2 class="popup__title">Заказ обратного звонка</h2>
-				<form class="callback__wrapper">
-					<div class="form__error popup-error"></div>
-					<table class="callback__container">
-						<tr>
-							<td class="callback__field">
-								<span class="field__title">Ваше имя</span>
-								<input class="field__input field__input_text" type="text" name="callback_name"/>
-							</td>
-						</tr>
-						<tr>
-							<td class="callback__field">
-								<span class="field__title">Номер телефона</span>
-								<input class="field__input field__input_text field__input_phone" type="text" name="callback_phone" id="callback_phone" placeholder="+7 (123) 123-45-67"/>
-							</td>
-						</tr>
-						<tr>
-							<td class="callback__field">
-								<span class="field__title">Город</span>
-								<input class="field__input field__input_text" type="text" name="callback_city" />
-							</td>
-						</tr>
-					</table>
-					<p class="right"><a href="#" class="callback__submit button button_red">Заказать звонок</a></p>
-				</form>
-			</div>
-		</td>
-	</tr>
-</table>
+<div class="callback" style="display:block;">
+	<h2 class="callback__title">Заказать звонок</h2>
+	<div>
+	<a class="callback__close" href="#"></a>
+	</div>
+	%= form_for callback_submit => (class => 'callback__wrapper') => begin
+		%= csrf_field
+		<div class="loading form__loading"></div>
+		<div class="callback__container form__wrapper">
+			<label>
+				<input class="field__input field__input_text" name="callback_name" type="text" placeholder="Ваше имя"/>
+			</label>
+			<label>
+				<input class="field__input field__input_text field__input_phone" name="callback_phone" type="text" placeholder="Номер телефона"/>
+			</label>
+			<a class="form__send button button_yellow" href="#">Перезвоните мне!</a>
+		</div>
+	% end
+	<div class="callback__ok">
+		Наши менеджеры свяжутся с вами!
+	</div>
+</div>
