@@ -44,11 +44,10 @@ sub register {
 		$controller ||= $self->stash->{controller} || 'global';
 
 		if(my $var = $self->app->vars->{ 'controller_'.$controller }->{$varName}){
-
-			return $var->{envvalue} if $raw;
-
 			my $varSetting = $self->parse_keys_settings($var->{settings});
 			$varSetting->{type} ||= 's';
+
+			return $var->{envvalue} if $raw || $varSetting->{type} eq 's';
 
 			my $lkey = $self->lkey(
 				tmp			=> 1,
