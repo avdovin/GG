@@ -8,9 +8,9 @@ my @modules;
 my $installed = ExtUtils::Installed->new();
 
 my %modules = (
-	'JavaScript::Minifier::XS2' 	=> '0',
+	'JavaScript::Minifier::XS' 	=> '0',
 	'Socket' 										=> '1.97',
-	'CSS::Minifier::XS2' 				=> '0',
+	'CSS::Minifier::XS' 				=> '0',
 	'Crypt::Eksblowfish::Bcrypt' => '0',
 );
 

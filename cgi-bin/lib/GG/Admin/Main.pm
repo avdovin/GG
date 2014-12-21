@@ -68,7 +68,20 @@ sub hot_link{
 sub restart_fcgi{
 	my $self = shift;
 
-	system("killall app.fcgi") == 0
+	my $bash_command = "";
+	if($self->config->{bash_restart_cmd}){
+		$bash_command = $self->config->{bash_restart_cmd};
+	}
+	elsif($self->config->{ftp_username}){
+		$bash_command = "killall -u ".$self->config->{ftp_username}." dispatch.fcgi";
+	}
+	else {
+		$bash_command = "killall -9 dispatch.fcgi";
+	}
+
+	system("rm /tmp/sess_* -Rf > /dev/null 2>&1 ");
+
+	system($bash_command) == 0
 		or die "system failed: $?";
 
 	$self->render( text => 'restart fcgi from admin');

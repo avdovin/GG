@@ -25,6 +25,9 @@
 		workers => 10
 	},
 
+	ftp_username			=> 'sub7300_64',
+	bash_restart_cmd 	=> 'killall -u sub7300_64',
+
 	static_path 			=> '../../httpdocs/', 	# относительный путь к статике (относительно dispatch.cgi)
 	mail_from_addr 		=> 'no-reply@domain.com',
 	cdn               => 'http://s3-eu-west-1.amazonaws.com/ifrogcdn', # включить загрузку статики через CDN

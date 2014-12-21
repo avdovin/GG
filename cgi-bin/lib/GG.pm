@@ -21,15 +21,15 @@ sub startup{
 
 	# значения по умолчанию для маршрутов
 	my %routes_args = (
-		handler				=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
+		handler						=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
 		controller_class	=> 'GG::Controller',	# Папка с модулями
-		layout				=> 'default',			# Скелет (layout) страниц
+		layout						=> 'default',			# Скелет (layout) страниц
 	);
 
-	$self->hook(before_dispatch => sub {
-		my $self = shift;
+	# $self->hook(before_dispatch => sub {
+	# 	my $self = shift;
 
-	});
+	# });
 
 
 	# check site availability
