@@ -3,7 +3,6 @@
 	<br />
 	<br />
 	<table width="100%" align=center class="tablelist">
-	%	my $class = 'odd';
 	%	foreach (@$items){
 		<tr>
 	  	<td>
