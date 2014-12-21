@@ -280,6 +280,7 @@ sub register {
 				$params{where} = "`login`='$params{login}'";
 			}
 
+			$self->app->sysuser->auth(0);
 			my $ip  = $self->tx->remote_address;
 
 			my $sql = "SELECT *,HOUR(NOW())-HOUR(btime) AS `bhour` FROM `$params{from}` WHERE $params{where} LIMIT 0,1";

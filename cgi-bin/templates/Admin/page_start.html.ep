@@ -54,7 +54,7 @@
 /* STEP 1 */
 /* Создание панелей */
 var paneModel = new DHTMLSuite.paneSplitterModel();
-DHTMLSuite.commonObj.setCssCacheStatus(false)
+//DHTMLSuite.commonObj.setCssCacheStatus(false)
 var paneWest = new DHTMLSuite.paneSplitterPaneModel( { position:"west",id:"westPane",size:300,minSize:100,maxSize:500,scrollbars:true } );
 paneWest.addContent( new DHTMLSuite.paneSplitterContentModel( { id:"westContent",htmlElementId:'westContent',title:'',tabTitle:'' } ) );
 var paneEast = new DHTMLSuite.paneSplitterPaneModel( { position : "east", id:"eastPane",size:350,minSize:100,maxSize:500 } );

@@ -87,8 +87,8 @@ function init_tablelist(id) {
 				element = element_table.getElementsByTagName("tr")[j];
 				if (element.className != "header" && element.className != "tempo") {
 					if (Trclass == "odd") { Trclass = "even"; } else { Trclass = "odd"; }
-					element.className = Trclass;
-					var class_tr = element.className;
+					//element.className = Trclass;
+					var class_tr = element.className = Trclass;
 					element.classold = class_tr;
 					element.onmouseout = function() {
 						if (this.className == 'selectmarked' || this.className == 'marked') {

@@ -15,8 +15,15 @@ a.pseudolink{border-bottom:1px dashed navy;text-decoration:none;}
 .hotlink img{border:0;}
 table.tablelist{background-color:#FFF;width:98%;padding:5px;}
 table.tablelist tr.header td{background:#ccd6e4;padding:5px;}
-table.tablelist tr.odd td{background-color:#e8eef6;padding:5px;}
-table.tablelist tr.even td{padding:5px;}
+
+table.tablelist tr:nth-child(2n+1) td{
+    padding:5px;
+}
+table.tablelist tr:nth-child(2n) td{
+    background-color:#e8eef6;
+    padding:5px;
+}
+
 table.tablelist tr.marked td{background-color:#E4CCE3;padding:5px;}
 table.tablelist tr td label{color:black;width:100%;height:100%;display:inline-table;background-color:inherit!important;}
 table.tablelist tr td div{color:black;background-color:inherit!important;}
@@ -118,6 +125,25 @@ table.tablelist tr.select td,table.tablelist tr.selectmarked td{background-color
 .ui-spinner-button {overflow: hidden}
 
 #filter label {cursor: pointer;}
+
+.contenteast__hotlinks{
+    padding:5px;
+    margin:0px;
+    position:absolute;
+    top:0px;
+    left:0px;
+    display:block;
+    width:99%
+}
+.contenteast__hotlinks table.tablelist{
+    border-top:solid 1px #ccc;
+    border-bottom:solid 1px #ccc;
+}
+
+table.tablelist tr:hover td{
+    background-color: #cce4d0;
+    padding: 5px;
+}
 
 #loading-layout {
     position:fixed;

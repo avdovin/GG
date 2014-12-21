@@ -6,7 +6,6 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '1';
 
-use Carp 'croak';
 use Lingua::Translit;
 use File::Basename ();
 use File::Copy ();
@@ -804,11 +803,6 @@ package decoder;
 use strict;
 use warnings;
 
-use CGI::Carp qw(fatalsToBrowser);
-#use CGI qw(:standard);
-
-use Time::Local;
-
 sub new {
 	my $self = {
 		value => undef,
@@ -948,56 +942,5 @@ sub urlencode {
 	   $value =~ s/ /\+/g;
 	return $value;
 } # end of &urlencode
-
-#== def_gmtime ================================================================#
-
-sub def_gmtime {
-	my $self = shift();
-
-	my ($decode_time) = @_;
-
-	my ($date, $time)  = split(/ /, $decode_time);
-	my ($y, $m, $d)    = split(/-/, $date);
-	my ($h, $min, $sec)= split(/:/, $time) if ($time);
-		$h   ||= 0;
-		$min ||= 0;
-		$sec ||= 0;
-		$m -= 1;
-	my ($week, $isdst, $yday);
-
-	my $TIME = timelocal($sec, $min, $h, $d, $m, $y);
-	($sec, $min, $h, $d, $m, $y, $week, $yday, $isdst) = localtime($TIME);
-
-	if ($isdst) {$isdst = "+0400";} else {$isdst = "+0300";}
-		$m = $m;
-		$y = $y+1900;
-	$decode_time = gmtime(timegm($sec, $min, $h, $d, $m, $y));
-	$decode_time =~ s/[\ ]+/ /g;
-	($week, $m, $d) = split(/ /, $decode_time);
-
-	return "$week, $d $m $y $time $isdst";
-} # end of &def_gmtime
-
-#== get_week ==================================================================#
-
-sub get_week {
-	my $self = shift();
-
-	my ($decode_date) = @_;
-
-	my ($date, $time)  = split(/ /, $decode_date);
-	my ($y, $m, $d)    = split(/-/, $date);
-	my ($h, $min, $sec)= split(/:/, $time) if ($time);
-		$h   ||= 0;
-		$min ||= 0;
-		$sec ||= 0;
-		$m -= 1;
-	my ($week, $isdst, $yday);
-
-	my $TIME = timelocal($sec, $min, $h, $d, $m, $y);
-	($sec, $min, $h, $d, $m, $y, $week, $yday, $isdst) = localtime($TIME);
-
-	return $week;
-} # end of &get_week
 
 return 1;
