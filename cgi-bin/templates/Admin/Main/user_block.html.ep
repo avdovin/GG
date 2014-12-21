@@ -24,19 +24,18 @@
 <h2>Настройки интерфейса</h2>
 <br />
 <form name="settings_panel" method="post" style="margin-left:15px">
-			<input type="hidden" name="do" value="settings_panel">
-			<input type="checkbox" value="1" name="leftwin_hidden" <% if($self->sysuser->settings->{leftwin_hidden}){ %>checked="checked"<% } %>> Скрывать левую панель<br />
-			<input type="checkbox" value="1" name="rightwin_hidden" <% if($self->sysuser->settings->{rightwin_hidden}){ %>checked="checked"<% } %> > Скрывать правую панель<br />
-
-
-			% my $mode = $ENV{MOJO_MODE};
-			% if(is_sysuser_sys){
-				<!--<input type="checkbox" name="mode" value="development" <% if($mode eq 'development'){ %> checked="checked"<% } %> /> <span <% if($mode eq 'development'){ %>style="background-color:red;"<% } %>>Режим отладки</span><br /> -->
-			% }
-			<!-- <input type="checkbox" name="auth_rem" <% if($self->sysuser->settings->{auth_rem}){ %>checked="checked"<% } %> > Запоминать при входе<br /> -->
-<br />
-<br />
-			<input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class="btn btn-block btn-lg btn-info" style="width:200px; text-align: center;">
+	<input type="hidden" name="do" value="settings_panel">
+	<label style="cursor:pointer;">
+		<input type="checkbox" value="1" name="leftwin_hidden" <% if($self->sysuser->settings->{leftwin_hidden}){ %>checked="checked"<% } %>>
+		Скрывать левую панель <br />
+	</label>
+	<label style="cursor:pointer;">
+		<input type="checkbox" value="1" name="rightwin_hidden" <% if($self->sysuser->settings->{rightwin_hidden}){ %>checked="checked"<% } %> >
+		Скрывать правую панель <br />
+	</label>
+	<br />
+	<br />
+	<input align=right type=submit onClick="do_submit(this.form, 'user_info', '/admin/main/body'); return false;" value="сохранить" class="btn btn-block btn-lg btn-info" style="width:200px; text-align: center;">
 </form>
 </div>
 <div width='80%' style="margin-top:15px;padding:5px">
@@ -74,9 +73,10 @@
 		status  : '<%= $self->sysuser->settings->{rightwin_hidden} || 0 %>'
 	});
 
-	<% if($mode eq 'development'){ %>
+	% my $mode = $ENV{MOJO_MODE};
+	% if($mode eq 'development'){
 		jQuery("#southContent").css('background-color', '#D60606').find("#debug-mode").show();
-	<% } else { %>
+	% } else {
 		jQuery("#southContent").css('background-color', '').find("#debug-mode").hide();
-	<% } %>
+	% }
 </script>
