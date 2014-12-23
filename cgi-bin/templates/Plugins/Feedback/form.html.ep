@@ -1,5 +1,7 @@
 % js_files '/js/controllers/feedback.js';
-% js_files 'http://api-maps.yandex.ru/2.1/?lang=ru_RU';
+<!-- % js_files 'http://api-maps.yandex.ru/2.1/?lang=ru_RU'; -->
+% js_files 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDrW2eLsKJkNvo5CAcipzrUHHXXP5ICwj0&sensor=false';
+
 
 % content wrapper => begin
 <div class="contacts__block">
@@ -12,58 +14,62 @@
 			<span class="breadcrumbs__link breadcrumbs__link_current">Контакты</span>
 		</li>
 	</ul>
-	<div class="contacts clearfix">				
+	<div class="contacts clearfix">
 		<div class="Gmap" id="Gmap"></div>
-		<div class="address__block">
-			<img class="address__image" alt="Банковский переулок, 3" src="img/map1.jpg" />
-			<p class="address__name" data-item="1">FAB Store и Wonderland</p>
-			<div class="address__info">
+		<div class="address__block" itemscope itemtype="http://schema.org/Organization">
+			<a class="address__link" href="#"></a>
+			<img class="address__image" alt="Банковский переулок, 3" src="/img/map1.jpg" />
+			<p class="address__name" data-item="1" itemprop="name">FAB Store и Wonderland</p>
+			<div class="address__info" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
 				<p class="info__title">Адрес</p>
-				<p class="info__text">Санкт-Петербург, Банковский переулок, д. 3</p>
+				<p class="info__text"><span itemprop="addressLocality">Санкт-Петербург</span>, <span itemprop="streetAddress">Банковский переулок, д. 3</span></p>
 				<p class="info__title">Режим работы</p>
 				<p class="info__text">с 12:00 до 21:00 (ежедневно)</p>
 				<p class="info__title">Телефон</p>
-				<p class="info__text">+7 (812) 448-83-06</p>
+				<p class="info__text" itemprop="telephone">+7 (812) 448-83-06</p>
 				<p class="info__title">Электронная почта</p>
-				<p class="info__text">info@fabstore.ru</p>
+				<p class="info__text" itemprop="email">info@fabstore.ru</p>
+				<p class="info__title">Ближайшие станции метро</p>
+				<p class="info__text">Гостиный двор, Сенная площадь</p>
+			</div>
+		</div>
+		<div class="address__block" itemscope itemtype="http://schema.org/Organization">
+			<a class="address__link" href="#"></a>
+			<img class="address__image" alt="Банковский переулок, 3" src="/img/map2.jpg" />
+			<p class="address__name" data-item="2" itemprop="name">FAB Street</p>
+			<div class="address__info" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+				<p class="info__title">Адрес</p>
+				<p class="info__text"><span itemprop="addressLocality">Санкт-Петербург</span>, <span itemprop="streetAddress">Банковский переулок, д. 3</span></p>
+				<p class="info__title">Режим работы</p>
+				<p class="info__text">с 12:00 до 21:00 (ежедневно)</p>
+				<p class="info__title">Телефон</p>
+				<p class="info__text" itemprop="telephone">+7 (812) 448-83-06</p>
+				<p class="info__title">Электронная почта</p>
+				<p class="info__text" itemprop="email">info@fabstore.ru</p>
+				<p class="info__title">Ближайшие станции метро</p>
+				<p class="info__text">Гостиный двор, Сенная площадь</p>
+			</div>
+		</div>
+		<div class="address__block" itemscope itemtype="http://schema.org/Organization">
+			<a class="address__link" href="#"></a>
+			<img class="address__image" alt="Банковский переулок, 3" src="/img/map3.jpg" />
+			<p class="address__name" data-item="3" itemprop="name">FAB Store и Wonderland</p>
+			<div class="address__info" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+				<p class="info__title">Адрес</p>
+				<p class="info__text"><span itemprop="addressLocality">Санкт-Петербург</span>, <span itemprop="streetAddress">Банковский переулок, д. 3</span></p>
+				<p class="info__title">Режим работы</p>
+				<p class="info__text">с 12:00 до 21:00 (ежедневно)</p>
+				<p class="info__title">Телефон</p>
+				<p class="info__text" itemprop="telephone">+7 (812) 448-83-06</p>
+				<p class="info__title">Электронная почта</p>
+				<p class="info__text" itemprop="email">info@fabstore.ru</p>
 				<p class="info__title">Ближайшие станции метро</p>
 				<p class="info__text">Гостиный двор, Сенная площадь</p>
 			</div>
 		</div>
 		<div class="address__block">
-			<img class="address__image" alt="Банковский переулок, 3" src="img/map2.jpg" />
-			<p class="address__name" data-item="2">FAB Street</p>
-			<div class="address__info">
-				<p class="info__title">Адрес</p>
-				<p class="info__text">Санкт-Петербург, Банковский переулок, д. 3</p>
-				<p class="info__title">Режим работы</p>
-				<p class="info__text">с 12:00 до 21:00 (ежедневно)</p>
-				<p class="info__title">Телефон</p>
-				<p class="info__text">+7 (812) 448-83-06</p>
-				<p class="info__title">Электронная почта</p>
-				<p class="info__text">info@fabstore.ru</p>
-				<p class="info__title">Ближайшие станции метро</p>
-				<p class="info__text">Гостиный двор, Сенная площадь</p>
-			</div>
-		</div>
-		<div class="address__block">
-			<img class="address__image" alt="Банковский переулок, 3" src="img/map3.jpg" />
-			<p class="address__name" data-item="3">FAB Store и Wonderland</p>
-			<div class="address__info">
-				<p class="info__title">Адрес</p>
-				<p class="info__text">Санкт-Петербург, Банковский переулок, д. 3</p>
-				<p class="info__title">Режим работы</p>
-				<p class="info__text">с 12:00 до 21:00 (ежедневно)</p>
-				<p class="info__title">Телефон</p>
-				<p class="info__text">+7 (812) 448-83-06</p>
-				<p class="info__title">Электронная почта</p>
-				<p class="info__text">info@fabstore.ru</p>
-				<p class="info__title">Ближайшие станции метро</p>
-				<p class="info__text">Гостиный двор, Сенная площадь</p>
-			</div>
-		</div>
-		<div class="address__block">
-			<img class="address__image" alt="Банковский переулок, 3" src="img/map4.jpg" />
+			<a class="address__link" href="#"></a>
+			<img class="address__image" alt="Банковский переулок, 3" src="/img/map4.jpg" />
 			<p class="address__name disabled" data-item="4">скоро открытие</p>
 			<div class="address__info">
 				<p class="info__title">Адрес</p>
@@ -115,4 +121,4 @@
 		</div>
 	</div>
 </div>
-% end    
+% end

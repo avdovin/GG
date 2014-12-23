@@ -127,15 +127,15 @@ applications.
 
 To start applications with it you can use the L<morbo> script.
 
-  $ morbo myapp.pl
+  $ morbo ./myapp.pl
   Server available at http://127.0.0.1:3000.
 
-For better scalability (epoll, kqueue) and to provide IPv6, SOCKS5 as well as
-TLS support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+),
-L<IO::Socket::Socks> (0.64+) and L<IO::Socket::SSL> (1.84+) will be used
-automatically if they are installed. Individual features can also be disabled
-with the C<MOJO_NO_IPV6>, C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment
-variables.
+For better scalability (epoll, kqueue) and to provide non-blocking name
+resolution, SOCKS5 as well as TLS support, the optional modules L<EV> (4.0+),
+L<Net::DNS::Native> (0.12+), L<IO::Socket::Socks> (0.64+) and
+L<IO::Socket::SSL> (1.84+) will be used automatically if they are installed.
+Individual features can also be disabled with the C<MOJO_NO_NDN>,
+C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
@@ -146,7 +146,7 @@ L<Mojo::Server::Morbo> implements the following attributes.
 =head2 watch
 
   my $watch = $morbo->watch;
-  $morbo    = $morbo->watch(['/home/sri/myapp']);
+  $morbo    = $morbo->watch(['/home/sri/my_app']);
 
 Files and directories to watch for changes, defaults to the application script
 as well as the C<lib> and C<templates> directories in the current working
@@ -166,7 +166,7 @@ its name or C<undef> if there have been no changes.
 
 =head2 run
 
-  $morbo->run('script/myapp');
+  $morbo->run('script/my_app');
 
 Run server for application.
 

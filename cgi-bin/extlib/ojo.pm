@@ -45,8 +45,7 @@ sub _request {
 
   my $tx  = $ua->start($ua->build_tx(@_));
   my $err = $tx->error;
-  warn
-    qq/Problem loading URL "@{[$tx->req->url->to_abs]}". ($err->{message})\n/
+  warn qq/Problem loading URL "@{[$tx->req->url]}": $err->{message}\n/
     if $err && !$err->{code};
 
   return $tx->res;
@@ -80,6 +79,9 @@ C<MOJO_PROXY> environment variable.
 Every L<ojo> one-liner is also a L<Mojolicious::Lite> application.
 
   $ perl -Mojo -E 'get "/" => {inline => "%= time"}; app->start' get /
+
+If it is not already defined, the C<MOJO_LOG_LEVEL> environment variable will
+be set to C<fatal>.
 
 =head1 FUNCTIONS
 
@@ -126,7 +128,7 @@ resulting L<Mojo::Message::Response> object.
 Perform C<GET> request with L<Mojo::UserAgent/"get"> and return resulting
 L<Mojo::Message::Response> object.
 
-  $ perl -Mojo -E 'say g("mojolicio.us")->dom("h1, h2, h3")->text'
+  $ perl -Mojo -E 'say g("mojolicio.us")->dom("h1")->map("text")->join("\n")'
 
 =head2 h
 

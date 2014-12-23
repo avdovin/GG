@@ -77,7 +77,7 @@ sub _init{
 		$self->send_params->{replaceme} = $self->stash->{controller};
 		$self->send_params->{replaceme} .= '_'.$self->stash->{list_table} if $self->stash->{list_table};
 	}
-  
+
 	foreach ( qw(list_table replaceme)){
 		$self->param_default($_ => $self->send_params->{$_} ) if $self->send_params->{$_};
 	}
@@ -118,9 +118,8 @@ sub body{
 		when('upload') 					{
 
 			if(my $item = $self->getArraySQL(	from => $self->stash->{list_table}, where => "`ID`='".$self->stash->{index}."'") ){
-				my $lfield = $self->param('lfield');
+				my $lfield = $self->param('lfield') || 'docfile';
 				my $folder = $self->lkey(name => $lfield, controller => 'texts', setting => 'folder');
-
 				return $self->file_download( path => $folder.$item->{ $lfield });
 
 			}
@@ -413,7 +412,7 @@ sub delete{
 	my $self = shift;
 
   $self->backup_doptable;
-  
+
 	my $index = $self->stash->{index};
 	my $table = $self->stash->{list_table};
 	if ($self->getArraySQL( from => $table, where => $index, stash => 'anketa')) {
@@ -425,7 +424,7 @@ sub delete{
 				return $self->field_dop_table_reload;
 			}
 		}
-        
+
 		my $dir_field = $self->stash->{dir_field};
 		if($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => $dir_field)){
 			if($self->dbi->query("SELECT `ID` FROM `$table` WHERE `$dir_field`='$index'")->hash){
@@ -532,7 +531,7 @@ sub save{
 				items	=> $self->init_dop_tablelist_reload(),
 		});
 	}
-  
+
 	return $self->edit;
 }
 
@@ -563,7 +562,7 @@ sub edit{
 	if($self->stash->{dop_table}){
 		$self->backup_doptable();
 	}
-  
+
 	# Создание папки
 	if($params{dir}){
 		$self->stash->{page_name} = "Создание новой папки в разделе «".$self->stash->{name_razdel}."»";

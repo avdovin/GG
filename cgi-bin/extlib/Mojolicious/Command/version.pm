@@ -13,9 +13,9 @@ sub run {
 
   my $ev    = eval 'use Mojo::Reactor::EV; 1' ? $EV::VERSION : 'not installed';
   my $class = 'Mojo::IOLoop::Client';
-  my $ipv6  = $class->IPV6 ? $IO::Socket::IP::VERSION : 'not installed';
   my $socks = $class->SOCKS ? $IO::Socket::Socks::VERSION : 'not installed';
   my $tls   = $class->TLS ? $IO::Socket::SSL::VERSION : 'not installed';
+  my $ndn   = $class->NDN ? $Net::DNS::Native::VERSION : 'not installed';
 
   print <<EOF;
 CORE
@@ -24,20 +24,18 @@ CORE
 
 OPTIONAL
   EV 4.0+                 ($ev)
-  IO::Socket::IP 0.20+    ($ipv6)
   IO::Socket::Socks 0.64+ ($socks)
   IO::Socket::SSL 1.84+   ($tls)
+  Net::DNS::Native        ($ndn)
 
 EOF
 
   # Check latest version on CPAN
   my $latest = eval {
-    my $ua = Mojo::UserAgent->new(max_redirects => 10);
-    $ua->proxy->detect;
-    $ua->get('api.metacpan.org/v0/release/Mojolicious')->res->json->{version};
-  };
+    Mojo::UserAgent->new(max_redirects => 10)->tap(sub { $_->proxy->detect })
+      ->get('api.metacpan.org/v0/release/Mojolicious')->res->json->{version};
+  } or return;
 
-  return unless $latest;
   my $msg = 'This version is up to date, have fun!';
   $msg = 'Thanks for testing a development release, you are awesome!'
     if $latest < $Mojolicious::VERSION;

@@ -23,7 +23,7 @@ sub body{
 		when('reload_settings') 		{ $self->user_block; }
 
 		when('restart_hypnotoad') 		{ $self->restart_hypnotoad; }
-
+		when('restart_fcgi') 					{ $self->restart_fcgi; }
 
 		when('chlang') 					{
 			$self->sysuser->save_ses_settings(lang => $self->param('lang'));
@@ -63,6 +63,28 @@ sub hot_link{
 		WHERE `id_user`='$id_user' ORDER BY `created_at` DESC LIMIT 20/)->hashes;
 
 	$self->render( items => $items, template => 'Admin/Main/hot_link');
+}
+
+sub restart_fcgi{
+	my $self = shift;
+
+	my $bash_command = "";
+	if($self->config->{bash_restart_cmd}){
+		$bash_command = $self->config->{bash_restart_cmd};
+	}
+	elsif($self->config->{ftp_username}){
+		$bash_command = "killall -u ".$self->config->{ftp_username}." dispatch.fcgi";
+	}
+	else {
+		$bash_command = "killall -9 dispatch.fcgi";
+	}
+
+	system("rm /tmp/sess_* -Rf > /dev/null 2>&1 ");
+
+	system($bash_command) == 0
+		or die "system failed: $?";
+
+	$self->render( text => 'restart fcgi from admin');
 }
 
 sub restart_hypnotoad{

@@ -140,7 +140,7 @@ sub register {
 					}elsif($type =~ /list/){
 						$item->{$v} = $self->VALUES( name => $v, type => 'list', value => $item->{$v}, value_split => "=", )
 
-					}elsif($type eq 'pict' or $type eq 'file'){
+					}elsif($type eq 'pict'){
 						if(!$item->{$v}){
 							$item->{$v} = '/admin/img/no_img.png';
 						} else {
@@ -159,16 +159,16 @@ sub register {
 						}
 
   				}elsif($type eq 'file'){
-            next unless my $filename = $item->{$v};
+            #next unless my $filename = $item->{$v};
 
-            my $ext = ($filename =~ m/([^.]+)$/)[0];
-  					$item->{$v} = $self->image('/admin/img/icons/file/'.$ext.'.png', alt => $filename, width => 32, height => 32);
+            #my $ext = ($filename =~ m/([^.]+)$/)[0];
+  					#$item->{$v} = $self->image('/admin/img/icons/file/'.$ext.'.png', alt => $filename, width => 16, height => 16).' '.$filename;
 
 					}elsif($type eq 'site' ){
 						$item->{$v} = "<a href='$$item{$v}' target='_blank'>$$item{$v}</a>";
 
 					# размер файла
-					}elsif($v eq 'size'){
+					}elsif($type eq 'filesize'){
 						$item->{$v} = $self->file_nice_size($$item{$v});
 					}
 				}
@@ -208,10 +208,10 @@ sub register {
 
 			if($self->stash->{group} == 2){
 				my $lkeys = $self->lkey(controller => $controller);
-				my $lkeys_access = $self->sysuser->access->{lkeys};
+				my $lkeys_access = $self->sysuser->access->{lkey};
 				my $user_sys = $self->sysuser->sys;
 
-				my $defcol;
+				my $defcol = '';
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
 					$defcol = $self->sysuser->settings->{$self->stash->{replaceme}."_defcol"};
 				} else {
@@ -253,7 +253,7 @@ sub register {
 
 			} elsif($self->stash->{group} == 3){
 				my $lkeys = $self->lkey(controller => $controller);
-				my $lkeys_access = $self->sysuser->access->{lkeys};
+				my $lkeys_access = $self->sysuser->access->{lkey};
 				my $user_sys = $self->sysuser->sys;
 
 				if($self->sysuser->settings->{$self->stash->{replaceme}."_defcol"}){
@@ -280,7 +280,7 @@ sub register {
 			} elsif($self->stash->{group} == 4){
 
 				my $list_fields = $self->stash->{listfields};
-				my $result;
+				my $result = '';
 				foreach my $item ( split(/,/, $list_fields) ){
 					my ($lkey, $size) = split("~", $item);
 					$size = 100 if ($size !~ /\d+/);
@@ -354,7 +354,7 @@ sub register {
 
 			use strict "refs";
 
-			$self->sysuser->save_settings(%user_set);
+			$self->sysuser->save_ses_settings(%user_set);
 
 			$self->render( json => {
 					content	=> "OK!",
@@ -387,7 +387,7 @@ sub register {
 
 			use strict "refs";
 
-			$self->sysuser->save_settings();
+			$self->sysuser->save_ses_settings();
 
 		}
 	);
@@ -448,7 +448,7 @@ sub register {
 
 			if($params{render}){
 				$value = $value ? 0 : 1;
-				$self->sysuser->save_settings($params{lkey}.'_filter_take' => $value );
+				$self->sysuser->save_ses_settings($params{lkey}.'_filter_take' => $value );
 			}
 
 			$self->stash->{filter_take_text} = $filter_take{ $value };
@@ -563,8 +563,8 @@ sub register {
 	$app->helper(
 		def_tablelist_param => sub {
 			my $self = shift;
-
 			my (%params) = @_;
+
 			my $send_params = $self->send_params->{ $params{key} };#$self->req->params->to_hash;
 
 			my $key = $params{lkey}.'_'.$params{key};# $self->stash->{replaceme}.'_'.$params{key};
@@ -574,7 +574,7 @@ sub register {
 				$value = $self->sysuser->settings->{$key};
 			} elsif (defined $send_params) {
 				$value = $send_params;
-				$self->sysuser->save_settings($key => $value);
+				$self->sysuser->save_ses_settings($key => $value);
 			}
 
 			$self->stash->{$params{key}} = $value;
@@ -637,7 +637,7 @@ sub register {
 					my ($k, $size) = split("~", $item);
 					my $lkey = $self->lkey(name => $k);
 
-					if (($self->dbi->exists_keys(table => $params{table}, lkey => $k)) and ($self->sysuser->access->{lkeys}->{$k}->{r} || $self->app->sysuser->sys)) {
+					if (($self->dbi->exists_keys(table => $params{table}, lkey => $k)) and ($self->sysuser->access->{lkey}->{$k}->{r} || $self->app->sysuser->sys)) {
 						$lkey->{settings}->{table_list_width} = $size || 100;
 						push(@table_list_keys, "`$params{table}`.`$k`");
 						push(@table_list_keys_header, $k);
@@ -736,7 +736,7 @@ sub register {
 			if (!$self->sysuser->settings->{$controller.'_qedit'}) {
 				#$self->stash->{flag_reload} = 1;
 				#$self->stash->{key_reload}  = $params{info} ? "_i_".$lkey : $lkey;
-				$self->sysuser->save_settings($controller.'_qedit' => 1);
+				$self->sysuser->save_ses_settings($controller.'_qedit' => 1);
 
 				$self->render( json => {
 					content	=> 'Выключить QEdit',
@@ -749,7 +749,7 @@ sub register {
 				})
 			} else {
 				#$self->stash->{flag_reload} = 0;
-				$self->sysuser->save_settings($controller.'_qedit' => 0);
+				$self->sysuser->save_ses_settings($controller.'_qedit' => 0);
 
 				$self->render( json => {
 					content	=> 'Включить QEdit',

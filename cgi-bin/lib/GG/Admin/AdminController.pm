@@ -400,10 +400,10 @@ HEAD
 				$value = $self->VALUES( name => $key, value => $value );
 
 			} elsif($type eq 'date' ){
-				$value = 'не указана' if ($value eq '0000-00-00');
+				$value = 'не указана' if (!$value or $value eq '0000-00-00');
 
 			} elsif($type eq 'datetime' or $type eq 'time' ){
-				$value = 'не указана' if ($value eq '0000-00-00 00:00:00');
+				$value = 'не указана' if (!$value or $value eq '0000-00-00 00:00:00');
 			}
 			$HTML .=
 			"<tr>
@@ -742,12 +742,12 @@ sub save_info{
 				my $folder = $lkey_settings->{folder};
 
 				my $fv = {$k => $file_name_saved};
-				if(defined $send_params->{size}){
+				if($self->dbi->exists_keys(from => $table, lkey => $k.'_size' )){
 					my $size = -s $self->static_path.$folder.$file_name_saved || 0;
-					$fv->{size} = $size;
+					$fv->{$k.'_size'} = $size;
 				}
-				if(defined $send_params->{file_type}){
-					$fv->{file_type} = $fileType;
+				if($self->dbi->exists_keys(from => $table, lkey => $k.'_file_type' )){
+					$fv->{$k.'_file_type' } = $fileType;
 				}
 
 				$self->save_info(

@@ -28,6 +28,7 @@ my $templates = {
 			pict		=> "field_pict",
 			file		=> "field_file",
 			filename	=> "field_file",
+			filesize => "field_input_read",
 			table		=> "field_table"
 	},
 	r	=> {
@@ -51,6 +52,7 @@ my $templates = {
 			pict		=> "field_pict_read",
 			file		=> "field_file_read",
 			filename	=> "field_input_read",
+			filesize => "field_input_read",
 			table		=> "field_table"
 	},
 	f	=> {
@@ -74,6 +76,7 @@ my $templates = {
 			pict		=> "field_pict",
 			file		=> "field_file_filter",
 			filename	=> "field_input_filter",
+			filesize => "field_input_filter",
 			table		=> "tabledop_container_filter"
 	}
 };

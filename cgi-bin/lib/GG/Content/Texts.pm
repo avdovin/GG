@@ -141,7 +141,7 @@ sub text_main_item{
 	my 	$where	= 	"`viewtext`='1'";
 		$where	.= 	" AND `alias`='$alias'";
 
-	return $self->render_not_found unless my $text = $self->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE $where")->hash;
+	return $self->render_not_found unless my $text = $self->dbi->query("SELECT *, DATE_FORMAT(updated_at,'%a, %d %b %Y %T') AS updated_at_rfc822 FROM `texts_main_".$self->lang."` WHERE $where")->hash;
 
 	#AJAX request
 	my $header = $self->req->headers->header('X-Requested-With');
@@ -155,6 +155,9 @@ sub text_main_item{
 	$self->meta_title( $text->{title} || $text->{name} );
 	$self->meta_keywords( $text->{keywords} );
 	$self->meta_description( $text->{description} );
+
+	# Wed, 24 Sep 2014 19:15:45 GMT
+	$self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' ) if ($text->{'updated_at'} ne '0000-00-00 00:00:00');
 
 	my $template = $self->stash->{template} ||= "Texts/_body_default";
 	$self->render(
@@ -193,7 +196,7 @@ sub text_list_item{
 
 
 	return $self->render_not_found unless my $item = $self->dbi->query(qq/
-			SELECT *
+			SELECT *, DATE_FORMAT(updated_at,'%a, %d %b %Y %T') AS updated_at_rfc822
 			FROM `$table`
 			WHERE `alias`='$alias' $where LIMIT 0,1/)->hash;
 
@@ -207,6 +210,7 @@ sub text_list_item{
 	$self->meta_keywords( $item->{keywords} );
 	$self->meta_description( $item->{description} );
 
+	$self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' ) if ($item->{'updated_at'} ne '0000-00-00 00:00:00');
 
 	#$text->{index_after} = $self->get_index_after(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 	#$text->{index_befor} = $self->get_index_befor(from => $table, index => $ID, ring => $ring, where => $where, order => $order);

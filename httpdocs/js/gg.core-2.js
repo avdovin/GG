@@ -133,7 +133,7 @@ var GG = function(){
 		var settings = $.extend(defaults, options);
 
 		if (!$(formWrapper).data("formAttached")) {
-			$(document).on("click", handle, function(){
+			$('body').on("click", handle, function(){
 				settings.beforeSubmit();
 				settings.data = $form.serialize();
 
@@ -274,7 +274,7 @@ var GG = function(){
 				var flagNoAutoCurrent = false;
 				if ($(this).closest(".noautocurrent").length > 0) {
 					flagNoAutoCurrent = true;
-					$self.log("."+$(this).closest(".nouncurrent")[0].className.split(/\s+/)[0] + ": Autocurrent is toggled off for this container");
+					$self.log("."+$(this).closest(".noautocurrent")[0].className.split(/\s+/)[0] + ": Autocurrent is toggled off for this container");
 				}
 
 				// check if one of parents are '.nouncurrent'
@@ -380,6 +380,13 @@ var GG = function(){
 			$self.historyRestoreUrl();
 			$self.togglePopup($(this).closest(".popup").attr("id"));
 			return false;
+		});
+
+		$(document).on('click', '.popup.hideover', function(){
+		  $self.togglePopup();
+		});
+		$(document).on('click', '.hideover .popup-container', function(){
+		    return false;
 		});
 
 		$(document).keyup(function(e) {

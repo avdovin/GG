@@ -28,8 +28,8 @@ sub register {
 		foreach my $route (keys %$CONFIG){
 			my $routeConfig = $CONFIG->{ $route };
 
-			my $dopWhere = " `rdate` ";
-			$dopWhere .= ",`edate`" if $self->dbi->exists_keys(from => $$routeConfig{table}, lkey => 'edate');
+			my $dopWhere = " `created_at` ";
+			$dopWhere .= ",`updated_at`" if $self->dbi->exists_keys(from => $$routeConfig{table}, lkey => 'updated_at');
 
 			my $placeholders = $routeConfig->{placeholders};
 			my $fields_str = join(",", keys %$placeholders);
@@ -37,7 +37,7 @@ sub register {
 
 			for my $row ( $self->app->dbi->query("SELECT $dopWhere $fields_str FROM `$$routeConfig{table}` WHERE ".$routeConfig->{where} )->hashes ){
 				my $url_vals = {};
-				$row->{edate} = $row->{rdate} if (!$row->{edate} or $row->{edate} eq '0000-00-00 00:00:00');
+				$row->{updated_at} = $row->{created_at} if (!$row->{updated_at} or $row->{updated_at} eq '0000-00-00 00:00:00');
 
 				foreach (keys %$placeholders){
 					$url_vals->{ $placeholders->{$_} } = $row->{$_};
@@ -57,21 +57,19 @@ sub register {
 				my $priority = $routeConfig->{priority} || '0.5';
 				my $changefreq = $routeConfig->{changefreq} || 'monthly';
 
-				$nodes .= $self->render(
+				$nodes .= $self->render_to_string(
 					node 		=> $row,
 					url 		=> $url,
 					priority 	=> $priority,
 					changefreq 	=> $changefreq,
 					template 	=> 'Plugins/Sitemap/node',
 					format 		=> 'xml',
-
-					partial 	=> 1,
 				);
 
 			}
 		}
 
-		$self->render( nodes => $nodes, template => 'Plugins/Sitemap/sitemap', format => 'xml');
+		$self->render( nodes => $nodes, template => 'Plugins/Sitemap/sitemap', format => 'xml')
 	});
 }
 

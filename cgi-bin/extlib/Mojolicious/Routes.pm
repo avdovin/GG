@@ -86,17 +86,15 @@ sub match {
   my $match = Mojolicious::Routes::Match->new(root => $self);
   $c->match($match);
   my $cache = $self->cache;
-  my $cached = $cache ? $cache->get("$method:$path:$ws") : undef;
-  return $match->endpoint($cached->{endpoint})->stack($cached->{stack})
-    if $cached;
+  if (my $result = $cache->get("$method:$path:$ws")) {
+    return $match->endpoint($result->{endpoint})->stack($result->{stack});
+  }
 
   # Check routes
   $match->match($c => {method => $method, path => $path, websocket => $ws});
-
-  # Cache routes without conditions
-  return unless $cache && (my $endpoint = $match->endpoint);
-  my $result = {endpoint => $endpoint, stack => $match->stack};
-  $cache->set("$method:$path:$ws" => $result) unless $endpoint->has_conditions;
+  return unless my $route = $match->endpoint;
+  $cache->set(
+    "$method:$path:$ws" => {endpoint => $route, stack => $match->stack});
 }
 
 sub route {
@@ -169,7 +167,7 @@ sub _controller {
   my $class = ref $new;
   my $app   = $old->app;
   my $log   = $app->log;
-  if (my $sub = $new->can('handler')) {
+  if ($new->isa('Mojo')) {
     $log->debug(qq{Routing to application "$class".});
 
     # Try to connect routes
@@ -177,7 +175,7 @@ sub _controller {
       my $r = $new->$sub;
       weaken $r->parent($old->match->endpoint)->{parent} unless $r->parent;
     }
-    $new->$sub($old);
+    $new->handler($old);
     $old->stash->{'mojo.routed'}++;
   }
 
@@ -258,9 +256,6 @@ L<Mojolicious::Controller> and L<Mojo>.
   $r        = $r->cache(Mojo::Cache->new);
 
 Routing cache, defaults to a L<Mojo::Cache> object.
-
-  # Disable caching
-  $r->cache(0);
 
 =head2 conditions
 

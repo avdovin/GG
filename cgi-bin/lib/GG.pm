@@ -22,16 +22,21 @@ sub startup{
 
 	# значения по умолчанию для маршрутов
 	my %routes_args = (
-		handler				=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
+		handler						=> 'ep',				# Тип шаблонозитора и соответсвенно файлов шаблона
 		controller_class	=> 'GG::Controller',	# Папка с модулями
-		layout				=> 'default',			# Скелет (layout) страниц
+		layout						=> 'default',			# Скелет (layout) страниц
 	);
 
-	$self->hook(before_dispatch => sub {
-		my $self = shift;
+	# $self->hook(before_dispatch => sub {
+	# 	my $self = shift;
 
+	# });
+
+
+	# check site availability
+	$r->any("/ping")->to(cb => sub{
+		return shift->render(text => 'pong');
 	});
-
 
 	my $routes = $r->bridge()->to(%routes_args, cb => sub {
 		my $self = shift;
@@ -41,7 +46,7 @@ sub startup{
 
 	$routes->post("callback")->to( cb => sub {
 		shift->callbackSend;
-	});
+	})->name('callback_submit');
 
 
 	my $routesCatalog = $routes->bridge('/catalog')->to(alias => 'catalog',layout => 'default', cb => sub {
@@ -81,18 +86,13 @@ sub startup{
 	$routes->any("/images")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery', admin_name => 'Фотогалерея')->name('gallery_dir_list');
 	$routes->any("/images/:dir_alias")->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')->name('gallery_items_list');
 
-	$routes->any('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
+	$routes->get('/faq')->to("Faq#list", alias => "faq", admin_name => 'FAQ' )->name('faq');
+	$routes->post('/faq')->to("Faq#list", alias => "faq", submit => 1 )->name('faq_submit');
 
 	$routes->any("/:alias")->to("Texts#text_main_item", redirect_to_url_for => 1 )->name('text');
 
 	# subscribe
 	$routes->any('/ajax/subscribe/add')->to("Subscribe#add_ajax" );
 	$routes->any('/subscribe/unsubscribe')->to("Subscribe#unsubscribe" );
-
-
-	# check site availability
-	$r->any("/ping")->to(cb => sub{
-		return shift->render(text => 'pong');
-	});
 }
 1;

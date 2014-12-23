@@ -4,15 +4,10 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Carp 'croak';
 use File::Basename 'dirname';
 use File::Spec::Functions 'catfile';
-use IO::Socket::INET;
+use IO::Socket::IP;
 use Mojo::IOLoop;
 use Scalar::Util 'weaken';
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
-
-# IPv6 support requires IO::Socket::IP
-use constant IPV6 => $ENV{MOJO_NO_IPV6}
-  ? 0
-  : eval 'use IO::Socket::IP 0.20 (); 1';
 
 # TLS support requires IO::Socket::SSL
 use constant TLS => $ENV{MOJO_NO_TLS}
@@ -23,8 +18,8 @@ use constant TLS_WRITE => TLS ? IO::Socket::SSL::SSL_WANT_WRITE() : 0;
 
 # To regenerate the certificate run this command (18.04.2012)
 # openssl req -new -x509 -keyout server.key -out server.crt -nodes -days 7300
-my $CERT = catfile dirname(__FILE__), 'server.crt';
-my $KEY  = catfile dirname(__FILE__), 'server.key';
+my $CERT = catfile dirname(__FILE__), 'certs', 'server.crt';
+my $KEY  = catfile dirname(__FILE__), 'certs', 'server.key';
 
 has multi_accept => 50;
 has reactor => sub { Mojo::IOLoop->singleton->reactor };
@@ -38,7 +33,7 @@ sub DESTROY {
 }
 
 sub generate_port {
-  IO::Socket::INET->new(Listen => 5, LocalAddr => '127.0.0.1')->sockport;
+  IO::Socket::IP->new(Listen => 5, LocalAddr => '127.0.0.1')->sockport;
 }
 
 sub handle { shift->{handle} }
@@ -59,9 +54,8 @@ sub listen {
 
   # Reuse file descriptor
   my $handle;
-  my $class = IPV6 ? 'IO::Socket::IP' : 'IO::Socket::INET';
   if (defined $fd) {
-    $handle = $class->new_from_fd($fd, 'r')
+    $handle = IO::Socket::IP->new_from_fd($fd, 'r')
       or croak "Can't open file descriptor $fd: $!";
   }
 
@@ -76,7 +70,8 @@ sub listen {
     );
     $options{LocalPort} = $port if $port;
     $options{LocalAddr} =~ s/[\[\]]//g;
-    $handle = $class->new(%options) or croak "Can't create listen socket: $@";
+    $handle = IO::Socket::IP->new(%options)
+      or croak "Can't create listen socket: $@";
     $fd = fileno $handle;
     my $reuse = $self->{reuse} = join ':', $address, $handle->sockport, $fd;
     $ENV{MOJO_REUSE} .= length $ENV{MOJO_REUSE} ? ",$reuse" : "$reuse";
@@ -125,7 +120,7 @@ sub _accept {
     setsockopt $handle, IPPROTO_TCP, TCP_NODELAY, 1;
 
     # Start TLS handshake
-    $self->emit_safe(accept => $handle) and next unless my $tls = $self->{tls};
+    $self->emit(accept => $handle) and next unless my $tls = $self->{tls};
     $self->_handshake($self->{handles}{$handle} = $handle)
       if $handle = IO::Socket::SSL->start_SSL($handle, %$tls, SSL_server => 1);
   }
@@ -143,7 +138,7 @@ sub _tls {
   # Accepted
   if ($handle->accept_SSL) {
     $self->reactor->remove($handle);
-    return $self->emit_safe(accept => delete $self->{handles}{$handle});
+    return $self->emit(accept => delete $self->{handles}{$handle});
   }
 
   # Switch between reading and writing
@@ -195,7 +190,7 @@ emit the following new ones.
     ...
   });
 
-Emitted safely for each accepted connection.
+Emitted for each accepted connection.
 
 =head1 ATTRIBUTES
 
@@ -238,7 +233,7 @@ Get handle for server.
   $server->listen(port => 3000);
 
 Create a new listen socket. Note that TLS support depends on
-L<IO::Socket::SSL> (1.84+) and IPv6 support on L<IO::Socket::IP> (0.20+).
+L<IO::Socket::SSL> (1.84+).
 
 These options are currently available:
 

@@ -1357,6 +1357,22 @@ function set_route_alias(form) {
 	}
 }
 
+function restart_fcgi(){
+	$.ajax({
+		url: '/admin/main/body',
+		data: {do: 'restart_fcgi'},
+		timeout: 2000,
+		beforeSend: function(){
+			$("form[name=form-restart-fcgi] input[type=button]").val('Сбрасываю ...');
+		}
+	})
+	.always(function() {
+		$("form[name=form-restart-hypnotoad] input[type=submit]").val('Сбросить кэш');
+		do_submit(document.getElementById('form-restart-fcgi'), 'user_info', '/admin/main/body');
+	});
+	return false;
+}
+
 function restart_hypnotoad(){
 	$.ajax({
 		url: '/admin/main/body',

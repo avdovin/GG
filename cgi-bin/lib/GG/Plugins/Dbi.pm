@@ -58,8 +58,8 @@ sub register {
 
 			else {
 
-        		#make new connection
-        		$self->app->log->debug("start new DB connection to DB $args->{dsn}");
+        #make new connection
+        $self->app->log->debug("start new DB connection to DB $args->{db_name}");
 
 				$dbi = GG::Dbi->connect(
 					'DBI:mysql:'

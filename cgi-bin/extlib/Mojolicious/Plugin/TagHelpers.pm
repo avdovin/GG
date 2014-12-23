@@ -2,7 +2,7 @@ package Mojolicious::Plugin::TagHelpers;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::ByteStream;
-use Mojo::Util 'xml_escape';
+use Mojo::Util 'xss_escape';
 use Scalar::Util 'blessed';
 
 sub register {
@@ -76,7 +76,7 @@ sub _input {
   my %attrs = @_ % 2 ? (value => shift, @_) : @_;
 
   # Special selection value
-  my @values = $c->param($name);
+  my @values = @{$c->every_param($name)};
   my $type = $attrs{type} || '';
   if (@values && $type ne 'submit') {
 
@@ -140,7 +140,7 @@ sub _option {
   $attrs{selected} = 'selected' if exists $values->{$pair->[1]};
   %attrs = (%attrs, @$pair[2 .. $#$pair]);
 
-  return _tag('option', %attrs, sub { xml_escape $pair->[0] });
+  return _tag('option', %attrs, $pair->[0]);
 }
 
 sub _password_field {
@@ -152,7 +152,7 @@ sub _password_field {
 sub _select_field {
   my ($c, $name, $options, %attrs) = (shift, shift, shift, @_);
 
-  my %values = map { $_ => 1 } $c->param($name);
+  my %values = map { $_ => 1 } @{$c->every_param($name)};
 
   my $groups = '';
   for my $group (@$options) {
@@ -212,13 +212,13 @@ sub _tag {
     }
     delete $attrs{data};
   }
-  $tag .= qq{ $_="} . xml_escape($attrs{$_} // '') . '"' for sort keys %attrs;
+  $tag .= qq{ $_="} . xss_escape($attrs{$_} // '') . '"' for sort keys %attrs;
 
   # Empty element
   unless ($cb || defined $content) { $tag .= ' />' }
 
   # End tag
-  else { $tag .= '>' . ($cb ? $cb->() : xml_escape($content)) . "</$name>" }
+  else { $tag .= '>' . ($cb ? $cb->() : xss_escape $content) . "</$name>" }
 
   # Prevent escaping
   return Mojo::ByteStream->new($tag);
@@ -234,13 +234,11 @@ sub _tag_with_error {
 sub _text_area {
   my ($c, $name) = (shift, shift);
 
-  # Make sure content is wrapped
-  my $cb = ref $_[-1] eq 'CODE' ? pop : sub {''};
+  my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
   my $content = @_ % 2 ? shift : undef;
-  $cb = sub { xml_escape $content }
-    if defined($content = $c->param($name) // $content);
+  $content = $c->param($name) // $content // $cb // '';
 
-  return _validation($c, $name, 'textarea', @_, name => $name, $cb);
+  return _validation($c, $name, 'textarea', @_, name => $name, $content);
 }
 
 sub _validation {
@@ -686,12 +684,13 @@ HTML/XML tag generator.
 
 Very useful for reuse in more specific tag helpers.
 
-  $c->tag('div');
-  $c->tag('div', id => 'foo');
-  $c->tag(div => sub { 'Content' });
+  my $output = $c->tag('div');
+  my $output = $c->tag('div', id => 'foo');
+  my $output = $c->tag(div => '<p>This will be escaped</p>');
+  my $output = $c->tag(div => sub { '<p>This will not be escaped</p>' });
 
 Results are automatically wrapped in L<Mojo::ByteStream> objects to prevent
-accidental double escaping.
+accidental double escaping in C<ep> templates.
 
 =head2 tag_with_error
 

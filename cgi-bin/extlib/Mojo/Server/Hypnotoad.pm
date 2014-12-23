@@ -47,7 +47,8 @@ sub run {
   $ENV{MOJO_MODE} ||= 'production';
 
   # Clean start (to make sure everything works)
-  die "Can't exec: $!" if !$ENV{HYPNOTOAD_REV}++ && !exec $ENV{HYPNOTOAD_EXE};
+  die "Can't exec: $!"
+    if !$ENV{HYPNOTOAD_REV}++ && !exec $^X, $ENV{HYPNOTOAD_EXE};
 
   # Preload application and configure server
   my $prefork = $self->prefork->cleanup(0);
@@ -107,7 +108,7 @@ sub _manage {
     unless ($self->{new}) {
       $log->info('Starting zero downtime software upgrade.');
       die "Can't fork: $!" unless defined(my $pid = $self->{new} = fork);
-      exec($ENV{HYPNOTOAD_EXE}) or die("Can't exec: $!") unless $pid;
+      exec $^X, $ENV{HYPNOTOAD_EXE} or die "Can't exec: $!" unless $pid;
     }
 
     # Timeout
@@ -160,23 +161,23 @@ To start applications with it you can use the L<hypnotoad> script, for
 L<Mojolicious> and L<Mojolicious::Lite> applications it will default to
 C<production> mode.
 
-  $ hypnotoad myapp.pl
+  $ hypnotoad ./myapp.pl
   Server available at http://127.0.0.1:8080.
 
 You can run the same command again for automatic hot deployment.
 
-  $ hypnotoad myapp.pl
+  $ hypnotoad ./myapp.pl
   Starting hot deployment for Hypnotoad server 31841.
 
 This second invocation will load the application again, detect the process id
 file with it, and send a L</"USR2"> signal to the already running server.
 
-For better scalability (epoll, kqueue) and to provide IPv6, SOCKS5 as well as
-TLS support, the optional modules L<EV> (4.0+), L<IO::Socket::IP> (0.20+),
-L<IO::Socket::Socks> (0.64+) and L<IO::Socket::SSL> (1.84+) will be used
-automatically if they are installed. Individual features can also be disabled
-with the C<MOJO_NO_IPV6>, C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment
-variables.
+For better scalability (epoll, kqueue) and to provide non-blocking name
+resolution, SOCKS5 as well as TLS support, the optional modules L<EV> (4.0+),
+L<Net::DNS::Native> (0.12+), L<IO::Socket::Socks> (0.64+) and
+L<IO::Socket::SSL> (1.84+) will be used automatically if they are installed.
+Individual features can also be disabled with the C<MOJO_NO_NDN>,
+C<MOJO_NO_SOCKS> and C<MOJO_NO_TLS> environment variables.
 
 See L<Mojolicious::Guides::Cookbook/"DEPLOYMENT"> for more.
 
@@ -420,7 +421,7 @@ Configure server from application settings.
 
 =head2 run
 
-  $hypnotoad->run('script/myapp');
+  $hypnotoad->run('script/my_app');
 
 Run server for application.
 

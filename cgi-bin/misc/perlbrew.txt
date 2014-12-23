@@ -1,0 +1,4 @@
+perlbrew uninstall perl-5.20.1 -D useshrplib
+perlmagick.sh
+
+

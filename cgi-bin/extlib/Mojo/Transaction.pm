@@ -19,7 +19,7 @@ sub client_close {
     $res->error({message => 'Premature connection close'});
   }
 
-  # 400/500
+  # 4xx/5xx
   elsif ($res->is_status_class(400) || $res->is_status_class(500)) {
     $res->error({message => $res->message, code => $res->code});
   }
@@ -216,6 +216,12 @@ Connection identifier or socket.
 
 Return transaction error or C<undef> if there is no error, commonly used
 together with L</"success">.
+
+  # Check for different kinds of errors
+  if (my $err = $tx->error) {
+    die "$err->{code} response: $err->{message}" if $err->{code};
+    die "Connection error: $err->{message}";
+  }
 
 =head2 is_finished
 

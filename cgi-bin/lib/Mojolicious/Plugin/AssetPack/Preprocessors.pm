@@ -2,20 +2,101 @@ package Mojolicious::Plugin::AssetPack::Preprocessors;
 
 =head1 NAME
 
-Mojolicious::Plugin::AssetPack::Preprocessors - Holds preprocessors
+Mojolicious::Plugin::AssetPack::Preprocessors - Holds preprocessors for the assetpack
+
+=head1 DESCRIPTION
+
+L<Mojolicious::Plugin::AssetPack::Preprocessors> is used to hold a list of
+preprocessors for a given file type.
+
+=head2 Bundled preprocessors
+
+L<Mojolicious::Plugin::AssetPack> will load the preprocessors in the list
+below, when you try to handle a given file.
+
+NOTE! Some of the preprocessors require optional dependencies to function
+properly.
+
+=over 4
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::CoffeeScript>
+
+Handle C<.coffee> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::Css>
+
+Handle C<.css> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::JavaScript>
+
+Handle C<.js> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::Jsx>
+
+Handle C<.jsx> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::Less>
+
+Handle C<.less> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::Sass>
+
+Handle C<.sass> files.
+
+=item * L<Mojolicious::Plugin::AssetPack::Preprocessor::Scss>
+
+Handle C<.scss> files.
+
+=back
+
+=head2 Custom preprocessors
+
+You can also define your own preprocessors. Example code:
+
+  package My::Preprocessor;
+  use Mojo::Base 'Mojolicious::Plugin::AssetPack::Preprocessor';
+
+  sub process {
+    my ($self, $assetpack, $text, $path) = @_;
+    $$text = "// yikes!\n" if 5 < rand 10;
+  }
+
+  app->asset->preprocessors->add(js => My::Preprocessor->new);
 
 =cut
 
 use Mojo::Base 'Mojo::EventEmitter';
 use Mojo::Util ();
 use Mojolicious::Plugin::AssetPack::Preprocessor;
-use Cwd;
 use File::Basename;
 use File::Which;
 use IPC::Run3 ();
 use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
 our $VERSION = '0.01';
+
+my %PREPROCESSORS = (
+  coffee => 'Mojolicious::Plugin::AssetPack::Preprocessor::CoffeeScript',
+  css    => 'Mojolicious::Plugin::AssetPack::Preprocessor::Css',
+  js     => 'Mojolicious::Plugin::AssetPack::Preprocessor::JavaScript',
+  jsx    => 'Mojolicious::Plugin::AssetPack::Preprocessor::Jsx',
+  less   => 'Mojolicious::Plugin::AssetPack::Preprocessor::Less',
+  sass   => 'Mojolicious::Plugin::AssetPack::Preprocessor::Sass',
+  scss   => 'Mojolicious::Plugin::AssetPack::Preprocessor::Scss',
+);
+
+=head1 ATTRIBUTES
+
+=head2 fallback
+
+TODO
+
+=cut
+
+has fallback => sub {
+  require Mojolicious::Plugin::AssetPack::Preprocessor::Fallback;
+  Mojolicious::Plugin::AssetPack::Preprocessor::Fallback->new;
+};
 
 =head1 METHODS
 
@@ -32,184 +113,75 @@ Define a preprocessor which is run on a given file extension. These
 preprocessors will be chained. The callbacks will be called in the order they
 where added.
 
-The default preprocessor defined is described under L</detect>.
-
 In case of C<$object>, the object need to be able to have the C<process()>
 method.
 
 =cut
 
 sub add {
-  my ($self, $type, $arg) = @_;
+  my ($self, $extension, $arg) = @_;
 
   # back compat
   if (ref $arg eq 'CODE') {
     $arg = Mojolicious::Plugin::AssetPack::Preprocessor->new(processor => $arg);
   }
 
-  $self->on($type => $arg);
+  $self->on($extension => $arg);
+}
+
+=head2 can_process
+
+  $bool = $self->can_process($extension);
+
+Returns true if there is at least one of the preprocessors L<added|/add>
+can handle this extensions.
+
+This means that a preprocessor object can be added, but is unable to
+actually process the asset. This is a helper method, which can be handy
+in unit tests to check if "sass", "jsx" or other preprocessors are
+actually installed.
+
+=cut
+
+sub can_process {
+  my ($self, $extension) = @_;
+
+  for my $p ($self->_preprocessors($extension)) {
+    return 1 if $p->can_process;
+  }
+
+  return 0;
 }
 
 =head2 checksum
 
   $str = $self->checksum($extension => \$text, $filename);
 
+Calls the C<checksum()> method in all the preprocessors for the C<$extension>
+and returns a combined checksum.
+
 =cut
 
 sub checksum {
-  my($self, $extension, $text, $filename) = @_;
-  my $old_dir = getcwd;
-  my $err = '';
+  my ($self, $extension, $text, $filename) = @_;
+  my $cwd = Mojolicious::Plugin::AssetPack::Preprocessors::CWD->new(dirname $filename);
   my @checksum;
 
-  local $@;
+  for my $p ($self->_preprocessors($extension)) {
+    push @checksum, $p->checksum($text, $filename);
+  }
 
-  eval {
-    chdir dirname $filename if $filename;
-    push @checksum, $_->checksum($text, $filename) for @{ $self->subscribers($extension) };
-    1;
-  } or do {
-    $err = $@ || "AssetPack failed with unknown error while processing $filename.\n";
-  };
-
-  chdir $old_dir;
-  die $err if $err;
   return @checksum == 1 ? $checksum[0] : Mojo::Util::md5_sum(join '', @checksum);
 }
 
 =head2 detect
 
-Will add the following preprocessors, if they are available:
-
-=over 4
-
-=item * jsx
-
-JSX is a JavaScript XML syntax transform recommended for use with
-L<React|http://facebook.github.io/react>. See
-L<http://facebook.github.io/react/docs/jsx-in-depth.html> for more information.
-
-Installation on Ubuntu and Debian:
-
-  $ sudo apt-get install npm
-  $ npm install -g react-tools
-
-=item * less
-
-LESS extends CSS with dynamic behavior such as variables, mixins, operations
-and functions. See L<http://lesscss.org> for more details.
-
-Installation on Ubuntu and Debian:
-
-  $ sudo apt-get install npm
-  $ sudo npm install -g less
-
-=item * sass
-
-Sass makes CSS fun again. Sass is an extension of CSS3, adding nested rules,
-variables, mixins, selector inheritance, and more. See L<http://sass-lang.com>
-for more information. Supports both F<*.scss> and F<*.sass> syntax variants.
-
-Installation on Ubuntu and Debian:
-
-  $ sudo apt-get install rubygems
-  $ sudo gem install sass
-
-=item * compass
-
-Compass is an open-source CSS Authoring Framework built on top of L</sass>.
-See L<http://compass-style.org/> for more information.
-
-Installation on Ubuntu and Debian:
-
-  $ sudo apt-get install rubygems
-  $ sudo gem install compass
-
-This module will try figure out if "compass" is required to process your
-C<*.scss> files. This is done with this regexp on the top level sass file:
-
-  m!\@import\W+compass\/!;
-
-NOTE! Compass support is experimental.
-
-You can disable compass detection by setting the environment variable
-C<MOJO_ASSETPACK_NO_COMPASS> to a true value.
-
-=item * js
-
-Javascript is minified using L<JavaScript::Minifier::XS>. This module is
-optional and must be installed manually.
-
-EXPERIMENTAL! Not sure if this is the best minifier.
-
-=item * css
-
-CSS is minified using L<CSS::Minifier::XS>. This module is optional and must
-be installed manually.
-
-EXPERIMENTAL! Not sure if this is the best minifier.
-
-=item * coffee
-
-CoffeeScript is a little language that compiles into JavaScript. See
-L<http://coffeescript.org> for more information.
-
-Installation on Ubuntu and Debian:
-
-  $ npm install -g coffee-script
-
-=back
+DEPRECATED. Default handlers are added on the fly.
 
 =cut
 
 sub detect {
-  my $self = shift;
-
-  require Mojolicious::Plugin::AssetPack::Preprocessor::Sass;
-  $self->add(sass => Mojolicious::Plugin::AssetPack::Preprocessor::Sass->new);
-
-  require Mojolicious::Plugin::AssetPack::Preprocessor::Scss;
-  $self->add(scss => Mojolicious::Plugin::AssetPack::Preprocessor::Scss->new);
-
-  if(my $app = which('jsx')) {
-    $self->add(jsx => sub {
-      my($assetpack, $text, $file) = @_;
-      $self->_run(['jsx'], $text, $text); # TODO: Add --follow-requires ?
-      _js_minify($text, $file) if $assetpack->minify;
-    });
-  }
-  if(my $app = which('lessc')) {
-    $self->add(less => sub {
-      my($assetpack, $text, $file) = @_;
-      $self->_run([$app, '-', $assetpack->minify ? ('-x') : ()], $text, $text);
-    });
-  }
-  if(my $app = which('coffee')) {
-    $self->add(coffee => sub {
-      my($assetpack, $text, $file) = @_;
-      my $err;
-      $self->_run([$app, '--compile', '--stdio'], $text, $text, \$err);
-      if ($assetpack->minify && eval 'require JavaScript::Minifier::XS; 1') {
-        _js_minify($text, $file) if $assetpack->minify;
-      }
-      if ($err) {
-        $assetpack->{log}->warn("Error processing $file: $err");
-      }
-      $$text;
-    });
-  }
-  if(eval 'require JavaScript::Minifier::XS; 1') {
-    $self->add(js => sub {
-      my($assetpack, $text, $file) = @_;
-      _js_minify($text, $file) if $assetpack->minify and $file !~ /\bmin\b/;
-    });
-  }
-  if(eval 'require CSS::Minifier::XS; 1') {
-    $self->add(css => sub {
-      my($assetpack, $text, $file) = @_;
-      $$text = CSS::Minifier::XS::minify($$text) if $assetpack->minify;
-    });
-  }
+  warn "DEPRECATED" . $_[0];
 }
 
 =head2 process
@@ -222,23 +194,16 @@ called with the C<$assetpack> object as the first argument.
 =cut
 
 sub process {
-  my($self, $extension, $assetpack, $text, $filename) = @_;
-  my $old_dir = getcwd;
-  my $err = '';
+  my ($self, $extension, $assetpack, $text, $filename) = @_;
+  my $cwd = Mojolicious::Plugin::AssetPack::Preprocessors::CWD->new(dirname $filename);
+  my @err;
 
-  local $@;
+  for my $p ($self->_preprocessors($extension)) {
+    $p->($p, $assetpack, $text, $filename);
+    push @err, $p->errmsg if $p->errmsg;
+  }
 
-  eval {
-    chdir dirname $filename;
-    $_->($_, $assetpack, $text, $filename) for @{ $self->subscribers($extension) };
-    1;
-  } or do {
-    $err = $@ || "AssetPack failed with unknown error while processing $filename.\n";
-  };
-
-  chdir $old_dir;
-  die $err if $err;
-  $self;
+  return join ' ', @err;
 }
 
 =head2 map_type
@@ -257,20 +222,19 @@ given C<$cb>.
 
 sub remove { shift->unsubscribe(@_) }
 
-sub _js_minify {
-  my ($text, $file) = @_;
-  $$text = JavaScript::Minifier::XS::minify($$text);
-  $$text = '' unless defined $$text;
-}
+sub _preprocessors {
+  my ($self, $extension) = @_;
+  my @preprocessors = @{$self->subscribers($extension)};
 
-sub _run {
-  my ($class, @args) = @_;
-  local ($?, $@, $!);
-  warn "[ASSETPACK] \$ @{ $args[0] }\n" if DEBUG;
-  eval { IPC::Run3::run3(@args); };
-  return $class unless $?;
-  chomp $@ if $@;
-  die sprintf "AssetPack failed to run '%s'. exit_code=%s (%s)\n", join(' ', @{ $args[0] }), $? <= 0 ? $? : $? >> 8, $@ || $?;
+  return @preprocessors if @preprocessors;
+
+  if (my $class = $PREPROCESSORS{$extension}) {
+    warn "[ASSETPACK] Adding $class preprocessor.\n" if DEBUG;
+    eval "require $class;1" or die "Could not load $class: $@\n";
+    return $self->add($extension => $class->new);
+  }
+
+  return $self->fallback;
 }
 
 =head1 AUTHOR
@@ -278,5 +242,10 @@ sub _run {
 Jan Henning Thorsen - C<jhthorsen@cpan.org>
 
 =cut
+
+package Mojolicious::Plugin::AssetPack::Preprocessors::CWD;
+use Cwd;
+sub new { my $self = bless [getcwd], $_[0]; chdir $_[1]; return $self; }
+sub DESTROY { chdir $_[0]->[0]; }
 
 1;

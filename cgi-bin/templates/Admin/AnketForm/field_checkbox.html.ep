@@ -9,6 +9,6 @@
 	</td>
 	<td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
 	<td class="edit">
-		<input type="checkbox" data-validation-name="<%= $self->stash->{replaceme} %>_<%= $key %>" name='<%= $key %>' value='1' <% if($value){ %>checked="checked"<% } %>><%== $lkey->{settings}->{yes} %>
+	<input type="checkbox" id="<%= $self->stash->{replaceme} %>_<%= $key %>" data-validation-name="<%= $self->stash->{replaceme} %>_<%= $key %>" name='<%= $key %>' value='1' <% if($value){ %>checked="checked"<% } %>><label style="cursor:pointer;" for="<%= $self->stash->{replaceme} %>_<%= $key %>"><%== $lkey->{settings}->{yes} %></label>
 	</td>
 </tr>

@@ -97,7 +97,7 @@ sub element_exists_not {
 
 sub finish_ok {
   my $self = shift;
-  $self->tx->finish(@_);
+  $self->tx->finish(@_) if $self->tx->is_websocket;
   Mojo::IOLoop->one_tick while !$self->{finished};
   return $self->_test('ok', 1, 'closed WebSocket');
 }
@@ -258,21 +258,24 @@ sub reset_session {
 
 sub send_ok {
   my ($self, $msg, $desc) = @_;
+
+  $desc ||= 'send message';
+  return $self->_test('ok', 0, $desc) unless $self->tx->is_websocket;
+
   $self->tx->send($msg => sub { Mojo::IOLoop->stop });
   Mojo::IOLoop->start;
-  return $self->_test('ok', 1, $desc || 'send message');
+  return $self->_test('ok', 1, $desc);
 }
 
 sub status_is {
   my ($self, $status, $desc) = @_;
-  $desc ||= "$status " . $self->tx->res->new(code => $status)->default_message;
+  $desc ||= "$status " . $self->tx->res->default_message($status);
   return $self->_test('is', $self->tx->res->code, $status, $desc);
 }
 
 sub status_isnt {
   my ($self, $status, $desc) = @_;
-  $desc
-    ||= "not $status " . $self->tx->res->new(code => $status)->default_message;
+  $desc ||= "not $status " . $self->tx->res->default_message($status);
   return $self->_test('isnt', $self->tx->res->code, $status, $desc);
 }
 
@@ -329,7 +332,7 @@ sub _message {
   }
 
   # Decode text frame if there is no type check
-  else { $msg = decode 'UTF-8', $msg if $type eq 'text' }
+  else { $msg = decode 'UTF-8', $msg if ($type // '') eq 'text' }
 
   return $self->_test($name, $msg // '', $value, $desc);
 }
@@ -345,7 +348,7 @@ sub _request_ok {
     $self->ua->start(
       $tx => sub {
         my ($ua, $tx) = @_;
-        $self->tx($tx);
+        $self->{finished} = [] unless $self->tx($tx)->tx->is_websocket;
         $tx->on(finish => sub { shift; $self->{finished} = [@_] });
         $tx->on(binary => sub { push @{$self->{messages}}, [binary => pop] });
         $tx->on(text   => sub { push @{$self->{messages}}, [text   => pop] });
@@ -354,7 +357,7 @@ sub _request_ok {
     );
     Mojo::IOLoop->start;
 
-    my $desc = encode 'UTF-8', "WebSocket $url";
+    my $desc = encode 'UTF-8', "WebSocket handshake with $url";
     return $self->_test('ok', $self->tx->is_websocket, $desc);
   }
 
@@ -421,8 +424,17 @@ Test::Mojo - Testing Mojo!
 
 =head1 DESCRIPTION
 
-L<Test::Mojo> is a collection of testing helpers for everyone developing
-L<Mojo> and L<Mojolicious> applications.
+L<Test::Mojo> is a test user agent based on L<Mojo::UserAgent>, it is usually
+used together with L<Test::More> to test L<Mojolicious> applications. Just run
+your tests with the command L<Mojolicious::Command::test> or L<prove>.
+
+  $ ./script/my_app test
+  $ ./script/my_app test -v t/foo.t
+  $ prove -l -v t/foo.t
+
+If it is not already defined, the C<MOJO_LOG_LEVEL> environment variable will
+be set to C<debug> or C<fatal>, depending on the value of the
+C<HARNESS_IS_VERBOSE> environment variable.
 
 =head1 ATTRIBUTES
 
@@ -433,7 +445,14 @@ L<Test::Mojo> implements the following attributes.
   my $msg = $t->message;
   $t      = $t->message([text => $bytes]);
 
-Current WebSocket message.
+Current WebSocket message represented as an array reference containing the
+frame type and payload.
+
+  # More specific tests
+  use Mojo::JSON 'decode_json';
+  my $hash = decode_json $t->message->[1];
+  is ref $hash, 'HASH', 'right reference';
+  is $hash->{foo}, 'bar', 'right value';
 
   # Test custom message
   $t->message([binary => $bytes])
@@ -465,7 +484,8 @@ True if the last test was successful.
   my $tx = $t->tx;
   $t     = $t->tx(Mojo::Transaction::HTTP->new);
 
-Current transaction, usually a L<Mojo::Transaction::HTTP> object.
+Current transaction, usually a L<Mojo::Transaction::HTTP> or
+L<Mojo::Transaction::WebSocket> object.
 
   # More specific tests
   is $t->tx->res->json->{foo}, 'bar', 'right value';
@@ -504,7 +524,7 @@ following new ones.
 =head2 app
 
   my $app = $t->app;
-  $t      = $t->app(MyApp->new);
+  $t      = $t->app(Mojolicious->new);
 
 Access application with L<Mojo::UserAgent::Server/"app">.
 
@@ -640,6 +660,10 @@ arguments as L<Mojo::UserAgent/"get">, except for the callback.
   # Run tests against remote host
   $t->get_ok('http://mojolicio.us/perldoc')->status_is(200);
 
+  # Run additional tests on the transaction
+  $t->get_ok('/foo')->status_is(200);
+  is $t->tx->res->dom->at('input')->{value}, 'whatever', 'right value';
+
 =head2 head_ok
 
   $t = $t->head_ok('/foo');
@@ -652,29 +676,29 @@ arguments as L<Mojo::UserAgent/"head">, except for the callback.
 
 =head2 header_is
 
-  $t = $t->header_is(Expect => 'fun');
-  $t = $t->header_is(Expect => 'fun', 'right header');
+  $t = $t->header_is(ETag => '"abc321"');
+  $t = $t->header_is(ETag => '"abc321"', 'right header');
 
 Check response header for exact match.
 
 =head2 header_isnt
 
-  $t = $t->header_isnt(Expect => 'fun');
-  $t = $t->header_isnt(Expect => 'fun', 'different header');
+  $t = $t->header_isnt(Etag => '"abc321"');
+  $t = $t->header_isnt(ETag => '"abc321"', 'different header');
 
 Opposite of L</"header_is">.
 
 =head2 header_like
 
-  $t = $t->header_like(Expect => qr/fun/);
-  $t = $t->header_like(Expect => qr/fun/, 'right header');
+  $t = $t->header_like(ETag => qr/abc/);
+  $t = $t->header_like(ETag => qr/abc/, 'right header');
 
 Check response header for similar match.
 
 =head2 header_unlike
 
-  $t = $t->header_like(Expect => qr/fun/);
-  $t = $t->header_like(Expect => qr/fun/, 'different header');
+  $t = $t->header_unlike(ETag => qr/abc/);
+  $t = $t->header_unlike(ETag => qr/abc/, 'different header');
 
 Opposite of L</"header_like">.
 
@@ -966,7 +990,7 @@ Open a WebSocket connection with transparent handshake, takes the same
 arguments as L<Mojo::UserAgent/"websocket">, except for the callback.
 
   # WebSocket with permessage-deflate compression
-  $t->websocket('/x' => {'Sec-WebSocket-Extensions' => 'permessage-deflate'})
+  $t->websocket_ok('/' => {'Sec-WebSocket-Extensions' => 'permessage-deflate'})
     ->send_ok('y' x 50000)
     ->message_ok
     ->message_is('z' x 50000)

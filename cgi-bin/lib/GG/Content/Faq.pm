@@ -8,7 +8,7 @@ sub list{
 	my $self = shift;
 	my %params = (
 		limit 	=> $self->get_var(name => 'faq_limit', controller => 'faq') || 0,
-		page	=> $self->param('page') || 1,
+		page		=> $self->param('page') || 1,
 		@_
 	);
 
@@ -22,11 +22,19 @@ sub list{
 	}
 
 	my $items = $self->dbi->query("SELECT * FROM `data_faq` WHERE $where")->hashes;
+
 	return $self->render_not_found unless my $item = $self->dbi->query("SELECT * FROM `texts_main_".$self->lang."` WHERE `alias`='faq' AND `viewtext`=1")->hash;
+
 	$self->stash->{'faq_form_errors'} = {};
 	# Добавление нового отзыва
 	if($self->req->method eq 'POST'){
+		# Check CSRF token
+  	my $validation = $self->validation;
+  	return $self->render(text => 'Bad CSRF token!', status => 403)
+    	if $validation->csrf_protect->has_error('csrf_token');
+
 		my $send_params = $self->req->params->to_hash;
+
 		my $JSON = {};
 
 		my $fields = {
@@ -35,20 +43,25 @@ sub list{
 				required 		=> 1,
 				error_text 	=> 'Укажите Ваше имя',
 			},
-			email 		=> {
+			contacts 		=> {
 				label 			=> 'Номер телефона',
 				required 		=> 1,
 				error_text 		=> 'Укажите контактный номер телефона',
 			},
-			phone 		=> {
+			email 		=> {
 				label 			=> 'Электронная почта',
 				required 		=> 0,
 				error_text 		=> 'Укажите электронную почту',
 			},
-			name 		=> {
+			quest 		=> {
 				label 			=> 'Ваш вопрос',
 				required 		=> 1,
 				error_text 		=> 'Укажите текст сообщения',
+			},
+			quest_anons 		=> {
+				label 			=> 'Тема вопроса',
+				required 		=> 1,
+				error_text 		=> 'Укажите тему вопроса',
 			},
 		};
 

@@ -1,6 +1,6 @@
 %	my $pref = $self->sysuser->settings->{$self->stash->{replaceme}.'_filter_'.$key.'pref'};
 %	$value = substr($value, 0, 10) if(length($value) > 10);
-%	$value = '' if ($value eq '0000-00-00');
+%	$value = '' if ($value eq '0000-00-00' or $value =~ /[\d]{4}-00-00/ );
 <tr>
   <td valign=top class=edit width="150px"><%= $lkey->{name} =%>:</td>
   <td>

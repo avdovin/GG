@@ -32,10 +32,10 @@ sub select     { _select(0, shift->tree, _compile(@_)) }
 sub select_one { _select(1, shift->tree, _compile(@_)) }
 
 sub _ancestor {
-  my ($selectors, $current, $tree) = @_;
+  my ($selectors, $current, $tree, $pos) = @_;
   while ($current = $current->[3]) {
     return undef if $current->[0] eq 'root' || $current eq $tree;
-    return 1 if _combinator($selectors, $current, $tree);
+    return 1 if _combinator($selectors, $current, $tree, $pos);
   }
   return undef;
 }
@@ -55,28 +55,26 @@ sub _attr {
 }
 
 sub _combinator {
-  my ($selectors, $current, $tree) = @_;
+  my ($selectors, $current, $tree, $pos) = @_;
 
   # Selector
-  my @s = @$selectors;
-  return undef unless my $combinator = shift @s;
-  if ($combinator->[0] ne 'combinator') {
-    return undef unless _selector($combinator, $current);
-    return 1 unless $combinator = shift @s;
+  return undef unless my $c = $selectors->[$pos];
+  if (ref $c) {
+    return undef unless _selector($c, $current);
+    return 1 unless $c = $selectors->[++$pos];
   }
 
   # ">" (parent only)
-  my $c = $combinator->[1];
-  return _parent(\@s, $current, $tree) ? 1 : undef if $c eq '>';
+  return _parent($selectors, $current, $tree, ++$pos) if $c eq '>';
 
   # "~" (preceding siblings)
-  return _sibling(\@s, $current, $tree, 0) ? 1 : undef if $c eq '~';
+  return _sibling($selectors, $current, $tree, 0, ++$pos) if $c eq '~';
 
   # "+" (immediately preceding siblings)
-  return _sibling(\@s, $current, $tree, 1) ? 1 : undef if $c eq '+';
+  return _sibling($selectors, $current, $tree, 1, ++$pos) if $c eq '+';
 
   # " " (ancestor)
-  return _ancestor(\@s, $current, $tree) ? 1 : undef;
+  return _ancestor($selectors, $current, $tree, ++$pos);
 }
 
 sub _compile {
@@ -94,15 +92,12 @@ sub _compile {
     my $part = $pattern->[-1];
 
     # Empty combinator
-    push @$part, [combinator => ' ']
-      if $part->[-1] && $part->[-1][0] ne 'combinator';
+    push @$part, ' ' if $part->[-1] && ref $part->[-1];
 
     # Tag
-    push @$part, ['element'];
-    my $selector = $part->[-1];
-    my $tag      = '*';
-    $element =~ s/^((?:\\\.|\\\#|[^.#])+)// and $tag = _unescape($1);
-    push @$selector, ['tag', $tag];
+    push @$part, my $selector = [];
+    push @$selector, ['tag', qr/(?:^|:)\Q@{[_unescape($1)]}\E$/]
+      if $element =~ s/^((?:\\\.|\\\#|[^.#])+)// && $1 ne '*';
 
     # Class or ID
     while ($element =~ /(?:([.#])((?:\\[.\#]|[^\#.])+))/g) {
@@ -111,7 +106,7 @@ sub _compile {
     }
 
     # Pseudo classes (":not" contains more selectors)
-    push @$selector, ['pc', "$1", $1 eq 'not' ? _compile($2) : $2]
+    push @$selector, ['pc', "$1", $1 eq 'not' ? _compile($2) : _equation($2)]
       while $pc =~ /$PSEUDO_CLASS_RE/go;
 
     # Attributes
@@ -119,14 +114,16 @@ sub _compile {
       while $attrs =~ /$ATTR_RE/go;
 
     # Combinator
-    push @$part, [combinator => $combinator] if $combinator;
+    push @$part, $combinator if $combinator;
   }
 
   return $pattern;
 }
 
+sub _empty { $_[0][0] eq 'comment' || $_[0][0] eq 'pi' }
+
 sub _equation {
-  my $equation = shift;
+  return [] unless my $equation = shift;
 
   # "even"
   return [2, 2] if $equation =~ /^even$/i;
@@ -146,22 +143,22 @@ sub _equation {
 
 sub _match {
   my ($pattern, $current, $tree) = @_;
-  _combinator([reverse @$_], $current, $tree) and return 1 for @$pattern;
+  _combinator([reverse @$_], $current, $tree, 0) and return 1 for @$pattern;
   return undef;
 }
 
 sub _parent {
-  my ($selectors, $current, $tree) = @_;
+  my ($selectors, $current, $tree, $pos) = @_;
   return undef unless my $parent = $current->[3];
-  return undef if $parent->[0] eq 'root';
-  return _combinator($selectors, $parent, $tree);
+  return undef if $parent->[0] eq 'root' || $parent eq $tree;
+  return _combinator($selectors, $parent, $tree, $pos);
 }
 
 sub _pc {
   my ($class, $args, $current) = @_;
 
   # ":empty"
-  return !defined $current->[4] if $class eq 'empty';
+  return !grep { !_empty($_) } @$current[4 .. $#$current] if $class eq 'empty';
 
   # ":root"
   return $current->[3] && $current->[3][0] eq 'root' if $class eq 'root';
@@ -174,7 +171,7 @@ sub _pc {
     if $class eq 'checked';
 
   # ":first-*" or ":last-*" (rewrite with equation)
-  ($class, $args) = $1 ? ("nth-$class", 1) : ("nth-last-$class", '-n+1')
+  ($class, $args) = $1 ? ("nth-$class", [0, 1]) : ("nth-last-$class", [-1, 1])
     if $class =~ s/^(?:(first)|last)-//;
 
   # ":nth-*"
@@ -185,7 +182,6 @@ sub _pc {
     # ":nth-last-*"
     @siblings = reverse @siblings if $class =~ /^nth-last/;
 
-    $args = _equation($args) unless ref $args;
     for my $i (0 .. $#siblings) {
       next if (my $result = $args->[0] * $i + $args->[1]) < 1;
       last unless my $sibling = $siblings[$result - 1];
@@ -228,19 +224,13 @@ sub _select {
   my ($one, $tree, $pattern) = @_;
 
   my @results;
-  my @queue = ($tree);
+  my @queue = @$tree[($tree->[0] eq 'root' ? 1 : 4) .. $#$tree];
   while (my $current = shift @queue) {
-    my $type = $current->[0];
+    next unless $current->[0] eq 'tag';
 
-    # Tag
-    if ($type eq 'tag') {
-      unshift @queue, @$current[4 .. $#$current];
-      next unless _match($pattern, $current, $tree);
-      $one ? return $current : push @results, $current;
-    }
-
-    # Root
-    elsif ($type eq 'root') { unshift @queue, @$current[1 .. $#$current] }
+    unshift @queue, @$current[4 .. $#$current];
+    next unless _match($pattern, $current, $tree);
+    $one ? return $current : push @results, $current;
   }
 
   return $one ? undef : \@results;
@@ -249,14 +239,11 @@ sub _select {
 sub _selector {
   my ($selector, $current) = @_;
 
-  for my $s (@$selector[1 .. $#$selector]) {
+  for my $s (@$selector) {
     my $type = $s->[0];
 
     # Tag (ignore namespace prefix)
-    if ($type eq 'tag') {
-      my $tag = $s->[1];
-      return undef unless $tag eq '*' || $current->[1] =~ /(?:^|:)\Q$tag\E$/;
-    }
+    if ($type eq 'tag') { return undef unless $current->[1] =~ $s->[1] }
 
     # Attribute
     elsif ($type eq 'attr') { return undef unless _attr(@$s[1, 2], $current) }
@@ -271,17 +258,17 @@ sub _selector {
 }
 
 sub _sibling {
-  my ($selectors, $current, $tree, $immediate) = @_;
+  my ($selectors, $current, $tree, $immediate, $pos) = @_;
 
   my $found;
   for my $sibling (@{_siblings($current)}) {
     return $found if $sibling eq $current;
 
     # "+" (immediately preceding sibling)
-    if ($immediate) { $found = _combinator($selectors, $sibling, $tree) }
+    if ($immediate) { $found = _combinator($selectors, $sibling, $tree, $pos) }
 
     # "~" (preceding sibling)
-    else { return 1 if _combinator($selectors, $sibling, $tree) }
+    else { return 1 if _combinator($selectors, $sibling, $tree, $pos) }
   }
 
   return undef;

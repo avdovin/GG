@@ -72,7 +72,7 @@ sub register {
 			return $pbkdf2->validate($crypted, $password);
 
 		} else {
-			return $password;
+			return $password eq $crypted;
 		}
 
 
