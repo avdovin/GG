@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# perlbrew instlal perl-5.20.1 -D useshrplib
+# perlbrew install perl-5.20.1 -D useshrplib
 
 # See <http://perltricks.com/article/57/2014/1/1/Shazam-Use-Image-Magick-with-Perlbrew-in-minutes>
 
