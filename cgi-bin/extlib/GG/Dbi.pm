@@ -171,7 +171,14 @@ sub upsert{
 	    $sth->finish();
 	};
 	if($@){
-		$self->save_mysql_error($@, $sql, \@values);
+	  if($ENV{MORBO_REV}){
+	    print RED, ">>$sql<<", "\n";
+	    print $@;
+	    print RESET, "\n";
+	  }
+	  else {
+			$self->save_mysql_error($@, $sql, \@values);
+	  }
 		$self->{error} = $@;
 		return;
 	}
@@ -190,8 +197,7 @@ sub insert{
 	my @values = @{$field_values}{@fields};
 
 	my $sql = sprintf "$insType INTO %s (%s) VALUES (%s)",
-			$table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
-
+		 $table, join(",", map{ "`$_`" }@fields), join(",", ("?")x@fields);
 
     # USING SQL::Abstract
     #my($stmt, @bind) = $self->dbi->insert($table, $field_values);
@@ -199,13 +205,20 @@ sub insert{
 
 	my $index = 0;
 	eval{
-	    my $sth = $dbh->prepare($sql);
-	    $sth->execute(@values) || die $DBI::errstr;
-	    $index = $dbh->{'mysql_insertid'};
-	    $sth->finish();
+	  my $sth = $dbh->prepare($sql);
+	  $sth->execute(@values) || die $DBI::errstr;
+	  $index = $dbh->{'mysql_insertid'};
+	  $sth->finish();
 	};
 	if($@){
-		$self->save_mysql_error($@, $sql, \@values);
+	  if($ENV{MORBO_REV}){
+	    print RED, ">>$sql<<", "\n";
+	    print $@;
+	    print RESET, "\n";
+	  }
+	  else {
+			$self->save_mysql_error($@, $sql, \@values);
+	  }
 		$self->{error} = $@;
 		return;
 	}
@@ -262,7 +275,14 @@ sub update{
 		$count = $sth->execute(@values) or die $DBI::errstr;
 	};
 	if($@){
-		$self->save_mysql_error($@, $sql, \@values);
+	  if($ENV{MORBO_REV}){
+	    print RED, ">>$sql<<", "\n";
+	    print $@;
+	    print RESET, "\n";
+	  }
+	  else {
+			$self->save_mysql_error($@, $sql, \@values);
+	  }
 
 		$self->{error} = $@;
 		return;

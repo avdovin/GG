@@ -7,7 +7,7 @@
 	</div>
 	<div class="search">
 		<div class="search_words noautocurrent">
-			<span class="search_words__find">Вы искали</span> 
+			<span class="search_words__find">Вы искали</span>
       %= form_for search => begin
         <div class="search_bar">
 				  <input class="search__input" name="qsearch" value="<%= param('qsearch') || '' %>" type="text" placeholder="Поиск" /> <a href="#" class="search_button submit"></a>
@@ -17,10 +17,10 @@
 
 		<p class="search__results"> Найдено страниц: <%= $count %>
 		</p>
-<!-- Класс search_pagenav добавляется только если в поиске нужен pagenav, в противном случае этот класс убирается!!!!!!!!--> 	
-<!-- Ячейка td с изображением появляется только если это изображение есть. Если его нет - ячейки нет!--> 					
+<!-- Класс search_pagenav добавляется только если в поиске нужен pagenav, в противном случае этот класс убирается!!!!!!!!-->
+<!-- Ячейка td с изображением появляется только если это изображение есть. Если его нет - ячейки нет!-->
 		% if(scalar(@$items)==0){
-		  <br/><h2>По Вашему запросу ничего не найдено</h2>
+		  <br/><p>По Вашему запросу ничего не найдено</p>
 		% } else {
     	<div class="search__list pagenav_block">
         % foreach my $item (@$items){
@@ -39,16 +39,16 @@
     				</tr>
     			</table>
     		</div>
-        % } 
+        % }
         <!--
     		<div class="pagenav noautocurrent">
     			<div class="pagenav__container">
     				<a class="pagenav__button pagenav__button_prev pagenav__button_disabled" href="#">&nbsp;</a>
     				... <a class="pagenav__button pagenav__button_current" href="#">3</a>
     				<a class="pagenav__button" href="#">4</a>
-    				<a class="pagenav__button" href="#">5</a> 
+    				<a class="pagenav__button" href="#">5</a>
     				<a class="pagenav__button" href="#">6</a>
-    				<a class="pagenav__button" href="#">7</a> 
+    				<a class="pagenav__button" href="#">7</a>
     				...
     				<a class="pagenav__button pagenav__button_next" href="#">&nbsp;</a>
     			</div>
@@ -56,7 +56,7 @@
     		</div>
         -->
     	</div>
-    % }  
+    % }
 	</div>
-</div>        
+</div>
 % end
