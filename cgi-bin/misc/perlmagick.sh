@@ -20,6 +20,11 @@
 # JPEG - libjpeg62-dev
 # PNG - libpng-dev
 
+sudo apt-get update
+sudo apt-get install libjpeg62-dev
+sudo apt-get install libpng-dev
+
+
 TOP="$HOME/local"
 
 if [ -n "$1" ]; then
