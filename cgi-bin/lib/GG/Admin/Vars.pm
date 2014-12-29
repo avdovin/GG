@@ -198,10 +198,12 @@ sub save{
 				$self->def_list( name => 'envvalue', controller => 'vars');
 				$value = $self->check_list(%{$self->lkey(name => 'envvalue')->{settings}}, type => 'list', value => $value);
 			}
-			when('email') 			{ $value = $self->check_email( value => $value); 			}
+			when('email') 		{ $value = $self->check_email( value => $value); 			}
 			when('code') 			{ }
 			when('text') 			{ $value = $self->check_string( value => $value); 			}
-			when('html') 			{ $value = $self->check_html( value => $value); 			}
+			when('html') 			{ $value = $self->check_html( value => $value); 				}
+			when('pict') 			{ $value = $value ? $self->check_string( value => $value) : undef; 			}
+			when('file') 			{ $value = $value ? $self->check_string( value => $value) : undef;			}
 
 			default					{
 				$value = '';
@@ -211,7 +213,7 @@ sub save{
 		}
 	}
 
-	$self->send_params->{envvalue} = $value;
+	$self->send_params->{envvalue} = $value if defined $value;
 
 	if( $self->save_info( table => $self->stash->{list_table}) ){
 
@@ -342,6 +344,12 @@ sub edit{
 			}
 			when('d'){
 				$self->lkey(name => 'envvalue')->{settings}->{template_w} = 'field_rating';
+			}
+			when('pict'){
+				$self->lkey(name => 'envvalue')->{settings}->{template_w} = 'field_pict';
+			}
+			when('file'){
+				$self->lkey(name => 'envvalue')->{settings}->{template_w} = 'field_file';
 			}
 			default					{
 				$self->lkey(name => 'envvalue')->{settings} = $self->merge_keys_settings($self->lkey(name => 'envvalue')->{settings}, { type => 's'} );
