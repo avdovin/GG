@@ -60,18 +60,17 @@ sub _init{
 			)
 		){
 
-  		unless(
-  			$self->getArraySQL(
-  				select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
-  				from	=>	$self->stash->{img_razdel},
-  				where	=> 	"1 $access_where",
-  				sys		=> 1,
-  				stash	=> 	'')
-  			){
-  			$self->admin_msg_errors("Доступных данных нет");
-  		}
+		unless(
+			$self->getArraySQL(
+				select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
+				from	=>	$self->stash->{img_razdel},
+				where	=> 	"1 $access_where",
+				sys		=> 1,
+				stash	=> 	'')
+			){
+			$self->admin_msg_errors("Доступных данных нет");
+		}
 	}
-
 
 	unless($self->send_params->{replaceme}){
 		$self->send_params->{replaceme} = $self->stash->{controller};
@@ -174,14 +173,20 @@ sub zipimport_save_pict{
 	if($self->file_save_pict( 	filename 	=> $self->send_params->{filename},
 								lfield		=> $lfield,
 	)){
+		my $item_name = $self->send_params->{filename};
+
+		$item_name =~ s/\.[^.]+$//gi;
+
 		my $vals = {
 			name			=> $self->send_params->{filename},
 			viewimg			=> 1,
 			rating			=> 99,
 		};
-
+		if( $self->dbi->exists_keys(from => $self->stash->{list_table}, lkey => "alias") ){
+			$vals->{ "alias" } = $self->check_unique_field( field => 'alias', value => $self->transliteration($item_name), table => $self->stash->{list_table}) || '';
+		}
 		if( $self->dbi->exists_keys(from => $self->stash->{list_table}, lkey => "image_".$self->stash->{key_razdel}) ){
-			$vals->{ "image_".$self->stash->{key_razdel} } = $self->send_params->{image_gallery} || 0;
+			$vals->{ "image_".$self->stash->{key_razdel} } = $self->send_params->{'image_'.$self->stash->{key_razdel}} || 0;
 		}
 
 		$self->save_info(table => $self->stash->{list_table}, field_values => $vals );

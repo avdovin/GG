@@ -137,6 +137,9 @@ sub register {
 					if($type eq 'chb'){
 						$item->{$v} = $item->{$v} ? $lkey->{settings}->{yes} : $lkey->{settings}->{no};
 
+					}elsif($type eq 'date'){
+						delete $item->{$v} if (!$item->{$v} or $item->{$v} eq '0000-00-00');
+
 					}elsif($type =~ /list/){
 						$item->{$v} = $self->VALUES( name => $v, type => 'list', value => $item->{$v}, value_split => "=", )
 
@@ -379,14 +382,14 @@ sub register {
 			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$lfield or ($lfield and $lfield eq $k) ){
-						$self->sysuser->settings->{$lkey.'_'.$k} = '';
-						$self->sysuser->settings->{$lkey.'_'.$k.'pref'} = '' if $self->sysuser->settings->{$lkey.'_filter_'.$k.'pref'};
+						delete $self->sysuser->settings->{$lkey.'_'.$k};
+						delete $self->sysuser->settings->{$lkey.'_'.$k.'pref'} if $self->sysuser->settings->{$lkey.'_filter_'.$k.'pref'};
 					}
 				}
 			}
 
-			use strict "refs";
 
+			use strict "refs";
 			$self->sysuser->save_ses_settings();
 
 		}

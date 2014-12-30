@@ -38,7 +38,7 @@
       <td width=100> </td>
       <td align=right>
         <br><br>
-        <input type=submit onClick="do_submit(this.form, 'filter', '<%== $script_link %>'); return false;" value="Сохранить" class=submit_save>
+        <input type=submit onClick="do_submit(this.form, 'filter', '<%== $script_link %>'); return false;" value="Сохранить" style="width:200px;" class="btn btn-block btn-lg btn-info">
       </td>
     </tr>
     </table>
