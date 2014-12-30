@@ -32,30 +32,46 @@ sub _init{
 						);
 	}
 
-	if(!$self->sysuser->settings->{'images_razdel'}){
-		$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
-							from	=>	$self->stash->{img_razdel},
-							where	=> 	"1 $access_where",
-							sys		=> 1,
-							stash	=> 	'');
+	unless($self->sysuser->settings->{'images_razdel'}){
+		$self->getArraySQL(
+			select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
+			from	=>	$self->stash->{img_razdel},
+			where	=> 	"1 $access_where",
+			sys		=> 1,
+			stash	=> 	''
+		);
 
 		$self->sysuser->save_settings(images_razdel => $self->stash->{razdel});
 	}
+
 	$self->stash->{razdel} = $self->send_params->{razdel} || $self->sysuser->settings->{'images_razdel'};
 
-	if(!$self->stash->{key_razdel} && !$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
-															from	=>	$self->stash->{img_razdel},
-															where	=> 	"`ID`='".$self->stash->{razdel}."' $access_where",
-															sys		=> 1,
-															stash	=> 	'')){
-		unless($self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
-									from	=>	$self->stash->{img_razdel},
-									where	=> 	"1 $access_where",
-									sys		=> 1,
-									stash	=> 	'')){
-			$self->admin_msg_errors("Доступных данных нет");
-		}
+	if(
+			!$self->stash->{key_razdel} &&
+			(
+				!$self->stash->{razdel} or
+				!$self->getArraySQL(
+					select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
+					from	=>	$self->stash->{img_razdel},
+					where	=> 	"`ID`='".$self->stash->{razdel}."' $access_where",
+					sys		=> 1,
+					stash	=> 	''
+				)
+			)
+		){
+
+  		unless(
+  			$self->getArraySQL(
+  				select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
+  				from	=>	$self->stash->{img_razdel},
+  				where	=> 	"1 $access_where",
+  				sys		=> 1,
+  				stash	=> 	'')
+  			){
+  			$self->admin_msg_errors("Доступных данных нет");
+  		}
 	}
+
 
 	unless($self->send_params->{replaceme}){
 		$self->send_params->{replaceme} = $self->stash->{controller};

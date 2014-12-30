@@ -217,7 +217,7 @@ sub register {
 				} else {
 					no strict "refs";
 
-					foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+					foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b } keys %$lkeys) {
 						if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
 						&& !$$lkeys{$k}{settings}{sys}
@@ -237,7 +237,7 @@ sub register {
 
 				no strict "refs";
 
-				foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+				foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 
 					if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
@@ -330,7 +330,7 @@ sub register {
 			my %user_set = ();
 			no strict "refs";
 
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$self->stash->{$k}){
 						$user_set{$lkey.'_'.$k} = '';
@@ -376,7 +376,7 @@ sub register {
 
 			no strict "refs";
 
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$lfield or ($lfield and $lfield eq $k) ){
 						$self->sysuser->settings->{$lkey.'_'.$k} = '';
@@ -600,7 +600,7 @@ sub register {
 
 			my @tmp;
 			if (!$self->app->sysuser->settings->{$params{lkey}."_defcol"}) {
-				foreach my $k (sort {($$lkeys{$a}{settings}{table_list}||0) <=> ($$lkeys{$b}{settings}{table_list}||0)} keys %$lkeys) {
+				foreach my $k (sort {($$lkeys{$a}{settings}{table_list}||0) <=> ($$lkeys{$b}{settings}{table_list}||0) or $a cmp $b} keys %$lkeys) {
 
 					my $lkey = $self->lkey(name => $k);
 					if ($lkey->{settings}->{table_list} and $self->dbi->exists_keys(from => $params{table}, lkey => $k) and ($self->sysuser->access->{lkey}->{$k}->{r} || $self->app->sysuser->sys)){

@@ -881,7 +881,7 @@ sub getArraySQL{ # Получение массива значений из ба�
 
 	if (!$params{from}) {die "Функция getArraySQL. Отсутствует параметр FROM";}
 
-	if ($params{where} && ($params{where} =~ m/^([\d]+)/)) {
+	if ($params{where} && ($params{where} =~ m/^([\d]+)$/)) {
 		$params{where} = "WHERE `ID`=$1 ";
 	} elsif ($params{where}) {
 		$params{where} = "WHERE $params{where}";
@@ -893,7 +893,9 @@ sub getArraySQL{ # Получение массива значений из ба�
 	$params{sys} = 1 if ($fchars eq 'sys_');
 
 	my $sql = "SELECT $params{select} FROM $params{from} $params{where} LIMIT 0,1";
-
+  
+  die $sql if $params{'test'};
+  
 	if (!$self->sysuser->access->{table}->{$params{from}}->{r} and !$params{sys} and !$self->sysuser->sys) {
 		$self->admin_msg_errors("Доступ к таблице &laquo$params{from}&raquo запрещен");
 		return;
