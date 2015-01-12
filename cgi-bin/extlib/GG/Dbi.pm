@@ -43,6 +43,7 @@ sub query{
     print RED, ">>$sql<<", "\n";
     print $self->{reason};
     print RESET, "\n";
+    delete $self->{reason};
   }
   else{
     if($ENV{MORBO_REV} && $self->debug){

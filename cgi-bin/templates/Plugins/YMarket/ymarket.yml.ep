@@ -20,7 +20,7 @@
 	    	% }
 	    </categories>
 	    <cpa><%= $config->{cpa}  %></cpa>
-	    <offers> 
+	    <offers>
 	    	% foreach (@$items){
 	    		<offer id="<%= $_->{ID}  %>" available="true">
 	    			<url><%= $_->{url} %></url>
@@ -32,14 +32,13 @@
 	    			<delivery><%= $_->{delivery}  %></delivery>
 	    			<name><%= $_->{name}  %></name>
 	    			<vendor><%= $_->{vendor}  %></vendor>
-	    			<vendorCode><%= $_->{vendorCode}  %></vendorCode>
 	    			<description><%== $_->{description}  %></description>
 	    			<manufacturer_warranty><%= $_->{manufacturer_warranty}  %></manufacturer_warranty>
 	    			<country_of_origin><%= $_->{country_of_origin}  %></country_of_origin>
 	    			<cpa><%= $_->{cpa}  %></cpa>
-	    			% foreach my $p (keys %{$_->{params}}){
-	    				<param name="<%= $p  %>"><%= $_->{params}->{$p}  %></param>
-	    			% }
+	    			%# foreach my $p (keys %{$_->{params}}){
+	    			%#	<param name="<%= $p  %>" <% if($_->{params}->{$p}->{unit}){ %>unit="<%= $_->{params}->{$p}->{unit} %>"<% } %>><%= $_->{params}->{$p}->{value}  %></param>
+	    			%# }
 	    		</offer>
 	    	% }
 	    </offers>

@@ -102,7 +102,7 @@ sub register {
 			 	push @search_str, " ( ".join(' AND ', @search_str_field )." ) "
 			}
 
-			$search_str = join(" OR ", @search_str);
+			$search_str = '('.join(" OR ", @search_str).')';
 
 			$search_str .= $hash_table->{$table}->{where} if $hash_table->{$table}->{where};
 

@@ -163,7 +163,10 @@ sub save{
 
 	$self->stash->{index} = 0 if $params{restore};
 
-	my $types = $self->stash->{types};
+	my $envval = $self->stash->{index} ? $self->dbi->query("SELECT * FROM `sys_vars` WHERE `ID`='".$self->stash->{index}."'")->hash : {};
+	my $types = $self->stash->{types} || $envval->{types} || 's';
+	$self->stash->{settings} ||= $envval->{settings};
+
 	my $value = $self->param('envvalue');
 
 	$self->_restore_envKey;
