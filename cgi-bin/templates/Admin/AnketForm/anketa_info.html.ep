@@ -75,25 +75,19 @@
               	</div>
             	</td>
           	</tr>
-  % } elsif(
-    % $self->stash->{index} &&
-    % (
-    %   $self->stash->{list_table} eq 'texts_main_ru' or
-    %   $self->stash->{list_table} eq 'texts_news_ru'
-    % )
+% } elsif(
+    % $self->stash->{index} && $self->stash->{list_table} =~ /^texts_(\S*)_/gi
     % ){
-      <tr onmouseout="tr_select_out(this, 'odd');" onmouseover="tr_select_over(this);" class="odd" id="trtdate">
-       <td width="150px" valign="top" colspan="3" class="edit">Ссылка на страницу:</td>
-       <td valign="top" class="read">
-          % my $url = url_for('text', alias => $self->stash->{anketa}->{alias});
-          % if($self->stash->{list_table} eq 'texts_news_ru'){
-            % my $categoryId = $self->stash->{anketa}->{id_category};
-            % my $categoryAlias = $self->dbi->query("SELECT `alias` FROM `lst_news_categorys` WHERE `ID`='$categoryId'")->list;
-            % $url = url_for('news_iteminfo', news_category_alias => $categoryAlias, list_item_alias => $self->stash->{anketa}->{alias} );
-          % }
-          <a href="<%= 'http://'.$self->host.$url %>" target="_blank"><%= 'http://'.$self->host.$url %></a>
-       </td>
-      </tr>
+    % my $section_key = $1;
+    % my $url = $section_key eq 'main' ? menu_item($self->stash->{anketa}) : url_for($section_key.'_item', list_item_alias => $self->stash->{anketa}->{alias});
+    %   if (!($section_key ne 'main' and $url eq $section_key.'_item')){
+        <tr onmouseout="tr_select_out(this, 'odd');" onmouseover="tr_select_over(this);" class="odd" id="trtdate">
+          <td width="150px" valign="top" colspan="3" class="edit">Ссылка на страницу:</td>
+            <td valign="top" class="read">
+              <a href="<%= 'http://'.$self->host.$url %>" target="_blank"><%= 'http://'.$self->host.$url %></a>
+           </td>
+        </tr>
+    %   }
   % }
 
 		</table>

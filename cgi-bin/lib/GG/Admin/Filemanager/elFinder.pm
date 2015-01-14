@@ -15,11 +15,9 @@ use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 use Mojolicious::Types;
 use Mojo::Util qw(decode encode b64_decode b64_encode url_escape url_unescape);
+use Mojo::JSON;
 
 use utf8;
-
-# JSON serializer
-my $JSON = Mojo::JSON->new;
 
 $VERSION = "2.0"; # Версия движка и API
 $DIRECTORY_SEPARATOR = '/';
@@ -506,10 +504,9 @@ sub _info
 			if( my $sth = $self->{'app'}->dbi->dbh->prepare("SELECT `hash`,`info` FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)<$cache_live_time") ){
 				$sth->execute();
 				while(my $row = $sth->fetchrow_hashref){
-					$row->{info} =~ s/\-/\=/g;
-					if(my $hashData = $JSON->decode(b64_decode $row->{info})){
-						$cache->set( $row->{hash}  => $hashData);
-						#$CACHE->{ $row->{hash} } = $hashData
+					$row->{info} =~ s/\-/\=/;
+					if(my $hashData = Mojo::JSON::j(b64_decode $row->{info}) ){
+		  				$cache->set( $row->{hash}  => $hashData);
 					}
 				}
 				$sth->finish();
@@ -601,8 +598,9 @@ sub _info
 
 	if($self->{'cache_on'}){
 		my $data = \%info;
-		my $encodeData = b64_encode $JSON->encode($data), '';
-		$encodeData =~ s/\=/\-/g;
+
+		my $encodeData = b64_encode(Mojo::JSON::encode_json($data), '');
+		$encodeData =~ y/=/-/;
 
 		$self->{'app'}->dbi->dbh->do("REPLACE INTO `sys_filemanager_cache`(`hash`,`info`, `updated`) VALUES (?, ?, NOW()) ", undef, $hash, $encodeData);
 	}
