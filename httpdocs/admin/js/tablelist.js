@@ -174,7 +174,7 @@ function init_tablelist(id) {
 										a.title = 'Печать';
 										a.onclick = function() {
 											var data = this.dataset;
-											displayMessage(script_link + '?do=' + data.action + '&index=' + data.index, 400, 350, 3)
+											displayMessage(script_link + '?do=' + data.action + '&index=' + data.index + script_param, 400, 350, 3)
 //												loadfile(script_link + '?action=' + array[0] + '&index=' + array[1]);
 										}
 									}

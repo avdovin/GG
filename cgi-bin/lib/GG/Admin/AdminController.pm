@@ -295,12 +295,12 @@ sub print_choose{
 		if($self->stash->{lfield} eq 'html'){
 			push @items, {
 				type		=> 'eval',
-				value		=> "openNewWin(800,600,'".$self->stash->{controller_url}."','do=print_anketa&index=".$self->stash->{index}."&lfield=".$self->stash->{lfield}."', 'print_html');"
+				value		=> "openNewWin(800,600,'".$self->stash->{controller_url}."','do=print_anketa&index=".$self->stash->{index}."&lfield=".$self->stash->{lfield}."&list_table=".$self->stash->{list_table}."', 'print_html');"
 			};
 		} elsif($self->stash->{lfield} eq 'pdf'){
 			push @items, {
 				type		=> 'eval',
-				value		=> "loadfile('".$self->stash->{controller_url}."do=print_anketa&index=".$self->stash->{index}."&lfield=".$self->stash->{lfield}."');"
+				value		=> "loadfile('".$self->stash->{controller_url}."do=print_anketa&index=".$self->stash->{index}."&lfield=".$self->stash->{lfield}."&list_table=".$self->stash->{list_table}.."');"
 			};
 		}
 
@@ -342,9 +342,10 @@ sub print_anketa{
 
 	return unless $self->sysuser->access->{table}->{$table}->{r};
 
-	if($self->getArraySQL(	from 	=> 	$table,
+	if($self->getArraySQL(
+							from 	=> 	$table,
 							where	=>	"`ID`='$id'",
-							stash	=>  "print"
+							stash	=>  "print",
 							)){
 
 		my $values = $self->stash->{'print'};
@@ -484,6 +485,7 @@ sub def_program{
 		"SELECT *
 		FROM `sys_program`
 		WHERE `key_razdel`='$name'")->hash) {
+
 		my $set = {};
 		foreach my $p (split(/\n/, $program->{settings})){
 			$p =~ s/[\r\n]+//;
@@ -506,7 +508,6 @@ sub def_program{
 
 		# Установка прав для модуля
 		$self->render_admin_msg_errors("Доступ к модулю &laquo$$program{name}&raquo запрещен") unless $self->sysuser->access->{modul}->{$$program{ID}};
-
 		$self->app->sysuser->getAccess(modul => $name);
 
 		$self->stash->{controller_name} = $program->{name};
@@ -893,9 +894,9 @@ sub getArraySQL{ # Получение массива значений из ба�
 	$params{sys} = 1 if ($fchars eq 'sys_');
 
 	my $sql = "SELECT $params{select} FROM $params{from} $params{where} LIMIT 0,1";
-  
+
   die $sql if $params{'test'};
-  
+
 	if (!$self->sysuser->access->{table}->{$params{from}}->{r} and !$params{sys} and !$self->sysuser->sys) {
 		$self->admin_msg_errors("Доступ к таблице &laquo$params{from}&raquo запрещен");
 		return;
