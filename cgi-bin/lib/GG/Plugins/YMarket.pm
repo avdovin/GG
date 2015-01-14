@@ -6,15 +6,15 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 sub register {
 	my ($self, $app, $conf) = @_;
-	
-	
+
+
 	$app->routes->route("ymarket")->to( cb => sub{
 		my $self   = shift;
-		
+
 		my $CONFIG = {
-			'name' => 'Рога и копыта', #название магазина
-			'company' => 'ООО Рога и копыта', # название компании
-			'url'	=> $self->req->url->base->host, #сайт
+			'name' => 'Салон обоев Scandeco', #название магазина
+			'company' => 'ООО СканДизайн', # название компании
+			'url'	=> "http://".$self->host, #сайт
 			'cms' => 'GoodGear CMS', #cms
 			'cms_version' => '9', # версия cms
 			'agency' => 'ООО "Айфрог"',# организация, которая обслуживает сайт
@@ -30,22 +30,34 @@ sub register {
 				'picture' => 'pict',
 			},
 			'group_replaces' => { # замена внутренних групп на группы маркета, описания должны лежать здесь http://help.yandex.ru/partnermarket/docs/market_categories.xls
-				'1' => '/Оборудование/Рекламные сувениры',
-				'2' => '/Оборудование/Охрана и сигнализация',
-				'3' => '/Оборудование/Охрана и сигнализация/Сейфы',
-				'default' => '/Оборудование', # дефолтные значения которые не подпадают под категории
+				'default' => '/Дом и дача/Строительство и ремонт/Материалы/Облицовочные и отделочные/Обои', # дефолтные значения которые не подпадают под категории
 			},
-			'adult' => 0, # товары для взрослых 
-			'country_of_origin' => 'США', # страна производитель по умолчанию
+			'adult' => 0, # товары для взрослых
+			'country_of_origin' => 'Финляндия', # страна производитель по умолчанию
+			'vendor' => 'Sandudd', # производитель по умолчанию
+			'description' => 'Экологичные флизелиновые обои скандинавского дизайна без винила. Складская программа – финские обои в наличии на складе в Петербурге. Доставка по СПб от 1 до 5 дней с момента оплаты. Универсальный дизайн: от винтажной классики до современного минимализма! Финские обои длиной 11,2 м: 4 полосы с 1 рулона. Бесплатно привозим образцы обоев на дом!', # описание
 			'market_flag' => 'market', # флаг в базе выгружать в маркет или нет
+			'market_flag_categories' => 'market', # флаг в базе для категорий
 			'where' => ' AND `active`=1 ', # дополнительное условие
+			'where_categories' => ' AND `active`=1', # дополнительное условие для категорий
+			'manufacturer_warranty' => 'true', #гарантия производителя, true || false;
 			'pickup' => 'true', # самовывоз, true || false;
 			'store' => 'true', # взозможность забрать товар из магазина, true || false;
 			'delivery' => 'true', # доставка, true || false;
 		};
 		my $host = "http://".$self->host || $CONFIG->{url};
-		my $now = $self->dbi->query("SELECT NOW()")->list;
-		my $categories = $self->dbi->query("SELECT * FROM `data_catalog_categorys`")->hashes || [];
+		my $now = $self->setLocalTime(1);
+		my $where_categories = "1";
+		if ($CONFIG->{market_flag_categories}){
+			$where_categories .= " AND `$$CONFIG{market_flag_categories}`=1 ";
+		};
+		if ($CONFIG->{where_categories}){
+			$where_categories .= $CONFIG->{where_categories};
+		};
+		my $categories = $self->dbi->query("SELECT * FROM `data_catalog_groups` WHERE $where_categories")->hashes || [];
+
+		my @categories_ids = ();
+		push @categories_ids, $_->{ID} foreach (@$categories);
 		my $where = '1';
 		if ($CONFIG->{market_flag}){
 			$where .= " AND `$$CONFIG{market_flag}`=1 ";
@@ -53,45 +65,54 @@ sub register {
 		if ($CONFIG->{where}){
 			$where .= $CONFIG->{where};
 		};
+		if (scalar (@categories_ids)){
+			$categories = $self->dbi->query("SELECT * FROM `data_catalog_groups` WHERE `id_group` IN (".join(',',@categories_ids).")  OR `ID` IN (".join(',',@categories_ids).")")->hashes;
+			@categories_ids = ();
+			push @categories_ids, $_->{ID} foreach (@$categories);
+			$where .= " AND `id_group` IN (".join(',',@categories_ids).") " if scalar @categories_ids;
+		}
+
 		my $items = $self->dbi->query("SELECT * FROM `data_catalog_items` WHERE $where")->hashes;
 		my @release_items = ();
 		foreach my $item (@$items){
-			$item->{url} = $host.$self->url_for('catalog_iteminfo',item_id => $item->{ID});
-			$item->{categoryId} = $item->{category_id};
+			$item->{url} = $host.$self->url_for('catalog_iteminfo_by_alias',item_alias => $item->{alias});
+			$item->{categoryId} = $item->{id_group};
 			$item->{market_category} = $CONFIG->{group_replaces}->{$item->{id_group}} || $CONFIG->{group_replaces}->{'default'};
 			$item->{picture} = $host."/image/catalog/items/$$item{pict}";
-			$item->{vendor} = $item->{brand} || '';
-			$item->{vendorCode} = $item->{articul} || '';
-			$item->{description} = strXhtmlValid($item->{text});
+			$item->{vendor} = $item->{brand} || $CONFIG->{vendor} || '';
+			#$item->{vendorCode} = $item->{articul} || '';
+			#$item->{description} = strXhtmlValid($item->{text});
+			$item->{description} = $CONFIG->{description};
 			$item->{pickup} = $item->{pickup} || $CONFIG->{pickup};
-			$item->{delivery} = $item->{delivery} || $CONFIG->{delivery};
+			$item->{delivery} =  $CONFIG->{delivery};
+			$item->{price} = $self->catalog_item_price($item);
 			$item->{store} = $item->{store} || $CONFIG->{store};
-			$item->{manufacturer_warranty} = 'false'; # гарантия производителя хз что с ней делать
+			$item->{manufacturer_warranty} = $CONFIG->{manufacturer_warranty}; # гарантия производителя хз что с ней делать
 			$item->{country_of_origin} = $CONFIG->{country_of_origin};
-			$item->{cpa} = $CONFIG->{cpa};		
+			$item->{cpa} = $CONFIG->{cpa};
 
-			# my $params = $self->dbi->query("SELECT * FROM `dtbl_catalog_dimensions` WHERE `id_item`=$$item{ID} ORDER BY `rating`")->hashes;
-
+			# my $params = $self->dbi->query("SELECT * FROM `dtbl_catalog_items_options` WHERE `id_item`=$$item{ID} ORDER BY `rating`")->hashes;
 			# $item->{params} = {};
 			# foreach(@$params){
-			# 	$item->{params}->{$_->{name}} = $_->{value};
+			# 	my ($name,$val) = split(':',$_->{name});
 			# }
+
 			push @release_items, $item;
 
 		}
 
-		$self->render( 
-			config => $CONFIG, 
-			currencies => $CONFIG->{currencies}, 
+		$self->render(
+			config => $CONFIG,
+			currencies => $CONFIG->{currencies},
 			items => \@release_items,
 			now => $now,
 			categories => $categories,
-			template => 'Plugins/YMarket/ymarket', 
+			template => 'Plugins/YMarket/ymarket',
 			format => 'yml',
-		);	
-		
+		);
+
 	})->name('ymarket');
-		
+
 }
 
 sub strXhtmlValid ($) {

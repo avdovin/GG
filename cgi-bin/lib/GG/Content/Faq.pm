@@ -83,11 +83,10 @@ sub list{
 		if(!keys %{ $self->stash->{'faq_form_errors'} }){
 			$self->dbi->insert_hash('data_faq', {
 				author_name 	=> $self->stash->{'author_name'},
-				email 			=> $self->stash->{'email'},
-				phone		 	=> $self->stash->{'phone'},
-				name 			=> $self->stash->{'name'},
-				created_at 		=> ' NOW() ',
-				active 			=> 0,
+				email 				=> $self->stash->{'email'},
+				phone		 			=> $self->stash->{'phone'},
+				name 					=> $self->stash->{'name'},
+				active 				=> 0,
 			});
 			my $email_body = 	$self->render_mail(
 				template	=> "Faq/_admin"

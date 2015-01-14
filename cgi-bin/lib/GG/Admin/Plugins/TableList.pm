@@ -137,6 +137,9 @@ sub register {
 					if($type eq 'chb'){
 						$item->{$v} = $item->{$v} ? $lkey->{settings}->{yes} : $lkey->{settings}->{no};
 
+					}elsif($type eq 'date'){
+						delete $item->{$v} if (!$item->{$v} or $item->{$v} eq '0000-00-00');
+
 					}elsif($type =~ /list/){
 						$item->{$v} = $self->VALUES( name => $v, type => 'list', value => $item->{$v}, value_split => "=", )
 
@@ -217,7 +220,7 @@ sub register {
 				} else {
 					no strict "refs";
 
-					foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+					foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b } keys %$lkeys) {
 						if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
 						&& !$$lkeys{$k}{settings}{sys}
@@ -237,7 +240,7 @@ sub register {
 
 				no strict "refs";
 
-				foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+				foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 
 					if ($self->dbi->exists_keys(table => $list_table, lkey => $k)
 						&& ($lkeys_access->{$k}->{r} || $user_sys)
@@ -330,7 +333,7 @@ sub register {
 			my %user_set = ();
 			no strict "refs";
 
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$self->stash->{$k}){
 						$user_set{$lkey.'_'.$k} = '';
@@ -376,17 +379,17 @@ sub register {
 
 			no strict "refs";
 
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} keys %$lkeys) {
+			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} or $a cmp $b} keys %$lkeys) {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$lfield or ($lfield and $lfield eq $k) ){
-						$self->sysuser->settings->{$lkey.'_'.$k} = '';
-						$self->sysuser->settings->{$lkey.'_'.$k.'pref'} = '' if $self->sysuser->settings->{$lkey.'_filter_'.$k.'pref'};
+						delete $self->sysuser->settings->{$lkey.'_'.$k};
+						delete $self->sysuser->settings->{$lkey.'_'.$k.'pref'} if $self->sysuser->settings->{$lkey.'_filter_'.$k.'pref'};
 					}
 				}
 			}
 
-			use strict "refs";
 
+			use strict "refs";
 			$self->sysuser->save_ses_settings();
 
 		}
@@ -600,7 +603,7 @@ sub register {
 
 			my @tmp;
 			if (!$self->app->sysuser->settings->{$params{lkey}."_defcol"}) {
-				foreach my $k (sort {($$lkeys{$a}{settings}{table_list}||0) <=> ($$lkeys{$b}{settings}{table_list}||0)} keys %$lkeys) {
+				foreach my $k (sort {($$lkeys{$a}{settings}{table_list}||0) <=> ($$lkeys{$b}{settings}{table_list}||0) or $a cmp $b} keys %$lkeys) {
 
 					my $lkey = $self->lkey(name => $k);
 					if ($lkey->{settings}->{table_list} and $self->dbi->exists_keys(from => $params{table}, lkey => $k) and ($self->sysuser->access->{lkey}->{$k}->{r} || $self->app->sysuser->sys)){

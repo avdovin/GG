@@ -40,7 +40,7 @@ function clear_list_filter(url, replaceme, params){
 	ajaxform[out].onCompletion = function() {
 		var qs = '';
 		for(var field in params){
-			qs += '&'+field+'='+params[field];
+			qs = '&'+field+'='+params[field];
 		}
 
 		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
@@ -58,16 +58,15 @@ function set_list_filter(url, replaceme, params){
 	for(var field in params){
 		ajaxform[out].setVar(field , params[field]);
 	}
-
-	if (!document.getElementById(replaceme)) replaceme = 'replaceme';
 	ajaxform[out].setVar("replaceme", replaceme);
 
 	ajaxform[out].onCompletion = function() {
 		var qs = '';
 		for(var field in params){
-			qs += '&'+field+'='+params[field];
+			qs = '&'+field+'='+params[field];
 		}
-		ld_content(replaceme, url+'?do=list_container'+qs, '', 1)
+
+		ld_content(replaceme, url+'?do=list_container&replaceme='+replaceme+qs, '', 1)
 	}
 	ajaxform[out].runAJAX();
 }
@@ -87,8 +86,8 @@ function init_tablelist(id) {
 				element = element_table.getElementsByTagName("tr")[j];
 				if (element.className != "header" && element.className != "tempo") {
 					if (Trclass == "odd") { Trclass = "even"; } else { Trclass = "odd"; }
-					//element.className = Trclass;
-					var class_tr = element.className = Trclass;
+					element.className = Trclass;
+					var class_tr = element.className;
 					element.classold = class_tr;
 					element.onmouseout = function() {
 						if (this.className == 'selectmarked' || this.className == 'marked') {
@@ -175,7 +174,7 @@ function init_tablelist(id) {
 										a.title = 'Печать';
 										a.onclick = function() {
 											var data = this.dataset;
-											displayMessage(script_link + '?do=' + data.action + '&index=' + data.index, 400, 350, 3)
+											displayMessage(script_link + '?do=' + data.action + '&index=' + data.index + script_param, 400, 350, 3)
 //												loadfile(script_link + '?action=' + array[0] + '&index=' + array[1]);
 										}
 									}
@@ -211,28 +210,29 @@ function init_tablelist(id) {
 									else if(action == 'upload' ){
 										a.title = 'Скачать';
 										a.onclick = function(){
+
 											var data = this.dataset;
-											open_url(script_link + '?do=' + data.action + '&index=' + data.index);
+											open_url(script_link + '?do=' + data.index + '&index=' + data.index);
 										}
 									}
 									else if(action == 'edit' ){
 										a.title = 'Редактировать';
 										a.onclick = function() {
 											var data = this.dataset;
-											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+											openPage('center', script_replaceme + data.index, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
 										}
 									}
 									else if(action == 'text' ){
 										a.title = 'Редактировать текст';
 										a.onclick = function() {
 											var data = this.dataset;
-											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+											openPage('center', script_replaceme + data.index, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
 										}
 									} else {
 										a.title = 'Текст';
 										a.onclick = function() {
 											var data = this.dataset;
-											openPage('center', script_replaceme + data.action, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
+											openPage('center', script_replaceme + data.index, script_link + '?do=' + data.action + '&index=' + data.index + '&replaceme=' + script_replaceme + data.index + script_param, 'info','info');
 										}
 									}
 									element_div.appendChild(a);
@@ -443,10 +443,9 @@ function parse_data_to_table(id, ajaxIndex) {
 				} else if(lkey_type=='pict' || lkey_type=='file'){
 
 					var ext = (/[.]/.exec(td_str[lkey_name])) ? /[^.]+$/.exec(td_str[lkey_name]) : undefined;
-
 					var valid_ext = new Array('jpg','png','gif','jpeg');
 
-					if(typeof ext != 'undefined' && ext == 'swf'){
+					if(ext && ext == 'swf'){
 						var swf_width = 64;
 							swf_height = 64;
 
@@ -495,7 +494,7 @@ function parse_data_to_table(id, ajaxIndex) {
 						jQuery(td).append(swf);
 						jQuery(td).css("text-align", 'center');
 					}
-					else if(valid_ext.indexOf(ext[0].toLowerCase()) != -1) {
+					else if(ext && valid_ext.indexOf(ext[0].toLowerCase()) != -1) {
 						var img = new Image();
 						img.src =  td_str[lkey_name] == '/admin/img/no_img.png' ? td_str[lkey_name] : td_str[lkey_name]+"?"+Math.random();
 						jQuery(img).css('width', '64px');
@@ -507,6 +506,9 @@ function parse_data_to_table(id, ajaxIndex) {
 						jQuery(td).html( td_str[lkey_name] );
 					}
 
+				} else if(lkey_type=='date' && td_str[lkey_name]){
+					var parts = td_str[lkey_name].split('-');
+					jQuery(td).text( parts[2]+'.'+parts[1]+'.'+parts[0] );
 				} else{
 					jQuery(td).html( td_str[lkey_name] );
 				}

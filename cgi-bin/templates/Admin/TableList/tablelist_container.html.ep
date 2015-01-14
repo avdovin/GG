@@ -1,13 +1,13 @@
 <div id='<%= $replaceme %>' style="padding:5px;position:absolute;top:0px;left:0px;width:96%;display:block">
 <div style="display:none" id="<%= $replaceme %>_QS"><%== $self->stash->{param_default} =%></div>
-<div style="display:none" id="datasource_list<%= $controller_name %>">
+<div style="display:none" id="datasource_list<%= $self->app->program->{key_razdel} %>">
 
 % if($self->sysuser->settings->{$controller.'_qedit'}){
 %	 	foreach my $k (@$listfield_header){
 %			my $lkey = $self->lkey(name => $k);
 %			if($lkey->{settings}->{type} =~ /list/){
 				<select id="datasource_<%= $k %>" style="display:none" <% if($lkey->{settings}->{mult}){ %>multiple="<%= $lkey->{settings}->{mult} %>"<% } %>>
-				<%== LIST (name => $k, type => 'select', option => 1) %>
+					%== LIST (name => $k, type => 'select', option => 1)
 				</select>
 %			} elsif($lkey->{type} eq 'chb'){
 				<select id="datasource_<%= $k %>" style="display:none">
@@ -189,7 +189,7 @@
 		<tr class=header>
 			<td style="width: 10px;"> </td>
 			<td colspan="<%= $total_col_list %>">отмеченные:
-				%	foreach( sort keys %$listfield_groups_buttons){
+				%	foreach( keys %$listfield_groups_buttons){
 					<img border="0" src="/admin/img/icons/menu/button.<%= $_ %>.gif"/ align="absMiddle" hspace=3> <a href="#" onClick="sendAllchecked('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&<%= $_ %>=1', '<%= $_ %>');"><%= $listfield_groups_buttons->{$_} %></a> |
 				%	}
 				<img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif" hspace=3/> <a href="#" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>')">обновить</a>

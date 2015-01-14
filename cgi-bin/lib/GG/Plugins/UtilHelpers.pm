@@ -227,7 +227,7 @@ sub register {
 			$controller = lc $controller;
 
       my @files = ();
-			if(-f $self->static_path.'/js/controllers/'.$controller.'.js'){
+			if(-e $self->static_path.'/js/controllers/'.$controller.'.js'){
 				#$self->js_files( '/js/controllers/'.$controller.'.js' );
         push @files, '/js/controllers/'.$controller.'.js';
 			}

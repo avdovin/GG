@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# perlbrew instlal perl-5.20.1 -D useshrplib
+# perlbrew install perl-5.20.1 -D useshrplib
 
 # See <http://perltricks.com/article/57/2014/1/1/Shazam-Use-Image-Magick-with-Perlbrew-in-minutes>
 
@@ -15,6 +15,14 @@
 # may need to --force
 #
 # see <https://github.com/gugod/App-perlbrew/issues/131>
+
+# Ubuntu packages
+# JPEG - libjpeg62-dev
+# PNG - libpng-dev
+
+sudo apt-get update
+sudo apt-get install libjpeg62-dev
+sudo apt-get install libpng-dev
 
 
 TOP="$HOME/local"
@@ -42,7 +50,7 @@ if [ $PERL_THREADS = 0 ]; then
 fi
 
 LDFLAGS=-L$PERL_CORE \
-    ./configure --enable-shared --with-jpeg --with-png  --with-jp2 --with-tiff --prefix $TOP \
+    ./configure --with-jpeg=yes --with-png=yes  --with-jp2=yes --prefix $TOP \
     --with-perl=$PERL_BIN \
     --enable-shared $THREAD_FLAG
 
