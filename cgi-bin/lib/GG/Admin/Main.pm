@@ -128,8 +128,9 @@ sub mainpage{
 
 
 	my $user_lang = $self->sysuser->settings->{lang};
+	my $user_sys = $self->sysuser->sys;
 
-	my (%main_menu);
+	my %main_menu;
 	my $app = $self->app;
 
 	# Получаем список всех доступных модулей
@@ -156,8 +157,49 @@ sub mainpage{
 		);
 
 		if( $self->sysuser->sys or exists($self->sysuser->access->{modul}->{ $$row{ID} }) ){
-			$main_menu{ $$row{prgroup} } .= $self->render_to_string(template => 'Admin/icon', button => \%button_conf );
+
+			if($row->{key_razdel} eq 'texts'){
+				my $access_where = $self->def_access_where( base => 'lst_texts', show_empty => 0);
+
+				$self->getHashSQL(
+					select	=> 	'*',
+					from	=>	'lst_texts',
+					where	=> 	"`".$self->sysuser->settings->{'lang'}."`='1' $access_where",
+					sys		=> 1,
+					stash	=> 	'texts'
+				);
+				my $razdel = $self->stash->{texts} || [];
+				my $settings = $button->{settings};
+
+				$self->get_keys( type => ['button'], controller => $row->{key_razdel}, no_global => 1, validator => 0);
+				my $buttonByController = $self->app->buttons->{$b};
+
+				$self->app->sysuser->getAccess(modul => $b);
+
+				foreach my $r (@$razdel){
+					my $txtTable = 'texts_'.$r->{key_razdel}.'_'.$user_lang;
+
+					my $script = "ld_content('$$settings{replaceme}','$$settings{program}&$$button{params_string}&razdel=$$r{ID}')";
+					if($user_sys or $self->sysuser->access->{table}->{$txtTable}->{w}){
+						my $text_button_conf = {
+							lkey			=> $r->{key_razdel},
+							classdiv	=> 'div_icons',
+							title			=> $r->{name},
+							classhref	=> 'href_icons',
+							classimg	=> 'image_icons',
+							imageicon	=> $$row{pict},
+							name			=> $button->{name},
+							script		=> $script
+						};
+						$main_menu{ $$row{prgroup} } .= $self->render_to_string(template => 'Admin/icon', button => $text_button_conf );
+					}
+				}
+			}
+			else {
+				$main_menu{ $$row{prgroup} } .= $self->render_to_string(template => 'Admin/icon', button => \%button_conf );
+			}
 		}
+
 	}
 
 	$self->def_list( name => 'panel_razdel', controller => 'global');
@@ -178,6 +220,7 @@ sub mainpage{
 
 	$self->render(json => $result);
 }
+
 
 sub user_block{
 	my $self = shift;

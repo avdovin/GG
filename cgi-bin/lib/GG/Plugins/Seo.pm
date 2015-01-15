@@ -10,7 +10,7 @@ my $USE_SEO_META = 0;
 
 sub register {
 	my ($self, $app, $conf) = @_;
-  
+
   $USE_SEO_META = $conf->{seo_custom_tags} || 0;
 
 	$app->hook( before_dispatch => sub {
@@ -91,7 +91,7 @@ sub register {
 
 	$app->helper( seo_custom_tags => sub {
 		my $self   = shift;
-		my $reqUrl = '/'.$self->req->url;
+		my $reqUrl = '/'.$self->req->url->path;
 
 		($reqUrl, undef) = split(/\?/, $reqUrl);
 
