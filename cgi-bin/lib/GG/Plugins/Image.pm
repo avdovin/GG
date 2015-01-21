@@ -3,6 +3,7 @@ package GG::Plugins::Image;
 use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
+use experimental 'smartmatch';
 
 our $VERSION = '1';
 

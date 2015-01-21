@@ -484,31 +484,27 @@ sub register {
 	});
 
 	$app->helper(date_format => sub {
-		my $c      = shift;
+		my $self = shift;
 		my %params = (
-			format 	=> 'dd month yyyy',
-			date	=> '',
-			lang	=> $c->stash->{lang} || 'ru',
-			curdate	=> 0,
+			format 		=> 'dd month yyyy',
+			date			=> '',
+			lang			=> $self->stash->{lang} || 'ru',
+			curdate		=> 0,
 			@_
 		);
 
-		# для старой совместимости
-		$params{format} ||= $params{dateformat} if $params{dateformat};
-
-		$params{curdate} = 1 unless $params{date};
-		if($params{curdate}){
-			$params{date} = sprintf( "%04d-%02d-%02d",
-				(localtime)[5] + 1900,
-				(localtime)[4] + 1,
-				(localtime)[3] );
+		if($params{'curdate'} || $params{'now'}){
+			$params{'date'} = $self->setLocalTime(1);
 		}
 
-
+		# для старой совместимости
+		return '' unless my $date = delete $params{'date'};
+		return $date unless my $format = delete $params{'format'} || delete $params{'dateformat'};
 
 		my ( %month1, %month2 );
+		my $lang = delete $params{'pang'};
 
-		if ( $params{lang} eq "ru" ) {
+		if ( $lang eq "ru" ) {
 			%month1 = (
 				1  => "января",
 				2  => "февраля",
@@ -538,7 +534,7 @@ sub register {
 				12 => "декабрь"
 			);
 		}
-		elsif ( $params{lang} eq "en" ) {
+		elsif ( $lang eq "en" ) {
 			%month1 = (
 				1  => "January",
 				2  => "Febuary",
@@ -566,46 +562,17 @@ sub register {
 				10 => "October",
 				11 => "November",
 				12 => "December"
-			);
-		}
-		elsif ( $params{lang} eq "fr" ) {
-			%month1 = (
-				1  => "Janvier ",
-				2  => "F&eacute;vrier",
-				3  => "Mars",
-				4  => "Avril",
-				5  => "Mai",
-				6  => "Juin",
-				7  => "Juillet",
-				8  => "Ao&ucirc;t",
-				9  => "Septembre",
-				10 => "Octobre",
-				11 => "Novembre",
-				12 => "D&eacute;cembre"
-			);
-			%month2 = (
-				1  => "Janvier ",
-				2  => "F&eacute;vrier",
-				3  => "Mars",
-				4  => "Avril",
-				5  => "Mai",
-				6  => "Juin",
-				7  => "Juillet",
-				8  => "Ao&ucirc;t",
-				9  => "Septembre",
-				10 => "Octobre",
-				11 => "Novembre",
-				12 => "D&eacute;cembre"
 			);
 		}
 
-		if ( length( $params{date} ) == 19 ){    # Если дата со временем
-			$params{date} =~ m/([\d]+-[\d]+-[\d]+) ([\d\:]+)/;
-			$params{date} = $1;
+		if ( length( $date ) == 19 ){    # Если дата со временем
+			$date =~ m/([\d]+-[\d]+-[\d]+) ([\d\:]+)/;
+			$date = $1;
 			$params{time} = $2;
 		}
-		my ( $y, $m,   $d )   = split( /-/, $params{'date'} );
-		my ( $h, $min, $sec ) = split( /:/, $params{'time'} ) if $params{'time'};
+		my ( $y, $m, $d )   = split( /-/, $date);
+		my ( $h, $min, $sec ) = ('','','');
+		($h, $min, $sec) = split( /:/, $params{'time'} ) if $params{'time'};
 
 		$y =~ m/\d\d(\d\d)/;
 		my $ys = $1;
@@ -613,43 +580,44 @@ sub register {
 		$m += 0;
 		my $month;
 
-		if ($params{format} =~ m/dd|day/ && $d > 0){
+		if ($format =~ m/dd|day/ && $d > 0){
 			$month = $month1{$m};
 		}
-		elsif($params{format} =~ m/dd|day/ && $d == 0){
+		elsif($format =~ m/dd|day/ && $d == 0){
 			$month = ucfirst $month2{$m};
 		}
 
 		# вариант с отсутствием даты
 		$month ||= '';
 
-		$params{date} = $params{format};
-		$params{date} =~ s/month/$month/;
+
+		$format =~ s/month/$month/;
 		if($d > 0){
-			$params{date} =~ s/dd|day/$d/e;
+			$format =~ s/dd/sprintf("%02d", $d)/e;
+			$format =~ s/d|day/$d/e;
 		}
 		else {
-			$params{date} =~ s/dd|day//e;
+			$format =~ s/dd|day//e;
 		}
 
-		$params{date} =~ s/yyyy/sprintf("%04d", $y)/e;
-		$params{date} =~ s/yy/sprintf("%02d", $ys)/e;
-		$params{date} =~ s/mm/sprintf("%02d", $m)/e;
+		$format =~ s/yyyy/sprintf("%04d", $y)/e;
+		$format =~ s/yy/sprintf("%02d", $ys)/e;
+		$format =~ s/mm/sprintf("%02d", $m)/e;
 
 		if ( $params{'time'} ) {
-			$params{date} =~ s/hh/sprintf("%02d", $h)/e;
-			$params{date} =~ s/min/sprintf("%02d", $min)/e;
-			$params{date} =~ s/sec/sprintf("%02d", $sec)/e;
+			$format =~ s/hh/sprintf("%02d", $h)/e;
+			$format =~ s/min/sprintf("%02d", $min)/e;
+			$format =~ s/sec/sprintf("%02d", $sec)/e;
 		}
-		if($params{date} =~ /dow/){
+		if($format =~ /dow/){
 			my @DOW = ('Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье');
 
 			require Date::Calc;
 			my $dow = Date::Calc::Day_of_Week($y,$m,$d);
-			$params{date} =~ s/dow/$DOW[$dow-1]/e;
+			$format =~ s/dow/$DOW[$dow-1]/e;
 		}
 
-		return $params{date};
+		return $format;
 	});
 
 	$app->helper(numberformat => sub {

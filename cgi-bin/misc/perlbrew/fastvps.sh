@@ -22,6 +22,7 @@ export PERLBREW_ROOT=/opt/perl5
 curl -kL http://install.perlbrew.pl | bash
 
 echo 'source /opt/perl5/etc/bashrc' >>~/.bash_profile
+source ~/.bash_profile
 
 perlbrew install perl-5.20.1 -D useshrplib
 

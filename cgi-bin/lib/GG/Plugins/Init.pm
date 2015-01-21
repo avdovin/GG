@@ -153,7 +153,7 @@ sub register {
     unless( $ENV{MORBO_REV} ){
 			# --- REDIRECT MODULE ---------------------------------
 			#my $path = $url->to_string;
-			my $path = '/'.$self->req->url->path;
+			my $path = $self->req->url->path;
 			my $fullPath = 'http://'.$self->host.$path;
 			#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
   		if (

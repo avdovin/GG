@@ -17,6 +17,9 @@ DirectorySlash Off
 RewriteEngine On
 RewriteRule \.git - [F,L]
 
+#RewriteCond %{REQUEST_URI} !/maintenance.html$
+#RewriteCond %{REMOTE_ADDR} !^178\.74\.102\.96
+#RewriteRule $ /maintenance.html [R=302,L]
 
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.+)/$ $1.html [L]
