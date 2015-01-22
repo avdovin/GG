@@ -1,6 +1,16 @@
 % my $nav = begin
 	% my $link = shift;
-	<li class="breadcrumbs__entry"><% if($link->{url}){ %><a class="entry__link" href="<%= $link->{url} %>"><% } %><%= $link->{name} %><% if($link->{url}){ %></a><% } %></li>
+	% my $e = ' breadcrumbs__entry';
+	% my $l = ' breadcrumbs__link';
+	<li class="<%= $e.($link->{url} ? '' : $e.'_current') %>">
+		% if($link->{url}){
+			<a href="<%= $link->{url} =%>" class="<%= $l %>">
+				<%= $link->{name} =%>
+			</a>
+		% } else {
+			<span class="<%= $l.$l.'_current' %>"><%= $link->{name} =%></span>
+		% }
+	</li>
 % end
 <ul class="breadcrumbs clearfix">
 	%== $nav->( {name => 'Главная', url => '/'} );

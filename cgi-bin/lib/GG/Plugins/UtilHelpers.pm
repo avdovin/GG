@@ -483,7 +483,7 @@ sub register {
 		return $info;
 	});
 
-	$app->helper(date_format => sub {
+$app->helper(date_format => sub {
 		my $self = shift;
 		my %params = (
 			format 		=> 'dd month yyyy',
@@ -502,7 +502,7 @@ sub register {
 		return $date unless my $format = delete $params{'format'} || delete $params{'dateformat'};
 
 		my ( %month1, %month2 );
-		my $lang = delete $params{'pang'};
+		my $lang = delete $params{'lang'};
 
 		if ( $lang eq "ru" ) {
 			%month1 = (
@@ -570,6 +570,7 @@ sub register {
 			$date = $1;
 			$params{time} = $2;
 		}
+
 		my ( $y, $m, $d )   = split( /-/, $date);
 		my ( $h, $min, $sec ) = ('','','');
 		($h, $min, $sec) = split( /:/, $params{'time'} ) if $params{'time'};
@@ -581,20 +582,19 @@ sub register {
 		my $month;
 
 		if ($format =~ m/dd|day/ && $d > 0){
-			$month = $month1{$m};
+			$month = $month1{int($m)};
 		}
 		elsif($format =~ m/dd|day/ && $d == 0){
-			$month = ucfirst $month2{$m};
+			$month = ucfirst $month2{int($m)};
 		}
 
 		# вариант с отсутствием даты
 		$month ||= '';
 
-
 		$format =~ s/month/$month/;
 		if($d > 0){
-			$format =~ s/dd/sprintf("%02d", $d)/e;
-			$format =~ s/d|day/$d/e;
+			$format =~ s/DD/sprintf("%02d", $d)/e;
+			$format =~ s/dd|day/$d/e;
 		}
 		else {
 			$format =~ s/dd|day//e;

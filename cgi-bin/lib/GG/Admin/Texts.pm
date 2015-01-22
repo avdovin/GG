@@ -21,14 +21,26 @@ sub _init{
 	my $access_where = $self->def_access_where( base => $self->stash->{txt_razdel}, show_empty => 0);
 
 	if($self->param('list_table')){
-		my (undef, $kr, $lng) = split(/_/, $self->param('list_table'));
-		$self->stash->{key_razdel} = $kr;
+		my @parts = split(/_/, $self->param('list_table'));
+		my ($kr, $lng);
+		shift @parts;
+
+		if(scalar(@parts)>2){
+			$lng = pop @parts;
+			$kr = join('_', @parts);
+		}
+		else {
+			($kr, $lng) = ($parts[0], $parts[1]);
+		}
+
+		$self->stash->{'key_razdel'} = $kr;
 		#$self->sysuser->save_settings( lang => $lng );
-		$self->getArraySQL(	select	=> '`ID` AS `razdel`,`name` AS `name_razdel`',
-							from 	=> $self->stash->{txt_razdel},
-							where	=> "`key_razdel`='$kr' $access_where",
-							stash	=> '',
-						);
+		$self->getArraySQL(
+			select	=> '`ID` AS `razdel`,`name` AS `name_razdel`',
+			from 	=> $self->stash->{txt_razdel},
+			where	=> "`key_razdel`='$kr' $access_where",
+			stash	=> '',
+		);
 	}
 
 	if(!$self->sysuser->settings->{'texts_razdel'}){
