@@ -4,11 +4,10 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use utf8;
 
-
-
+use experimental 'smartmatch';
 use List::Util 'first';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 #use Mojo::Cache;
 #my $cache = Mojo::Cache->new(max_keys => 50);

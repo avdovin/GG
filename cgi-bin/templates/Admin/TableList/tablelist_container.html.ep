@@ -74,7 +74,7 @@
 								<td>
 									<form name="change_<%= $controller %>" id="change_<%= $controller %>" method="POST">
 										Раздел:
-										<select name="razdel" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chrazdel');">
+										<select name="razdel" onChange="do_submit(this.form, 'replaceme', '/admin/<%= $controller %>/body?do=chrazdel');">
 											%== LIST (name=> "razdel", type => "select", value => $self->stash->{razdel}, option => 1 );
 										</select>
 									</form>
@@ -88,7 +88,7 @@
 									<td>
 										<form name="formchlang" method="POST" style="margin-right:5px">
 											Язык:
-											<select name="lang" onChange="do_submit(this.form, '<%= $replaceme %>', '/admin/<%= $controller %>/body?do=chlang');">
+											<select name="lang" onChange="do_submit(this.form, 'replaceme', '/admin/<%= $controller %>/body?do=chlang');">
 												%== LIST (name=> "lang", type => "select", value => $self->sysuser->settings->{lang}, option => 1 );
 											</select>
 										</form>
@@ -150,7 +150,7 @@
 <div id="div_quickEdit<%= $replaceme %>" style="width:100%">
 	<table class=tablelist width="96%" align=center id="quickEdit<%= $replaceme %>" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="&list_table=<%= $self->stash->{list_table} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit'} %>">
 		<tr class=header>
-			<td style="width: 10px;"><input id="listallchb" type="checkbox" onclick="selectAllcheckbox();"/></td>
+		<td style="width: 10px;"><input id="listallchb" type="checkbox" onclick="selectAllcheckbox();"/></td>
 	% if($self->app->program->{settings}->{qview}) {
 		<td style="width: 16px;"></td>
 	% }

@@ -83,9 +83,11 @@ sub tree_block{
 
 	$self->param_default('replaceme' => '');
 
+	my $where = $self->dbi->where_multiselect('id_group_user', $index);
+
 	$items = $self->getHashSQL(	select	=> "`ID`,`name`",
 								from 	=> $table,
-								where 	=> "`id_group_user`='$index' ".$self->stash->{access_where},
+								where 	=> "$where ".$self->stash->{access_where},
 								sys		=> 1) || [];
 
 	foreach my $i (0..$#$items){

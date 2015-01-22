@@ -465,7 +465,7 @@ sub tree_block{
 
 		$items = $self->getHashSQL(	select	=> $select,
 									from 	=> $table,
-									where 	=> ($self->stash->{dir_field} ? "`".$self->stash->{dir_field}."`='$index' " : " `ID`>0 ")." ORDER BY `dir` DESC, `rdate` DESC ",
+									where 	=> ($self->stash->{dir_field} ? "`".$self->stash->{dir_field}."`='$index' " : " `ID`>0 ")." ORDER BY `dir` DESC, `created_at` DESC ",
 									) || [];
 
 		foreach my $i (0..$#$items){

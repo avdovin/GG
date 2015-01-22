@@ -10,7 +10,7 @@ my $USE_SEO_META = 0;
 
 sub register {
 	my ($self, $app, $conf) = @_;
-  
+
   $USE_SEO_META = $conf->{seo_custom_tags} || 0;
 
 	$app->hook( before_dispatch => sub {
@@ -57,14 +57,17 @@ sub register {
 
 	$app->helper( render_footer => sub {
 		my $self	= shift;
+		my %args  = @_;
 
 		return $self->render_to_string(
 			template 	=> '_footer',
+			%args
 		);
 	});
 
 	$app->helper( render_headers => sub {
 		my $self	= shift;
+		my %args  = @_;
 
 		my $metaTags = $self->stash->{'_meta_tags'};
 
@@ -86,12 +89,13 @@ sub register {
 
 		return $self->render_to_string(
 			template 	=> '_headers',
+			%args
 		);
 	});
 
 	$app->helper( seo_custom_tags => sub {
 		my $self   = shift;
-		my $reqUrl = '/'.$self->req->url;
+		my $reqUrl = '/'.$self->req->url->path;
 
 		($reqUrl, undef) = split(/\?/, $reqUrl);
 

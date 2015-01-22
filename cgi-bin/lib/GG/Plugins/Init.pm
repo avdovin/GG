@@ -149,16 +149,17 @@ sub register {
 			return $self->redirect_to($path);
 		}
 
-
-    # If not static request
-    if( $self->res->code ){
-
+    # If not morbo server
+    unless( $ENV{MORBO_REV} ){
 			# --- REDIRECT MODULE ---------------------------------
-			my $path = $url->to_string;
+			#my $path = $url->to_string;
+			my $path = $self->req->url->path;
+			my $fullPath = 'http://'.$self->host.$path;
 			#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
   		if (
-  			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' LIMIT 0,1")->list)->to_string
+  			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' OR `source_url` LIKE '$fullPath' LIMIT 1")->list)->to_string
   				){
+
 				my %qs=();
 				if ($redirect_path =~ /\%3F(\S*)/){
 					foreach (split('\&',$1)){
@@ -168,17 +169,18 @@ sub register {
 					$redirect_path =~ s/\%3F$1//;
 				}
 				$self->res->code(301);
+				#die $redirect_path;
+
 				return $self->redirect_to($self->url_for($redirect_path)->query(\%qs) );
   		}
 			# --- END OF REDIRECT MODULE --------------------------
 			#
-  		# check sessions
-			if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-		  	$self->session( cck => $cck );
-			}
     }
 
-
+  	# check sessions
+		if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+		 	$self->session( cck => $cck );
+		}
 
 		$self->req->url->base( Mojo::URL->new(q{/}) );
 		$self->req->url->scheme($conf->{'protocol'});

@@ -328,7 +328,7 @@ sub set_access {
 
 		my $a;
 		foreach (sort keys %$row_hashref) {
-			$a .= $row_hashref->{$_} if (defined $row_hashref->{$_} and $_ ne "cck" and $_ ne "objectname" and $_ ne "rdate" and $_ ne "edate");
+			$a .= $row_hashref->{$_} if (defined $row_hashref->{$_} and $_ ne "cck" and $_ ne "objectname" and $_ ne "created_at" and $_ ne "updated_at");
 		}
 
 		my $rule_ok = 0;
@@ -362,7 +362,7 @@ sub check_rules {
 	for my $hash  ($self->{dbi}->query($sql)->hashes){
 		my $a;
 		foreach my $k (sort keys %$hash){
-			$a .= $$hash{$k} if (defined $$hash{$k} and $k ne "cck" and $k ne "objectname" and $k ne "rdate" and $k ne "edate");
+			$a .= $$hash{$k} if (defined $$hash{$k} and $k ne "cck" and $k ne "objectname" and $k ne "created_at" and $k ne "updated_at");
 		}
 
 	#TODO Проверить формирование контрольной сумму (CCK) для прав доступа

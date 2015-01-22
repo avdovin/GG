@@ -7,7 +7,7 @@ use Carp;
 our $VERSION = '0.04';
 use utf8;
 
-my @SYSTEM_VALUES = qw(text data json inline);
+my @SYSTEM_VALUES = qw(text data json inline status);
 use Mojo::Util qw(url_escape trim squish);
 
 sub register {
