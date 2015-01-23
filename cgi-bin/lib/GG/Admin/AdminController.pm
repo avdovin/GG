@@ -384,18 +384,21 @@ HEAD
 			my $type = $lkey->{settings}->{type};
 
 			if($type eq 'pict'){
-				my $mini = $lkey->{settings}->{mini};
-				my $folder = $values->{folder} || $self->stash->{folder} || "";
-				if($mini){
-					my @first_mini = split(',', $mini);
-					$first_mini[0] =~ s{~[\w]+$}{};
-					$folder .= $first_mini[0].'_';
-				}
+				my $path = '/admin/img/no_img.png';
 
-				$value = "<img src=".$folder.$values->{ $key }." />";
+				if($values->{ $key }){
+					$path = $values->{$key.'_folder'} || $self->lfield_folder( lfield => $key );
+					if(my $mini = $lkey->{settings}->{mini}){
+						my @first_mini = split(',', $mini);
+						$first_mini[0] =~ s{~[\w]+$}{};
+						$path .= $first_mini[0].'_';
+					}
+					$path .= $values->{ $key };
+				}
+				$value = $self->image( $path );
 
 			} elsif($type eq 'chb'){
-				$value = $value ?  $lkey->{settings}->{yes} :  $lkey->{settings}->{'no'};
+				$value = $value ?  $lkey->{'settings'}->{'yes'} : $lkey->{'settings'}->{'no'};
 
 			} elsif($type =~ /list/){
 				$value = $self->VALUES( name => $key, value => $value );
@@ -426,6 +429,7 @@ HEAD
 	}
 	$self->render( text => "У Вас нет доступа к данной записи");
 }
+
 
 sub block_null{
 	my $self = shift;
@@ -571,9 +575,10 @@ sub delete_info {
 									 					where  	=> $where,
 									 					stash   => "r",
 									 					sys 	=> 1)){
+				$self->admin_msg_errors("С записью связана запись $$item{ID} из таблицы «".($$item{tbl_dep_title} || $$item{tbl_dep})."». Удаление запрещено.");
+				$self->edit;
+				return
 
-				$self->admin_msg_errors("С записью связана запись $$item{ID} из таблицы $$item{tbl_dep}. Удаление запрещено.");
-				return;
 			} elsif($item->{delete}){
 				$self->dbh->do("DELETE FROM `$$item{tbl_dep}` WHERE $where");
 			}
@@ -625,7 +630,6 @@ sub delete_info {
 	}
 	return $res;
 }
-
 
 sub check_unique_field{
 	my $self = shift;
