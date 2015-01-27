@@ -100,6 +100,11 @@ sub register {
 					foreach (@$values){
 						push @vals, $listRef->{$_} if $listRef->{$_};
 					}
+					# 0 Значение значение выбрано по умолчанию
+					if(!scalar @vals && $lkey->{list}->{0}){
+						push @vals, $lkey->{list}->{0}
+					}
+
 					return join($$attr{split}, @vals);
 				}
 				return;

@@ -491,10 +491,10 @@ sub register {
 				type		=> 'eval',
 				value		=> "setTimeout(\"inittabs('".$stash->{replaceme}."', Array(".$stash->{group_name_list}."), Array())\", 100);",
 			};
-			push @$items, {
-				type		=> 'eval',
-				value		=> "setTimeout(\"init_tableWidget();\", 1000);",
-			};
+			# push @$items, {
+			# 	type		=> 'eval',
+			# 	value		=> "setTimeout(\"init_tableWidget();\", 1000);",
+			# };
 
 			push @$items, {
 				type		=> 'settitle',

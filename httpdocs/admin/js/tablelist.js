@@ -333,7 +333,7 @@ function init_qedit_info(id) {
 
 		$table.find('td.read label').each(function(){
 			var $label = $(this);
-			var $div = $(this).find('div');
+			var $div = $(this).closest('td').find('div');
 
 			var label_id = $label.attr('id');
 			var div_id = $div.attr('id');

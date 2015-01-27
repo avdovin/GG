@@ -183,8 +183,13 @@ sub register {
 				# очистка старых сессий
 				$self->app->dbh->do("DELETE FROM `sys_users_session` WHERE TO_DAYS(NOW())-TO_DAYS(`time`)>5");
 
-			} else {
 
+				$self->save_logs(
+					name 		=> 'Авторизация прошла успешно',
+					event 	=> 'auth',
+				);
+
+			} else {
 				return unless $self->admin_checkCCK(%params);
 			}
 
@@ -287,12 +292,12 @@ sub register {
 			my $user = $self->app->dbi->query($sql)->hash;
 
 			unless($user){
-				$self->save_logs(name => 'Пожалуйста, введите верные логин и пароль #1', comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth');
+				$self->save_logs(name => 'Пожалуйста, введите верные логин и пароль #1', comment => "Логин: $params{login}, Пароль: $params{password}", event 	=> 'auth');
 				$self->admin_msg_errors(' Пожалуйста, введите верные логин и пароль. <br />Помните, оба поля чувствительны к регистру.') && return;
 			}
 
 			if ($user->{count} && ($user->{count} >= $params{count}) and ($user->{bhour} <= 3)) { # Проверка на количество неправильных попыток авторизации
-				$self->save_logs(name => 'Попытка подбора пароля. Доступ для данного аккаунта временно ограничен', comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth' );
+				$self->save_logs(name => 'Попытка подбора пароля. Доступ для данного аккаунта временно ограничен', comment => "Логин: $params{login}, Пароль: $params{password}", event 	=> 'auth' );
 				$self->admin_msg_errors('Попытка подбора пароля. Доступ для данного аккаунта временно ограничен');
 
 				# TODO: Send wrong auth mail
@@ -319,7 +324,7 @@ sub register {
 
 				my $count = $user->{count}+1;
 				$self->admin_msg_errors(" Пожалуйста, введите верные логин и пароль. <br />Помните, оба поля чувствительны к регистру. <br />Попытка ($count из $params{count})");
-				$self->save_logs(name => "Пожалуйста, введите верные логин и пароль #2. Попытка ($count из $params{count})", comment => "Логин: $params{login}, Пароль: $params{password}", program => 'auth');
+				$self->save_logs(name => "Пожалуйста, введите верные логин и пароль #2. Попытка ($count из $params{count})", comment => "Логин: $params{login}, Пароль: $params{password}", event 	=> 'auth');
 
 			} else {
 				$self->app->sysuser->userinfo($user);
@@ -368,17 +373,21 @@ sub register {
 				$params{eventtype} = 3;
 			} elsif($params{event} eq 'restore'){
 				$params{eventtype} = 4;
+			} elsif($params{event} eq 'auth'){
+				$params{eventtype} = 5;
 			}
 
-			if($self->app->sysuser){
-				$params{id_sysuser} ||= $self->app->sysuser->userinfo->{ID};
+			my $sysuser = $self->app->sysuser->auth ? $self->app->sysuser->userinfo : {};
+
+			if(!$params{id_sysuser} and $sysuser->{ID}){
+				$params{id_sysuser} = $sysuser->{ID};
 			}
-			if($self->app->sysuser){
-				$params{id_sysusergroup} ||= $self->app->sysuser->userinfo->{id_group_user};
+			if(!$params{id_sysusergroup} and $sysuser->{id_group_user}){
+				$params{id_sysusergroup} = $sysuser->{id_group_user};
 			}
 
-			if($self->app->program){
-				$params{id_program} ||= $self->app->program->{ID};
+			if(!$params{id_program} and $self->app->program){
+				$params{id_program} = $self->app->program->{ID};
 			}
 
 			$self->app->dbi->insert_hash('sys_datalogs', {

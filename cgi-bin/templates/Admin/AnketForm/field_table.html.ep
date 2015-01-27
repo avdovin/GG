@@ -1,12 +1,12 @@
-%   my $access_flag = $self->stash->{access_flag};
-%   my $index = $self->stash->{index} || '';
+% my $access_flag = $self->stash->{access_flag};
+% my $index = $self->stash->{index} || '';
 
 <div style="display:none" id="datasource_list<%= $controller_name %>">
 %   foreach my $k (@{$self->stash->{'listfield_header_dp_'.$key}}){
 %		my $lk = $self->lkey(name => $k);
 %       if($lk->{settings}->{type} =~ /list/){
 			<select id="datasource_<%= $k %>" style="display:none" <% if($lk->{settings}->{mult}){ %>multiple="<%= $lk->{settings}->{mult} %>"<% } %>>
-			<%== LIST (name => $k, type => 'select', option => 1) %>
+				%== LIST (name => $k, type => 'select', option => 1)
 			</select>
 %       } elsif($lk->{type} eq 'chb'){
 			<select id="datasource_<%= $k %>" style="display:none">
@@ -71,10 +71,10 @@
 <% if($page > 5 && $first_page+5 >= $total_page){ $end_page = $total_page;} %>
 
 
-<% my $url_for_table_reload = $self->url_for('admin_routes', controller => 'main', action => 'body'); %>
+% my $url_for_table_reload = $self->url_for('admin_routes', controller => 'main', action => 'body');
 <table style="width:100%;">
   <tr>
-	<td style="width:120px;">Страница: &nbsp;
+	<td style="width:140px;">Страница: &nbsp;
 		<select name="page" onChange="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable='+jQuery(this).val() )">
 		<% foreach (1..$total_page){ %><option value="<%= $_ %>" <% if($_ == $page){ %>selected="selected"<% } %> ><%= $_ %></option><% } =%>
 		</select>
@@ -103,7 +103,7 @@
 		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page+1 %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_next.gif" border="0"></a>
 		<% } %>
 	</td>
-	<td style="width:40%;text-align:right;">
+	<td style="width:30%;text-align:right;">
 
 	<% foreach my $i (qw(25 50 75 100 200)){ %>
 		<% if($i == $pcol_doptable){ %><b><% } %>
@@ -119,22 +119,21 @@
 </table>
 
 <div>
-% my $col = 1;
-<% $self->stash->{colsort} = 0; %>
+	% my $col = 1;
+	% $self->stash->{colsort} = 0;
 	<div id="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>param" style="display:none">
 	tableWidgetObj.setColumnSort(Array(
 		% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){
 			% next unless my $lk = $self->lkey(name => $_);
 			% $lk->{settings}->{table_sortfield} ||= '';
 			% $self->stash->{'total_col_list_dp_'.$key} ||= 0;
-
-			<% if($lk->{settings}->{type} eq 'd' or $_ eq 'ID'){ =%>'N'<% } else { =%>'S'<% } =%>
-			<% if($col - 1 != $self->stash->{'total_col_list_dp_'.$key}){ %>,<% } =%>
-			<% if($_ eq $lk->{settings}->{table_sortfield}){ $self->stash->{colsort} = $col - 1; } =%>
+			%= ($lk->{settings}->{type} eq 'd' or $_ eq 'ID') ? "'N'" : "'S'"
+			%= ($col-1 != $self->stash->{'total_col_list_dp_'.$key}) ? ',' : ''
+			% $self->stash->{colsort} = $col - 1 if($_ eq $lk->{settings}->{table_sortfield});
 			% $col++;
 		% }
-		%= $col > 1 ? ',' : '';
-		%= join(',', ('false')x@{$self->stash->{'buttons_key_dp_'.$key}});
+		%= ($col > 1 && scalar(@{$self->stash->{'buttons_key_dp_'.$key}}) ) ? ',' : '';
+		%= join(',', ('false') x scalar(@{$self->stash->{'buttons_key_dp_'.$key}}) );
 	));</div>
 
 	% $lkey->{settings}->{table_sortfield_asc} = '';

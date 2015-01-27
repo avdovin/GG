@@ -13,7 +13,7 @@
                     % if($item->{click_type} && ($item->{click_type} eq 'list_filtered' or $item->{click_type} eq 'list') ){
                         set_list_filter(
                                     '<%= $self->stash->{controller_url} %>',
-                                    '<%= $self->stash->{'replaceme'} %>',{
+                                    'replaceme',{
                                     % foreach (keys %{ $item->{params} }){
                                         '<%= $_ %>' : '<%= $item->{params}->{$_} %>',
                                     % }
@@ -52,7 +52,7 @@
                     % if($item->{click_type} && $item->{click_type} eq 'list'){
                         set_list_filter(
                                     '<%= $self->stash->{controller_url} %>',
-                                    '<%= $self->stash->{'replaceme'} %>',{
+                                    'replaceme',{
                                     % foreach (keys %{ $item->{params} }){
                                         '<%= $_ %>' : '<%= $item->{params}->{$_} %>',
                                     % }
