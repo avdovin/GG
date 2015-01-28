@@ -64,9 +64,12 @@ sub register {
 				elsif($type eq 'tlist') 		{ $valid_params->{$k} = $self->check_tlist( %$settings, value => $v)}
 				elsif($type eq 'date') 			{ $valid_params->{$k} = $self->check_date( %$settings, value => $v)}
 				elsif($type eq 'chb') 			{ $valid_params->{$k} = $self->check_checkbox( %$settings, value => $v)}
-				elsif($type eq 'datetime')		{ $valid_params->{$k} = $self->check_datetime( %$settings, value => $v)}
+				elsif($type eq 'password') 	{ $valid_params->{$k} = $self->check_password( %$settings, value => $v)}
+				elsif($type eq 'datetime')	{ $valid_params->{$k} = $self->check_datetime( %$settings, value => $v)}
 				elsif($type eq 'time')			{ $valid_params->{$k} = $self->check_time( %$settings, value => $v)}
-				else 							{ $valid_params->{$k} = $self->check_string( %$settings, value => $v)}
+				else 												{
+					$valid_params->{$k} = $self->check_string( %$settings, value => $v)
+				}
 
 				$self->stash->{$k} = $valid_params->{$k} unless(grep(/^$k$/, @SYSTEM_VALUES) ); # переменная text системная для mojo (генерация шаблонов)
 			}
@@ -146,6 +149,17 @@ sub _check_checkbox{
 	if (($value =~ m/^FALSE/i) or ($value =~ m/ЛОЖЬ/i))  {$value = 0;}
 
 	return $self -> check_decimal(minimum => 0, maximum => 1, value => $value);
+}
+
+sub _check_password{
+	my $self = shift;
+	my %settings = @_ % 2 ? (value => shift, @_) : @_;
+	my $value = delete $settings{value};
+
+	if ($value) {
+		return $self->encrypt_password( $value );
+	}
+	return undef;
 }
 
 sub _check_datetime{

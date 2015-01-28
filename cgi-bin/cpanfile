@@ -1,4 +1,6 @@
 # file for Carton (aka bundler)
+# http://search.cpan.org/~miyagawa/Carton-v1.0.12/lib/Carton.pm
+
 required 'JavaScript::Minifier::XS';
 require 'Socket';
 require 'CSS::Minifier::XS';

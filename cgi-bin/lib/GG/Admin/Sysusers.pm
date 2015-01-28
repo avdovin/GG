@@ -140,9 +140,9 @@ sub save{
 	$self->stash->{index} = 0 if $params{restore};
 
 
-	if($self->send_params->{'password_digest'}){
-		$self->send_params->{'password_digest'} = $self->encrypt_password( $self->send_params->{'password_digest'} );
-	}
+	# if($self->send_params->{'password_digest'}){
+	# 	$self->send_params->{'password_digest'} = $self->encrypt_password( $self->send_params->{'password_digest'} );
+	# }
 
 	if(my $ok = $self->save_info( table => $self->stash->{list_table})){
 		# Добавляем текущего пользователя в список
@@ -202,18 +202,12 @@ sub edit{
 		$self->lkey(name => 'password_digest')->{name} = 'Новый пароль';
 		$self->lkey(name => 'password_digest')->{settings}->{'required'} = 0;
 
-		$self->getArraySQL(
-			from 	=> $self->stash->{list_table},
-			where	=> "`ID`='".$self->stash->{index}."'",
-			stash	=> 'anketa'
-		);
-		delete $self->stash->{anketa}->{password_digest};
 	}
 	else {
 		$self->lkey(name => 'password_digest')->{settings}->{'required'} = 1;
 	}
 
-	$self->define_anket_form( access => 'w', noget => 1);
+	$self->define_anket_form( access => 'w');
 }
 
 sub list_container{
