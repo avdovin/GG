@@ -1,0 +1,7 @@
+# file for Carton (aka bundler)
+required 'JavaScript::Minifier::XS';
+require 'Socket';
+require 'CSS::Minifier::XS';
+require 'Crypt::Eksblowfish::Bcrypt';
+requires 'Plack';
+requires 'Starman';
