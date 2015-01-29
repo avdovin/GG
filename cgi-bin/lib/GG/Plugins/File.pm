@@ -78,8 +78,8 @@ sub register {
 				lfield		=> 'pict',
 				table		=> $self->stash->{list_table},
 				fields		=> {
-					folder		=> 'folder',
-					type_file	=> 'type_file',
+					folder		=> 'pict_folder',
+					type_file	=> 'pict_type_file',
 				},
 				retina		=> 0,
 				watermark 	=> '',
@@ -98,6 +98,8 @@ sub register {
 			my $fields_hashref = delete $params{fields};
 
 			$fields_hashref->{'pict'} = $params{lfield};
+			$fields_hashref->{'folder'} = $params{lfield}.'_folder' if $fields_hashref->{'folder'};
+			$fields_hashref->{'type_file'} = $params{lfield}.'_type_file' if $fields_hashref->{'folder'};
 
 			my ($pict_saved, $type_file, $pict_path);
 
@@ -118,7 +120,7 @@ sub register {
 			}
 			my $values = {};
 			foreach my $k (keys %$fields_hashref){
-				$values->{$k} = $params{$k} if $params{$k}
+				$values->{ $fields_hashref->{$k} } = $params{$k} if $params{$k}
 			}
 
 			# Если обновляем запись то предварительно бэкам текущий индекс
@@ -192,7 +194,6 @@ sub register {
 
 			my $dir = '';
 
-			warn "make_path $path";
 			for ( split /\//, $path ) {
 				next unless $_;
 
@@ -417,7 +418,7 @@ sub register {
 					$sch++;
 					my $test_name = $filename;
 					$test_name .= $sch;
-					unless (-f $directories.$test_name.'.'.$ext){
+					unless (-e $directories.$test_name.'.'.$ext){
 						$filename = $test_name;
 						last;
 					}
@@ -477,7 +478,7 @@ sub register {
 			my $dir = $self->file_tmpdir;
 			my $path;
 
-			if(-f $dir.$filename){
+			if(-e $dir.$filename){
 				$path = $dir.$filename;
 			} else {
 				$path = $self->static_path.'/admin/img/file_broken.png';
@@ -504,8 +505,8 @@ sub register {
 
 			my $dir = $self->file_tmpdir;
 
-			unlink($dir.$filename);
-			if(-f $dir.$filename){
+			#unlink($dir.$filename);
+			if(-e $dir.$filename){
 				# Если такой файл в папке tmp залит другим пользователем
 				$filename = $self->file_check_free_name($dir.$filename);
 			}
@@ -556,45 +557,51 @@ sub register {
 			return;
 	});
 
-	$app->helper(
-		transliteration => sub {
-			my $self = shift;
-			my $name = shift || return '';
+	$app->helper(make_alias => sub{
+		my $self = shift;
+		return '' unless my $alias = shift;
+		$alias = $self->transliteration($alias);
+		$alias =~ s{\.}{}gi;
+		return $alias
+	});
 
-			my $tr = new Lingua::Translit("GOST 7.79 RUS");
+	$app->helper(transliteration => sub {
+		my $self = shift;
+		return '' unless my $name = shift;
 
-			# if ($name =~ m/[\\\/]/) {
-			# 	$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
-			# 	$name = $2;
-			# }
-			$name =~ s{\s}{_}gi;
+		my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
-			if(my $name_tr = $tr->translit($name)){
-				$name = $name_tr;
+		# if ($name =~ m/[\\\/]/) {
+		# 	$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
+		# 	$name = $2;
+		# }
+		$name =~ s{\s}{_}gi;
 
-			} else {
-				my $dec = new decoder;
-				my $name_tr;
+		if(my $name_tr = $tr->translit($name)){
+			$name = $name_tr;
 
-				for my $i (0..length($name)-1) {
-					if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
-						if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
-							$name_tr .= $dec -> utfruslat("\xc0");
-						} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
-							$name_tr .= $dec -> utfruslat("\xc1");
-						} else {
-							$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
-						}
+		} else {
+			my $dec = new decoder;
+			my $name_tr;
+
+			for my $i (0..length($name)-1) {
+				if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
+					if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
+						$name_tr .= $dec -> utfruslat("\xc0");
+					} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
+						$name_tr .= $dec -> utfruslat("\xc1");
+					} else {
+						$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
 					}
 				}
 			}
-			$name =~ s/[`\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
-			$name =~ tr/\x20-\x7f//cd;
-			$name = lc($name);
-
-			return $name;
 		}
-	);
+		$name =~ s/[`\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
+		$name =~ tr/\x20-\x7f//cd;
+		$name = lc($name);
+
+		return $name;
+	});
 
 	$app->helper(
 		file_extract_zip => sub {

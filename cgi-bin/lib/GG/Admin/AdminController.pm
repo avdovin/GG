@@ -702,7 +702,7 @@ sub save_info{
 	}
 
 	if(exists $field_values->{alias} && !$field_values->{alias} && $field_values->{name}){
-		$field_values->{alias} = $self->transliteration( $field_values->{name} );
+		$field_values->{alias} = $self->make_alias( $field_values->{name} );
 	}
 
 	foreach my $f (qw(alias)){
