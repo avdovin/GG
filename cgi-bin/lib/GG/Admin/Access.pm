@@ -47,11 +47,28 @@ sub body{
 	given ($do){
 
 		when('list_container') 			{ $self->list_container; }
+		when('update_access') 			{ $self->update_access; }
 
 		default							{
 			$self->default_actions($do);
 		}
 	}
+}
+
+sub update_access{
+	my $self = shift;
+
+	foreach my $a ($self->dbi->query("SELECT * FROM `sys_access`")->hashes){
+		my $s;
+		foreach my $k (sort keys %$a){
+			$s .= $a->{$k} if(defined $a->{$k} and $k ne 'cck' and $k ne "objectname" and $k ne 'rdate' and $k ne 'edate');
+		}
+		my $cck = $self->sysuser->def_cck_access($s);
+		$self->dbi->update_hash('sys_access', {cck => $cck}, "`ID`='".$a->{ID}."'");
+	}
+	$self->dbi->dbh->do("UPDATE `sys_users` SET `cck`='' WHERE `sys`='0'");
+	$self->admin_msg_success("Права успешно обновлены");
+	return $self->list_container;
 }
 
 sub tree{

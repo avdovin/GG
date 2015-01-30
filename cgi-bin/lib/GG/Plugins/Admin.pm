@@ -318,7 +318,7 @@ sub register {
 
 			$params{'password_digest'} = $self->encrypt_password($params{password});
 
-			if ($user->{'password_digest'} && $params{'password'} && !$self->check_password($params{'password'}, $user->{'password_digest'})  ) {  # Неверный пароль
+			if ($params{'password'} && !$self->check_password($params{'password'}, $user->{'password_digest'})  ) {  # Неверный пароль
 				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`bip`='$ip' WHERE `login` = '$$user{login}'";
 				$self->app->dbi->query($sql);
 

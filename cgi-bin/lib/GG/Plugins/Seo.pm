@@ -95,7 +95,7 @@ sub register {
 
 	$app->helper( seo_custom_tags => sub {
 		my $self   = shift;
-		my $reqUrl = '/'.$self->req->url->path;
+		my $reqUrl = $self->req->url->path;
 
 		($reqUrl, undef) = split(/\?/, $reqUrl);
 
