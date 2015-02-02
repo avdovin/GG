@@ -18,7 +18,7 @@ RewriteEngine On
 RewriteRule \.git - [F,L]
 
 #RewriteCond %{REQUEST_URI} !/maintenance.html$
-#RewriteCond %{REMOTE_ADDR} !^178\.74\.102\.96
+#RewriteCond %{REMOTE_ADDR} !^146\.66\.163\.107
 #RewriteRule $ /maintenance.html [R=302,L]
 
 RewriteCond %{REQUEST_FILENAME}.html -f
