@@ -6,7 +6,11 @@ use Mojo::Util 'class_to_path';
 use File::Spec;
 use File::Path;
 use Getopt::Long qw(GetOptions :config no_ignore_case no_auto_abbrev);   # Match Mojo's commands
-
+# removing coontroller, plugin, tmpl_folder, js_controller folder by default (from conf key)
+# add ansi color
+# check ENV var mode and skip if site in production
+# all vars in config make array references
+# tests O_O
 our $VERSION = '0.01';
 our $PROD = 0; # mode of script - set 1 when production
 has description => "GG CMS installer\n";
