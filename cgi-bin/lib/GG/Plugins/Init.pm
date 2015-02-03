@@ -20,10 +20,12 @@ sub register {
 
 	# Add new MIME type
 	$app->types->type(xls => 'application/vnd.ms-excel');
-	# Add secret
-	$app->secrets(['It is a good day to die ...']);
 
 	my $conf = $app->plugin('Config', {	file      => 'app.conf', 	default   => {} });
+
+	# Add secret
+	$app->secrets([($conf->{secret} || $app->home . $app->mode . (localtime())[3])]);
+
 	$app->static->paths([$conf->{static_path}]);
 
   $app->_setup_inc($conf->{perl5lib});
