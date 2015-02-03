@@ -23,7 +23,7 @@ sub register {
 	# Add secret
 	$app->secrets(['It is a good day to die ...']);
 
-	my $conf = $app->plugin('Config', {	file      => 'config', 	default   => {} });
+	my $conf = $app->plugin('Config', {	file      => 'app.conf', 	default   => {} });
 	$app->static->paths([$conf->{static_path}]);
 
   $app->_setup_inc($conf->{perl5lib});
