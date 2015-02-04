@@ -706,9 +706,9 @@ sub save_info{
 	}
 
 	foreach my $f (qw(alias)){
-		if($field_values->{$f}){
-			$field_values->{$f} = $self->check_unique_field( field => $f, value => $field_values->{$f}, table => $table, index => $self->stash->{index});
-
+		if(my $v = $field_values->{$f}){
+			$v = $self->transliteration($v);
+			$field_values->{$f} = $self->check_unique_field( field => $f, value => $v, table => $table, index => $self->stash->{index});
 		}
 	}
 
