@@ -17,9 +17,8 @@
 				<td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:22px;">
 					<h2>Заказ обратного звонка с сайта <%= site_name %></h2><br />
 
-					Имя: <b><%= $self->stash->{name} %></b><br />
-					Телефон: <b><%= $self->stash->{phone} %></b><br />
-					Город: <b><%= $self->stash->{city} %></b><br />
+					Имя: <b><%= $self->stash->{callback_name} %></b><br />
+					Телефон: <b><%= $self->stash->{callback_phone} %></b><br />
 			</td>
 		</tr>
 	</table>
