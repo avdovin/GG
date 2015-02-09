@@ -1,6 +1,7 @@
 package GG::Plugins::Init;
 
 use utf8;
+use HTML::Packer;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
@@ -87,7 +88,7 @@ sub register {
 		my $self = shift;
 
 		# Ignore static files
-		return if $self->res->code;
+		#return if $self->res->code;
 
 		$self->stash->{lang} ||= $conf->{lang_default};
 
@@ -206,7 +207,6 @@ sub register {
 		my ($self, $output, $format) = @_;
 
 		if($conf->{minify_html} && $self->app->mode eq 'production'){
-			eval("use HTML::Packer");
 			my $packer = HTML::Packer->init();
 			$$output = $packer->minify( $output, {
 				remove_comments 	=> 1

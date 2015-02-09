@@ -168,6 +168,7 @@ sub checksum {
   my @checksum;
 
   for my $p ($self->_preprocessors($extension)) {
+    $p->cwd($cwd->[0]);
     push @checksum, $p->checksum($text, $filename);
   }
 
@@ -188,8 +189,7 @@ sub detect {
 
   $self->process($extension => $assetpack, \$text, $filename);
 
-Will run the preprocessor callbacks added by L</add>. The callbacks will be
-called with the C<$assetpack> object as the first argument.
+Will run the preprocessors added by L</add>.
 
 =cut
 
@@ -199,11 +199,11 @@ sub process {
   my @err;
 
   for my $p ($self->_preprocessors($extension)) {
+    $p->cwd($cwd->[0]);
     $p->($p, $assetpack, $text, $filename);
-    push @err, $p->errmsg if $p->errmsg;
   }
 
-  return join ' ', @err;
+  return $self;
 }
 
 =head2 map_type
