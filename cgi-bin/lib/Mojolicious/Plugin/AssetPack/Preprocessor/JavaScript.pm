@@ -9,7 +9,7 @@ Mojolicious::Plugin::AssetPack::Preprocessor::JavaScript - Preprocessor for Java
 L<Mojolicious::Plugin::AssetPack::Preprocessor::JavaScript> is a preprocessor for
 C<.js> files.
 
-Javascript is minified using L<JavaScript::Minifier::XS>. This module is
+JavaScript is minified using L<JavaScript::Minifier::XS>. This module is
 optional and must be installed manually.
 
 NOTE! L<JavaScript::Minifier::XS> might be replaced with something better.
@@ -18,8 +18,36 @@ NOTE! L<JavaScript::Minifier::XS> might be replaced with something better.
 
 use Mojo::Base 'Mojolicious::Plugin::AssetPack::Preprocessor';
 use JavaScript::Minifier::XS;
+use constant MINIFIED_LINE_LENGTH => $ENV{JAVASCRIPT_MINIFIED_LINE_LENGTH} || 300;    # might change
 
 =head1 METHODS
+
+=head2 minify
+
+  $self = $self->minify($text);
+
+Used to minify C<$text>, which is a scalar reference to a chunk of JavaScript
+code.
+
+=cut
+
+sub minify {
+  my ($self, $text) = @_;
+  my $minified = 0;
+
+  while ($$text =~ /^(.+)$/mg) {
+    my $line = $1;
+    next if $line =~ m!^(\s*/\*|\s*\*|\s*//)!;    # comments /*, */ and //
+    $minified = length $line > MINIFIED_LINE_LENGTH ? 1 : 0;
+    last unless $minified;
+  }
+
+  if (!$minified and length $$text) {
+    $$text = JavaScript::Minifier::XS::minify($$text) . "\n";
+  }
+
+  $self;
+}
 
 =head2 process
 
@@ -32,11 +60,7 @@ See L<Mojolicious::Plugin::AssetPack::Preprocessor/process>.
 sub process {
   my ($self, $assetpack, $text, $path) = @_;
 
-  if ($assetpack->minify and $path !~ /\bmin\b/ and length $$text) {
-    $$text = JavaScript::Minifier::XS::minify($$text);
-    $$text = "alert('Failed to minify $path')\n" unless defined $$text;
-  }
-
+  return $self->minify($text) if $assetpack->minify;
   return $self;
 }
 

@@ -1,6 +1,7 @@
 package GG::Plugins::Init;
 
 use utf8;
+use HTML::Packer;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
@@ -20,10 +21,12 @@ sub register {
 
 	# Add new MIME type
 	$app->types->type(xls => 'application/vnd.ms-excel');
-	# Add secret
-	$app->secrets(['It is a good day to die ...']);
 
 	my $conf = $app->plugin('Config', {	file      => 'app.conf', 	default   => {} });
+
+	# Add secret
+	$app->secrets([($conf->{secret} || $app->home . $app->mode . (localtime())[3])]);
+
 	$app->static->paths([$conf->{static_path}]);
 
   $app->_setup_inc($conf->{perl5lib});
@@ -85,7 +88,7 @@ sub register {
 		my $self = shift;
 
 		# Ignore static files
-		return if $self->res->code;
+		#return if $self->res->code;
 
 		$self->stash->{lang} ||= $conf->{lang_default};
 
@@ -204,7 +207,6 @@ sub register {
 		my ($self, $output, $format) = @_;
 
 		if($conf->{minify_html} && $self->app->mode eq 'production'){
-			eval("use HTML::Packer");
 			my $packer = HTML::Packer->init();
 			$$output = $packer->minify( $output, {
 				remove_comments 	=> 1

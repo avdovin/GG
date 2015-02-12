@@ -6,7 +6,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '1';
 
-use Lingua::Translit;
+#use Lingua::Translit;
 use File::Basename ();
 use File::Copy ();
 use File::Spec ();
@@ -15,6 +15,8 @@ use File::stat;
 
 use Encode qw( encode decode_utf8 );
 use Mojo::Util qw(decode quote);
+
+use GG::Unidecode;
 
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
@@ -569,38 +571,36 @@ sub register {
 		my $self = shift;
 		return '' unless my $name = shift;
 
-		my $tr = new Lingua::Translit("GOST 7.79 RUS");
+		#my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
-		# if ($name =~ m/[\\\/]/) {
-		# 	$name =~ m/[\w\W\\]+(\\)([\w\W\.]+)/;
-		# 	$name = $2;
-		# }
+		decode 'UTF-8', $name;
 		$name =~ s{\s}{_}gi;
-
-		if(my $name_tr = $tr->translit($name)){
-			$name = $name_tr;
-
-		} else {
-			my $dec = new decoder;
-			my $name_tr;
-
-			for my $i (0..length($name)-1) {
-				if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
-					if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
-						$name_tr .= $dec -> utfruslat("\xc0");
-					} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
-						$name_tr .= $dec -> utfruslat("\xc1");
-					} else {
-						$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
-					}
-				}
-			}
-		}
+		$name = GG::Unidecode::unidecode($name);
 		$name =~ s/[`\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
 		$name =~ tr/\x20-\x7f//cd;
 		$name = lc($name);
 
 		return $name;
+
+		# if(my $name_tr = $tr->translit($name)){
+		# 	$name = $name_tr;
+
+		# } else {
+		# 	my $dec = new decoder;
+		# 	my $name_tr;
+
+		# 	for my $i (0..length($name)-1) {
+		# 		if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
+		# 			if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
+		# 				$name_tr .= $dec -> utfruslat("\xc0");
+		# 			} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
+		# 				$name_tr .= $dec -> utfruslat("\xc1");
+		# 			} else {
+		# 				$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
+		# 			}
+		# 		}
+		# 	}
+		# }
 	});
 
 	$app->helper(
@@ -805,149 +805,148 @@ sub _create{
 }
 1;
 
-package decoder;
+# package decoder;
 
-use strict;
-use warnings;
+# use strict;
+# use warnings;
 
-sub new {
-	my $self = {
-		value => undef,
-	};
-	bless($self);
-	return $self;
-}
+# sub new {
+# 	my $self = {
+# 		value => undef,
+# 	};
+# 	bless($self);
+# 	return $self;
+# }
 
-#== lc_rus ====================================================================#
+# #== lc_rus ====================================================================#
 
-sub lc_rus {
-	my $self = shift();
-	my $value = shift() if (@_);
+# sub lc_rus {
+# 	my $self = shift();
+# 	my $value = shift() if (@_);
 
-	$value =~ tr/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/;
-	$value =~ tr/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/;
-	return $value;
-} # end of &lc_rus
+# 	$value =~ tr/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/;
+# 	$value =~ tr/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/;
+# 	return $value;
+# } # end of &lc_rus
 
-#== uc_rus ====================================================================#
+# #== uc_rus ====================================================================#
 
-sub uc_rus {
-	my $self = shift();
-	my $value = shift() if (@_);
+# sub uc_rus {
+# 	my $self = shift();
+# 	my $value = shift() if (@_);
 
-	$value =~ tr/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/;
-	$value =~ tr/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/;
-	return $value;
-} # end of &uc_rus
+# 	$value =~ tr/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ/;
+# 	$value =~ tr/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/;
+# 	return $value;
+# } # end of &uc_rus
 
-#== utfruslat =================================================================#
+# #== utfruslat =================================================================#
 
-sub utfruslat {
-	my $self = shift();
-	my $value = shift() if (@_);
+# sub utfruslat {
+# 	my $self = shift();
+# 	my $value = shift() if (@_);
 
-	my $tabl1 =
-		'\x90\x91\x92\x93\x94\x95\x81\x96\x97'.
-		'\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f'.
-		'\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7'.
-		'\xa8\xa9\xaa\xab\xac\xad\xae\xaf'.
-		'\xb0\xb1\xb2\xb3\xb4\xb5\xc0\xb6\xb7'.
-		'\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf'.
-		'\x80\xc1\x82\x83\x84\x85\x86\x87'.
-		'\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x20';
-	my $tabl2 =
-		'\x41\x42\x56\x47\x44\x45\x45\x47\x5a'.
-		'\x49\x49\x4b\x4c\x4d\x4e\x4f\x50'.
-		'\x52\x53\x54\x55\x46\x48\x43\x43'.
-		'\x53\x53\x57\x49\x57\x45\x55\x41'.
-		'\x61\x62\x76\x67\x64\x65\x65\x67\x7a'.
-		'\x69\x69\x6b\x6c\x6d\x6e\x6f\x70'.
-		'\x72\x73\x74\x75\x66\x68\x63\x63'.
-		'\x73\x73\x77\x69\x77\x65\x75\x61\x5f';
+# 	my $tabl1 =
+# 		'\x90\x91\x92\x93\x94\x95\x81\x96\x97'.
+# 		'\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f'.
+# 		'\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7'.
+# 		'\xa8\xa9\xaa\xab\xac\xad\xae\xaf'.
+# 		'\xb0\xb1\xb2\xb3\xb4\xb5\xc0\xb6\xb7'.
+# 		'\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf'.
+# 		'\x80\xc1\x82\x83\x84\x85\x86\x87'.
+# 		'\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x20';
+# 	my $tabl2 =
+# 		'\x41\x42\x56\x47\x44\x45\x45\x47\x5a'.
+# 		'\x49\x49\x4b\x4c\x4d\x4e\x4f\x50'.
+# 		'\x52\x53\x54\x55\x46\x48\x43\x43'.
+# 		'\x53\x53\x57\x49\x57\x45\x55\x41'.
+# 		'\x61\x62\x76\x67\x64\x65\x65\x67\x7a'.
+# 		'\x69\x69\x6b\x6c\x6d\x6e\x6f\x70'.
+# 		'\x72\x73\x74\x75\x66\x68\x63\x63'.
+# 		'\x73\x73\x77\x69\x77\x65\x75\x61\x5f';
 
-	eval "\$value =~ tr/$tabl1/$tabl2/;";
-	return $value;
-} # end of &utfruslat
+# 	eval "\$value =~ tr/$tabl1/$tabl2/;";
+# 	return $value;
+# } # end of &utfruslat
 
-#== utfdecode =================================================================#
+# #== utfdecode =================================================================#
 
-sub utfdecode {
-	my $self = shift();
-	my $value = shift() if (@_);
+# sub utfdecode {
+# 	my $self = shift();
+# 	my $value = shift() if (@_);
 
-	my $cd = 0;	my $cp = 0;
-	while ($value =~ m/%D[01]+/ig) {$cd++;}
-	while ($value =~ m/%/ig) {$cp++;}
+# 	my $cd = 0;	my $cp = 0;
+# 	while ($value =~ m/%D[01]+/ig) {$cd++;}
+# 	while ($value =~ m/%/ig) {$cp++;}
 
-	if (($cd) && ($cp/$cd >= 2) && ($cp/$cd < 3)) {
-		$value =~ s/%D1%8/%D0%C/ig;
-		$value =~ s/%D0%9/%D0%B/ig;
-		$value =~ s/%D0%A/%D0%C/ig;
-		$value =~ s/%D0//ig;
-		$self -> {flag_iso} = 1;
-	}
-	return $value;
-} # end of &utfdecode
+# 	if (($cd) && ($cp/$cd >= 2) && ($cp/$cd < 3)) {
+# 		$value =~ s/%D1%8/%D0%C/ig;
+# 		$value =~ s/%D0%9/%D0%B/ig;
+# 		$value =~ s/%D0%A/%D0%C/ig;
+# 		$value =~ s/%D0//ig;
+# 		$self -> {flag_iso} = 1;
+# 	}
+# 	return $value;
+# } # end of &utfdecode
 
-#== win2unicode ===============================================================#
+# #== win2unicode ===============================================================#
 
-sub win2unicode {
-	my $self = shift();
+# sub win2unicode {
+# 	my $self = shift();
 
-	my $value = shift() if (@_);
+# 	my $value = shift() if (@_);
 
-	if (!$value) {return "";}
-	my $result = "";
-	my $o_code = "";
-	my $i_code = "";
+# 	if (!$value) {return "";}
+# 	my $result = "";
+# 	my $o_code = "";
+# 	my $i_code = "";
 
-	for (my $I = 0; $I < length($value); $I++) {
-		$i_code = ord(substr($value, $I, 1));
-		if ($i_code == 184){
-			$o_code = 1105;
-		} elsif ($i_code == 168){
-			$o_code = 1025;
-		} elsif ($i_code > 191 && $i_code < 256){
-			if ($i_code == 194) {
-				my $i_code_l = ord(substr($value, $I+1, 1));
-				if ($i_code_l != 187 and $i_code_l != 171) {
-					$o_code = $i_code + 848;
-				} else {$o_code = "";}
-			} else {
-				$o_code = $i_code + 848;
-			}
-		} elsif (($i_code == 151) or ($i_code == 150)) {
-			$o_code = ord('-');
-		} else {
-			$o_code = $i_code;
-		}
-		$result = $result.chr($o_code) if ($o_code);
-	}
-	return $result;
-} # end of &win2unicode
+# 	for (my $I = 0; $I < length($value); $I++) {
+# 		$i_code = ord(substr($value, $I, 1));
+# 		if ($i_code == 184){
+# 			$o_code = 1105;
+# 		} elsif ($i_code == 168){
+# 			$o_code = 1025;
+# 		} elsif ($i_code > 191 && $i_code < 256){
+# 			if ($i_code == 194) {
+# 				my $i_code_l = ord(substr($value, $I+1, 1));
+# 				if ($i_code_l != 187 and $i_code_l != 171) {
+# 					$o_code = $i_code + 848;
+# 				} else {$o_code = "";}
+# 			} else {
+# 				$o_code = $i_code + 848;
+# 			}
+# 		} elsif (($i_code == 151) or ($i_code == 150)) {
+# 			$o_code = ord('-');
+# 		} else {
+# 			$o_code = $i_code;
+# 		}
+# 		$result = $result.chr($o_code) if ($o_code);
+# 	}
+# 	return $result;
+# } # end of &win2unicode
 
-#== urldecode =================================================================#
+# #== urldecode =================================================================#
 
-sub urldecode {
-	my $self = shift();
+# sub urldecode {
+# 	my $self = shift();
 
-	if (@_) {
-		my $value = shift();
-		   $value =~ s/\+/ /g;
-		   $value =~ s/%([0-9A-H]{2})/pack('C',hex($1))/ge;
-		return $value;
-	} else {return "";}
-} # end of &urldecode
+# 	if (@_) {
+# 		my $value = shift();
+# 		   $value =~ s/\+/ /g;
+# 		   $value =~ s/%([0-9A-H]{2})/pack('C',hex($1))/ge;
+# 		return $value;
+# 	} else {return "";}
+# } # end of &urldecode
 
-#== urlencode =================================================================#
+# #== urlencode =================================================================#
 
-sub urlencode {
-	my $self = shift();
+# sub urlencode {
+# 	my $self = shift();
 
-	my $value = shift() if (@_);
-	   $value =~ s/([=\+&%\/\\|\0-\x1F\x80-\xFF])/sprintf("%%%02X", unpack('C', $1))/eg;
-	   $value =~ s/ /\+/g;
-	return $value;
-} # end of &urlencode
-
-return 1;
+# 	my $value = shift() if (@_);
+# 	   $value =~ s/([=\+&%\/\\|\0-\x1F\x80-\xFF])/sprintf("%%%02X", unpack('C', $1))/eg;
+# 	   $value =~ s/ /\+/g;
+# 	return $value;
+# } # end of &urlencode
+#return 1;

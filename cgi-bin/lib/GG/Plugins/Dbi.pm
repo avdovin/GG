@@ -20,89 +20,86 @@ sub register {
 
 	my $max_requests_per_connection = $args->{requests_per_connection} || 100;
 
-	$app->hook(
-		before_dispatch => sub {
-			shift->dbi_connect(@_);
-		}
-	);
+	$app->hook(before_dispatch => sub {
+		shift->dbi_connect(@_);
+	});
 
-	$app->helper( dbi => sub {
+	$app->helper(dbi => sub {
 		return shift->app->dbi;
 	});
 
-	$app->helper( dbh => sub {
+	$app->helper(dbh => sub {
 		return shift->app->dbi->dbh;
 	});
 
-	$app->helper(
-		dbi_connect => sub {
-			my ($self) = @_;
-			my $dbi;
-			if ($args->{dbi}) {
+	$app->helper(dbi_connect => sub {
+		my $self = shift;
+		my $dbi;
+		if ($args->{dbi}) {
 
-				#external dbi
-				$dbi = $args->{dbi};
-			}
-			elsif ( $self->app->dbh
-				and $self->app->_dbh_requests_counter
-				< $max_requests_per_connection
-				and _check_connected($self->app->dbh))
-			{
-				$dbi = $self->app->dbh;
-				$self->app->log->debug(
-					"use cached DB connection, requests served: "
-					  . $self->app->_dbh_requests_counter);
-				$self->app->_dbh_requests_counter(
-					$self->app->_dbh_requests_counter + 1);
-			}
+			#external dbi
+			$dbi = $args->{dbi};
+		}
+		elsif ( $self->app->dbh
+			and $self->app->_dbh_requests_counter
+			< $max_requests_per_connection
+			and _check_connected($self->app->dbh))
+		{
+			$dbi = $self->app->dbh;
+			$self->app->log->debug(
+				"use cached DB connection, requests served: "
+				  . $self->app->_dbh_requests_counter);
+			$self->app->_dbh_requests_counter(
+				$self->app->_dbh_requests_counter + 1);
+		}
 
-			else {
+		else {
 
-        #make new connection
-        $self->app->log->debug("start new DB connection to DB $args->{db_name}");
+      #make new connection
+      $self->app->log->debug("start new DB connection to DB $args->{db_name}");
 
-				$dbi = GG::Dbi->connect(
-					'DBI:mysql:'
-					  . $args->{db_name} . ':'
-					  . $args->{db_host},    # DSN
-					$args->{db_user},
-					$args->{db_password},    # Username and password
-					{
+			$dbi = GG::Dbi->connect(
+				'DBI:mysql:'
+				  . $args->{db_name} . ':'
+				  . $args->{db_host},    # DSN
+				$args->{db_user},
+				$args->{db_password},    # Username and password
+				{
 
-						# Additional options
-						PrintError        => 1,    # warn() on errors
-						RaiseError        => 0,    # don't die on error
-						AutoCommit        => 1,
-						mysql_enable_utf8 => 1,
-					}
-				);
-				unless ($dbi) {
-					my $err_msg =
-					  "DB connect error. 'DBI:mysql:$args->{db_name}:$args->{db_host}, $args->{db_user}, $args->{db_password}, error: $DBI::errstr";
-					$self->app->log->error($err_msg);
-
-					# Render exception template
-					$self->render(
-						status    => 500,
-						format    => 'html',
-						template  => 'exception',
-						exception => $err_msg
-					);
-					$self->stash(rendered => 1);
-					return;
+					# Additional options
+					PrintError        => 1,    # warn() on errors
+					RaiseError        => 0,    # don't die on error
+					AutoCommit        => 1,
+					mysql_enable_utf8 => 1,
 				}
-				$dbi->lc_columns = 0;    					# Lower Case column
+			);
+			unless ($dbi) {
+				my $err_msg =
+				  "DB connect error. 'DBI:mysql:$args->{db_name}:$args->{db_host}, $args->{db_user}, $args->{db_password}, error: $DBI::errstr";
+				$self->app->log->error($err_msg);
 
-				$dbi->dbh->do("SET NAMES utf8");
-				$self->app->dbi($dbi);
-				$self->app->dbh($dbi->dbh);
-				$self->app->_dbh_requests_counter(1);
-
-				$dbi->debug(1) if $self->app->mode eq 'development';
-
-				# clear config access params
-				#delete $self->stash->{config}->{$_} foreach (qw(db_host db_name db_password db_user));
+				# Render exception template
+				$self->render(
+					status    => 500,
+					format    => 'html',
+					template  => 'exception',
+					exception => $err_msg
+				);
+				$self->stash(rendered => 1);
+				return;
 			}
+			$dbi->lc_columns = 0;    					# Lower Case column
+
+			$dbi->dbh->do("SET NAMES utf8");
+			$self->app->dbi($dbi);
+			$self->app->dbh($dbi->dbh);
+			$self->app->_dbh_requests_counter(1);
+
+			$dbi->debug(1) if $self->app->mode eq 'development';
+
+			# clear config access params
+			#delete $self->stash->{config}->{$_} foreach (qw(db_host db_name db_password db_user));
+		}
 	});
 
 	unless ($args->{no_disconnect}) {
