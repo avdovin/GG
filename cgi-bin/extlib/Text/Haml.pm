@@ -77,7 +77,7 @@ sub new {
     my $attrs = {};
     $attrs->{vars_as_subs} = 0;
     $attrs->{tape}         = [];
-    $attrs->{encoding}     = 'utf-8';
+    $attrs->{encoding}     = 'UTF-8';
     $attrs->{escape_html}  = 1;
     $attrs->{helpers}      = {};
     $attrs->{format}       = 'xhtml';
@@ -734,7 +734,7 @@ EOF
                   }
                 }
                 elsif ($el->{text}) {
-                    $output .= qq/. $escape(/ . '"' 
+                    $output .= qq/. $escape(/ . '"'
                       . $self->_parse_text($el->{text}) . '");';
                     $output .= qq|\$_H .= "</$el->{name}>"|
                       unless $el->{autoclose};
@@ -798,7 +798,7 @@ EOF
                 $output .= qq/ . "[if $el->{if}]>"/ if $el->{if};
 
                 if ($el->{text}) {
-                    $output .= '." ' . quotemeta($el->{text}) . ' ".'; 
+                    $output .= '." ' . quotemeta($el->{text}) . ' ".';
                     $output .= qq/"-->\n"/;
                 }
                 else {
@@ -974,6 +974,7 @@ sub compile {
     my $code = $self->code;
     return unless $code;
 
+
     my $compiled = eval $code;
 
     if ($@) {
@@ -990,7 +991,6 @@ sub interpret {
     my $self = shift;
 
     my $compiled = $self->compiled;
-
     my $output = eval { $compiled->($self, @_) };
 
     if ($@) {
@@ -1144,10 +1144,10 @@ sub _fullpath {
 sub _cache_dir {
     my $self = shift;
 
-    my $cache_prefix = (ref $self->fullpath eq 'SCALAR') 
-      ? 'HASH' 
-      : URI::Escape::uri_escape( 
-          File::Basename::dirname($self->fullpath) 
+    my $cache_prefix = (ref $self->fullpath eq 'SCALAR')
+      ? 'HASH'
+      : URI::Escape::uri_escape(
+          File::Basename::dirname($self->fullpath)
         );
 
     my $cache_dir = File::Spec->catdir(
@@ -1198,7 +1198,10 @@ sub _interpret_cached {
 
     my $compiled = do $self->cache_path;
     $self->compiled($compiled);
-    return $self->interpret(@_);
+
+    my $output = $self->interpret(@_);
+    $output = decode($self->encoding, $output) if $self->encoding;
+    return $output;
 }
 
 sub _doctype {

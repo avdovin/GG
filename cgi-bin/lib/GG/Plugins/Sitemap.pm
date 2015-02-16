@@ -1,10 +1,7 @@
 package GG::Plugins::Sitemap;
 
 use utf8;
-
 use Mojo::Base 'Mojolicious::Plugin';
-
-
 
 sub register {
 	my ($self, $app, $conf) = @_;
@@ -21,6 +18,42 @@ sub register {
 							'priority'		=> '0.5',
 							'changefreq'	=> 'monthly',
 			},
+			'news_item'					=> {
+							'table'			=> 'texts_news_ru',
+							'placeholders'	=> { 'alias' => 'list_item_alias'},
+							'where'			=> " `viewtext`='1' ",
+							'priority'		=> '0.5',
+							'changefreq'	=> 'monthly',
+			},
+			'catalog_iteminfo'					=> {
+							'table'			=> 'data_catalog_items',
+							'placeholders'	=> { 'alias' => 'item_alias'},
+							'where'			=> " `active`='1' ",
+							'priority'		=> '0.5',
+							'changefreq'	=> 'monthly',
+			},
+			'images_gallery' 			=> {
+							'table'			=> 'images_gallery',
+							'placeholders'	=> { 'alias' => 'gallery_alias'},
+							'where'			=> " `viewimg`='1' AND `dir`=1 ",
+							'priority'		=> '0.5',
+							'changefreq'	=> 'monthly',
+			},
+			'catalog_list_by_category'			=> {
+							'table'			=> 'data_catalog_categorys',
+							'where'			=> " `active`='1' ",
+							'priority'		=> '0.5',
+							'changefreq'	=> 'monthly',
+							'cb' 				=> sub {
+									my ($self,$route,$category) = @_;
+
+									return $self->url_for($route, category_alias => $category->{alias}) unless $category->{id_parent_category};
+
+									my $parent_alias = $self->dbi->query("SELECT `alias` FROM `data_catalog_categorys` WHERE `ID`='$$category{id_parent_category}'")->list;
+
+									return $self->url_for('catalog_list_by_sub_category', category_alias => $category->{alias}, subcategory_alias => $parent_alias);
+							}
+			},
 		};
 
 		my $host = $self->host;
@@ -28,14 +61,11 @@ sub register {
 		foreach my $route (keys %$CONFIG){
 			my $routeConfig = $CONFIG->{ $route };
 
-			my $dopWhere = " `created_at` ";
-			$dopWhere .= ",`updated_at`" if $self->dbi->exists_keys(from => $$routeConfig{table}, lkey => 'updated_at');
-
 			my $placeholders = $routeConfig->{placeholders};
 			my $fields_str = join(",", keys %$placeholders);
 			$fields_str .= ','.$fields_str if $fields_str;
 
-			for my $row ( $self->app->dbi->query("SELECT $dopWhere $fields_str FROM `$$routeConfig{table}` WHERE ".$routeConfig->{where} )->hashes ){
+			for my $row ( $self->app->dbi->query("SELECT * FROM `$$routeConfig{table}` WHERE ".$routeConfig->{where} )->hashes ){
 				my $url_vals = {};
 				$row->{updated_at} = $row->{created_at} if (!$row->{updated_at} or $row->{updated_at} eq '0000-00-00 00:00:00');
 
@@ -44,14 +74,20 @@ sub register {
 				}
 
 				my $url = '';
-				if($row->{link}){
-					$url = $row->{link};
-				}
-				elsif($row->{url_for}){
-					$url = 'http://'.$host.$self->menu_item($row);
-				}
-				else {
-					$url = 'http://'.$host.$self->url_for($route, %$url_vals);
+
+				if ($routeConfig->{cb}){
+					$url = 'http://'.$host.$routeConfig->{cb}->($self,$route,$row);
+				}else{
+					if($row->{link}){
+						$url = $row->{link} =~ /^http/ ? $row->{link} : 'http://'.$host.$row->{link};
+					}
+					elsif($row->{url_for}){
+						$url = 'http://'.$host.$self->menu_item($row);
+					}
+					else {
+						$url = 'http://'.$host.$self->url_for($route, %$url_vals);
+					}
+
 				}
 
 				my $priority = $routeConfig->{priority} || '0.5';
@@ -62,15 +98,18 @@ sub register {
 					url 		=> $url,
 					priority 	=> $priority,
 					changefreq 	=> $changefreq,
-					template 	=> 'Plugins/Sitemap/node',
+					template 	=> 'Sitemap/node',
+
 					format 		=> 'xml',
 				);
 
 			}
 		}
 
-		$self->render( nodes => $nodes, template => 'Plugins/Sitemap/sitemap', format => 'xml')
+		$self->render( nodes => $nodes, template => 'Sitemap/sitemap', format => 'xml');
 	});
+
 }
+
 
 1;
