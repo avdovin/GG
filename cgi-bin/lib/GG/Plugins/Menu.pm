@@ -2,7 +2,8 @@ package GG::Plugins::Menu;
 
 use base 'Mojolicious::Plugin';
 
-our $VERSION = '0.53';
+our $VERSION = '0.55';
+use Mojo::ByteStream;
 
 sub register {
 	my ( $self, $app, $opts ) = @_;
@@ -30,7 +31,7 @@ sub breadcrumbs{
 		template    => 'Plugins/Menu/breadcrumbs',
 	);
 
-	return $content;
+	return Mojo::ByteStream->new($content);
 }
 
 sub navipoint {
@@ -149,7 +150,7 @@ sub menu_track {
 		}
 	}
 
-	return  $self->render_to_string(
+	my $html = $self->render_to_string(
 		levels		=> $levels,
 		order_ids	=> $menu_order_ids,
 		template   	=> 'Plugins/Menu/'.$params{template},
@@ -160,6 +161,7 @@ sub menu_track {
 		botomlevel 	=> $params{botomlevel},
 		items       => $items,
 	);
+  return Mojo::ByteStream->new($html);
 }
 
 sub _build_href{

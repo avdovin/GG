@@ -16,7 +16,7 @@ use File::stat;
 use Encode qw( encode decode_utf8 );
 use Mojo::Util qw(decode quote);
 
-use GG::Unidecode;
+use Lingua::Translit;
 
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
@@ -571,36 +571,34 @@ sub register {
 		my $self = shift;
 		return '' unless my $name = shift;
 
-		#my $tr = new Lingua::Translit("GOST 7.79 RUS");
+	  my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
 		decode 'UTF-8', $name;
 		$name =~ s{\s}{_}gi;
-		$name = GG::Unidecode::unidecode($name);
-		$name =~ s/[`\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
+
+    if(my $name_tr = $tr->translit($name)){
+      $name = $name_tr;
+
+    } else {
+      my $dec = new decoder;
+      my $name_tr;
+
+      for my $i (0..length($name)-1) {
+        if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
+          if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
+            $name_tr .= $dec -> utfruslat("\xc0");
+          } elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
+            $name_tr .= $dec -> utfruslat("\xc1");
+          } else {
+            $name_tr .= $dec -> utfruslat(substr($name, $i, 1));
+          }
+        }
+      }
+    }
+
+		$name =~ s/[`\\\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
 		$name =~ tr/\x20-\x7f//cd;
 		$name = lc($name);
-
-		return $name;
-
-		# if(my $name_tr = $tr->translit($name)){
-		# 	$name = $name_tr;
-
-		# } else {
-		# 	my $dec = new decoder;
-		# 	my $name_tr;
-
-		# 	for my $i (0..length($name)-1) {
-		# 		if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
-		# 			if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
-		# 				$name_tr .= $dec -> utfruslat("\xc0");
-		# 			} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
-		# 				$name_tr .= $dec -> utfruslat("\xc1");
-		# 			} else {
-		# 				$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
-		# 			}
-		# 		}
-		# 	}
-		# }
 	});
 
 	$app->helper(

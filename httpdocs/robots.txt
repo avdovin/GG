@@ -1,4 +1,5 @@
 User-Agent: Googlebot
+Disallow: /maintenance.html
 Disallow: /*?
 Disallow: /admin/
 Disallow: /userfiles/
@@ -7,6 +8,7 @@ Crawl-delay: 10
 Sitemap: /sitemap.xml
 
 User-Agent: Yandex
+Disallow: /maintenance.html
 Disallow: /*?
 Disallow: /admin/
 Disallow: /userfiles/

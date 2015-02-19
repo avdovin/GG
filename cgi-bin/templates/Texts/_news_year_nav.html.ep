@@ -1,27 +1,32 @@
 % my $year = $self->param('year') || "";
 % my $sch = 0;
 % my $totalTabCount = 2;
+% my $link = begin
+	% my $link = shift;
+  % my $label = shift;
+	<li class="list__entry">
+		<a href="<%= $prefix %><%= $link %>" class="entry__link <% unless($year){ %>current<% } %>"><%= $label %> г.</a>
+	</li>
+% end
 
-
-<a href="<%= $prefix %>" class="button button_black button_small <% unless($year){ %>current<% } %>"><%= cl ru => 'Все', en => 'all' %></a>
-
-% my $maxViewYears = scalar(@$items) > $totalTabCount ? $totalTabCount-1 : $totalTabCount;
-% foreach (@$items){
-	% last if($sch==$maxViewYears);
-	<a href="<%= $prefix %><%= $_->{year} %>" class="button button_black button_small <% if($year == $_->{year}){ %>current<% } %>"><%= $_->{year} %></a>
-	% $sch++;
-% }
-
-% $sch = 0;
-% if(scalar(@$items)>$totalTabCount){
-	% my $minYear = 0;
-	% my $maxYear = 0;
-	% foreach (@$items){
-		% $sch++;
-		% next if($sch <= 2);
-		% $minYear = $_->{year} if (!$minYear or $minYear > int($_->{year}) );
-		% $maxYear = $_->{year} if (!$maxYear or $maxYear < int($_->{year}) );
-	% }
-	<a href="<%= $prefix %><%= $minYear.'-'.$maxYear %>" class="button button_black button_small <% if($year == $minYear.'-'.$maxYear){ %>current<% } %>"><%= $maxYear.'-'.$minYear %></a>
-% }
-
+<ul class="news__filters__list">
+  %= $link->('', $self->cl(ru => 'Все', en => 'all'))
+  % my $maxViewYears = scalar(@$items) > $totalTabCount ? $totalTabCount-1 : $totalTabCount;
+  % foreach (@$items){
+  	% last if($sch==$maxViewYears);
+    %= $link->($_->{year}, $_->{year})
+  	% $sch++;
+  % }
+  % $sch = 0;
+  % if(scalar(@$items)>$totalTabCount){
+  	% my $minYear = 0;
+  	% my $maxYear = 0;
+  	% foreach (@$items){
+  		% $sch++;
+  		% next if($sch <= 2);
+  		% $minYear = $_->{year} if (!$minYear or $minYear > int($_->{year}) );
+  		% $maxYear = $_->{year} if (!$maxYear or $maxYear < int($_->{year}) );
+  	% }
+    %= $link->( $minYear.'-'.$maxYear , $minYear.'-'.$maxYear )
+  % }
+</ul>
