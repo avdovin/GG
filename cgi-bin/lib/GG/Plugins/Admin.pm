@@ -288,7 +288,7 @@ sub register {
 			$self->app->sysuser->auth(0);
 			my $ip  = $self->tx->remote_address;
 
-			my $sql = "SELECT *,HOUR(NOW())-HOUR(btime) AS `bhour` FROM `$params{from}` WHERE $params{where} LIMIT 0,1";
+			my $sql = "SELECT *,TIMESTAMPDIFF(SECOND,btime,NOW())AS `bsecs` FROM `$params{from}` WHERE $params{where} LIMIT 0,1";
 			my $user = $self->app->dbi->query($sql)->hash;
 
 			unless($user){
@@ -296,7 +296,7 @@ sub register {
 				$self->admin_msg_errors(' Пожалуйста, введите верные логин и пароль. <br />Помните, оба поля чувствительны к регистру.') && return;
 			}
 
-			if ($user->{count} && ($user->{count} >= $params{count}) and ($user->{bhour} <= 3)) { # Проверка на количество неправильных попыток авторизации
+			if ($user->{count} && ($user->{count} >= $params{count}) and ($user->{bsecs} <= 3 * 60 * 60)) { # Проверка на количество неправильных попыток авторизации
 				$self->save_logs(name => 'Попытка подбора пароля. Доступ для данного аккаунта временно ограничен', comment => "Логин: $params{login}, Пароль: $params{password}", event 	=> 'auth' );
 				$self->admin_msg_errors('Попытка подбора пароля. Доступ для данного аккаунта временно ограничен');
 
@@ -311,15 +311,15 @@ sub register {
 
 				return;
 
-			} elsif ($user->{bhour} && ($user->{bhour} > 3)) { # Прошло больше трех часов с момента неправильной авторизации
-				$sql = "UPDATE `$params{from}` SET `count`=0,`btime`='0000-00-00 00:00:00',`bip`='$ip' WHERE `login` = '$$self{user}{login}'";
+			} elsif ($user->{bsecs} && $user->{bsecs} >= 3 * 60 * 60) { # Прошло больше трех часов с момента неправильной авторизации
+				$sql = "UPDATE `$params{from}` SET `count`=0,`btime`=NULL,`bip`='$ip' WHERE `login` = '$$self{user}{login}'";
 				$self->app->dbi->query($sql);
 			}
 
 			$params{'password_digest'} = $self->encrypt_password($params{password});
 
 			if ($params{'password'} && !$self->check_password($params{'password'}, $user->{'password_digest'})  ) {  # Неверный пароль
-				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`bip`='$ip' WHERE `login` = '$$user{login}'";
+				$sql = "UPDATE `$params{from}` SET `count`=`count`+1,`btime`=NOW(),`bip`='$ip' WHERE `login`='$$user{login}'";
 				$self->app->dbi->query($sql);
 
 				my $count = $user->{count}+1;
@@ -334,7 +334,7 @@ sub register {
 
 				$self->app->dbi->query(qq/
 					UPDATE `$params{from}`
-					SET `count`='0',`btime`='0000-00-00 00:00:00'
+					SET `count`='0',`btime`=NULL
 					WHERE `ID`='$$user{ID}'
 				/);
 				$self->dbi->dbh->do("REPLACE `sys_users_session`(cck, time, host, ip, id_user) VALUES (?, NOW(), ?, ?, ?)", undef,
