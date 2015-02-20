@@ -15,9 +15,8 @@ use File::stat;
 
 use Encode qw( encode decode_utf8 );
 use Mojo::Util qw(decode quote);
-
+use Unicode::Normalize;
 use Lingua::Translit;
-
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 my $MAX_IMAGE_SIZE = 1000; # Максимальный размер картинки по большей стороне, px
@@ -574,6 +573,8 @@ sub register {
 	  my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
 		decode 'UTF-8', $name;
+
+	  $name =~ s{^\s+|\s+$}{}gi;
 		$name =~ s{\s}{_}gi;
 
     if(my $name_tr = $tr->translit($name)){
@@ -596,9 +597,19 @@ sub register {
       }
     }
 
-		$name =~ s/[`\\\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
-		$name =~ tr/\x20-\x7f//cd;
-		$name = lc($name);
+    $name = NFKD($name);
+    $name =~ tr/\000-\177//cd;    # Strip non-ASCII characters (>127)
+    $name =~ s/[^\w\s-]//g;       # Remove all characters that are not word characters (includes _), spaces, or hyphens
+    $name =~ s/^\s+|\s+$//g;      # Trim whitespace from both ends
+    $name = lc($input);
+    $name =~ s/[-\s]+/-/g;
+    $name = substr($name, 0, 254);
+
+    return $name;
+
+		#$name =~ s/[`\\\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
+		#$name =~ tr/\x20-\x7f//cd;
+		#$name = lc($name);
 	});
 
 	$app->helper(
