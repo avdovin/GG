@@ -784,7 +784,7 @@ sub _extract{
 		next if $element->isDirectory;
 
 		(my $extractName = $element->fileName) =~ s{.*/}{};
-		my $filename = $self->{app}->transliteration($extractName);
+		my $filename = $self->{app}->transliteration_filename($extractName);
 
 		next if ($filename eq 'thumbs.db');
 		$element->extractToFileNamed($dir.$DIRECTORY_SEPARATOR.$foldername.$DIRECTORY_SEPARATOR.$filename);
@@ -1065,7 +1065,7 @@ sub _mkfile{
 	}
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $name = $self->{REQUEST}->{'name'} || 'untitled file.txt';
-	$name = $self->{app}->transliteration($name);
+	$name = $self->{app}->transliteration_filename($name);
 
 	eval{
 		open(FILE, ">${dstpath}${DIRECTORY_SEPARATOR}$name") or die("can't open ${dstpath}${DIRECTORY_SEPARATOR}$name: $!");
@@ -1086,7 +1086,7 @@ sub _mkdir{
 	}
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $name = $self->{REQUEST}->{'name'} || 'new folder';
-	$name = $self->{app}->transliteration($name);
+	$name = $self->{app}->transliteration_filename($name);
 
 	mkdir($dstpath.$DIRECTORY_SEPARATOR.$name, $self->{CONF}->{'dirMode'});
 
@@ -1112,7 +1112,7 @@ sub _upload{
 		next unless $upload;
 
 		my $filename = $upload->filename;
-		$filename = $app->transliteration($filename);
+		$filename = $app->transliteration_filename($filename);
 		$upload->move_to($dstpath.$DIRECTORY_SEPARATOR.$filename);
 
 		chmod($dstpath.$DIRECTORY_SEPARATOR.$filename, $self->{CONF}->{'fileMode'});

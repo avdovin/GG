@@ -15,9 +15,8 @@ use File::stat;
 
 use Encode qw( encode decode_utf8 );
 use Mojo::Util qw(decode quote);
-
-use GG::Unidecode;
-
+use Unicode::Normalize;
+use Lingua::Translit;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 my $MAX_IMAGE_SIZE = 1000; # Максимальный размер картинки по большей стороне, px
@@ -532,7 +531,7 @@ sub register {
 			if (my $upload = $self->param( $params{field} ) ) {
   			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
 				return unless my $filename = $upload->filename;
-				$filename = $self->transliteration($filename);
+				$filename = $self->transliteration_filename($filename);
 
 				# чистка старых файлов
 #				opendir(DIR, $dir);
@@ -567,40 +566,66 @@ sub register {
 		return $alias
 	});
 
+	# translit filename without ext
+	$app->helper(transliteration_filename => sub {
+		my $self = shift;
+		my $filename = shift;
+
+		if(my $ext = ($filename =~ m/([^.]+)$/)[0]){
+			my $filename_length = length($filename) - length($ext) - 1;
+			my $filename_without_ext = substr($filename, 0, $filename_length);
+
+			$filename_without_ext = $self->transliteration($filename_without_ext);
+			$filename = $filename_without_ext.'.'.$ext;
+		}
+
+		return $filename;
+	});
+
 	$app->helper(transliteration => sub {
 		my $self = shift;
 		return '' unless my $name = shift;
 
-		#my $tr = new Lingua::Translit("GOST 7.79 RUS");
+	  my $tr = new Lingua::Translit("GOST 7.79 RUS");
 
 		decode 'UTF-8', $name;
+
+	  $name =~ s{^\s+|\s+$}{}gi;
 		$name =~ s{\s}{_}gi;
-		$name = GG::Unidecode::unidecode($name);
-		$name =~ s/[`\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
-		$name =~ tr/\x20-\x7f//cd;
-		$name = lc($name);
 
-		return $name;
+    if(my $name_tr = $tr->translit($name)){
+      $name = $name_tr;
 
-		# if(my $name_tr = $tr->translit($name)){
-		# 	$name = $name_tr;
+    } else {
+      my $dec = new decoder;
+      my $name_tr;
 
-		# } else {
-		# 	my $dec = new decoder;
-		# 	my $name_tr;
+      for my $i (0..length($name)-1) {
+        if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
+          if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
+            $name_tr .= $dec -> utfruslat("\xc0");
+          } elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
+            $name_tr .= $dec -> utfruslat("\xc1");
+          } else {
+            $name_tr .= $dec -> utfruslat(substr($name, $i, 1));
+          }
+        }
+      }
+    }
 
-		# 	for my $i (0..length($name)-1) {
-		# 		if ((ord(substr($name, $i, 1)) != 208) and (ord(substr($name, $i, 1)) != 209)) {
-		# 			if ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 145)) {
-		# 				$name_tr .= $dec -> utfruslat("\xc0");
-		# 			} elsif ((ord(substr($name, $i-1, 1)) == 209) and (ord(substr($name, $i, 1)) == 129)) {
-		# 				$name_tr .= $dec -> utfruslat("\xc1");
-		# 			} else {
-		# 				$name_tr .= $dec -> utfruslat(substr($name, $i, 1));
-		# 			}
-		# 		}
-		# 	}
-		# }
+    $name = NFKD($name);
+    $name =~ tr/\000-\177//cd;    # Strip non-ASCII characters (>127)
+    $name =~ s/[^\w\s-]//g;       # Remove all characters that are not word characters (includes _), spaces, or hyphens
+    $name =~ s/^\s+|\s+$//g;      # Trim whitespace from both ends
+    $name = lc($input);
+    $name =~ s/[-\s]+/-/g;
+    $name = substr($name, 0, 254);
+
+    return $name;
+
+		#$name =~ s/[`\\\/\:\;\!\~\@\#\$\^\&\(\)\'"]+//g;
+		#$name =~ tr/\x20-\x7f//cd;
+		#$name = lc($name);
 	});
 
 	$app->helper(
@@ -633,7 +658,7 @@ sub register {
 				next unless (grep(/$ext/, @$avalaible_ext) );
 
 				my ($filename, undef) = File::Basename::fileparse($f);
-				$filename = $self->transliteration($filename);
+				$filename = $self->transliteration_filename($filename);
 
 				$filename = decode 'UTF-8', $filename;
 				next if $filenames->{ $filename };
