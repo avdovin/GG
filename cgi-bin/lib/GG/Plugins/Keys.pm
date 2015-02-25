@@ -9,9 +9,6 @@ use List::Util 'first';
 
 our $VERSION = '0.06';
 
-#use Mojo::Cache;
-#my $cache = Mojo::Cache->new(max_keys => 50);
-
 sub register {
 	my ( $self, $app, $args ) = @_;
 
@@ -36,11 +33,6 @@ sub register {
 		return shift->app->lkeys;
 	});
 
-#	unless (ref($app)->can('lists')){
-#		ref($app)->attr('lists');
-#		$app->lists( {} );
-#	}
-
 	$app->helper(
 		# name - имя переменной
 		# split - разделитель для списка
@@ -61,7 +53,6 @@ sub register {
 			return unless my $lkey = $self->lkey(name => $name, controller => $controller);
 
 			$type ||= $lkey->{settings}->{type} || return '';
-			#return unless $type;
 
 			my $values //= $$params{'value'};
 			   $values //= $$params{'values'};
@@ -183,7 +174,7 @@ sub register {
 					next unless $list->{$k};
 
 					my $selected = (defined first { $k eq $_ } @$values) ? " selected='selected' " : "";
-					#my $selected = ( grep(/^$k$/, @$values ) or (!$k and !scalar(@$values)) ) ? "selected='selected'" : "";
+
 					$code .= "<option value='".($k || '')."' $selected>".$list->{$k}."</option>";
 				}
 
@@ -194,7 +185,6 @@ sub register {
 				foreach my $k (@$list_labels){
 					next unless $list->{$k};
 
-					#my $selected = ( grep(/^$k$/, @$values ) or (!$k and !scalar(@$values)) ) ? "checked='checked'" : "";
 					my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
 					$code .= "<label style=\"float:none;cursor:pointer;\"><input value='$k' name='$name' id='${replaceme}${name}_$k' $list_style type='checkbox' $list_class $required class='checkbox' $selected>".$list->{$k}."</label>";
 					$code .= $list_delimetr
@@ -203,7 +193,6 @@ sub register {
 			} elsif($type eq 'radio'){
 				foreach my $k (@$list_labels){
 					next unless $list->{$k};
-					#my $selected = ( grep(/^$k$/, @$values ) or (!$k and !scalar(@$values)) ) ? "checked='checked'" : "";
 					my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
 					$code .= "<input value='$k' name='$name' $list_style type='radio' id='${replaceme}${name}_$k' $list_class $required $selected><label for='${replaceme}${name}_$k' ".($replaceme ? 'style=\'float:none;cursor:pointer;\'' : '')."'>".$list->{$k}." </label>";;
 					$code .= $list_delimetr
@@ -314,12 +303,9 @@ sub register {
 
 			my $type 	  		= delete $params{type};
 			my $keys_table 	= 'keys_'.$params{controller} ;
-			#my $use_cache = $self->app->get_var('cache_keys');
-
 
 			my $app = $self->app;
-			#my $cached = 0;
-			#my $cached_global = 0;
+
 
 			if( !$params{no_global} &&
 				$self->app->lkeys->{ '_cached_global_'.$params{controller} } &&
@@ -411,11 +397,12 @@ sub register {
 
 		return '' unless my $lkey = delete $params{'lkey'};
 		my $controller = delete $params{'controller'} || $self->stash->{'controller'};
-
+		$controller = lc($controller);
 		unless($self->app->lkeys->{$controller}){
 			$self->get_keys( type => ['lkey'], controller => $controller);
 		}
-		return $self->lkey(name => $lkey, setting => 'folder', controller => $controller);
+		
+		return $self->lkey(name => $lkey, setting => 'folder', controller => $controller, %params);
 	});
 
 	$app->helper( lkey_path => sub {
@@ -424,10 +411,11 @@ sub register {
 
 		return '' unless my $lkey = $params{'lkey'};
 		return '' unless my $value = delete $params{'value'};
-
+		
 		my $folder = $self->lkey_folder(%params);
 
-		return $folder.$value
+		$params{size} ? return $folder.$params{size}.'_'.$value : return $folder.$value;
+
 	});
 
 	$app->helper(
@@ -437,8 +425,9 @@ sub register {
 
 			my $lkeyName = $args->{name};
 			my $controller = $args->{controller} || $self->stash->{controller} || return '';
-			my $lkeys = $self->app->lkeys;
 
+			my $lkeys = $self->app->lkeys;
+			
 			if(delete $args->{'tmp'}){
 		 		return $self->app->lkeys->{'global'}->{'tmp'} = Lkey->new( {
 					name     => $lkeyName || 'временный ключ',
@@ -456,10 +445,11 @@ sub register {
 				});
 
 			}
-
+	
 			return $self->app->lkeys->{$controller} unless $lkeyName;
-
+			
 			if($self->app->lkeys->{$controller}->{$lkeyName}){
+				
 				if(my $list_table = $args->{'tbl'} || $self->stash->{list_table}){
 
 					my $lkey = ($lkeys->{$controller}->{_tbl}->{$list_table} &&
@@ -529,42 +519,6 @@ sub register {
 	);
 }
 
-#sub restore_keys{
-#	my 	$self	= shift;
-#	my	$keys_table	= shift;
-#
-#	my $app = $self->app;
-#	#my $tmp = $self->stash->{'_get_keys'}->{$keys_table};
-#	my $tmp = $cache->get('keys_'.$keys_table);
-#
-#	warn "restore keys: $keys_table";
-#
-##	use Data::Dumper;
-##	warn Dumper($tmp->{buttons});
-##
-#	$app->buttons($tmp->{buttons});
-#	$app->lkeys($tmp->{lkeys});
-#	#$app->lists($tmp->{lists});
-#	return 1;
-#}
-
-#sub store_keys{
-#	my 	$self	= shift;
-#	my	$keys_table	= shift;
-#
-#	my $app = $self->app;
-#	my $vals = {
-#		buttons => $app->buttons,
-#		lkeys	=> $app->lkeys,
-#		#lists	=> $app->lists
-##	};
-##
-##	warn "store keys: $keys_table";
-##	$cache->set('keys_'.$keys_table => $vals);
-##
-##	#$self->stash->{'_get_keys'}->{$keys_table} = $vals;
-##}
-
 sub _parseLkeys{
 	my %params  = @_;
 
@@ -606,10 +560,6 @@ sub _parseLkeys{
 
 		}
 	}
-
-	#$app->buttons($buttons_exist);
-	#$app->lkeys($lkeys_exist);
-	#$app->lists($lists_exist);
 }
 
 sub _parseLkeySettings{
@@ -661,7 +611,6 @@ sub new {
 		type     => "s",
 		filter   => 0,
 		group	 => 1,
-		#rating   => 99,
 		object   => "lkey",
 		settings => {
 			type	=> 's',
@@ -699,7 +648,6 @@ sub new {
 		image	 => undef,
 		program	 => undef,
 		action	 => undef,
-		#rating 	 => 99,
 		object 	 => "button",
 		settings => {},
 		code	 => undef,

@@ -20,8 +20,64 @@ sub register {
 
 	$opts ||= {};
 
-	$app->log->debug("register GG::Admin::Plugins::Image");
+	$app->log->debug("register GG::Plugins::Image");
+	# usage: p (value => 'pict.jpg', size => '320x320',[controller => 'catalog', tbl => 'dtbl_catalog_item_images'])
+	# return '/image/catalog/items/dopimgs/320x320_pict.jpg'
+	$app->helper(
+		p 	=> sub{
+			my $self = shift;
+			my %params = ( 
+				lkey 	=> 'pict',
+				size 	=> '',
+				value   => '', # required
+				controller => lc($self->stash('controller')),
+				tbl     => '',
+				table   => '',
+				@_
+			);
+			$params{table} ||=$params{tbl};
+			die "GG::Plugins::Image - helper 'p' - value is not defined" unless $params{value};
 
+			my $pict = $self->lkey_path(%params);
+
+			if (-e $self->static_path.$pict){
+				return $pict;
+			}else{
+				
+				$params{table} ||= $self->dbi->query("SELECT `default_table` FROM `sys_program` WHERE `key_razdel`='$params{controller}' LIMIT 0,1")->list || '';
+
+				die "GG::Plugins::Image - helper 'p' - table is not defined" unless $params{table};
+				my $path = $self->lkey_folder(%params).$params{value};
+				return '' unless (-e $self->static_path.$path);
+				my ($to, $filename, $ext, $size) = $self->file_save(from => $path, to => $pict);
+				if ($params{size}){
+					my $mini = $self->lkey(name => $params{lkey},  setting => 'mini', %params);
+
+					my $method = 'crop';
+					my ($w,$h) = split('x',$params{size});
+					foreach (split(',',$mini)){
+						my ($size,$type) = split('~',$_);
+						if ($size eq $params{size}){
+							$method = $type;
+							last;
+						}
+					}
+
+					
+					$self->resize_pict(
+						file		=> $to,
+						width		=> $w,
+						height		=> $h,
+						$method     => 1,
+						retina 		=> $params{retina},
+						watermark 	=> $params{watermark},
+					);
+				}
+				return $self->lkey_path(%params);
+			};
+
+
+	});
 	$app->helper(
 		resize_pict => sub {
 			my $self = shift;
