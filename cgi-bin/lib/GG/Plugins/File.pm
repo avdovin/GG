@@ -531,7 +531,7 @@ sub register {
 			if (my $upload = $self->param( $params{field} ) ) {
   			my $dir = $self->file_tmpdir;#$self->app->static->root.$self->global('tempory_dir');
 				return unless my $filename = $upload->filename;
-				$filename = $self->transliteration($filename);
+				$filename = $self->transliteration_filename($filename);
 
 				# чистка старых файлов
 #				opendir(DIR, $dir);
@@ -564,6 +564,22 @@ sub register {
 		$alias = $self->transliteration($alias);
 		$alias =~ s{\.}{}gi;
 		return $alias
+	});
+
+	# translit filename without ext
+	$app->helper(transliteration_filename => sub {
+		my $self = shift;
+		my $filename = shift;
+
+		if(my $ext = ($filename =~ m/([^.]+)$/)[0]){
+			my $filename_length = length($filename) - length($ext) - 1;
+			my $filename_without_ext = substr($filename, 0, $filename_length);
+
+			$filename_without_ext = $self->transliteration($filename_without_ext);
+			$filename = $filename_without_ext.'.'.$ext;
+		}
+
+		return $filename;
 	});
 
 	$app->helper(transliteration => sub {
@@ -642,7 +658,7 @@ sub register {
 				next unless (grep(/$ext/, @$avalaible_ext) );
 
 				my ($filename, undef) = File::Basename::fileparse($f);
-				$filename = $self->transliteration($filename);
+				$filename = $self->transliteration_filename($filename);
 
 				$filename = decode 'UTF-8', $filename;
 				next if $filenames->{ $filename };
