@@ -21,6 +21,8 @@ sub register {
 	$opts ||= {};
 
 	$app->log->debug("register GG::Plugins::Image");
+	# usage: p (value => 'pict.jpg', size => '320x320',[controller => 'catalog', tbl => 'dtbl_catalog_item_images'])
+	# return '/image/catalog/items/dopimgs/320x320_pict.jpg'
 	$app->helper(
 		p 	=> sub{
 			my $self = shift;
