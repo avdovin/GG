@@ -617,7 +617,7 @@ sub register {
     $name =~ tr/\000-\177//cd;    # Strip non-ASCII characters (>127)
     $name =~ s/[^\w\s-]//g;       # Remove all characters that are not word characters (includes _), spaces, or hyphens
     $name =~ s/^\s+|\s+$//g;      # Trim whitespace from both ends
-    $name = lc($input);
+    $name = lc($name);
     $name =~ s/[-\s]+/-/g;
     $name = substr($name, 0, 254);
 

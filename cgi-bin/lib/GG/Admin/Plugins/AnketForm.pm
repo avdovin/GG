@@ -367,6 +367,7 @@ sub register {
 			$self->stash->{"total_col_list_dp_".$lfield}  += $#table_list_keys_header;
 			$self->stash->{"listfield_dp_".$lfield} 		= \@table_list_keys;
 			$self->stash->{"listfield_header_dp_".$lfield} = \@table_list_keys_header;
+			$self->stash->{"listfield_dp_table_".$lfield} = $lkey_settings->{table};
 		}
 	);
 

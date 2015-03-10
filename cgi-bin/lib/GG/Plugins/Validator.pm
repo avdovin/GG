@@ -79,8 +79,9 @@ sub register {
 	});
 
 	$app->helper(check_email       		=> \&_check_email);
-	$app->helper(check_checkbox       	=> \&_check_checkbox);
-	$app->helper(check_datetime       	=> \&_check_datetime);
+	$app->helper(check_checkbox       => \&_check_checkbox);
+	$app->helper(check_password       => \&_check_password_digest);
+	$app->helper(check_datetime       => \&_check_datetime);
 	$app->helper(check_time       		=> \&_check_time);
 	$app->helper(check_date       		=> \&_check_date);
 	$app->helper(check_site       		=> \&_check_site);
@@ -151,7 +152,7 @@ sub _check_checkbox{
 	return $self -> check_decimal(minimum => 0, maximum => 1, value => $value);
 }
 
-sub _check_password{
+sub _check_password_digest{
 	my $self = shift;
 	my %settings = @_ % 2 ? (value => shift, @_) : @_;
 	my $value = delete $settings{value};

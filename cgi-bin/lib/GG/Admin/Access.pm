@@ -61,7 +61,7 @@ sub update_access{
 	foreach my $a ($self->dbi->query("SELECT * FROM `sys_access`")->hashes){
 		my $s;
 		foreach my $k (sort keys %$a){
-			$s .= $a->{$k} if(defined $a->{$k} and $k ne 'cck' and $k ne "objectname" and $k ne 'rdate' and $k ne 'edate');
+			$s .= $a->{$k} if(defined $a->{$k} and $k ne 'cck' and $k ne "objectname" and $k ne 'created_at' and $k ne 'updated_at');
 		}
 		my $cck = $self->sysuser->def_cck_access($s);
 		$self->dbi->update_hash('sys_access', {cck => $cck}, "`ID`='".$a->{ID}."'");
@@ -217,7 +217,7 @@ sub save{
 
 		my $a;
 		foreach my $k (sort keys %$hash){
-			$a .= $hash->{$k} if(defined $hash->{$k} and $k ne 'cck' and $k ne "objectname" and $k ne 'rdate' and $k ne 'edate');
+			$a .= $hash->{$k} if(defined $hash->{$k} and $k ne 'cck' and $k ne "objectname" and $k ne 'created_at' and $k ne 'updated_at');
 		}
 		my $cck = $self->sysuser->def_cck_access($a);
 

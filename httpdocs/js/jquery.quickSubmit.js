@@ -7,12 +7,12 @@ $.fn.quickSubmit = function() {
 					return $('input[type="submit"]', form).click();
 				if ($('input[type="button"]', form).length)
 					return $('input[type="button"]:last', $.fn.quickSubmit.form).click();
-				
+
 				return $('a[class*="submit"]:last', form).click();
 			}
 		});
 	});
-}
+};
 $.fn.quickSubmit.enterCheck = {
 	"10":1,
 	"13":1

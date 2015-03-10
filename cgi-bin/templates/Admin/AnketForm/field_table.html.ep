@@ -145,22 +145,22 @@
 	id="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" name="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" align="center"
 	script_link="<%= $self->stash->{controller_url} %>" script_replaceme="<%= $self->stash->{replaceme} %>"
 	script_param="&list_table=<%= $lkey->{settings}->{table} %>" >
-	<thead>
+		<thead>
 	  <tr class=header>
-	<% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){ =%>
-		<% if($_ ne 'folder'){ %>
-		<% my $lk = $self->lkey(name => $_); %>
-		<td>
-			<% if($lk && $_ ne 'type_file' && $_ ne 'size'){ %><%= $lk->{name} %><% } %>
-			<% if($lk && $_ eq 'type_file'){ %> <% } %>
-			<% if($lk && $_ eq 'size'){ %>Размер<% } %>
-			<% if(!$lk){ %><%= $_ %><% } %>
-		</td>
-		<% } %>
-	<% } %>
-	<% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){ =%><td style="width:16px;"> </td><% } %>
-	</tr>
-	</thead>
+		% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){
+			% my $lk = $self->lkey(name => $_, tbl => $self->stash->{'listfield_dp_table_'.$key});
+			<td>
+				<% if($lk && $_ ne 'pict_type_file' && $_ ne 'pict_size'){ %><%= $lk->{name} %><% } %>
+				<% if($lk && $_ eq 'pict_type_file'){ %> <% } %>
+				<% if($lk && $_ eq 'pict_size'){ %>Размер<% } %>
+				<% if(!$lk){ %><%= $_ %><% } %>
+			</td>
+		% }
+		% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){
+			<td style="width:16px;"> </td>
+		% }
+		</tr>
+		</thead>
 	<tbody>
 
 % my $table_info_link = $lkey->{settings}->{table_info_link} || '';
@@ -168,15 +168,15 @@
 <tr>
 	% my $subitem_id = $item->{ID} || 0;
 	% foreach my $header (@{$self->stash->{'listfield_header_dp_'.$key}}){
-		% if($header eq 'type_file'){
+		% if($header eq 'pict_type_file'){
 			<td width="48px">
 				<% if($item->{type_file}){ %><img width="48" src="/admin/img/icons/file/<%= $item->{type_file} %>.png" alt="<%= $item->{type_file} %>"><% } %>
 			</td>
-		% } elsif($header eq 'size'){
+		% } elsif($header eq 'pict_size'){
 			<td width="60px">
 				%= file_nice_size($item->{size})
 			</td>
-		% } elsif($header ne 'folder'){
+		% } elsif($header ne 'pict_folder'){
 			<td<% if($table_info_link){ %> onClick="openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','edit','edit')"<% } %> >
 			% my $settings = $self->lkey(name => $header )->{settings};
 			% my $t_type = $settings->{type};

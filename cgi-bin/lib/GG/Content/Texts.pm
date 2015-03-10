@@ -144,46 +144,46 @@ sub text_main_item{
 	return $self->render_not_found unless my $text = $self->dbi->query("SELECT *, DATE_FORMAT(updated_at,'%a, %d %b %Y %T') AS updated_at_rfc822 FROM `texts_main_".$self->lang."` WHERE $where")->hash;
 
 	#AJAX request
-	my $header = $self->req->headers->header('X-Requested-With');
-	return $self->render( text => $text->{text}) if ($header && $header eq 'XMLHttpRequest');
+	return $self->render( text => $text->{text}) if ($self->req->is_xhr);
 
 	if($text->{url_for} && $self->stash->{redirect_to_url_for}){
 		my $href = $self->menu_item($text);
 		return $self->redirect_to_301($href);
 	}
 
-	$self->meta_title( $text->{title} || $text->{name} );
-	$self->meta_keywords( $text->{keywords} );
-	$self->meta_description( $text->{description} );
+  $self->meta_title( $text->{title} || $text->{name} );
+  $self->meta_keywords( $text->{keywords} );
+  $self->meta_description( $text->{description} );
 
 	# Wed, 24 Sep 2014 19:15:45 GMT
-	$self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' ) if ($text->{'updated_at'} ne '0000-00-00 00:00:00');
+  $self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' ) 
+    if ($text->{'updated_at'} && $text->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
 
 	my $template = $self->stash->{template} ||= "Texts/_body_default";
-	$self->render(
-		item		=> $text,
-		template	=> $template,
-		layout		=> $text->{'layout'} || 'default',
-	);
+  $self->render(
+    item		=> $text,
+    template	=> $template,
+    layout		=> $text->{'layout'} || 'default',
+  );
 }
 
 
 sub text_list_item{
-	my $self = shift;
-	my %params = (
-		where	=> "`ID`='".$self->stash('ID')."'",
-		@_
-	);
+  my $self = shift;
+  my %params = (
+    where	=> "`ID`='".$self->stash('ID')."'",
+    @_
+  );
 
-	my $ring	  ||= 0;
-	my $alias		= $self->stash('list_item_alias');
-	my $key_razdel 	= $self->stash('key_razdel');
-	my $template	= "Texts/".$key_razdel."_item";
-	my $table 		= "texts_".$key_razdel."_".$self->lang;
+  my $ring	  ||= 0;
+  my $alias		= $self->stash('list_item_alias');
+  my $key_razdel 	= $self->stash('key_razdel');
+  my $template	= "Texts/".$key_razdel."_item";
+  my $table 		= "texts_".$key_razdel."_".$self->lang;
 
-	my 	$where  = " ";
-		$where .= " AND `dir`='0'" 		if $self->dbi->exists_keys(from => $table, lkey => 'dir');
-		$where .= " AND `viewtext`='1' ";
+  my $where  = " ";
+     $where .= " AND `dir`='0'"  if $self->dbi->exists_keys(from => $table, lkey => 'dir');
+     $where .= " AND `viewtext`='1' ";
 
 
 #	my $order = "ID";
@@ -195,28 +195,31 @@ sub text_list_item{
 #	}
 
 
-	return $self->render_not_found unless my $item = $self->dbi->query(qq/
+  return $self->render_not_found unless my $item = $self->dbi->query(qq/
 			SELECT *, DATE_FORMAT(updated_at,'%a, %d %b %Y %T') AS updated_at_rfc822
 			FROM `$table`
-			WHERE `alias`='$alias' $where LIMIT 0,1/)->hash;
+			WHERE `alias`='$alias' $where LIMIT 1/)->hash;
 
-	if($self->stash->{alias}){
-		if(my $textSection = $self->dbi->query("SELECT `name`,`title` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' AND `viewtext`='1'")->hash){
-			$self->meta_title( $textSection->{title} || $textSection->{name} );
-		}
-	}
+  if($self->stash->{alias}){
+    if(my $textSection = $self->dbi->query("SELECT `name`,`title` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' AND `viewtext`='1'")->hash){
+      $self->meta_title( $textSection->{title} || $textSection->{name} );
+    }
+  }
 
-	$self->meta_title( $item->{title} || $item->{name} );
-	$self->meta_keywords( $item->{keywords} );
-	$self->meta_description( $item->{description} );
+  $self->meta_title( $item->{title} || $item->{name} );
+  $self->meta_keywords( $item->{keywords} );
+  $self->meta_description( $item->{description} );
 
-	$self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' ) if ($item->{'updated_at'} ne '0000-00-00 00:00:00');
+  $self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' ) 
+    if ($text->{'updated_at'} && $text->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
 
 	#$text->{index_after} = $self->get_index_after(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 	#$text->{index_befor} = $self->get_index_befor(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 
-	$self->render(	item		=> $item,
-					template	=> $template);
+	$self->render(	
+    item		=> $item,
+    template	=> $template
+  );
 }
 
 
