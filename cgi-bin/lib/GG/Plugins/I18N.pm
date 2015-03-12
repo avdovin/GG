@@ -1,11 +1,11 @@
-package GG::Plugins::I18N;
+package Mojolicious::Plugin::I18N;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
 use I18N::LangTags;
 use I18N::LangTags::Detect;
 
-our $VERSION = '1.21';
+our $VERSION = '1.4';
 
 # "Can we have Bender burgers again?
 #  No, the cat shelter’s onto me."
@@ -65,7 +65,16 @@ sub register {
       if (my $path = $self->req->url->path) {
         my $part = $path->parts->[0];
 
-        if ($part && $langs && grep { $part eq $_ } @$langs) {
+        # 301 redirect if lang == default lang
+        if($part && $part eq $default){
+          # Ignore static files
+          return if $self->res->code;
+
+          shift @{$path->parts};
+          $self->res->code(301);
+          $self->redirect_to($self->req->url->to_abs);
+        }
+        elsif ($part && $langs && grep { $part eq $_ } @$langs) {
           # Ignore static files
           return if $self->res->code;
 
@@ -84,7 +93,7 @@ sub register {
 
       # Languages
       $self->languages(@languages, $default);
-    	}
+      }
   );
 
   # Add "languages" helper
@@ -125,8 +134,11 @@ sub register {
     if (my $lang = $params{lang} || $self->stash('lang')) {
       my $path = $url->path || [];
 
+      if($lang eq $default){
+        return $url
+      }
       # Root
-      if (!$path->[0]) {
+      elsif (!$path->[0]) {
         $path->parts([ $lang ]);
       }
 
@@ -223,7 +235,7 @@ sub _load_module {
 
       (my $file = $module) =~ s{::|'}{/}g;
       eval qq(require "$file.pm");
-warn qq{require "$file.pm"};
+
       my $default = $self->{default};
       if ($@ || not eval "\%${module}::Lexicon") {
         if ($_ eq $default) {
