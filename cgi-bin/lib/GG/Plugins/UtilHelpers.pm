@@ -11,7 +11,7 @@ sub register {
 
 	$app->helper(vu     => sub { shift->tx->req->url->path->parts->[+shift] || '' });
 
-	$app->helper( retina_src => sub {
+	$app->helper(retina_src => sub {
 		my $self = shift;
 		my $src  = shift;
 
@@ -22,24 +22,24 @@ sub register {
 		$self->file_path_retina($src);
 	});
 
-	$app->helper( static_path => sub {
+	$app->helper(static_path => sub {
 		return shift->app->static->paths->[0];
 	});
 
-	$app->helper( host => sub {
+	$app->helper(host => sub {
 		my $self = shift;
 		return $self->req->headers->host() || $self->stash->{'config'}->{'http_host'} || '';
 	});
 
-	$app->helper( protocol => sub {
+	$app->helper(protocol => sub {
 		return shift->req->url->scheme;
 	});
 
-	# caselang field name => name_ru => name_en
-	$app->helper( clf => sub {
+	# caselang field HASH => FIELD_NAME
+	$app->helper(clf => sub {
 		my $self   	= shift;
-		my $field 	= shift;
-		return '' unless my $item  	= shift;
+		return '' unless my $item = shift;
+		return '' unless my $field = shift;
 
 		my $lang = $self->lang;
 		if($lang ne 'ru'){
@@ -50,11 +50,11 @@ sub register {
 		}
 	});
 
-	$app->helper( cl => sub {
+	$app->helper(cl => sub {
 		return shift->caselang(@_)
 	});
 
-	$app->helper( caselang => sub {
+	$app->helper(caselang => sub {
 		my $self   = shift;
 		my $values 	= ref $_[0] ? $_[0] : {@_};
 
@@ -63,7 +63,7 @@ sub register {
 	});
 
 	# заменяет в тексте все ссылки на картинки (attr=src) с относительного пути в абсолютный
-	$app->helper( text_convert_src_rel_to_abs => sub {
+	$app->helper(text_convert_src_rel_to_abs => sub {
 		my $self   	= shift;
 		my $text 	= shift;
 
@@ -73,7 +73,7 @@ sub register {
 		return $text;
 	});
 
-	$app->helper( trim => sub {
+	$app->helper(trim => sub {
 		my $str = $_[1];
 		$str =~ s/^\s+|\s+$//g;
 		return $str;
@@ -87,7 +87,7 @@ sub register {
 		return $referer && $referer !~ /login|logout|enter/ ? $referer : $default;
 	});
 
-	$app->helper( ip_to_number => sub {
+	$app->helper(ip_to_number => sub {
 		my $self  = shift;
 		my $ip	  = shift || return undef;
 
@@ -102,7 +102,7 @@ sub register {
 		}
 	});
 
-	$app->helper( ip => sub {
+	$app->helper(ip => sub {
 		my $self = shift;
 		my $for  = $self->req->headers->header('X-Forwarded-For');
 
@@ -146,9 +146,16 @@ sub register {
 		return $self->is_mobile_device && $self->is_iphone ne 'iPad' ? 1 : 0;
 	});
 
+	$app->helper(lang_prefix => sub {
+    my $self = shift;
+		my $lang = $self->stash->{lang} || $self->stash->{'lang_default'};
+
+		return $lang eq $self->config->{'lang_default'} ? '' : '/'.$lang;
+	});
+
 	$app->helper(lang => sub {
     my $self = shift;
-		$self->stash->{lang} || $self->stash->{'lang_default'};
+		$self->stash->{lang} || $self->config->{'lang_default'};
 	});
 
 	$app->helper(texts_year_navigator => sub {
