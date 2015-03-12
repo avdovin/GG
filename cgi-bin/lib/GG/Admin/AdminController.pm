@@ -39,6 +39,20 @@ sub default_actions{
 			);
 		}
 
+		when('download') 					{
+			if(my $item = $self->getArraySQL(	from => $self->param('dop_table') || $self->stash->{list_table}, where => "`ID`='".$self->stash->{index}."'") ){
+				my $lfield = $self->param('dfield');
+				my $folder = $self->lkey(
+					name => $lfield,
+					controller => $self->stash->{controller},
+					tbl => $self->param('dop_table') || '',
+					setting => 'folder'
+				);
+				return $self->file_download( path => $folder.$item->{ $lfield });
+			}
+			return $self->render_not_found;
+		}
+    
 		when('copy') 					{ $self->item_copy; }
 
 		when('tree') 					{ $self->tree; }

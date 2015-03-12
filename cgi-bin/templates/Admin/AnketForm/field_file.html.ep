@@ -40,7 +40,7 @@
         % }
     % }
     файл: <%= $folder %><%= $value %><% if($self->stash->{anketa}->{$key.'_size'}){ %>, <%= file_nice_size($self->stash->{anketa}->{$key.'_size'}) %> <% } %> <br />
-    <img border="0" src="/admin/img/icons/menu/button.upload.gif" align="absMiddle"/> <a href="<%= $self->stash->{controller_url} %>?do=upload&index=<%= $self->stash->{index} %>&lfield=<%= $key %>&<%= $self->stash->{param_default} %>" target=_blank>скачать</a>  | <img border="0" src="/admin/img/icons/menu/icon_reload.gif" align="absMiddle"/> <a href="#" onClick="if (confirm('Загрузить файл заново?')) ld_content('reload<%= $self->stash->{replaceme} %>_<%= $key %>', '<%= $self->stash->{controller_url} %>?do=delete_file&index=<%= $self->stash->{index} %>&<%= $self->stash->{param_default} %>&lfield=<%= $key %>', 1, 1);">загрузить заново</a>
+    <img border="0" src="/admin/img/icons/menu/button.upload.gif" align="absMiddle"/> <a href="<%= $self->stash->{controller_url} %>?do=download&index=<%= $self->stash->{index} %>&dfield=<%= $key %>&<%= $self->stash->{param_default} %>" target=_blank>скачать</a>  | <img border="0" src="/admin/img/icons/menu/icon_reload.gif" align="absMiddle"/> <a href="#" onClick="if (confirm('Загрузить файл заново?')) ld_content('reload<%= $self->stash->{replaceme} %>_<%= $key %>', '<%= $self->stash->{controller_url} %>?do=delete_file&index=<%= $self->stash->{index} %>&<%= $self->stash->{param_default} %>&lfield=<%= $key %>', 1, 1);">загрузить заново</a>
 <% } %>
 </div>
 </td>
