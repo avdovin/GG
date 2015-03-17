@@ -390,7 +390,7 @@ function parse_data_to_table(id, ajaxIndex) {
 		var vals = data.data;
 		var buttons_key = data.buttons_key;
 		var settings = data.settings;
-		var qedit = element_table.attr('qedit') ? 1 : 0;
+		var qedit = element_table.attr('qedit') && element_table.attr('qedit')==1 ? 1 : 0;
 
 		for(var i=0; i<vals.length; i++){
 			var td_str = vals[i];
