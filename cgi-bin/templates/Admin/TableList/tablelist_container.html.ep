@@ -2,7 +2,7 @@
 <div style="display:none" id="<%= $replaceme %>_QS"><%== $self->stash->{param_default} =%></div>
 <div style="display:none" id="datasource_list<%= $self->app->program->{key_razdel} %>">
 
-% if($self->sysuser->settings->{$controller.'_qedit'}){
+% if(!$self->sysuser->settings->{$controller.'_qedit_off'}){
 %	 	foreach my $k (@$listfield_header){
 %			my $lkey = $self->lkey(name => $k);
 %			if($lkey->{settings}->{type} =~ /list/){
@@ -130,13 +130,13 @@
 	%== page_navigator url_for => 'admin_routes_to_body', params => { controller => $controller, param_default => $self->stash->{param_default} }, template => 'Admin/nav_container'
 </td>
 			<td width="*" align=right style="line-height:13px;">
-%	if($self->app->program->{settings}->{qedit}) {
+%	if($self->app->program->{settings}->{qedit} && $self->app->program->{settings}->{qedit_button}) {
 				<a href="#" class="pseudolink" title="Включить/выключить быстрое редактирование" onclick="ld_content('qedit_type', '<%= $self->stash->{controller_url} %>?do=set_qedit&<%= $self->stash->{param_default} %>', '', 1)">
-						<span id="qedit_type"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить QEdit<% } else { %>Выключить QEdit<% } %></span>
+						<span id="qedit_type"><% unless($self->sysuser->settings->{$controller.'_qedit_off'}){ %>Выключить QEdit<% } else { %>Включить QEdit<% } %></span>
 				</a>
 %	}
 %	if($self->app->program->{settings}->{defcol}) {
-		<% if($self->app->program->{settings}->{qedit}){ %>|<% } %>
+		<% if($self->app->program->{settings}->{qedit_button}){ %>|<% } %>
 		<a href="javascript:void(0);" title="Настроить отображение колонок" onclick="displayMessage('<%= url_for('admin_routes', controller => 'main', action => 'body') %>?do=def_col&<%= $self->stash->{param_default} %>&list_table=<%= $list_table %>&key_program=<%= $self->stash->{controller} %>', 690, 510, 4)">Настроить колонки</a> | <a href="javascript:void(0);" title="Установить отображение колонок по умолчанию" onclick="ld_content('<%= $replaceme %>', '<%= url_for('admin_routes', controller => 'main', action => 'body') %>?do=def_col&clear=1&<%= $self->stash->{param_default} %>&list_table=<%= $list_table %>&key_program=<%= $self->stash->{controller} %>')">Сбросить</a>
 %	}
 
@@ -148,7 +148,7 @@
 			</td>
 </tr></table>
 <div id="div_quickEdit<%= $replaceme %>" style="width:100%">
-	<table class=tablelist width="96%" align=center id="quickEdit<%= $replaceme %>" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="&list_table=<%= $self->stash->{list_table} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit'} %>">
+	<table class=tablelist width="96%" align=center id="quickEdit<%= $replaceme %>" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="&list_table=<%= $self->stash->{list_table} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit_off'} ? 0 : 1 %>">
 		<tr class=header>
 		<td style="width: 10px;"><input id="listallchb" type="checkbox" onclick="selectAllcheckbox();"/></td>
 	% if($self->app->program->{settings}->{qview}) {

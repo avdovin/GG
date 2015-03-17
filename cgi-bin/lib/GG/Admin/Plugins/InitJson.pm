@@ -507,7 +507,7 @@ sub register {
 				title		=> $self->cut( string => $stash->{anketa}->{name} ? $stash->{anketa}->{name} : $stash->{controller_name}.$stash->{index}, size => 15 ),
 			};
 
-			if($self->sysuser->settings->{$stash->{controller}.'_qedit'} ){
+			if(!$self->sysuser->settings->{$stash->{controller}.'_qedit_off'} ){
 				push @$items, {
 					type		=> 'eval',
 					value		=> "setTimeout(\"init_qedit_info('".$stash->{replaceme}."')\", 500);",
