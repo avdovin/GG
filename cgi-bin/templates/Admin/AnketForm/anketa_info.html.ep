@@ -6,11 +6,11 @@
 %		my $group_list = $self->stash->{'listfield_'.$gr} || [];
 %		foreach my $k (@$group_list){
 %			if($self->lkey(name => $k)->{settings}->{type} =~ /list/){
-				<select id="datasource_<%= $k %>" style="display:none" <% if(lkey(name => $k)->{settings}->{mult}){ %>multiple="<%= lkey(name => $k)->{settings}->{mult} %>"<% } %>>
+				<select id="datasource_<%= $k %>_print" style="display:none" <% if(lkey(name => $k)->{settings}->{mult}){ %>multiple="<%= lkey(name => $k)->{settings}->{mult} %>"<% } %>>
 				<%== LIST (name => $k, type => 'select', option => 1) %>
 				</select>
 %			} elsif($self->lkey(name => $k)->{type} eq 'chb'){
-				<select id="datasource_<%= $k %>" style="display:none">
+				<select id="datasource_<%= $k %>_print" style="display:none">
 					<option value="0"><%= lkey(name => $k)->{settings}->{no} %></option>
 					<option value="1"><%= lkey(name => $k)->{settings}->{yes} %></option>
 				</select>
@@ -35,11 +35,11 @@
 
 
 
-%	if($self->app->program->{settings}->{qedit}) {
+%	if($self->app->program->{settings}->{qedit} && $self->app->program->{settings}->{qedit_button}) {
     	<table width="90%"><tr>
       	<td align=right>
 	        <a href="#" title="Включить/выключить быстрое редактирование" onclick="ld_content('type_qe_<%= $replaceme %>', '<%= $script_link %>?do=set_qedit_i&replaceme=<%= $replaceme %>&index=<%= $index %>', '', 1)">
-    	        <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit'}){ %>Включить QEdit<% } else { %>Выключить QEdit<% } %></span>
+    	        <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit_off'}){ %>Выключить QEdit<% } else { %>Включить QEdit<% } %></span>
         	</a>
       	</td>
     	</tr></table>
@@ -51,7 +51,7 @@
 %		$self->stash->{anketa_ok} = 'ok';
 		<div class="DHTMLSuite_aTab">
       	<br /><br />
-      	<table width="100%" class=tablelist id="quickEditI<%= $replaceme %>" cellpadding=2 style="font-size:14px;border:1px solid #919b9c;" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="<%= $self->stash->{param_default} %>" qedit="<%= $self->sysuser->settings->{$lkey.'_qedit_i'} %>">
+      	<table width="100%" class=tablelist id="quickEditI<%= $replaceme %>" cellpadding=2 style="font-size:14px;border:1px solid #919b9c;" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="<%= $self->stash->{param_default} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit_off'} ? 0 : 1 %>">
         <tr class=header>
           <td width="150px" style="width:20%" colspan="3"><b>Поле</b></td>
           <td width="*"><b>Текущее значение</b></td>

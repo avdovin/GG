@@ -731,18 +731,15 @@ sub register {
 			my %params = @_;
 
 			$params{info} = $params{info} ? "_i" : "";
-			#my $lkey = $self->{stash}->{lkey} || $self->stash->{controller};
 			my $replaceme = $self->stash->{replaceme};
 			my $controller = $self->stash->{controller};
 			my $script_link = $self->stash->{controller_url};
 
-			if (!$self->sysuser->settings->{$controller.'_qedit'}) {
-				#$self->stash->{flag_reload} = 1;
-				#$self->stash->{key_reload}  = $params{info} ? "_i_".$lkey : $lkey;
-				$self->sysuser->save_ses_settings($controller.'_qedit' => 1);
+			if (!$self->sysuser->settings->{$controller.'_qedit_off'}) {
+				$self->sysuser->save_ses_settings($controller.'_qedit_off' => 1);
 
 				$self->render( json => {
-					content	=> 'Выключить QEdit',
+					content	=> 'Включить QEdit',
 					items	=> [
 						{
 							type	=> 'eval',
@@ -751,11 +748,10 @@ sub register {
 					]
 				})
 			} else {
-				#$self->stash->{flag_reload} = 0;
-				$self->sysuser->save_ses_settings($controller.'_qedit' => 0);
+				$self->sysuser->save_ses_settings($controller.'_qedit_off' => 0);
 
 				$self->render( json => {
-					content	=> 'Включить QEdit',
+					content	=> 'Выключить QEdit',
 					items	=> [
 						{
 							type	=> 'eval',
