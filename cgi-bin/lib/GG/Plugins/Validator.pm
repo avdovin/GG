@@ -64,7 +64,7 @@ sub register {
 				elsif($type eq 'tlist') 		{ $valid_params->{$k} = $self->check_tlist( %$settings, value => $v)}
 				elsif($type eq 'date') 			{ $valid_params->{$k} = $self->check_date( %$settings, value => $v)}
 				elsif($type eq 'chb') 			{ $valid_params->{$k} = $self->check_checkbox( %$settings, value => $v)}
-				elsif($type eq 'password') 	{ $valid_params->{$k} = $self->check_password( %$settings, value => $v)}
+				elsif($type eq 'password') 	{ $valid_params->{$k} = $self->check_password_digest( %$settings, value => $v)}
 				elsif($type eq 'datetime')	{ $valid_params->{$k} = $self->check_datetime( %$settings, value => $v)}
 				elsif($type eq 'time')			{ $valid_params->{$k} = $self->check_time( %$settings, value => $v)}
 				else 												{
@@ -80,7 +80,7 @@ sub register {
 
 	$app->helper(check_email       		=> \&_check_email);
 	$app->helper(check_checkbox       => \&_check_checkbox);
-	$app->helper(check_password       => \&_check_password_digest);
+	$app->helper(check_password_digest     => \&_check_password_digest);
 	$app->helper(check_datetime       => \&_check_datetime);
 	$app->helper(check_time       		=> \&_check_time);
 	$app->helper(check_date       		=> \&_check_date);
