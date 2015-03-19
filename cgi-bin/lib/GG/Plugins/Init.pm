@@ -81,6 +81,7 @@ sub register {
 
 	# Pipeline assets
 	$app->plugin('AssetPack', {
+    base_url    => $conf->{'protocol'}.'://'.$conf->{http_host}.'/packed/',
 		minify 			=> $conf->{pipeline_minify} && $app->mode eq 'production',
 	});
 

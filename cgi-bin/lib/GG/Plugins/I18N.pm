@@ -64,20 +64,17 @@ sub register {
       # URL detection
       if (my $path = $self->req->url->path) {
         my $part = $path->parts->[0];
-
+        # Ignore static files
+        return if $self->res->code;
+        
         # 301 redirect if lang == default lang
         if($part && $part eq $default){
-          # Ignore static files
-          return if $self->res->code;
 
           shift @{$path->parts};
           $self->res->code(301);
           $self->redirect_to($self->req->url->to_abs);
         }
         elsif ($part && $langs && grep { $part eq $_ } @$langs) {
-          # Ignore static files
-          return if $self->res->code;
-
           $self->app->log->debug("Found language $part in URL $path");
 
           unshift @languages, $part;
