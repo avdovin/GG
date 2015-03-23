@@ -2,7 +2,7 @@ package Mojolicious::Routes::Pattern;
 use Mojo::Base -base;
 
 has [qw(constraints defaults)] => sub { {} };
-has [qw(format_regex pattern regex)];
+has [qw(format_regex regex unparsed)];
 has placeholder_start => ':';
 has [qw(placeholders tree)] => sub { [] };
 has quote_end      => ')';
@@ -23,11 +23,9 @@ sub match_partial {
   $self->_compile unless $self->{regex};
   $self->_compile_format if $detect && !$self->{format_regex};
 
-  # Match
+  # Path
   return undef unless my @captures = $$pathref =~ $self->regex;
   $$pathref = ${^POSTMATCH};
-
-  # Merge captures
   my $captures = {%{$self->defaults}};
   for my $placeholder (@{$self->placeholders}) {
     last unless @captures;
@@ -215,7 +213,7 @@ sub _tokenize {
     else { push @tree, ['text', $char] }
   }
 
-  return $self->pattern($pattern)->tree(\@tree);
+  return $self->unparsed($pattern)->tree(\@tree);
 }
 
 1;
@@ -265,13 +263,6 @@ Default parameters.
   $pattern  = $pattern->format_regex($regex);
 
 Compiled regular expression for format matching.
-
-=head2 pattern
-
-  my $raw  = $pattern->pattern;
-  $pattern = $pattern->pattern('/(foo)/(bar)');
-
-Raw unparsed pattern.
 
 =head2 placeholder_start
 
@@ -323,6 +314,13 @@ Character indicating a relaxed placeholder, defaults to C<#>.
 Pattern in parsed form. Note that this structure should only be used very
 carefully since it is very dynamic.
 
+=head2 unparsed
+
+  my $unparsed = $pattern->unparsed;
+  $pattern     = $pattern->unparsed('/(foo)/(bar)');
+
+Raw unparsed pattern.
+
 =head2 wildcard_start
 
   my $start = $pattern->wildcard_start;
@@ -352,6 +350,7 @@ disabled by default.
 
 =head2 new
 
+  my $pattern = Mojolicious::Routes::Pattern->new;
   my $pattern = Mojolicious::Routes::Pattern->new('/:action');
   my $pattern
     = Mojolicious::Routes::Pattern->new('/:action', action => qr/\w+/);

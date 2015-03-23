@@ -22,13 +22,9 @@ sub emit {
   return $self;
 }
 
-sub has_subscribers { !!@{shift->{events}{shift()} || []} }
+sub has_subscribers { !!shift->{events}{shift()} }
 
-sub on {
-  my ($self, $name, $cb) = @_;
-  push @{$self->{events}{$name} ||= []}, $cb;
-  return $cb;
-}
+sub on { push @{$_[0]{events}{$_[1]}}, $_[2] and return $_[2] }
 
 sub once {
   my ($self, $name, $cb) = @_;
@@ -116,8 +112,8 @@ class but is fatal if unhandled.
 
 =head1 METHODS
 
-L<Mojo::EventEmitter> inherits all methods from L<Mojo::Base> and
-implements the following new ones.
+L<Mojo::EventEmitter> inherits all methods from L<Mojo::Base> and implements
+the following new ones.
 
 =head2 catch
 

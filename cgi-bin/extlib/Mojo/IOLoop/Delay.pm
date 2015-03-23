@@ -3,11 +3,9 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Mojo::IOLoop;
 use Mojo::Util;
-use Hash::Util::FieldHash 'fieldhash';
 
-has ioloop => sub { Mojo::IOLoop->singleton };
-
-fieldhash my %REMAINING;
+has ioloop    => sub { Mojo::IOLoop->singleton };
+has remaining => sub { [] };
 
 sub begin {
   my ($self, $offset, $len) = @_;
@@ -19,13 +17,6 @@ sub begin {
 sub data { Mojo::Util::_stash(data => @_) }
 
 sub pass { $_[0]->begin->(@_) }
-
-sub remaining {
-  my $self = shift;
-  return $REMAINING{$self} //= [] unless @_;
-  $REMAINING{$self} = shift;
-  return $self;
-}
 
 sub steps {
   my $self = shift->remaining([@_]);
@@ -130,8 +121,8 @@ Mojo::IOLoop::Delay - Manage callbacks and control the flow of events
 =head1 DESCRIPTION
 
 L<Mojo::IOLoop::Delay> manages callbacks and controls the flow of events for
-L<Mojo::IOLoop>, which can help you avoid deep nested closures and memory
-leaks that often result from continuation-passing style.
+L<Mojo::IOLoop>, which can help you avoid deep nested closures that often
+result from continuation-passing style.
 
 =head1 EVENTS
 
@@ -155,8 +146,7 @@ fatal if unhandled.
     ...
   });
 
-Emitted once the active event counter reaches zero and there are no more
-steps.
+Emitted once the active event counter reaches zero and there are no more steps.
 
 =head1 ATTRIBUTES
 
@@ -164,11 +154,17 @@ L<Mojo::IOLoop::Delay> implements the following attributes.
 
 =head2 ioloop
 
-  my $ioloop = $delay->ioloop;
-  $delay     = $delay->ioloop(Mojo::IOLoop->new);
+  my $loop = $delay->ioloop;
+  $delay   = $delay->ioloop(Mojo::IOLoop->new);
 
-Event loop object to control, defaults to the global L<Mojo::IOLoop>
-singleton.
+Event loop object to control, defaults to the global L<Mojo::IOLoop> singleton.
+
+=head2 remaining
+
+  my $remaining = $delay->remaining;
+  $delay        = $delay->remaining([]);
+
+Remaining L</"steps"> in chain.
 
 =head1 METHODS
 
@@ -181,11 +177,10 @@ implements the following new ones.
   my $cb = $delay->begin($offset);
   my $cb = $delay->begin($offset, $len);
 
-Increment active event counter, the returned callback can be used to decrement
-the active event counter again. Arguments passed to the callback are spliced
-and queued in the right order for the next step or L</"finish"> event and
-L</"wait"> method, the argument offset defaults to C<1> with no default
-length.
+Indicate an active event by incrementing the active event counter, the returned
+callback needs to be called when the event has completed, to decrement the
+active event counter again. When all callbacks have been called and the active
+event counter reached zero, L</"steps"> will continue.
 
   # Capture all arguments except for the first one (invocant)
   my $delay = Mojo::IOLoop->delay(sub {
@@ -194,6 +189,11 @@ length.
   });
   Mojo::IOLoop->client({port => 3000} => $delay->begin);
   $delay->wait;
+
+Arguments passed to the returned callback are spliced with the given offset and
+length, defaulting to an offset of C<1> with no default length. The arguments
+are then combined in the same order L</"begin"> was called, and passed together
+to the next step or L</"finish"> event.
 
   # Capture all arguments
   my $delay = Mojo::IOLoop->delay(sub {
@@ -211,6 +211,15 @@ length.
   Mojo::IOLoop->client({port => 3000} => $delay->begin(1, 1));
   $delay->wait;
 
+  # Capture and combine arguments
+  my $delay = Mojo::IOLoop->delay(sub {
+    my ($delay, $three_err, $three_stream, $four_err, $four_stream) = @_;
+    ...
+  });
+  Mojo::IOLoop->client({port => 3000} => $delay->begin);
+  Mojo::IOLoop->client({port => 4000} => $delay->begin);
+  $delay->wait;
+
 =head2 data
 
   my $hash = $delay->data;
@@ -223,35 +232,29 @@ Data shared between all L</"steps">.
   # Remove value
   my $foo = delete $delay->data->{foo};
 
+  # Assign multiple values at once
+  $delay->data(foo => 'test', bar => 23);
+
 =head2 pass
 
   $delay = $delay->pass;
   $delay = $delay->pass(@args);
 
-Increment active event counter and decrement it again right away to pass
-values to the next step.
+Increment active event counter and decrement it again right away to pass values
+to the next step.
 
   # Longer version
   $delay->begin(0)->(@args);
-
-=head2 remaining
-
-  my $remaining = $delay->remaining;
-  $delay        = $delay->remaining([]);
-
-Remaining L</"steps"> in chain, stored outside the object to protect from
-circular references.
 
 =head2 steps
 
   $delay = $delay->steps(sub {...}, sub {...});
 
-Sequentialize multiple events, every time the active event counter reaches
-zero a callback will run, the first one automatically runs during the next
-reactor tick unless it is delayed by incrementing the active event counter.
-This chain will continue until there are no more callbacks, a callback does
-not increment the active event counter or an exception gets thrown in a
-callback.
+Sequentialize multiple events, every time the active event counter reaches zero
+a callback will run, the first one automatically runs during the next reactor
+tick unless it is delayed by incrementing the active event counter. This chain
+will continue until there are no L</"remaining"> callbacks, a callback does not
+increment the active event counter or an exception gets thrown in a callback.
 
 =head2 wait
 

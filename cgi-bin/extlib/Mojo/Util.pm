@@ -7,14 +7,15 @@ use Digest::MD5 qw(md5 md5_hex);
 use Digest::SHA qw(hmac_sha1_hex sha1 sha1_hex);
 use Encode 'find_encoding';
 use Exporter 'import';
+use IO::Poll qw(POLLIN POLLPRI);
 use List::Util 'min';
 use MIME::Base64 qw(decode_base64 encode_base64);
 use Symbol 'delete_package';
 use Time::HiRes ();
 
 # Check for monotonic clock support
-use constant MONOTONIC => eval
-  '!!Time::HiRes::clock_gettime(Time::HiRes::CLOCK_MONOTONIC())';
+use constant MONOTONIC =>
+  eval { !!Time::HiRes::clock_gettime(Time::HiRes::CLOCK_MONOTONIC()) };
 
 # Punycode bootstring parameters
 use constant {
@@ -28,7 +29,8 @@ use constant {
 };
 
 # Will be shipping with Perl 5.22
-my $NAME = eval 'use Sub::Util; 1' ? \&Sub::Util::set_subname : sub { $_[1] };
+my $NAME
+  = eval { require Sub::Util; Sub::Util->can('set_subname') } || sub { $_[1] };
 
 # To generate a new HTML entity table run this command
 # perl examples/entities.pl
@@ -47,6 +49,9 @@ my %XML = (
   '\'' => '&#39;'
 );
 
+# "Sun, 06 Nov 1994 08:49:37 GMT" and "Sunday, 06-Nov-94 08:49:37 GMT"
+my $EXPIRES_RE = qr/(\w+\W+\d+\W+\w+\W+\d+\W+\d+:\d+:\d+\W*\w+)/;
+
 # Encoding cache
 my %CACHE;
 
@@ -54,13 +59,13 @@ our @EXPORT_OK = (
   qw(b64_decode b64_encode camelize class_to_file class_to_path decamelize),
   qw(decode deprecated dumper encode hmac_sha1_sum html_unescape md5_bytes),
   qw(md5_sum monkey_patch punycode_decode punycode_encode quote),
-  qw(secure_compare sha1_bytes sha1_sum slurp split_header spurt squish),
-  qw(steady_time tablify trim unindent unquote url_escape url_unescape),
-  qw(xml_escape xor_encode xss_escape)
+  qw(secure_compare sha1_bytes sha1_sum slurp split_cookie_header),
+  qw(split_header spurt squish steady_time tablify term_escape trim unindent),
+  qw(unquote url_escape url_unescape xml_escape xor_encode xss_escape)
 );
 
-sub b64_decode { decode_base64($_[0]) }
-sub b64_encode { encode_base64($_[0], $_[1]) }
+sub b64_decode { decode_base64 $_[0] }
+sub b64_encode { encode_base64 $_[0], $_[1] }
 
 sub camelize {
   my $str = shift;
@@ -75,11 +80,11 @@ sub camelize {
 sub class_to_file {
   my $class = shift;
   $class =~ s/::|'//g;
-  $class =~ s/([A-Z])([A-Z]*)/$1.lc($2)/ge;
+  $class =~ s/([A-Z])([A-Z]*)/$1 . lc $2/ge;
   return decamelize($class);
 }
 
-sub class_to_path { join '.', join('/', split /::|'/, shift), 'pm' }
+sub class_to_path { join '.', join('/', split(/::|'/, shift)), 'pm' }
 
 sub decamelize {
   my $str = shift;
@@ -100,7 +105,7 @@ sub decode {
 
 sub deprecated {
   local $Carp::CarpLevel = 1;
-  $ENV{MOJO_FATAL_DEPRECATIONS} ? croak(@_) : carp(@_);
+  $ENV{MOJO_FATAL_DEPRECATIONS} ? croak @_ : carp @_;
 }
 
 sub dumper {
@@ -109,7 +114,7 @@ sub dumper {
 
 sub encode { _encoding($_[0])->encode("$_[1]") }
 
-sub hmac_sha1_sum { hmac_sha1_hex(@_) }
+sub hmac_sha1_sum { hmac_sha1_hex @_ }
 
 sub html_unescape {
   my $str = shift;
@@ -117,8 +122,8 @@ sub html_unescape {
   return $str;
 }
 
-sub md5_bytes { md5(@_) }
-sub md5_sum   { md5_hex(@_) }
+sub md5_bytes { md5 @_ }
+sub md5_sum   { md5_hex @_ }
 
 sub monkey_patch {
   my ($class, %patch) = @_;
@@ -138,7 +143,7 @@ sub punycode_decode {
   my @output;
 
   # Consume all code points before the last delimiter
-  push @output, split '', $1 if $input =~ s/(.*)\x2d//s;
+  push @output, split('', $1) if $input =~ s/(.*)\x2d//s;
 
   while (length $input) {
     my $oldi = $i;
@@ -231,8 +236,8 @@ sub secure_compare {
   return $r == 0;
 }
 
-sub sha1_bytes { sha1(@_) }
-sub sha1_sum   { sha1_hex(@_) }
+sub sha1_bytes { sha1 @_ }
+sub sha1_sum   { sha1_hex @_ }
 
 sub slurp {
   my $path = shift;
@@ -242,25 +247,8 @@ sub slurp {
   return $content;
 }
 
-sub split_header {
-  my $str = shift;
-
-  my (@tree, @token);
-  while ($str =~ s/^[,;\s]*([^=;, ]+)\s*//) {
-    push @token, $1, undef;
-    $token[-1] = unquote($1)
-      if $str =~ s/^=\s*("(?:\\\\|\\"|[^"])*"|[^;, ]*)\s*//;
-
-    # Separator
-    $str =~ s/^;\s*//;
-    next unless $str =~ s/^,\s*//;
-    push @tree, [@token];
-    @token = ();
-  }
-
-  # Take care of final token
-  return [@token ? (@tree, \@token) : @tree];
-}
+sub split_cookie_header { _header(shift, 1) }
+sub split_header        { _header(shift, 0) }
 
 sub spurt {
   my ($content, $path) = @_;
@@ -288,7 +276,7 @@ sub tablify {
   my @spec;
   for my $row (@$rows) {
     for my $i (0 .. $#$row) {
-      $row->[$i] =~ s/[\r\n]//g;
+      ($row->[$i] //= '') =~ s/[\r\n]//g;
       my $len = length $row->[$i];
       $spec[$i] = $len if $len >= ($spec[$i] // 0);
     }
@@ -296,6 +284,12 @@ sub tablify {
 
   my $format = join '  ', map({"\%-${_}s"} @spec[0 .. $#spec - 1]), '%s';
   return join '', map { sprintf "$format\n", @$_ } @$rows;
+}
+
+sub term_escape {
+  my $str = shift;
+  $str =~ s/([\x00-\x09\x0b-\x1f\x7f\x80-\x9f])/sprintf '\\x%02x', ord $1/ge;
+  return $str;
 }
 
 sub trim {
@@ -322,14 +316,14 @@ sub unquote {
 
 sub url_escape {
   my ($str, $pattern) = @_;
-  if ($pattern) { $str =~ s/([$pattern])/sprintf('%%%02X',ord($1))/ge }
-  else          { $str =~ s/([^A-Za-z0-9\-._~])/sprintf('%%%02X',ord($1))/ge }
+  if   ($pattern) { $str =~ s/([$pattern])/sprintf '%%%02X', ord $1/ge }
+  else            { $str =~ s/([^A-Za-z0-9\-._~])/sprintf '%%%02X', ord $1/ge }
   return $str;
 }
 
 sub url_unescape {
   my $str = shift;
-  $str =~ s/%([0-9a-fA-F]{2})/chr(hex($1))/ge;
+  $str =~ s/%([0-9a-fA-F]{2})/chr hex $1/ge;
   return $str;
 }
 
@@ -389,6 +383,38 @@ sub _encoding {
   $CACHE{$_[0]} //= find_encoding($_[0]) // croak "Unknown encoding '$_[0]'";
 }
 
+# Supported on Perl 5.14+
+sub _global_destruction {
+  defined(${^GLOBAL_PHASE}) && ${^GLOBAL_PHASE} eq 'DESTRUCT';
+}
+
+sub _header {
+  my ($str, $cookie) = @_;
+
+  my (@tree, @part);
+  while ($str =~ /\G[,;\s]*([^=;, ]+)\s*/gc) {
+    push @part, $1, undef;
+    my $expires = $cookie && @part > 2 && lc $1 eq 'expires';
+
+    # Special "expires" value
+    if ($expires && $str =~ /\G=\s*$EXPIRES_RE/gco) { $part[-1] = $1 }
+
+    # Quoted value
+    elsif ($str =~ /\G=\s*("(?:\\\\|\\"|[^"])*")/gc) { $part[-1] = unquote $1 }
+
+    # Unquoted value
+    elsif ($str =~ /\G=\s*([^;, ]*)/gc) { $part[-1] = $1 }
+
+    # Separator
+    next unless $str =~ /\G[;\s]*,\s*/gc;
+    push @tree, [@part];
+    @part = ();
+  }
+
+  # Take care of final part
+  return [@part ? (@tree, \@part) : @tree];
+}
+
 sub _options {
 
   # Hash or name (one)
@@ -400,6 +426,9 @@ sub _options {
   # Name and hash or just values (even)
   return ref $_[1] eq 'HASH' ? (shift, %{shift()}) : (undef, @_);
 }
+
+# This may break in the future, but is worth it for performance
+sub _readable { !!(IO::Poll::_poll(@_[0, 1], my $m = POLLIN | POLLPRI) > 0) }
 
 sub _stash {
   my ($name, $object) = (shift, shift);
@@ -470,7 +499,7 @@ Base64 encode bytes, the line ending defaults to a newline.
 
   my $camelcase = camelize $snakecase;
 
-Convert snake_case string to CamelCase and replace C<-> with C<::>.
+Convert C<snake_case> string to C<CamelCase> and replace C<-> with C<::>.
 
   # "FooBar"
   camelize 'foo_bar';
@@ -515,7 +544,7 @@ Convert class name to path.
 
   my $snakecase = decamelize $camelcase;
 
-Convert CamelCase string to snake_case and replace C<::> with C<->.
+Convert C<CamelCase> string to C<snake_case> and replace C<::> with C<->.
 
   # "foo_bar"
   decamelize 'FooBar';
@@ -557,11 +586,17 @@ Encode characters to bytes.
 
 Generate HMAC-SHA1 checksum for bytes.
 
+  # "11cedfd5ec11adc0ec234466d8a0f2a83736aa68"
+  hmac_sha1_sum 'foo', 'passw0rd';
+
 =head2 html_unescape
 
   my $str = html_unescape $escaped;
 
 Unescape all HTML entities in string.
+
+  # "<div>"
+  html_unescape '&lt;div&gt;';
 
 =head2 md5_bytes
 
@@ -574,6 +609,9 @@ Generate binary MD5 checksum for bytes.
   my $checksum = md5_sum $bytes;
 
 Generate MD5 checksum for bytes.
+
+  # "acbd18db4cc2f85cedef654fccc4a4d8"
+  md5_sum 'foo';
 
 =head2 monkey_patch
 
@@ -594,12 +632,18 @@ Monkey patch functions into package.
 Punycode decode string as described in
 L<RFC 3492|http://tools.ietf.org/html/rfc3492>.
 
+  # "bücher"
+  punycode_decode 'bcher-kva';
+
 =head2 punycode_encode
 
   my $punycode = punycode_encode $str;
 
 Punycode encode string as described in
 L<RFC 3492|http://tools.ietf.org/html/rfc3492>.
+
+  # "bcher-kva"
+  punycode_encode 'bücher';
 
 =head2 quote
 
@@ -625,26 +669,43 @@ Generate binary SHA1 checksum for bytes.
 
 Generate SHA1 checksum for bytes.
 
+  # "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
+  sha1_sum 'foo';
+
 =head2 slurp
 
   my $bytes = slurp '/etc/passwd';
 
 Read all data at once from file.
 
+=head2 split_cookie_header
+
+  my $tree = split_cookie_header 'a=b; expires=Thu, 07 Aug 2008 07:07:59 GMT';
+
+Same as L</"split_header">, but handles C<expires> values from
+L<RFC 6265|http://tools.ietf.org/html/rfc6265>.
+
 =head2 split_header
 
    my $tree = split_header 'foo="bar baz"; test=123, yada';
 
-Split HTTP header value.
+Split HTTP header value into key/value pairs, each comma separated part gets
+its own array reference, and keys without a value get C<undef> assigned.
 
   # "one"
   split_header('one; two="three four", five=six')->[0][0];
+
+  # "two"
+  split_header('one; two="three four", five=six')->[0][2];
 
   # "three four"
   split_header('one; two="three four", five=six')->[0][3];
 
   # "five"
   split_header('one; two="three four", five=six')->[1][0];
+
+  # "six"
+  split_header('one; two="three four", five=six')->[1][1];
 
 =head2 spurt
 
@@ -658,6 +719,9 @@ Write all data at once to file.
 
 Trim whitespace characters from both ends of string and then change all
 consecutive groups of whitespace into one space each.
+
+  # "foo bar"
+  squish '  foo  bar  ';
 
 =head2 steady_time
 
@@ -676,17 +740,32 @@ Row-oriented generator for text tables.
   # "foo   bar\nyada  yada\nbaz   yada\n"
   tablify [['foo', 'bar'], ['yada', 'yada'], ['baz', 'yada']];
 
+=head2 term_escape
+
+  my $escaped = term_escape $str;
+
+Escape all POSIX control characters except for C<\n>.
+
+  # "foo\\x09bar\\x0d\n"
+  term_escape "foo\tbar\r\n";
+
 =head2 trim
 
   my $trimmed = trim $str;
 
 Trim whitespace characters from both ends of string.
 
+  # "foo bar"
+  trim '  foo bar  ';
+
 =head2 unindent
 
   my $unindented = unindent $str;
 
 Unindent multiline string.
+
+  # "foo\nbar\nbaz\n"
+  unindent "  foo\n  bar\n  baz\n";
 
 =head2 unquote
 
@@ -703,6 +782,9 @@ Percent encode unsafe characters in string as described in
 L<RFC 3986|http://tools.ietf.org/html/rfc3986>, the pattern used defaults to
 C<^A-Za-z0-9\-._~>.
 
+  # "foo%3Bbar"
+  url_unescape 'foo;bar';
+
 =head2 url_unescape
 
   my $str = url_unescape $escaped;
@@ -710,11 +792,17 @@ C<^A-Za-z0-9\-._~>.
 Decode percent encoded characters in string as described in
 L<RFC 3986|http://tools.ietf.org/html/rfc3986>.
 
+  # "foo;bar"
+  url_unescape 'foo%3Bbar';
+
 =head2 xml_escape
 
   my $escaped = xml_escape $str;
 
 Escape unsafe characters C<&>, C<E<lt>>, C<E<gt>>, C<"> and C<'> in string.
+
+  # "&lt;div&gt;"
+  xml_escape '<div>';
 
 =head2 xor_encode
 

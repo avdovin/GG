@@ -328,7 +328,7 @@ sub _message {
   if (ref $value eq 'HASH') {
     my $expect = exists $value->{text} ? 'text' : 'binary';
     $value = $value->{$expect};
-    $msg = '' unless $type eq $expect;
+    $msg = '' unless ($type // '') eq $expect;
   }
 
   # Decode text frame if there is no type check
@@ -626,6 +626,14 @@ arguments as L<Mojo::UserAgent/"delete">, except for the callback.
 Checks for existence of the CSS selectors first matching HTML/XML element with
 L<Mojo::DOM/"at">.
 
+  # Check attribute values
+  $t->get_ok('/login')
+    ->element_exists('label[for=email]')
+    ->element_exists('input[name=email][type=text][value*="example.com"]')
+    ->element_exists('label[for=pass]')
+    ->element_exists('input[name=pass][type=password]')
+    ->element_exists('input[type=submit][value]');
+
 =head2 element_exists_not
 
   $t = $t->element_exists_not('div.foo[x=y]');
@@ -659,6 +667,11 @@ arguments as L<Mojo::UserAgent/"get">, except for the callback.
 
   # Run tests against remote host
   $t->get_ok('http://mojolicio.us/perldoc')->status_is(200);
+
+  # Use relative URL for request with Basic authentication
+  $t->get_ok('//sri:secr3t@/secrets.json')
+    ->status_is(200)
+    ->json_is('/1/content', 'Mojo rocks!');
 
   # Run additional tests on the transaction
   $t->get_ok('/foo')->status_is(200);
@@ -880,8 +893,8 @@ Perform a C<POST> request and check for transport errors, takes the same
 arguments as L<Mojo::UserAgent/"post">, except for the callback.
 
   # Test file upload
-  $t->post_ok('/upload' => form => {foo => {content => 'bar'}})
-    ->status_is(200);
+  my $upload = {foo => {content => 'bar', filename => 'baz.txt'}};
+  $t->post_ok('/upload' => form => $upload)->status_is(200);
 
   # Test JSON API
   $t->post_ok('/hello.json' => json => {hello => 'world'})
@@ -908,10 +921,15 @@ Perform request and check for transport errors.
   my $tx = $t->ua->build_tx(FOO => '/test.json' => json => {foo => 1});
   $t->request_ok($tx)->status_is(200)->json_is({success => 1});
 
+  # Request with custom cookie
+  my $tx = $t->ua->build_tx(GET => '/account');
+  $tx->req->cookies({name => 'user', value => 'sri'});
+  $t->request_ok($tx)->status_is(200)->text_is('head > title' => 'Hello sri');
+
   # Custom WebSocket handshake
- my $tx = $t->ua->build_websocket_tx('/foo');
- $tx->req->headers->remove('User-Agent');
- $t->request_ok($tx)->message_ok->message_is('bar')->finish_ok;
+  my $tx = $t->ua->build_websocket_tx('/foo');
+  $tx->req->headers->remove('User-Agent');
+  $t->request_ok($tx)->message_ok->message_is('bar')->finish_ok;
 
 =head2 reset_session
 

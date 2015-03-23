@@ -8,22 +8,14 @@ my $ATTR_RE   = qr/
   \[
   ((?:$ESCAPE_RE|[\w\-])+)           # Key
   (?:
-    (\W)?                            # Operator
-    =
-    (?:"((?:\\"|[^"])*)"|([^\]]+))   # Value
+    (\W)?=                           # Operator
+    (?:"((?:\\"|[^"])*)"|([^\]]+?))  # Value
+    (?:\s+(i))?                      # Case-sensitivity
   )?
   \]
 /x;
-my $PSEUDO_CLASS_RE = qr/(?::([\w\-]+)(?:\(((?:\([^)]+\)|[^)])+)\))?)/;
-my $TOKEN_RE        = qr/
-  (\s*,\s*)?                         # Separator
-  ((?:[^[\\:\s,]|$ESCAPE_RE\s?)+)?   # Element
-  ($PSEUDO_CLASS_RE*)?               # Pseudoclass
-  ((?:$ATTR_RE)*)?                   # Attributes
-  (?:\s*([>+~]))?                    # Combinator
-/x;
 
-sub match {
+sub matches {
   my $tree = shift->tree;
   return $tree->[0] ne 'tag' ? undef : _match(_compile(shift), $tree, $tree);
 }
@@ -41,14 +33,13 @@ sub _ancestor {
 }
 
 sub _attr {
-  my ($key, $regex, $current) = @_;
+  my ($name_re, $value_re, $current) = @_;
 
-  # Ignore namespace prefix
   my $attrs = $current->[2];
   for my $name (keys %$attrs) {
-    next unless $name =~ /(?:^|:)\Q$key\E$/;
-    return 1 unless defined $attrs->{$name} && defined $regex;
-    return 1 if $attrs->{$name} =~ $regex;
+    next unless $name =~ $name_re;
+    return 1 unless defined $attrs->{$name} && defined $value_re;
+    return 1 if $attrs->{$name} =~ $value_re;
   }
 
   return undef;
@@ -78,46 +69,44 @@ sub _combinator {
 }
 
 sub _compile {
-  my $css = shift;
+  my $css = "$_[0]";
 
-  my $pattern = [[]];
-  while ($css =~ /$TOKEN_RE/go) {
-    my ($separator, $element, $pc, $attrs, $combinator)
-      = ($1, $2 // '', $3, $6, $11);
+  my $group = [[]];
+  while (my $selectors = $group->[-1]) {
+    push @$selectors, [] unless @$selectors && ref $selectors->[-1];
+    my $last = $selectors->[-1];
 
-    next unless $separator || $element || $pc || $attrs || $combinator;
-
-    # New selector
-    push @$pattern, [] if $separator;
-    my $part = $pattern->[-1];
-
-    # Empty combinator
-    push @$part, ' ' if $part->[-1] && ref $part->[-1];
-
-    # Tag
-    push @$part, my $selector = [];
-    push @$selector, ['tag', qr/(?:^|:)\Q@{[_unescape($1)]}\E$/]
-      if $element =~ s/^((?:\\\.|\\\#|[^.#])+)// && $1 ne '*';
-
-    # Class or ID
-    while ($element =~ /(?:([.#])((?:\\[.\#]|[^\#.])+))/g) {
-      my ($name, $op) = $1 eq '.' ? ('class', '~') : ('id', '');
-      push @$selector, ['attr', $name, _regex($op, $2)];
-    }
-
-    # Pseudo classes (":not" contains more selectors)
-    push @$selector, ['pc', "$1", $1 eq 'not' ? _compile($2) : _equation($2)]
-      while $pc =~ /$PSEUDO_CLASS_RE/go;
-
-    # Attributes
-    push @$selector, ['attr', _unescape($1), _regex($2 // '', $3 // $4)]
-      while $attrs =~ /$ATTR_RE/go;
+    # Separator
+    if ($css =~ /\G\s*,\s*/gc) { push @$group, [] }
 
     # Combinator
-    push @$part, $combinator if $combinator;
+    elsif ($css =~ /\G\s*([ >+~])\s*/gc) { push @$selectors, $1 }
+
+    # Class or ID
+    elsif ($css =~ /\G([.#])((?:$ESCAPE_RE\s|\\.|[^,.#:[ >~+])+)/gco) {
+      my ($name, $op) = $1 eq '.' ? ('class', '~') : ('id', '');
+      push @$last, ['attr', _name($name), _value($op, $2)];
+    }
+
+    # Attributes
+    elsif ($css =~ /\G$ATTR_RE/gco) {
+      push @$last, ['attr', _name($1), _value($2 // '', $3 // $4, $5)];
+    }
+
+    # Pseudo-class (":not" contains more selectors)
+    elsif ($css =~ /\G:([\w\-]+)(?:\(((?:\([^)]+\)|[^)])+)\))?/gcs) {
+      push @$last, ['pc', lc $1, $1 eq 'not' ? _compile($2) : _equation($2)];
+    }
+
+    # Tag
+    elsif ($css =~ /\G((?:$ESCAPE_RE\s|\\.|[^,.#:[ >~+])+)/gco) {
+      push @$last, ['tag', _name($1)] unless $1 eq '*';
+    }
+
+    else {last}
   }
 
-  return $pattern;
+  return $group;
 }
 
 sub _empty { $_[0][0] eq 'comment' || $_[0][0] eq 'pi' }
@@ -126,10 +115,10 @@ sub _equation {
   return [] unless my $equation = shift;
 
   # "even"
-  return [2, 2] if $equation =~ /^even$/i;
+  return [2, 2] if $equation =~ /^\s*even\s*$/i;
 
   # "odd"
-  return [2, 1] if $equation =~ /^odd$/i;
+  return [2, 1] if $equation =~ /^\s*odd\s*$/i;
 
   # Equation
   my $num = [1, 1];
@@ -142,10 +131,12 @@ sub _equation {
 }
 
 sub _match {
-  my ($pattern, $current, $tree) = @_;
-  _combinator([reverse @$_], $current, $tree, 0) and return 1 for @$pattern;
+  my ($group, $current, $tree) = @_;
+  _combinator([reverse @$_], $current, $tree, 0) and return 1 for @$group;
   return undef;
 }
+
+sub _name {qr/(?:^|:)\Q@{[_unescape(shift)]}\E$/}
 
 sub _parent {
   my ($selectors, $current, $tree, $pos) = @_;
@@ -199,29 +190,8 @@ sub _pc {
   return undef;
 }
 
-sub _regex {
-  my ($op, $value) = @_;
-  return undef unless defined $value;
-  $value = quotemeta _unescape($value);
-
-  # "~=" (word)
-  return qr/(?:^|.*\s+)$value(?:\s+.*|$)/ if $op eq '~';
-
-  # "*=" (contains)
-  return qr/$value/ if $op eq '*';
-
-  # "^=" (begins with)
-  return qr/^$value/ if $op eq '^';
-
-  # "$=" (ends with)
-  return qr/$value$/ if $op eq '$';
-
-  # Everything else
-  return qr/^$value$/;
-}
-
 sub _select {
-  my ($one, $tree, $pattern) = @_;
+  my ($one, $tree, $group) = @_;
 
   my @results;
   my @queue = @$tree[($tree->[0] eq 'root' ? 1 : 4) .. $#$tree];
@@ -229,7 +199,7 @@ sub _select {
     next unless $current->[0] eq 'tag';
 
     unshift @queue, @$current[4 .. $#$current];
-    next unless _match($pattern, $current, $tree);
+    next unless _match($group, $current, $tree);
     $one ? return $current : push @results, $current;
   }
 
@@ -242,16 +212,14 @@ sub _selector {
   for my $s (@$selector) {
     my $type = $s->[0];
 
-    # Tag (ignore namespace prefix)
+    # Tag
     if ($type eq 'tag') { return undef unless $current->[1] =~ $s->[1] }
 
     # Attribute
     elsif ($type eq 'attr') { return undef unless _attr(@$s[1, 2], $current) }
 
-    # Pseudo class
-    elsif ($type eq 'pc') {
-      return undef unless _pc(lc $s->[1], $s->[2], $current);
-    }
+    # Pseudo-class
+    elsif ($type eq 'pc') { return undef unless _pc(@$s[1, 2], $current) }
   }
 
   return 1;
@@ -292,12 +260,33 @@ sub _unescape {
   $value =~ s/\\\n//g;
 
   # Unescape Unicode characters
-  $value =~ s/\\([0-9a-fA-F]{1,6})\s?/pack('U', hex $1)/ge;
+  $value =~ s/\\([0-9a-fA-F]{1,6})\s?/pack 'U', hex $1/ge;
 
   # Remove backslash
   $value =~ s/\\//g;
 
   return $value;
+}
+
+sub _value {
+  my ($op, $value, $insensitive) = @_;
+  return undef unless defined $value;
+  $value = ($insensitive ? '(?i)' : '') . quotemeta _unescape($value);
+
+  # "~=" (word)
+  return qr/(?:^|\s+)$value(?:\s+|$)/ if $op eq '~';
+
+  # "*=" (contains)
+  return qr/$value/ if $op eq '*';
+
+  # "^=" (begins with)
+  return qr/^$value/ if $op eq '^';
+
+  # "$=" (ends with)
+  return qr/$value$/ if $op eq '$';
+
+  # Everything else
+  return qr/^$value$/;
 }
 
 1;
@@ -347,34 +336,53 @@ An C<E> element with a C<foo> attribute.
 
 An C<E> element whose C<foo> attribute value is exactly equal to C<bar>.
 
-  my $fields = $css->select('input[name="foo"]');
+  my $case_sensitive = $css->select('input[type="hidden"]');
+  my $case_sensitive = $css->select('input[type=hidden]');
+
+=head2 E[foo="bar" i]
+
+An C<E> element whose C<foo> attribute value is exactly equal to any
+(ASCII-range) case-permutation of C<bar>. Note that this selector is
+EXPERIMENTAL and might change without warning!
+
+  my $case_insensitive = $css->select('input[type="hidden" i]');
+  my $case_insensitive = $css->select('input[type=hidden i]');
+  my $case_insensitive = $css->select('input[class~="foo" i]');
+
+This selector is part of
+L<Selectors Level 4|http://dev.w3.org/csswg/selectors-4>, which is still a work
+in progress.
 
 =head2 E[foo~="bar"]
 
-An C<E> element whose C<foo> attribute value is a list of
-whitespace-separated values, one of which is exactly equal to C<bar>.
+An C<E> element whose C<foo> attribute value is a list of whitespace-separated
+values, one of which is exactly equal to C<bar>.
 
-  my $fields = $css->select('input[name~="foo"]');
+  my $foo = $css->select('input[class~="foo"]');
+  my $foo = $css->select('input[class~=foo]');
 
 =head2 E[foo^="bar"]
 
 An C<E> element whose C<foo> attribute value begins exactly with the string
 C<bar>.
 
-  my $fields = $css->select('input[name^="f"]');
+  my $begins_with = $css->select('input[name^="f"]');
+  my $begins_with = $css->select('input[name^=f]');
 
 =head2 E[foo$="bar"]
 
 An C<E> element whose C<foo> attribute value ends exactly with the string
 C<bar>.
 
-  my $fields = $css->select('input[name$="o"]');
+  my $ends_with = $css->select('input[name$="o"]');
+  my $ends_with = $css->select('input[name$=o]');
 
 =head2 E[foo*="bar"]
 
 An C<E> element whose C<foo> attribute value contains the substring C<bar>.
 
-  my $fields = $css->select('input[name*="fo"]');
+  my $contains = $css->select('input[name*="fo"]');
+  my $contains = $css->select('input[name*=fo]');
 
 =head2 E:root
 
@@ -538,11 +546,11 @@ carefully since it is very dynamic.
 L<Mojo::DOM::CSS> inherits all methods from L<Mojo::Base> and implements the
 following new ones.
 
-=head2 match
+=head2 matches
 
-  my $bool = $css->match('head > title');
+  my $bool = $css->matches('head > title');
 
-Match CSS selector against first node in L</"tree">.
+Check if first node in L</"tree"> matches the CSS selector.
 
 =head2 select
 
@@ -554,8 +562,7 @@ Run CSS selector against L</"tree">.
 
   my $result = $css->select_one('head > title');
 
-Run CSS selector against L</"tree"> and stop as soon as the first node
-matched.
+Run CSS selector against L</"tree"> and stop as soon as the first node matched.
 
 =head1 SEE ALSO
 

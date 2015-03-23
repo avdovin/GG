@@ -1,6 +1,7 @@
 package Mojolicious::Plugins;
 use Mojo::Base 'Mojo::EventEmitter';
 
+use Mojo::Loader 'load_class';
 use Mojo::Util 'camelize';
 
 has namespaces => sub { ['Mojolicious::Plugin'] };
@@ -33,7 +34,7 @@ sub load_plugin {
   my ($self, $name) = @_;
 
   # Try all namespaces and full module name
-  my $suffix = $name =~ /^[a-z]/ ? camelize($name) : $name;
+  my $suffix = $name =~ /^[a-z]/ ? camelize $name : $name;
   my @classes = map {"${_}::$suffix"} @{$self->namespaces};
   for my $class (@classes, $name) { return $class->new if _load($class) }
 
@@ -47,8 +48,7 @@ sub register_plugin {
 
 sub _load {
   my $module = shift;
-  return $module->isa('Mojolicious::Plugin')
-    unless my $e = Mojo::Loader->new->load($module);
+  return $module->isa('Mojolicious::Plugin') unless my $e = load_class $module;
   ref $e ? die $e : return undef;
 }
 

@@ -89,7 +89,8 @@ Mojo::Transaction - Transaction base class
 
 =head1 DESCRIPTION
 
-L<Mojo::Transaction> is an abstract base class for transactions.
+L<Mojo::Transaction> is an abstract base class for transactions, like
+L<Mojo::Transaction::HTTP> and L<Mojo::Transaction::WebSocket>.
 
 =head1 EVENTS
 
@@ -193,8 +194,8 @@ default, used to implement user agents.
 
   $tx->client_read($bytes);
 
-Read data client-side, used to implement user agents. Meant to be overloaded
-in a subclass.
+Read data client-side, used to implement user agents. Meant to be overloaded in
+a subclass.
 
 =head2 client_write
 
@@ -205,17 +206,20 @@ in a subclass.
 
 =head2 connection
 
-  my $connection = $tx->connection;
-  $tx            = $tx->connection($connection);
+  my $id = $tx->connection;
+  $tx    = $tx->connection($id);
 
-Connection identifier or socket.
+Connection identifier.
 
 =head2 error
 
   my $err = $tx->error;
 
-Return transaction error or C<undef> if there is no error, commonly used
-together with L</"success">.
+Get request or response error and return C<undef> if there is no error,
+commonly used together with L</"success">.
+
+  # Longer version
+  my $err = $tx->req->error || $tx->res->error;
 
   # Check for different kinds of errors
   if (my $err = $tx->error) {
@@ -266,8 +270,8 @@ Transaction closed server-side, used to implement web servers.
 
   $tx->server_read($bytes);
 
-Read data server-side, used to implement web servers. Meant to be overloaded
-in a subclass.
+Read data server-side, used to implement web servers. Meant to be overloaded in
+a subclass.
 
 =head2 server_write
 
@@ -280,8 +284,8 @@ in a subclass.
 
   my $res = $tx->success;
 
-Returns the L<Mojo::Message::Response> object from L</"res"> if transaction
-was successful or C<undef> otherwise. Connection and parser errors have only a
+Returns the L<Mojo::Message::Response> object from L</"res"> if transaction was
+successful or C<undef> otherwise. Connection and parser errors have only a
 message in L</"error">, 400 and 500 responses also a code.
 
   # Sensible exception handling

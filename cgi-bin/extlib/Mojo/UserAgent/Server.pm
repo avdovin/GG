@@ -38,21 +38,21 @@ sub _restart {
   weaken $server->app($self->app)->{app};
   my $port = $self->{port} ? ":$self->{port}" : '';
   $self->{port} = $server->listen(["$proto://127.0.0.1$port"])
-    ->start->ioloop->acceptor($server->acceptors->[0])->handle->sockport;
+    ->start->ioloop->acceptor($server->acceptors->[0])->port;
 
   # Non-blocking
   $server = $self->{nb_server} = Mojo::Server::Daemon->new(silent => 1);
   weaken $server->app($self->app)->{app};
   $port = $self->{nb_port} ? ":$self->{nb_port}" : '';
   $self->{nb_port} = $server->listen(["$proto://127.0.0.1$port"])
-    ->start->ioloop->acceptor($server->acceptors->[0])->handle->sockport;
+    ->start->ioloop->acceptor($server->acceptors->[0])->port;
 }
 
 sub _url {
   my ($self, $nb) = (shift, shift);
   $self->_restart(0, @_) if !$self->{server} || @_;
   my $port = $nb ? $self->{nb_port} : $self->{port};
-  return Mojo::URL->new("$self->{proto}://localhost:$port/");
+  return Mojo::URL->new("$self->{proto}://127.0.0.1:$port/");
 }
 
 1;
