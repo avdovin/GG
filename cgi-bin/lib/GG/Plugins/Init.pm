@@ -17,12 +17,27 @@ sub register {
 		push @INC, $_ for (ref $perl5lib eq 'ARRAY' ? @{$perl5lib} : $perl5lib);
 	});
 
-	$app->plugin( charset => { charset => 'UTF-8' } );
+  $app->hook(before_dispatch => sub {
+    my $self = shift;
+
+    # remove trailing slash => /about/ => /about
+    if( $self->req->url->path->trailing_slash ){
+      next if $self->req->url->path->contains('/admin');
+
+      $self->req->url->path->leading_slash(1);
+      $self->req->url->path->trailing_slash(0);
+      $self->res->code(301);
+
+      return $self->redirect_to($self->req->url->path->to_string);
+    }
+  }) if $app->mode eq 'production';
+
+	$app->plugin(charset => {charset => 'UTF-8'});
 
 	# Add new MIME type
 	$app->types->type(xls => 'application/vnd.ms-excel');
 
-	my $conf = $app->plugin('Config', {	file      => 'app.conf', 	default   => {} });
+	my $conf = $app->plugin('Config', {file => 'app.conf', default => {}});
 
 	# Add secret
 	$app->secrets([($conf->{secret} || $app->home . $app->mode . (localtime())[3])]);
@@ -94,36 +109,17 @@ sub register {
 		$self->stash->{lang} ||= $conf->{lang_default};
 
     if($self->app->mode eq 'development'){
-      $self->app->log->level('debug');
       BEGIN {
         $ENV{'MOJO_I18N_DEBUG'} = 1;
         #$ENV{'MOJO_ASSETPACK_DEBUG'} = $ENV{'MOJO_ASSETPACK_NO_CACHE'} = 1;
       };
     }
     else {
-      $self->app->log->level('error');
       BEGIN {
         $ENV{'MOJO_I18N_DEBUG'} = 0;
         #$ENV{'MOJO_ASSETPACK_DEBUG'} = $ENV{'MOJO_ASSETPACK_NO_CACHE'} = 0;
       };
     }
-
-    # if(my $mode = $self->get_var( name => 'mode', controller => 'global', raw => 1 )){
-    #   $self->app->mode( $ENV{MOJO_MODE} = $mode );
-    #
-    #   if($mode eq 'development'){
-    #     $self->app->log->level('debug');
-    #     BEGIN {
-    #       $ENV{MOJO_I18N_DEBUG} = 0
-    #     };
-    #   }
-    #   else {
-    #     $self->app->log->level('error');
-    #     BEGIN {
-    #       $ENV{MOJO_I18N_DEBUG} = 1
-    #     };
-    #   }
-    # }
 
 		# --- SEO 301 redirect to none www domain ---------
 		my $url = $self->req->url->clone;
@@ -141,17 +137,6 @@ sub register {
 			return;
 		}
 		# --- END OF SEO MODULE --------------------------
-
-		# remove url trailing slash - /about/ => /about
-		if( $self->req->url->path->trailing_slash ){
-			next if $self->req->url->path->contains('/admin');
-
-			my $path = $self->req->url->path->to_string;
-			$path =~ s{\/$}{}gi;
-
-			$self->res->code(301);
-			return $self->redirect_to($path);
-		}
 
     # If not morbo server
     unless( $ENV{MORBO_REV} ){
