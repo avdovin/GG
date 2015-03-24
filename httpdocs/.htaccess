@@ -12,7 +12,7 @@ Options -Indexes +ExecCGI
 #AddHandler fcgid-script .fcgi
 
 # The DirectorySlash directive determines, whether mod_dir should fixup URLs pointing to a directory or not.
-DirectorySlash Off
+#DirectorySlash Off
 
 RewriteEngine On
 RewriteRule \.git - [F,L]
