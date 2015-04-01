@@ -152,6 +152,7 @@ function init_tablelist(id) {
 									a.href =  '#';
 									a.dataset.action = action;
 									a.dataset.index = index;
+
 									if(action == 'delete'){
 										var confirm_msg = 'Вы действительно хотите удалить запись?';
 										a.alt = confirm_msg;
@@ -346,8 +347,6 @@ function init_qedit_info(id) {
 				}
 				textEditObj[id].addElement( { labelId: label_id, elementId: div_id, listModel: listModel[lkey] } );
 			} else{
-				console.log( label_id );
-				console.log( div_id );
 				textEditObj[id].addElement( { labelId: label_id, elementId: div_id } );
 			}
 		})
@@ -533,4 +532,18 @@ function parse_data_to_table(id, ajaxIndex) {
 	document.getElementById(ajaxIndex).innerHTML = "";
 
 	init_tablelist('quickEdit' + id);
+}
+function init_restore_buttons(replaceme){
+	var $table = $("table[mode=changes]"),
+		script_replaceme = $table.attr('script_replaceme');
+		script_link = $table.attr('script_link');
+		script_param = $table.attr('script_param');
+
+	$table.find('.delete_change,.restore_change').each(function(i,v){
+		var $button = $(this).find('a');
+		$button.bind('click',function(){
+			var data = $(this).data();
+			do_submit_link(script_replaceme, script_replaceme, '/admin/'+data.controller+'/body?do='+data.action+'&change_index='+data.index+'&index='+data.itemId+'&replaceme='+script_replaceme);
+		});
+	});
 }

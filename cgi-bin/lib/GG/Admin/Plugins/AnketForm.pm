@@ -212,8 +212,12 @@ sub register {
             		$gr =~ s/[\n\r]+//;
             		push(@tablist, "'$gr'");
         		}
+        		if ($self->app->program->{settings}->{follow_changes}){
+        			push @tablist, "'Изменения'";
+        		}
         		$self->stash->{group_total} = $#{$self->app->program->{groupname}} + 1;
         		$self->stash->{group_name_list} = join(",",  @tablist);
+
     		}
 
     		if( $self->stash->{'index'} && defined $self->stash->{'anketa'}->{'dir'} && defined $self->stash->{'anketa'}->{'alias'} ){
@@ -454,8 +458,15 @@ sub register {
 
 			no warnings;
 
-			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
+			my $follow_changes = $self->app->program->{settings}->{follow_changes} || 0;
 
+			my $changes = $follow_changes && $self->stash->{index} ? $self->dbi->query("SELECT `lkey`
+											 FROM `sys_changes`
+											 WHERE `list_table`='".$self->stash->{list_table}."'
+											 AND `item_id`='".$self->stash->{index}."'
+											 ORDER BY `created_at` DESC")->flat || [] : [];
+			my %lkey_changes = ();
+			foreach my $k (sort {$$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}} grep { $_ == $_ } keys %$lkeys) {
 				my $lkey = $self->lkey(name => $k);
 				$lkey->{settings}->{group} ||= 1;
 				if ((!$params{keys_hashref} && $self->dbi->exists_keys(from => $params{table}, lkey => $k) or ($params{keys_hashref} && exists($params{keys_hashref}->{$k})))
@@ -470,11 +481,34 @@ sub register {
 					unless($lkey->{settings}->{"template_".$key_shablon}) {
 						$lkey->{settings}->{"template_".$key_shablon} = $templates->{$params{access}}->{$lkey->{settings}->{type}} ? $templates->{$params{access}}->{ $lkey->{settings}->{type} } : "field_input";
 					}
-
+					# изменения
+					my @nonfollow = qw(pict file filename);
+					if ($follow_changes && $self->stash->{index} && !($lkey->{settings}->{type} ~~ @nonfollow)){
+						my $item_index = $self->stash->{index} || 0;
+						if ($item_index && $k ~~ @$changes){
+							$lkey_changes{$k} = {};
+							$lkey_changes{$k}->{history} = $self->dbi->query("SELECT * 
+																			FROM `sys_changes`
+																			WHERE `lkey`='$k'
+																			AND `list_table`='".$self->stash->{list_table}."'
+																			AND `item_id`='$item_index'
+																			ORDER BY `created_at` DESC")->hashes || [];
+							
+							$lkey_changes{$k}->{rating} = $lkey->{settings}->{rating};
+						}
+					}
 					$lkey->{settings}->{"template_dir_".$key_shablon} ||= $template_dir;
 
 					$self->def_doptable(lkey => $k, access => $params{access}, key_shablon => $key_shablon) if($lkey->{settings}->{type} eq 'table');
 				}
+			}
+						
+			if ($follow_changes){
+				$self->stash('lkey_changes', \%lkey_changes);
+				$self->init_items({
+					type	=> 'eval',
+					value 	=> "init_restore_buttons('".$self->stash('replaceme')."');",
+				});
 			}
 
 			use warnings;
