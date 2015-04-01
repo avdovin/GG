@@ -156,8 +156,8 @@ sub text_main_item{
   $self->meta_description( $text->{description} );
 
 	# Wed, 24 Sep 2014 19:15:45 GMT
-  $self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' )
-    if ($text->{'updated_at'} && $text->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
+  #$self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' )
+  #  if ($text->{'updated_at'} && $text->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
 
 	my $template = $self->stash->{template} ||= "Texts/_body_default";
   $self->render(
@@ -210,8 +210,8 @@ sub text_list_item{
   $self->meta_keywords( $item->{keywords} );
   $self->meta_description( $item->{description} );
 
-  $self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' )
-    if ($item->{'updated_at'} && $item->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
+  #$self->res->headers->last_modified( $item->{updated_at_rfc822}.' GMT' )
+  #  if ($item->{'updated_at'} && $item->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
 
 	#$text->{index_after} = $self->get_index_after(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
 	#$text->{index_befor} = $self->get_index_befor(from => $table, index => $ID, ring => $ring, where => $where, order => $order);
