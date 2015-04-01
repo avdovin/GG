@@ -30,6 +30,8 @@ sub default_actions{
 		when('save') 					{ $self->save; }
 		when('save_continue‎')			{ $self->save( continue => 1); }
 		when('delete') 					{ $self->delete; }
+		when('restore_change') 			{ $self->restore_change; }
+		when('delete_change') 			{ $self->delete_change; }
 		when('restore') 				{ $self->save( restore => 1); }
 
 		when('menu_button') 			{
@@ -343,6 +345,7 @@ sub print_choose{
 
 sub print_anketa{
 	my $self = shift;
+	
 	my %params = (
 		table 	=> $self->stash->{list_table} || '',
 		id 		=> $self->stash->{index} || 0,
@@ -435,6 +438,7 @@ HEAD
 
 		eval("require PDF::FromHTML;");
 		if (($self->stash->{lfield} eq 'html') or $@ ){
+
 			return $self->render( text => $HTML)
 
 		} else {
@@ -689,31 +693,83 @@ sub check_unique_field{
 	#return 1;
 }
 
+sub restore_change{
+	my $self = shift;
+	my $change_index = $self->param('change_index');
+	my $current_index = $self->param('index');
+	my $change = $self->dbi->query("SELECT * FROM `sys_changes` WHERE `ID`='$change_index'")->hash;
+	if ($self->dbi->exists_keys(from => $change->{list_table}, lkey => $change->{lkey})){
+		my $current_values = $self->dbi->query("SELECT * FROM `$$change{list_table}` WHERE `ID`='$$change{item_id}'")->hash;
+		$self->insert_hash('sys_changes',{
+			list_table 	=> $$change{list_table},
+			item_id 	=> $$current_values{ID},
+			lkey 		=> $$change{lkey},
+			value 		=> $$current_values{$$change{lkey}},
+			operator 	=> $self->app->sysuser->userinfo->{name}.' ('.$self->app->sysuser->userinfo->{login}.')',
+		});
+		$self->dbi->dbh->do("UPDATE `$$change{list_table}` SET `$$change{lkey}`='$$change{value}' WHERE `ID`='$$change{item_id}'");
+		$self->stash->{index} = $current_index;
+	}
+
+	return $self->info;
+
+
+}
+
+sub delete_change{
+	my $self = shift;
+	my $change_index = $self->param('change_index');
+	
+	$self->dbi->dbh->do("DELETE FROM `sys_changes` WHERE `ID`='$change_index'");
+
+	return $self->info;
+}
+
 sub save_info{
 	my $self = shift;
 	my %params = (
 		send_params	=> 1,
 		@_
 	);
-
+	my $follow_changes = $self->app->program->{settings}->{follow_changes} || 0;
+	
 	my $table = delete $params{table};
 	my $field_values = delete $params{field_values} || {};
 	my $where	= delete $params{where} || '';
-
+	my $changes = {};
 	foreach (keys %$field_values){
 		unless($self->dbi->exists_keys(from => $table, lkey => $_)){
 			delete $field_values->{$_};
 		}
 	}
+	my $item_index = $self->stash->{index} || 0;
 
 	my $send_params = $self->send_params;
 	if($params{send_params}){
 		foreach (keys %$send_params){
 			if($self->dbi->exists_keys(from => $table, lkey => $_)){
 				$field_values->{$_} ||= $send_params->{$_};
+				# смотрим есть ли изменения этого поля и пишем
+				if ($item_index && $follow_changes){
+					my $prev_value = $self->dbi->query("SELECT `$_`
+														FROM `$table`
+														WHERE `ID`='$item_index'")->list || '';
+					if ($field_values->{$_} ne $prev_value){
+						$self->insert_hash('sys_changes',{
+							list_table 	=> $table,
+							item_id 	=> $item_index,
+							lkey 		=> $_,
+							#value 		=> $field_values->{$_},
+							value 		=> $prev_value,
+							operator 	=> $self->app->sysuser->userinfo->{name}.' ('.$self->app->sysuser->userinfo->{login}.')',
+						});
+					}
+				}
 			}
 		}
 	}
+
+	$self->stash->{index} = $item_index;
 
 	if(exists $field_values->{alias} && !$field_values->{alias} && $field_values->{name}){
 		$field_values->{alias} = $self->make_alias( $field_values->{name} );
