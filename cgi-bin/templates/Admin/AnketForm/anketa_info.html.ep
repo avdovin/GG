@@ -2,21 +2,21 @@
 <div style="display:none" id="<%== $replaceme %>_QS">index=<%= $self->stash->{index} %><%== $self->stash->{param_default} =%></div>
 <div style="display:none" id="datasource_list<%= $controller_name %>">
 
-% 	foreach my $gr (1..$group_total){
-%		my $group_list = $self->stash->{'listfield_'.$gr} || [];
-%		foreach my $k (@$group_list){
-%			if($self->lkey(name => $k)->{settings}->{type} =~ /list/){
-				<select id="datasource_<%= $k %>_print" style="display:none" <% if(lkey(name => $k)->{settings}->{mult}){ %>multiple="<%= lkey(name => $k)->{settings}->{mult} %>"<% } %>>
-				<%== LIST (name => $k, type => 'select', option => 1) %>
-				</select>
-%			} elsif($self->lkey(name => $k)->{type} eq 'chb'){
-				<select id="datasource_<%= $k %>_print" style="display:none">
-					<option value="0"><%= lkey(name => $k)->{settings}->{no} %></option>
-					<option value="1"><%= lkey(name => $k)->{settings}->{yes} %></option>
-				</select>
-%			}
-%		}
-%	}
+%   foreach my $gr (1..$group_total){
+%   my $group_list = $self->stash->{'listfield_'.$gr} || [];
+%   foreach my $k (@$group_list){
+%     if($self->lkey(name => $k)->{settings}->{type} =~ /list/){
+        <select id="datasource_<%= $k %>_print" style="display:none" <% if(lkey(name => $k)->{settings}->{mult}){ %>multiple="<%= lkey(name => $k)->{settings}->{mult} %>"<% } %>>
+          %== LIST (name => $k, type => 'select', option => 1)
+        </select>
+%     } elsif($self->lkey(name => $k)->{type} eq 'chb'){
+        <select id="datasource_<%= $k %>_print" style="display:none">
+          <option value="0"><%= lkey(name => $k)->{settings}->{no} %></option>
+          <option value="1"><%= lkey(name => $k)->{settings}->{yes} %></option>
+        </select>
+%     }
+%   }
+% }
 </div>
   <table width="95%">
     <tr>
@@ -30,50 +30,50 @@
         </td>
     </tr>
   </table>
-	<h3><%== admin_msg %></h3><hr />
-%	unless($self->stash->{no_access}){
+  <h3><%== admin_msg %></h3><hr />
+% unless($self->stash->{no_access}){
 
 
 
-%	if($self->app->program->{settings}->{qedit} && $self->app->program->{settings}->{qedit_button}) {
-    	<table width="90%"><tr>
-      	<td align=right>
-	        <a href="#" title="Включить/выключить быстрое редактирование" onclick="ld_content('type_qe_<%= $replaceme %>', '<%= $script_link %>?do=set_qedit_i&replaceme=<%= $replaceme %>&index=<%= $index %>', '', 1)">
-    	        <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit_off'}){ %>Выключить QEdit<% } else { %>Включить QEdit<% } %></span>
-        	</a>
-      	</td>
-    	</tr></table>
-%	}
+% if($self->app->program->{settings}->{qedit} && $self->app->program->{settings}->{qedit_button}) {
+      <table width="90%"><tr>
+        <td align=right>
+          <a href="#" title="Включить/выключить быстрое редактирование" onclick="ld_content('type_qe_<%= $replaceme %>', '<%= $script_link %>?do=set_qedit_i&replaceme=<%= $replaceme %>&index=<%= $index %>', '', 1)">
+              <span id="type_qe_<%= $replaceme %>"><% unless($self->sysuser->settings->{$controller.'_qedit_off'}){ %>Выключить QEdit<% } else { %>Включить QEdit<% } %></span>
+          </a>
+        </td>
+      </tr></table>
+% }
 
 
-	<div id="DHTMLSuite_tabView<%= $replaceme %>" style="display:none">
-%	foreach my $gr (1..$group_total){
-%		$self->stash->{anketa_ok} = 'ok';
-		<div class="DHTMLSuite_aTab">
-      	<br /><br />
-      	<table width="100%" class=tablelist id="quickEditI<%= $replaceme %>" cellpadding=2 style="font-size:14px;border:1px solid #919b9c;" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="<%= $self->stash->{param_default} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit_off'} ? 0 : 1 %>">
+  <div id="DHTMLSuite_tabView<%= $replaceme %>" style="display:none">
+% foreach my $gr (1..$group_total){
+%   $self->stash->{anketa_ok} = 'ok';
+    <div class="DHTMLSuite_aTab">
+        <br /><br />
+        <table width="100%" class=tablelist id="quickEditI<%= $replaceme %>" cellpadding=2 style="font-size:14px;border:1px solid #919b9c;" script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="<%= $self->stash->{param_default} %>" qedit="<%= $self->sysuser->settings->{$controller.'_qedit_off'} ? 0 : 1 %>">
         <tr class=header>
           <td width="150px" style="width:20%" colspan="3"><b>Поле</b></td>
           <td width="*"><b>Текущее значение</b></td>
         </tr>
-%		my $class = 'even';
-%		my $group_list = $self->stash->{'listfield_'.$gr} || [];
-%		foreach (@$group_list){
-%			if( my $lk = $self->lkey(name => $_) ){
-%				$class = $class eq 'odd' ? 'even' : 'odd';
-%				$self->stash->{anketa_ok} = 'ok';
+%   my $class = 'even';
+%   my $group_list = $self->stash->{'listfield_'.$gr} || [];
+%   foreach (@$group_list){
+%     if( my $lk = $self->lkey(name => $_) ){
+%       $class = $class eq 'odd' ? 'even' : 'odd';
+%       $self->stash->{anketa_ok} = 'ok';
 
-				<%== include $lk->{settings}->{template_dir_r}.$lk->{settings}->{template_r}, key => $_, lkey => $lk, value => $self->stash->{anketa}->{$_}, index => $index, class => $class =%>
-%			}
-%		}
-%		unless($self->stash->{anketa_ok}){
-			<tr>
-            	<td colspan=2>
-              	<div style="width:90%;height:250px">
-                	<h3 style="text-align:center;margin-top:100px">В данной группе информации нет</h3>
-              	</div>
-            	</td>
-          	</tr>
+        %= include $lk->{settings}->{template_dir_r}.$lk->{settings}->{template_r}, key => $_, lkey => $lk, value => $self->stash->{anketa}->{$_}, index => $index, class => $class
+%     }
+%   }
+%   unless($self->stash->{anketa_ok}){
+      <tr>
+        <td colspan=2>
+          <div style="width:90%;height:250px">
+            <h3 style="text-align:center;margin-top:100px">В данной группе информации нет</h3>
+          </div>
+        </td>
+      </tr>
 % } elsif(
     % $self->stash->{index} && $self->stash->{list_table} =~ /^texts_(\S*)_/gi
     % ){
@@ -89,77 +89,19 @@
     %   }
   % }
 
-		</table>
+    </table>
     </div>
-%	}
-
-%# изменения
-% my $changes = stash('lkey_changes') || {};
-    <div class="DHTMLSuite_aTab">
-        <br /><br />
-        <form id="<%= $replaceme.'changes'  %>">
-        <input type='hidden'>
-        <table width="100%" class=tablelist id="quickEditI<%= $replaceme %>" cellpadding=2 style="font-size:14px;border:1px solid #919b9c;" mode="changes"  script_link="<%= $script_link %>" script_replaceme="<%= $replaceme %>" script_param="<%= $self->stash->{param_default} %>">
-        <tr class=header>
-          <td width="150px"><b>Поле</b></td>
-          <td width="150px"><b>Значение</b></td>
-          <td width="150px"><b>Дата изменения</b></td>
-          <td width="150px"><b>Оператор</b></td>
-          <td width="10px"><b>-</b></td>
-          <td width="10px"><b>-</b></td>
-        </tr>
-% if (scalar keys %$changes){
-%   my $class = 'even';
-%   foreach (sort {$changes->{$a}->{rating} <=> $changes->{$b}{rating}} keys %$changes){
-%   $class = $class eq 'odd' ? 'even' : 'odd'; 
-%   my $lk = $self->lkey(name => $_);
-      <tr class="<%= $class  %>">
-        <td><b><%= $lk->{name}  %></b></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      <tr>
-      % foreach my $h (@{$changes->{$_}->{history}}){
-        %  $class = $class eq 'odd' ? 'even' : 'odd'; 
-        <tr class='<%= $class  %>'>
-          <td></td>
-          <td>
-          % if ($lk->{settings}->{type} eq 'checkbox'){
-          %== $h->{value} ? $lk->{settings}->{yes} : $lk->{settings}->{no}
-          % }elsif($lk->{settings}->{type} eq 'tlist'){
-          %== VALUES (name => $_, value => $h->{value})
-          % }else{
-          %== $h->{value};
-          % }
-          </td>
-          <td><%= $h->{created_at}  %></td>
-          <td><%= $h->{operator}  %></td>
-          <td class="button16"><div class="delete_change"><a href="#" data-action="delete_change" data-index="<%= $h->{ID}  %>" data-item-id="<%= $h->{item_id}  %>" data-controller="<%= stash('controller')  %>"><img src="/admin/img/icons/menu/button.delete.gif"></a></div></td>
-          <td class="button16"><div class="restore_change"><a href="#" data-action="restore_change" data-index="<%= $h->{ID}  %>" data-item-id="<%= $h->{item_id}  %>" data-controller="<%= stash('controller')  %>" title="Восстановить запись"><img src="/admin/img/icons/menu/button.restore.gif"></a></div></td>
-        </tr>   
-      % }
-
-
-        
-%   }
-% }else{
-  <tr>
-  <td colspan="4">
-    <b>На данный момент изменений не зафиксировано</b>
-  </td>
-  </tr>
 % }
 
+%= include 'Admin/AnketForm/anketa_info_changes' if $self->app->program->{settings}->{follow_changes};
     </table>
     </form>
     </div>
 
 
-	</div>
+  </div>
 % }
-%	if($self->stash->{no_access}){
-		<div style="width:90%;height:250px"><h3 style="text-align:center;margin-top:100px">К данной записи доступа нет</h3></div>
-%	}
+% if($self->stash->{no_access}){
+    <div style="width:90%;height:250px"><h3 style="text-align:center;margin-top:100px">К данной записи доступа нет</h3></div>
+% }
 </div>

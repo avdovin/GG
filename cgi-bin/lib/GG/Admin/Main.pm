@@ -3,6 +3,7 @@ package GG::Admin::Main;
 use utf8;
 
 use Mojo::Base 'GG::Admin::AdminController';
+use experimental 'smartmatch';
 
 sub body{
 	my $self = shift;

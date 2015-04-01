@@ -139,7 +139,7 @@ sub register {
 		# --- END OF SEO MODULE --------------------------
 
     # If not morbo server
-    unless( $ENV{MORBO_REV} ){
+    unless( $ENV{IS_MORBO} ){
 			# --- REDIRECT MODULE ---------------------------------
 			#my $path = $url->to_string;
 			my $path = $self->req->url->path;

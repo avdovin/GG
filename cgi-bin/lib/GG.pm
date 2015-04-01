@@ -40,7 +40,7 @@ sub startup{
 		return shift->render(text => 'pong');
 	});
 
-	my $routes = $r->bridge()->to(%routes_args, cb => sub {
+	my $routes = $r->under()->to(%routes_args, cb => sub {
 		my $self = shift;
 
 		return 1;
@@ -51,7 +51,7 @@ sub startup{
 	})->name('callback_submit');
 
 
-	my $routesCatalog = $routes->bridge('/catalog')->to(alias => 'catalog',layout => 'default', cb => sub {
+	my $routesCatalog = $routes->under('/catalog')->to(alias => 'catalog',layout => 'default', cb => sub {
 
 		$self->stash->{catalog} = 1;
 		$self->stash->{alias} = 'catalog';
@@ -62,7 +62,7 @@ sub startup{
 		return 1;
 	});
 
-	my $routesCatalogAjax = $routesCatalog->bridge('/ajax')->to(layout => '', cb => sub {
+	my $routesCatalogAjax = $routesCatalog->under('/ajax')->to(layout => '', cb => sub {
 
 		return 1;
 	});

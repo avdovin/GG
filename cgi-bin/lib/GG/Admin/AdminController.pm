@@ -54,7 +54,7 @@ sub default_actions{
 			}
 			return $self->render_not_found;
 		}
-    
+
 		when('copy') 					{ $self->item_copy; }
 
 		when('tree') 					{ $self->tree; }
@@ -345,7 +345,7 @@ sub print_choose{
 
 sub print_anketa{
 	my $self = shift;
-	
+
 	my %params = (
 		table 	=> $self->stash->{list_table} || '',
 		id 		=> $self->stash->{index} || 0,
@@ -719,7 +719,7 @@ sub restore_change{
 sub delete_change{
 	my $self = shift;
 	my $change_index = $self->param('change_index');
-	
+
 	$self->dbi->dbh->do("DELETE FROM `sys_changes` WHERE `ID`='$change_index'");
 
 	return $self->info;
@@ -732,7 +732,7 @@ sub save_info{
 		@_
 	);
 	my $follow_changes = $self->app->program->{settings}->{follow_changes} || 0;
-	
+
 	my $table = delete $params{table};
 	my $field_values = delete $params{field_values} || {};
 	my $where	= delete $params{where} || '';
@@ -743,28 +743,32 @@ sub save_info{
 		}
 	}
 	my $item_index = $self->stash->{index} || 0;
-
 	my $send_params = $self->send_params;
-	if($params{send_params}){
-		foreach (keys %$send_params){
-			if($self->dbi->exists_keys(from => $table, lkey => $_)){
-				$field_values->{$_} ||= $send_params->{$_};
-				# смотрим есть ли изменения этого поля и пишем
-				if ($item_index && $follow_changes){
-					my $prev_value = $self->dbi->query("SELECT `$_`
-														FROM `$table`
-														WHERE `ID`='$item_index'")->list || '';
-					if ($field_values->{$_} ne $prev_value){
-						$self->insert_hash('sys_changes',{
-							list_table 	=> $table,
-							item_id 	=> $item_index,
-							lkey 		=> $_,
-							#value 		=> $field_values->{$_},
-							value 		=> $prev_value,
-							operator 	=> $self->app->sysuser->userinfo->{name}.' ('.$self->app->sysuser->userinfo->{login}.')',
-						});
-					}
-				}
+	if($params{send_params} && $follow_changes && $item_index){
+		my $old_values = $self->dbi->query("SELECT * FROM $table WHERE ID='$item_index' ")->hash;
+
+		foreach my $key (keys %$send_params){
+			my $v = $field_values->{$key} || $send_params->{$key};
+
+			if($self->dbi->exists_keys(from => $table, lkey => $key)){
+
+				next unless $old_values->{$key};
+
+				warn "1 - $key";
+				warn $v;
+				warn "2";
+				warn $old_values->{$key};
+				warn $v ne $old_values->{$key};
+
+				next if($v eq $old_values->{$key});
+				$self->insert_hash('sys_changes',{
+					list_table 	=> $table,
+					item_id 	=> $item_index,
+					lkey  => $key,
+					#value 		=> $field_values->{$_},
+					value 		=> $old_values->{$key},
+					operator 	=> $self->app->sysuser->userinfo->{name}.' ('.$self->app->sysuser->userinfo->{login}.')',
+				});
 			}
 		}
 	}

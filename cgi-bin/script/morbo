@@ -22,6 +22,8 @@ if ($help || !$app) {
 }
 
 $ENV{MOJO_LISTEN} = join ',', @listen if @listen;
+$ENV{IS_MORBO} = 1;
+
 require Mojo::Server::Morbo;
 my $morbo = Mojo::Server::Morbo->new;
 @watch = qw(../lib ../extlib ../templates);

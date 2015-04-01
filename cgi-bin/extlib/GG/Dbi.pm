@@ -39,14 +39,14 @@ sub query{
   }
 
 	my $query = $self->SUPER::query(@_);
-  if($ENV{MORBO_REV} && $self->{reason}){
+  if($ENV{IS_MORBO} && $self->{reason}){
     print RED, ">>$sql<<", "\n";
     print $self->{reason};
     print RESET, "\n";
     delete $self->{reason};
   }
   else{
-    if($ENV{MORBO_REV} && $self->debug){
+    if($ENV{IS_MORBO} && $self->debug){
       $end = time();
 
       my $elapsed_type = sprintf("%.4f", $end - $start);
@@ -172,7 +172,7 @@ sub upsert{
 	    $sth->finish();
 	};
 	if($@){
-	  if($ENV{MORBO_REV}){
+	  if($ENV{IS_MORBO}){
 	    print RED, ">>$sql<<", "\n";
 	    print $@;
 	    print RESET, "\n";
@@ -212,7 +212,7 @@ sub insert{
 	  $sth->finish();
 	};
 	if($@){
-	  if($ENV{MORBO_REV}){
+	  if($ENV{IS_MORBO}){
 	    print RED, ">>$sql<<", "\n";
 	    print $@;
 	    print RESET, "\n";
@@ -276,7 +276,7 @@ sub update{
 		$count = $sth->execute(@values) or die $DBI::errstr;
 	};
 	if($@){
-	  if($ENV{MORBO_REV}){
+	  if($ENV{IS_MORBO}){
 	    print RED, ">>$sql<<", "\n";
 	    print $@;
 	    print RESET, "\n";
