@@ -1,13 +1,12 @@
 % if($end_page>1){
-	<div class="pagenav">
-		<div class="pagenav__container">
-			<a href="<%= $prefix.($page == 1 ? 1 : $page-1).$postfix %>" class="pagenav__button pagenav__button_prev <% if($page==1){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
-			% foreach my $i ($first_page..$end_page){
-				<a href="<%= $prefix.$i %>" class="pagenav__button <% if($i == $page){ %>pagenav__button_current<% } %>"><%= $i %></a>
-			% }
-			<a href="<%= $prefix.($page < $total_page ? $page+1 : $total_page) %>" class="pagenav__button pagenav__button_next <% if($page==$total_page){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
-		</div>
-	</div>
+  <div class="pagenav noautocurrent">
+    <div class="pagenav__container">
+      <a href="<%= $prefix.($page == 1 ? 1 : $page-1).$postfix %>" class="pagenav__button pagenav__button_prev <% if($page==1){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
+      % foreach my $i ($first_page..$end_page){
+        <a href="<%= $prefix.$i %>" class="pagenav__button <% if($i == $page){ %>pagenav__button_current<% } %>"><%= $i %></a>
+      % }
+      <a href="<%= $prefix.($page < $total_page ? $page+1 : $total_page) %>" class="pagenav__button pagenav__button_next <% if($page==$total_page){ %>pagenav__button_disabled<% } %>">&nbsp;</a>
+    </div>
+    <a class="top__link" href="#">Наверх</a>
+  </div>
 % }
-
-
