@@ -18,7 +18,7 @@ sub _init{
 
 	$self->stash->{txt_razdel} 	= 'lst_texts';
 
-	my $access_where = $self->def_access_where( base => $self->stash->{txt_razdel}, show_empty => 0);
+	#my $access_where = $self->def_access_where( base => $self->stash->{txt_razdel}, show_empty => 0);
 
 	if($self->param('list_table')){
 		my @parts = split(/_/, $self->param('list_table'));
@@ -38,7 +38,7 @@ sub _init{
 		$self->getArraySQL(
 			select	=> '`ID` AS `razdel`,`name` AS `name_razdel`',
 			from 	=> $self->stash->{txt_razdel},
-			where	=> "`key_razdel`='$kr' $access_where",
+			where	=> "`key_razdel`='$kr'",
 			stash	=> '',
 		);
 	}
@@ -46,7 +46,7 @@ sub _init{
 	if(!$self->sysuser->settings->{'texts_razdel'}){
 		$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 							from	=>	$self->stash->{txt_razdel},
-							where	=> 	"`".$self->sysuser->settings->{'lang'}."`='1' $access_where",
+							where	=> 	"`".$self->sysuser->settings->{'lang'}."`='1'",
 							stash	=> 	'');
 
 		$self->sysuser->save_settings(texts_razdel => $self->stash->{razdel});
@@ -60,13 +60,13 @@ sub _init{
 
 	if(!$self->stash->{key_razdel} && !$self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 															from	=>	$self->stash->{txt_razdel},
-															where	=> 	"`ID`='".$self->stash->{razdel}."' AND `".$self->sysuser->settings->{'lang'}."`='1' $access_where",
+															where	=> 	"`ID`='".$self->stash->{razdel}."' AND `".$self->sysuser->settings->{'lang'}."`='1'",
 															sys		=> 1,
 															stash	=> 	'')){
 
 		unless($self->getArraySQL(	select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 									from	=>	$self->stash->{txt_razdel},
-									where	=> 	"`".$self->sysuser->settings->{'lang'}."`='1' $access_where",
+									where	=> 	"`".$self->sysuser->settings->{'lang'}."`='1'",
 									sys		=> 1,
 									stash	=> 	'')){
 			$self->admin_msg_errors("Доступных данных нет");

@@ -15,18 +15,15 @@ sub _init{
 		controller_name	=> $self->app->program->{name},
 		#controller		=> 'keys',
 	};
-
 	$self->stash->{img_razdel} 	= 'lst_images';
-
-	my $access_where = $self->def_access_where( base => $self->stash->{img_razdel}, show_empty => 0);
-
+	#my $access_where = $self->def_access_where( base => $self->stash->{img_razdel}, show_empty => 0);
 
 	if($self->param('list_table')){
 		my (undef, $kr) = split(/_/, $self->param('list_table'));
 		$self->stash->{key_razdel} = $kr;
 		$self->getArraySQL(	select	=> '`ID` AS `razdel`,`name` AS `name_razdel`',
 							from 	=> $self->stash->{img_razdel},
-							where	=> "`key_razdel`='$kr' $access_where",
+							where	=> "`key_razdel`='$kr'",
 							sys		=> 1,
 							stash	=> '',
 						);
@@ -36,7 +33,7 @@ sub _init{
 		$self->getArraySQL(
 			select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 			from	=>	$self->stash->{img_razdel},
-			where	=> 	"1 $access_where",
+			where	=> 	"1",
 			sys		=> 1,
 			stash	=> 	''
 		);
@@ -53,7 +50,7 @@ sub _init{
 				!$self->getArraySQL(
 					select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 					from	=>	$self->stash->{img_razdel},
-					where	=> 	"`ID`='".$self->stash->{razdel}."' $access_where",
+					where	=> 	"`ID`='".$self->stash->{razdel}."'",
 					sys		=> 1,
 					stash	=> 	''
 				)
@@ -64,7 +61,7 @@ sub _init{
 			$self->getArraySQL(
 				select	=> 	'`ID` AS `razdel`,`key_razdel`,`name` AS `name_razdel`',
 				from	=>	$self->stash->{img_razdel},
-				where	=> 	"1 $access_where",
+				where	=> 	"1",
 				sys		=> 1,
 				stash	=> 	'')
 			){
