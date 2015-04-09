@@ -9,6 +9,7 @@ use utf8;
 
 my @SYSTEM_VALUES = qw(text data json inline status);
 use Mojo::Util qw(url_escape trim squish);
+use Encode qw(encode);
 
 sub register {
   my ( $self, $app, $args ) = @_;
@@ -160,6 +161,7 @@ sub _check_password_digest{
   my $value = delete $settings{value};
 
   if ($value) {
+    $value = encode("utf8", $value);
     return $self->encrypt_password( $value );
   }
   return undef;
