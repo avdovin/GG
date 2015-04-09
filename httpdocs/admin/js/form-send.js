@@ -110,10 +110,37 @@ function whenError(replaceme) {
 	if(!replaceme) replaceme = "replaceme";
 	if(document.getElementById(replaceme)) {
 		e = document.getElementById(replaceme);
-		e.innerHTML = "<span style='background:red;color:white'>" + "Ошибка..." + "</span>";
+		e.innerHTML = "<span style='background:red;color:white'>" + http_error_codes_humanize(ajaxform[replaceme].responseStatus[0]) + "</span>";
 		setTimeout("whenError_return('" + replaceme + "')", 2000);
+		//console.log(ajaxform[replaceme].responseStatus[0]);
 	}
+
+  function http_error_codes_humanize(code){
+  	var str = '';
+
+  	switch(code){
+  		case 404 : 
+  			str = 'Не найдено';
+  			break;
+  		case 500 : 
+  			str = 'Внутренняя ошибка сервера';
+  			break;
+  		case 403 : 
+  			str = 'Доступ запрещен';
+  			break;
+  		case 503 : 
+  			str = 'Сервис недоступен';
+  			break;
+  		case 504 :
+  			str = 'Шлюз не отвечает';
+  			break;
+  		default : 
+  			str = 'Неопределенная ошибка';
+  	}
+  	return str+' ('+code+')';
+  }
 }
+
 
 function whenError_return(replaceme) {
 	if(document.getElementById(replaceme)) {
@@ -124,6 +151,8 @@ function whenError_return(replaceme) {
 		} else e.innerHTML = "";
 	}
 }
+
+
 
 function trimString(sInString) {
 	sInString = sInString.replace(/^\s+/g, "");
