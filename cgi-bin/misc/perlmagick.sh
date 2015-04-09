@@ -23,7 +23,9 @@
 #sudo apt-get update
 #sudo apt-get install libjpeg62-dev
 #sudo apt-get install libpng-dev
-
+#sudo apt-get install libfreetype6-dev
+#sudo apt-get install libtiff5-dev
+#sudo apt-get install liblcms1-dev
 
 TOP="$HOME/local"
 
@@ -51,7 +53,8 @@ fi
 
 LDFLAGS=-L$PERL_CORE \
     ./configure --with-jpeg=yes --with-png=yes  --with-jp2=yes --prefix $TOP \
-    --with-perl=$PERL_BIN \
+    --with-perl=$PERL_BIN --with-gslib --with-fontconfig=yes \
+    --with-freetype=yes --with-webp=yes --with-ghostscript=yes --with-jasper=yes --with-librsvg=yes --with-libtiff=yes \
     --enable-shared $THREAD_FLAG
 
 make install

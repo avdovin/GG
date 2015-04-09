@@ -24,7 +24,10 @@ curl -kL http://install.perlbrew.pl | bash
 echo 'source /opt/perl5/etc/bashrc' >>~/.bash_profile
 source ~/.bash_profile
 
-perlbrew install perl-5.20.1 -D useshrplib
+perlbrew install perl-5.20.1 -Duselargefiles \
+  -Dcccdlflags=-fPIC \
+  -Duseshrplib \
+  --as fPIC-lFiles-5.20.1
 
 perlbrew switch perl-5.20.1
 perlbrew install-cpanm
@@ -39,3 +42,8 @@ cpanm JSON::XS JavaScript::Minifier::XS CSS::Minifier::XS Crypt::Eksblowfish::Bc
 touch "/var/www/$LOGIN/data/.bash_profile"
 echo 'export PERLBREW_ROOT=/opt/perl5' >> "/var/www/$LOGIN/data/.bash_profile"
 echo 'source ${PERLBREW_ROOT}/etc/bashrc' >> "/var/www/$LOGIN/data/.bash_profile"
+
+chmod 777 -R /opt
+
+
+
