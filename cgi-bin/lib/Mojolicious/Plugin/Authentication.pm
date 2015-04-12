@@ -1,8 +1,5 @@
-package GG::Plugins::Authentication;
+package Mojolicious::Plugin::Authentication;
 use Mojo::Base 'Mojolicious::Plugin';
-
-use utf8;
-
 
 sub register {
     my ($self, $app, $args) = @_;

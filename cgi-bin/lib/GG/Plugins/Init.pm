@@ -6,16 +6,16 @@ use HTML::Packer;
 use Mojo::Base 'Mojolicious::Plugin';
 
 sub register {
-	my ($self, $app) = @_;
+  my ($self, $app) = @_;
 
-	$app->helper(_setup_inc => sub {
-		my $self = shift;
-		my $perl5lib = shift;
+  $app->helper(_setup_inc => sub {
+    my $self = shift;
+    my $perl5lib = shift;
 
-		return unless $perl5lib;
+    return unless $perl5lib;
 
-		push @INC, $_ for (ref $perl5lib eq 'ARRAY' ? @{$perl5lib} : $perl5lib);
-	});
+    push @INC, $_ for (ref $perl5lib eq 'ARRAY' ? @{$perl5lib} : $perl5lib);
+  });
 
   $app->hook(before_dispatch => sub {
     my $self = shift;
@@ -32,81 +32,81 @@ sub register {
     }
   }) if $app->mode eq 'production';
 
-	$app->plugin(charset => {charset => 'UTF-8'});
+  $app->plugin(charset => {charset => 'UTF-8'});
 
-	# Add new MIME type
-	$app->types->type(xls => 'application/vnd.ms-excel');
+  # Add new MIME type
+  $app->types->type(xls => 'application/vnd.ms-excel');
 
-	my $conf = $app->plugin('Config', {file => 'app.conf', default => {}});
+  my $conf = $app->plugin('Config', {file => 'app.conf', default => {}});
 
-	# Add secret
-	$app->secrets([($conf->{secret} || $app->home . $app->mode . (localtime())[3])]);
+  # Add secret
+  $app->secrets([($conf->{secret} || $app->home . $app->mode . (localtime())[3])]);
 
-	$app->static->paths([$conf->{static_path}]);
+  $app->static->paths([$conf->{static_path}]);
 
   $app->_setup_inc($conf->{perl5lib});
 
-	$app->plugin('util_helpers');
-	$app->plugin('http_cache');
-	$app->plugin('crypt');
-	$app->plugin('dbi', $conf );
+  $app->plugin('util_helpers');
+  $app->plugin('http_cache');
+  $app->plugin('crypt');
+  $app->plugin('dbi', $conf );
 
-	# Load plugins from config
-	foreach (@{$conf->{plugins}}){
-		$app->plugin($_, $conf);
-	}
+  # Load plugins from config
+  foreach (@{$conf->{plugins}}){
+    $app->plugin($_, $conf);
+  }
 
-	$app->plugin('vfe') if $conf->{'vfe_enabled'};
+  $app->plugin('vfe') if $conf->{'vfe_enabled'};
 
-	if ($conf->{'mail_type'} eq 'smtp'){
-		$app->plugin(mail => {
-			from     => $conf->{mail_from_addr},
-			encoding => 'base64',
-			how      => 'smtp',
-			howargs  => [
-				$conf->{'smtp_server'},
-				Port 	 		=> $conf->{'smtp_port'} || '587',
-				AuthUser 	=> $conf->{'smtp_login'},
-				AuthPass 	=> $conf->{'smtp_password'},
-        	],
-			type	 => 'text/html;charset=utf-8',
-		});
-	}else{
-		$app->plugin(mail => {
-			from     => $conf->{mail_from_addr},
-			encoding => 'base64',
-			how      => 'sendmail',
-			howargs  => [ '/usr/sbin/sendmail -t' ],
-			type	 => 'text/html;charset=utf-8',
-		});
-	};
+  if ($conf->{'mail_type'} eq 'smtp'){
+    $app->plugin(mail => {
+      from     => $conf->{mail_from_addr},
+      encoding => 'base64',
+      how      => 'smtp',
+      howargs  => [
+        $conf->{'smtp_server'},
+        Port      => $conf->{'smtp_port'} || '587',
+        AuthUser  => $conf->{'smtp_login'},
+        AuthPass  => $conf->{'smtp_password'},
+          ],
+      type   => 'text/html;charset=utf-8',
+    });
+  }else{
+    $app->plugin(mail => {
+      from     => $conf->{mail_from_addr},
+      encoding => 'base64',
+      how      => 'sendmail',
+      howargs  => [ '/usr/sbin/sendmail -t' ],
+      type   => 'text/html;charset=utf-8',
+    });
+  };
 
-	# языковые версии сайта
-	if($conf->{langs}){
-		$app->plugin('I18N' =>  {
-			support_url_langs 	=> $conf->{lang_supported},
-			default 			=> $conf->{lang_default},
-			namespace 			=> 'GG::I18N',
-			no_header_detect 	=> 1,
-			exclude_contains 	=> [qw(admin)],
-		});
-	}
+  # языковые версии сайта
+  if($conf->{langs}){
+    $app->plugin('I18N' =>  {
+      support_url_langs   => $conf->{lang_supported},
+      default       => $conf->{lang_default},
+      namespace       => 'GG::I18N',
+      no_header_detect  => 1,
+      exclude_contains  => [qw(admin)],
+    });
+  }
 
-	$ENV{MOJO_MAX_MESSAGE_SIZE} = $conf->{upload_maxchanksize};
+  $ENV{MOJO_MAX_MESSAGE_SIZE} = $conf->{upload_maxchanksize};
 
-	# Pipeline assets
-	$app->plugin('AssetPack', {
+  # Pipeline assets
+  $app->plugin('AssetPack', {
     base_url    => $conf->{'protocol'}.'://'.$conf->{http_host}.'/packed/',
-		minify 			=> $conf->{pipeline_minify} && $app->mode eq 'production',
-	});
+    minify      => $conf->{pipeline_minify} && $app->mode eq 'production',
+  });
 
-	$app->hook(before_dispatch => sub {
-		my $self = shift;
+  $app->hook(before_dispatch => sub {
+    my $self = shift;
 
-		# Ignore static files
-		#return if $self->res->code;
+    # Ignore static files
+    #return if $self->res->code;
 
-		$self->stash->{lang} ||= $conf->{lang_default};
+    $self->stash->{lang} ||= $conf->{lang_default};
 
     if($self->app->mode eq 'development'){
       BEGIN {
@@ -121,92 +121,92 @@ sub register {
       };
     }
 
-		# --- SEO 301 redirect to none www domain ---------
-		my $url = $self->req->url->clone;
-		my $host = $url->base->host || '';
+    # --- SEO 301 redirect to none www domain ---------
+    my $url = $self->req->url->clone;
+    my $host = $url->base->host || '';
 
-		if( !$conf->{'www_prefix'} && $host =~ /^www\./ or $conf->{'www_prefix'} && $host !~ /^www\./ ){
-			$host =~ s{^www\.}{};
+    if( !$conf->{'www_prefix'} && $host =~ /^www\./ or $conf->{'www_prefix'} && $host !~ /^www\./ ){
+      $host =~ s{^www\.}{};
 
-			$url->base->host($host);
-			my $res = $self->res;
-			$res->code(301);
-			$res->headers->location($url->to_abs);
-			$res->headers->content_length(0);
-			$self->rendered;
-			return;
-		}
-		# --- END OF SEO MODULE --------------------------
+      $url->base->host($host);
+      my $res = $self->res;
+      $res->code(301);
+      $res->headers->location($url->to_abs);
+      $res->headers->content_length(0);
+      $self->rendered;
+      return;
+    }
+    # --- END OF SEO MODULE --------------------------
 
     # If not morbo server
     unless( $ENV{IS_MORBO} ){
-			# --- REDIRECT MODULE ---------------------------------
-			#my $path = $url->to_string;
-			my $path = $self->req->url->path;
-			my $fullPath = 'http://'.$self->host.$path;
-			#$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
-  		if (
-  			my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' OR `source_url` LIKE '$fullPath' LIMIT 1")->list)->to_string
-  				){
+      # --- REDIRECT MODULE ---------------------------------
+      #my $path = $url->to_string;
+      my $path = $self->req->url->path;
+      my $fullPath = 'http://'.$self->host.$path;
+      #$path =~ s{\/$}{}gi if( $url->path->trailing_slash );
+      if (
+        my $redirect_path = Mojo::Path->new($self->dbi->query("SELECT `last_url` FROM `data_redirects` WHERE `source_url` LIKE '$path' OR `source_url` LIKE '$fullPath' LIMIT 1")->list)->to_string
+          ){
 
-				my %qs=();
-				if ($redirect_path =~ /\%3F(\S*)/){
-					foreach (split('\&',$1)){
-						my ($name,$val) = split('=',$_);
-						$qs{$name} = $val;
-					}
-					$redirect_path =~ s/\%3F$1//;
-				}
-				$self->res->code(301);
-				#die $redirect_path;
+        my %qs=();
+        if ($redirect_path =~ /\%3F(\S*)/){
+          foreach (split('\&',$1)){
+            my ($name,$val) = split('=',$_);
+            $qs{$name} = $val;
+          }
+          $redirect_path =~ s/\%3F$1//;
+        }
+        $self->res->code(301);
+        #die $redirect_path;
 
-				return $self->redirect_to($self->url_for($redirect_path)->query(\%qs) );
-  		}
-			# --- END OF REDIRECT MODULE --------------------------
-			#
+        return $self->redirect_to($self->url_for($redirect_path)->query(\%qs) );
+      }
+      # --- END OF REDIRECT MODULE --------------------------
+      #
     }
 
-  	# check sessions
-		if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-		 	$self->session( cck => $cck );
-		}
+    # check sessions
+    if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
+      $self->session( cck => $cck );
+    }
 
-		$self->req->url->base( Mojo::URL->new(q{/}) );
-		$self->req->url->scheme($conf->{'protocol'});
+    $self->req->url->base( Mojo::URL->new(q{/}) );
+    $self->req->url->scheme($conf->{'protocol'});
 
-		foreach my $k (keys %{$conf->{pipeline_assets}}){
-			if($conf->{pipeline}){
-				$self->asset($k => @{ $conf->{pipeline_assets}->{$k} } );
-				#$self->asset($k => $conf->{pipeline_assets}->{$k} );
-			}
-			else {
-				foreach my $sources (@{ $conf->{pipeline_assets}->{$k} }){
-					$sources =~ /^(.+)\.(\w+)$/;
-					$self->css_files("$1.$2") if $2 eq 'css';
-					$self->js_files("$1.$2") if $2 eq 'js';
-				}
-			}
-		}
-	});
+    foreach my $k (keys %{$conf->{pipeline_assets}}){
+      if($conf->{pipeline}){
+        $self->asset($k => @{ $conf->{pipeline_assets}->{$k} } );
+        #$self->asset($k => $conf->{pipeline_assets}->{$k} );
+      }
+      else {
+        foreach my $sources (@{ $conf->{pipeline_assets}->{$k} }){
+          $sources =~ /^(.+)\.(\w+)$/;
+          $self->css_files("$1.$2") if $2 eq 'css';
+          $self->js_files("$1.$2") if $2 eq 'js';
+        }
+      }
+    }
+  });
 
-	$app->hook(after_render => sub {
-		my ($self, $output, $format) = @_;
+  $app->hook(after_render => sub {
+    my ($self, $output, $format) = @_;
 
-		if($conf->{minify_html} && $self->app->mode eq 'production'){
-			my $packer = HTML::Packer->init();
-			$$output = $packer->minify( $output, {
-				remove_comments 	=> 1
-			});
-		}
-	});
+    if($conf->{minify_html} && $self->app->mode eq 'production'){
+      my $packer = HTML::Packer->init();
+      $$output = $packer->minify( $output, {
+        remove_comments   => 1
+      });
+    }
+  });
 
-	$app->hook(before_render => sub {
-		my ($self, $args) = @_;
+  $app->hook(before_render => sub {
+    my ($self, $args) = @_;
 
-		#return unless my $template = $args->{template};
+    #return unless my $template = $args->{template};
 
-		#$self->js_controller() if ($template eq '_footer');
-	});
+    #$self->js_controller() if ($template eq '_footer');
+  });
 };
 
 1;

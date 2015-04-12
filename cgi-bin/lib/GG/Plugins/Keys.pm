@@ -10,585 +10,585 @@ use List::Util 'first';
 our $VERSION = '0.06';
 
 sub register {
-	my ( $self, $app, $args ) = @_;
+  my ( $self, $app, $args ) = @_;
 
-	$args ||= {};
+  $args ||= {};
 
-	$app->plugin('validator');
+  $app->plugin('validator');
 
-	unless (ref($app)->can('buttons')){
-		ref($app)->attr('buttons');
-		$app->buttons( {} );
-	}
-	unless (ref($app)->can('lkeys')){
-		ref($app)->attr('lkeys');
-		$app->lkeys( {} );
-	}
+  unless (ref($app)->can('buttons')){
+    ref($app)->attr('buttons');
+    $app->buttons( {} );
+  }
+  unless (ref($app)->can('lkeys')){
+    ref($app)->attr('lkeys');
+    $app->lkeys( {} );
+  }
 
-	$app->helper( buttons => sub {
-		return shift->app->buttons;
-	});
+  $app->helper( buttons => sub {
+    return shift->app->buttons;
+  });
 
-	$app->helper( lkeys => sub {
-		return shift->app->lkeys;
-	});
+  $app->helper( lkeys => sub {
+    return shift->app->lkeys;
+  });
 
-	$app->helper(
-		# name - имя переменной
-		# split - разделитель для списка
-		# values - масив значений переменной
+  $app->helper(
+    # name - имя переменной
+    # split - разделитель для списка
+    # values - масив значений переменной
 
-		VALUES => sub {
-			my $self   	= shift;
-			my $params 	= ref $_[0] ? $_[0] : {@_};
+    VALUES => sub {
+      my $self    = shift;
+      my $params  = ref $_[0] ? $_[0] : {@_};
 
-			return unless $$params{'name'};
+      return unless $$params{'name'};
 
-			my $name = $$params{'name'};
-			my $type = $$params{'type'};
-			my $param = $$params{'param'} || 'name';
-			my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
+      my $name = $$params{'name'};
+      my $type = $$params{'type'};
+      my $param = $$params{'param'} || 'name';
+      my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
 
 
-			return unless my $lkey = $self->lkey(name => $name, controller => $controller);
+      return unless my $lkey = $self->lkey(name => $name, controller => $controller);
 
-			$type ||= $lkey->{settings}->{type} || return '';
+      $type ||= $lkey->{settings}->{type} || return '';
 
-			my $values //= $$params{'value'};
-			   $values //= $$params{'values'};
-			   $values //= [];
+      my $values //= $$params{'value'};
+         $values //= $$params{'values'};
+         $values //= [];
 
-			my $values_split = $$params{'value_split'} || $$params{'values_split'} || "=";
+      my $values_split = $$params{'value_split'} || $$params{'values_split'} || "=";
 
-			if(ref($values) ne 'ARRAY'){
-				$_ = $values;
-				$values = [];
-				@$values = split($values_split, $_);
-			}
+      if(ref($values) ne 'ARRAY'){
+        $_ = $values;
+        $values = [];
+        @$values = split($values_split, $_);
+      }
 
-			my $lkey_settings = $lkey->{settings};
+      my $lkey_settings = $lkey->{settings};
 
-			if($type eq 'user'){
-				my $result = $$params{param} ?  $self->app->sysuser->settings->{$name} : $self->app->sysuser->userinfo->{$name};
-				$result = 'checked' if $$params{chbox};
-				return $result;
+      if($type eq 'user'){
+        my $result = $$params{param} ?  $self->app->sysuser->settings->{$name} : $self->app->sysuser->userinfo->{$name};
+        $result = 'checked' if $$params{chbox};
+        return $result;
 
-			} elsif($type eq 'env'){
+      } elsif($type eq 'env'){
 
-				return $self->req->env->{$name} || '';
+        return $self->req->env->{$name} || '';
 
-			} elsif($type =~ /list/){
-				$self->def_list( name => $name, controller => $controller);
+      } elsif($type =~ /list/){
+        $self->def_list( name => $name, controller => $controller);
 
-				my $attr = {
-					split 	=> $lkey_settings->{'values_join_delimiter_tablelist'} || $lkey_settings->{'values_join_delimiter'} || '<br />',
-					name		=> 'name',
-					%{$params},
-				};
+        my $attr = {
+          split   => $lkey_settings->{'values_join_delimiter_tablelist'} || $lkey_settings->{'values_join_delimiter'} || '<br />',
+          name    => 'name',
+          %{$params},
+        };
 
-				if(my $listRef = $lkey->{list}){
-					my @vals = ();
-					foreach (@$values){
-						push @vals, $listRef->{$_} if $listRef->{$_};
-					}
-					# 0 Значение значение выбрано по умолчанию
-					if(!scalar @vals && $lkey->{list}->{0}){
-						push @vals, $lkey->{list}->{0}
-					}
+        if(my $listRef = $lkey->{list}){
+          my @vals = ();
+          foreach (@$values){
+            push @vals, $listRef->{$_} if $listRef->{$_};
+          }
+          # 0 Значение значение выбрано по умолчанию
+          if(!scalar @vals && $lkey->{list}->{0}){
+            push @vals, $lkey->{list}->{0}
+          }
 
-					return join($$attr{split}, @vals);
-				}
-				return;
+          return join($$attr{split}, @vals);
+        }
+        return;
 
-			} elsif($type eq 'chb'){
-				return $values->[0] && $values->[0] == 1 ? $lkey_settings->{yes} : $lkey_settings->{no};
+      } elsif($type eq 'chb'){
+        return $values->[0] && $values->[0] == 1 ? $lkey_settings->{yes} : $lkey_settings->{no};
 
-			} else {
-				return join(' ', @$values);
-			}
+      } else {
+        return join(' ', @$values);
+      }
 
-			return "VALUES type '$type' for name '$name' not supported ";
-		}
-	);
+      return "VALUES type '$type' for name '$name' not supported ";
+    }
+  );
 
-	$app->helper(
-		LIST => sub {
-			my $self   	= shift;
-			my $params 	= ref $_[0] ? $_[0] : {@_};
+  $app->helper(
+    LIST => sub {
+      my $self    = shift;
+      my $params  = ref $_[0] ? $_[0] : {@_};
 
-			return if !$self->app->lkeys;
+      return if !$self->app->lkeys;
 
-			my $name = delete $$params{'name'};
-			my $type = delete $$params{'type'};
-			my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
+      my $name = delete $$params{'name'};
+      my $type = delete $$params{'type'};
+      my $controller = lc(delete $$params{'controller'} || $self->stash->{controller});
 
-			my $values //= $$params{'value'};
-			   $values //= $$params{'values'};
-			   $values //= [];
+      my $values //= $$params{'value'};
+         $values //= $$params{'values'};
+         $values //= [];
 
-			return unless my $lkey = $self->lkey(name => $name, controller => $controller);
+      return unless my $lkey = $self->lkey(name => $name, controller => $controller);
 
-			my $values_split = delete $$params{value_split} || "=";
-			my $setting =  $lkey->{settings};
-			my $replaceme = $self->stash->{replaceme} || '';
+      my $values_split = delete $$params{value_split} || "=";
+      my $setting =  $lkey->{settings};
+      my $replaceme = $self->stash->{replaceme} || '';
 
-			if(ref($values) ne 'ARRAY'){
-				$_ = $values;
-				$values = [];
-				@$values = split($values_split, $_);
-			}
+      if(ref($values) ne 'ARRAY'){
+        $_ = $values;
+        $values = [];
+        @$values = split($values_split, $_);
+      }
 
-			$type ||= $lkey->{settings}->{list_type} || 'select';
+      $type ||= $lkey->{settings}->{list_type} || 'select';
 
-			my $required = $$params{required} || $setting->{required} ? " required " : "";
-			my $list_delimetr = $$params{delimetr} || $setting->{list_delimetr} || '<br />';
-			my $list_style = $$params{style} || $setting->{list_style} || '';
-			my $list_class = $$params{class} || $setting->{list_class} || '';
+      my $required = $$params{required} || $setting->{required} ? " required " : "";
+      my $list_delimetr = $$params{delimetr} || $setting->{list_delimetr} || '<br />';
+      my $list_style = $$params{style} || $setting->{list_style} || '';
+      my $list_class = $$params{class} || $setting->{list_class} || '';
 
-			$self->def_list( name => $name, controller => $controller);
+      $self->def_list( name => $name, controller => $controller);
 
-			my $list = $lkey->{list} || {};
-			my $list_labels = $lkey->{list_labels} || [];
+      my $list = $lkey->{list} || {};
+      my $list_labels = $lkey->{list_labels} || [];
 
 
-			my $backup = {};
-			if($$params{onlyindex}){
-				$backup->{$_}  = $list->{$_} foreach (keys %{$list});
-				if($$params{onlyindex} == -1){
-					delete $list->{$_} foreach (@$values);
-				} elsif($$params{onlyindex} == 1){
-					foreach my $k (keys %{$list}){
-						delete $list->{$k} unless(grep(/^$k$/, @$values));
-					}
-				}
-			}
-			push @$values, 0 if(!scalar(@$values) and !$lkey->{settings}->{notnull});
+      my $backup = {};
+      if($$params{onlyindex}){
+        $backup->{$_}  = $list->{$_} foreach (keys %{$list});
+        if($$params{onlyindex} == -1){
+          delete $list->{$_} foreach (@$values);
+        } elsif($$params{onlyindex} == 1){
+          foreach my $k (keys %{$list}){
+            delete $list->{$k} unless(grep(/^$k$/, @$values));
+          }
+        }
+      }
+      push @$values, 0 if(!scalar(@$values) and !$lkey->{settings}->{notnull});
 
-			my $code = "";
+      my $code = "";
 
-			if($type eq 'select'){
+      if($type eq 'select'){
 
-				$code .= "<select name='$name' $list_style $list_class id='$name' $required>" unless $params->{option};
+        $code .= "<select name='$name' $list_style $list_class id='$name' $required>" unless $params->{option};
 
-				foreach my $k (@$list_labels){
-					next unless $list->{$k};
+        foreach my $k (@$list_labels){
+          next unless $list->{$k};
 
-					my $selected = (defined first { $k eq $_ } @$values) ? " selected='selected' " : "";
+          my $selected = (defined first { $k eq $_ } @$values) ? " selected='selected' " : "";
 
-					$code .= "<option value='".($k || '')."' $selected>".$list->{$k}."</option>";
-				}
+          $code .= "<option value='".($k || '')."' $selected>".$list->{$k}."</option>";
+        }
 
-				$code .= "</select>" unless $params->{option};
-
-			} elsif($type eq 'checkbox'){
-
-				foreach my $k (@$list_labels){
-					next unless $list->{$k};
-
-					my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
-					$code .= "<label style=\"float:none;cursor:pointer;\"><input value='$k' name='$name' id='${replaceme}${name}_$k' $list_style type='checkbox' $list_class $required class='checkbox' $selected>".$list->{$k}."</label>";
-					$code .= $list_delimetr
-				}
-
-			} elsif($type eq 'radio'){
-				foreach my $k (@$list_labels){
-					next unless $list->{$k};
-					my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
-					$code .= "<input value='$k' name='$name' $list_style type='radio' id='${replaceme}${name}_$k' $list_class $required $selected><label for='${replaceme}${name}_$k' ".($replaceme ? 'style=\'float:none;cursor:pointer;\'' : '')."'>".$list->{$k}." </label>";;
-					$code .= $list_delimetr
-				}
-
-			} else {
-				return "LIST type '$type' for name '$name' not supported ";
-			}
-
-			$lkey->{list} = $backup if $$params{onlyindex};
-			return $code;
-		}
-	);
-
-	$app->helper(
-		def_list => sub {
-			my $self 	= shift;
-			my $args 	= ref $_[0] ? $_[0] : {@_};
-
-			return unless my $lkey = $self->lkey(name => $args->{name}, controller => $args->{controller});
-			return if $lkey->{list};
-
-
-			my $list = $lkey->{settings}->{list} || '';
-			my $type = $lkey->{settings}->{type} || 's';
-			my $list_vals = {};
-			if($type eq 'list'){
-
-				if(my $listOut = $lkey->{settings}->{list_out}){
-					$list = $self->lkey(name => $args->{name}, controller => $args->{controller} )->{settings}->{list} = $self->lkey(name => $listOut )->{settings}->{list};
-				}
-
-				foreach my $l (split(/~/, $list)) {
-					my ($key, $value) = split(/\|/, $l);
-					$list_vals->{$key} = $value;
-				}
-
-			} elsif($type eq 'tlist'){
-				my $where = $lkey->{settings}->{where} || '';
-				$where = $self->render_to_string( inline => $where ) if $where;
-
-				eval{
-					$list_vals = $self->app->dbi->query(qq/
-						SELECT `ID`,`name`
-						FROM `$list`
-						WHERE 1 $where
-					/)->map;
-				};
-
-				$app->log->error("Error read lkey list '$$args{name}': $@") && return if $@;
-			}
-
-			$lkey->{list} = $list_vals;
-
-			$self->_def_list_labels($lkey);
-		}
-	);
-
-	$app->helper(
-		_def_list_labels => sub {
-			my $self = shift;
-			my $lkey = shift;
-
-			my $list_vals = $lkey->{list} || {};
-			my $sort = $lkey->{settings}->{list_sort} || 0;
-
-			if(!$sort && $lkey->{settings}->{type} eq 'list'){
-				$sort = 'asc_d';
-			}
-
-			my $labels = [];
-			# Сортировка по значению
-			if($sort eq 'asc_d'){
-				push @$labels, $_ foreach sort {$a <=> $b} keys %$list_vals;
-			} elsif($sort eq 'asc_s'){
-				push @$labels, $_ foreach sort {$a cmp $b} keys %$list_vals;
-			} elsif($sort eq 'desc_d'){
-				push @$labels, $_ foreach sort {$b cmp $a} keys %$list_vals;
-			} elsif($sort eq 'desc_s'){
-				push @$labels, $_ foreach sort {$b cmp $a} keys %$list_vals;
-			} else {
-				push @$labels, $_ foreach sort {$list_vals->{$a} cmp $list_vals->{$b}} keys %$list_vals;
-			}
-
-			if(!$list_vals->{0} and (defined $lkey->{settings}->{notnull} && $lkey->{settings}->{notnull} == 0) || not defined $lkey->{settings}->{notnull}){
-				my $null_value = $lkey->{settings}->{nullvalue} || "------";
-				unshift @$labels, 0;
-				$lkey->{list}->{'0'} = $null_value;
-			}
-
-			$lkey->{list_labels} = $labels;
-		}
-	);
-
-	$app->helper(
-		get_keys => sub {
-			my $self         = shift;
-			my %params	  = (
-				validator	=> 1,
-				controller	=> '',
-				key_program	=> '',
-				no_global	=> 0,
-				type		=> [],
-				@_
-			);
-
-			$params{controller} ||= $params{key_program};
-
-			my $type 	  		= delete $params{type};
-			my $keys_table 	= 'keys_'.$params{controller} ;
-
-			my $app = $self->app;
-
-
-			if( !$params{no_global} &&
-				$self->app->lkeys->{ '_cached_global_'.$params{controller} } &&
-				$self->app->lkeys->{ '_cached_'.$params{controller} }
-				){
-				$self->validate( controller => $params{controller} ) if $params{validator};
-				return 1;
-
-			} elsif( $params{no_global} && $self->app->lkeys->{ '_cached_'.$params{controller} } ){
-
-				$self->validate( controller => $params{controller} ) if $params{validator};
-				return 1;
-			}
-
-			unless($params{no_global}){
-				if( my $rows = $app->dbi->query("SELECT * FROM `keys_global` WHERE 1")->hashes){
-					_parseLkeys(
-						app			=> $app,
-						controller 	=> $params{controller},
-						lkeys		=> $rows,
-					);
-					_parseLkeys(
-						app			=> $app,
-						controller 	=> 'global',
-						lkeys		=> $rows,
-					);
-				}
-
-				$self->app->lkeys->{ '_cached_global_'.$params{controller} } = 1;
-			}
-
-			if($keys_table){
-				if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE 1")->hashes){
-					_parseLkeys(
-						app			=> $app,
-						controller 	=> $params{controller},
-						lkeys		=> $rows,
-					);
-				}
-				$self->app->lkeys->{ '_cached_'.$params{controller} } = 1;
-			}
-
-			$self->validate( controller => $params{controller} ) if $params{validator};
-		}
-	);
-
-	$app->helper(
-		parse_keys_settings => sub {
-			my $self         = shift;
-			my $settings_result = {};
-
-			foreach my $settings (@_){
-
-				map {
-					my ( $k, $v ) = split( "=", $_, 2);
-					$k =~ s/\s*//g;
-					$settings_result->{$k} = $v;
-				} split( "\n", $settings );
-			}
-			return $settings_result;
-
-		}
-	);
-
-	$app->helper(
-		button => sub {
-			my $self   		= shift;
-			my $args 		= ref $_[0] ? $_[0] : {@_};
-
-			my $lkeyName = $args->{name};
-			my $controller = $args->{controller} || $self->stash->{controller} || return '';
-
-			return $self->app->buttons->{$controller} unless $lkeyName;
-
-			if($self->app->buttons->{$controller}->{$lkeyName}){
-				if($args->{setting}){
-					$self->app->buttons->{$controller}->{$lkeyName}->{ $args->{setting} } || '';
-				} else {
-					$self->app->buttons->{$controller}->{$lkeyName};
-				}
-			}
-
-		}
-	);
-
-	$app->helper( lkey_folder => sub {
-		my $self = shift;
-		my %params = @_;
-
-		return '' unless my $lkey = delete $params{'lkey'};
-		my $controller = delete $params{'controller'} || $self->stash->{'controller'};
-		$controller = lc($controller);
-		unless($self->app->lkeys->{$controller}){
-			$self->get_keys( type => ['lkey'], controller => $controller);
-		}
-		
-		return $self->lkey(name => $lkey, setting => 'folder', controller => $controller, %params);
-	});
-
-	$app->helper( lkey_path => sub {
-		my $self = shift;
-		my %params = @_;
-
-		return '' unless my $lkey = $params{'lkey'};
-		return '' unless my $value = delete $params{'value'};
-		
-		my $folder = $self->lkey_folder(%params);
-
-		$params{size} ? return $folder.$params{size}.'_'.$value : return $folder.$value;
-
-	});
-
-	$app->helper(
-		lkey => sub {
-			my $self   		= shift;
-			my $args 		= ref $_[0] ? $_[0] : {@_};
-
-			my $lkeyName = $args->{name};
-			my $controller = $args->{controller} || $self->stash->{controller} || return '';
-
-			my $lkeys = $self->app->lkeys;
-			
-			if(delete $args->{'tmp'}){
-		 		return $self->app->lkeys->{'global'}->{'tmp'} = Lkey->new( {
-					name     => $lkeyName || 'временный ключ',
-					lkey     => $args->{'lkey'} || 'tmp',
-					object   => 'lkey',
-					tbl		 => '',
-					settings => $args->{settings},
-					type	 => $args->{type} || $args->{settings}->{type} || 's',
-					group	 => 1,
-					access	 => {
-						r	=> 1,
-						w	=> 0,
-						d	=> 0,
-					}
-				});
-
-			}
-	
-			return $self->app->lkeys->{$controller} unless $lkeyName;
-			
-			if($self->app->lkeys->{$controller}->{$lkeyName}){
-				
-				if(my $list_table = $args->{'tbl'} || $self->stash->{list_table}){
-
-					my $lkey = ($lkeys->{$controller}->{_tbl}->{$list_table} &&
-								$lkeys->{$controller}->{_tbl}->{$list_table}->{$lkeyName}) ?
-								$lkeys->{$controller}->{_tbl}->{$list_table}->{$lkeyName} :
-								$lkeys->{$controller}->{$lkeyName};
-
-
-					if($args->{setting}){
-						if($lkey->{ $args->{setting} } ){
-							return $lkey->{ $args->{setting} } ;
-
-						} elsif($lkey->{settings}->{ $args->{setting} } ){
-							return $lkey->{settings}->{ $args->{setting} }
-						}
-						return '';
-					}
-
-					return $lkey
-
-				} else {
-					if($args->{setting}){
-
-						if($lkeys->{$controller}->{$lkeyName}->{$args->{setting}}){
-							return $lkeys->{$controller}->{$lkeyName}->{$args->{setting}};
-
-						} elsif($lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }){
-							return $lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }
-						}
-						return '';
-
-					} else {
-						return $lkeys->{$controller}->{$lkeyName};
-					}
-				}
-			}
-			return $args->{setting} ? "" : {};
-
-		}
-	);
-
-
-	# проверяем есть ли значение у позиции ( 1=3=5 )
-	$app->helper(
-		has_in_multilist => sub {
-			my $self         = shift;
-			return unless my $itemValues 	 = shift;
-			return unless my $checkValue 	 = shift;
-
-			my @itemValues = split('=', $itemValues);
-			return 1 if($checkValue ~~ @itemValues);
-			return;
-		}
-	);
-
-	$app->helper(
-		merge_keys_settings => sub {
-			my $self         = shift;
-			my $settings_result = {};
-
-			foreach my $settings (@_){
-				$settings_result->{$_} = $settings->{$_} foreach (keys %$settings);
-			}
-			return $settings_result;
-
-		}
-	);
+        $code .= "</select>" unless $params->{option};
+
+      } elsif($type eq 'checkbox'){
+
+        foreach my $k (@$list_labels){
+          next unless $list->{$k};
+
+          my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
+          $code .= "<label style=\"float:none;cursor:pointer;\"><input value='$k' name='$name' id='${replaceme}${name}_$k' $list_style type='checkbox' $list_class $required class='checkbox' $selected>".$list->{$k}."</label>";
+          $code .= $list_delimetr
+        }
+
+      } elsif($type eq 'radio'){
+        foreach my $k (@$list_labels){
+          next unless $list->{$k};
+          my $selected = (defined first { $k eq $_ } @$values) ? " checked='checked' " : "";
+          $code .= "<input value='$k' name='$name' $list_style type='radio' id='${replaceme}${name}_$k' $list_class $required $selected><label for='${replaceme}${name}_$k' ".($replaceme ? 'style=\'float:none;cursor:pointer;\'' : '')."'>".$list->{$k}." </label>";;
+          $code .= $list_delimetr
+        }
+
+      } else {
+        return "LIST type '$type' for name '$name' not supported ";
+      }
+
+      $lkey->{list} = $backup if $$params{onlyindex};
+      return $code;
+    }
+  );
+
+  $app->helper(
+    def_list => sub {
+      my $self  = shift;
+      my $args  = ref $_[0] ? $_[0] : {@_};
+
+      return unless my $lkey = $self->lkey(name => $args->{name}, controller => $args->{controller});
+      return if $lkey->{list};
+
+
+      my $list = $lkey->{settings}->{list} || '';
+      my $type = $lkey->{settings}->{type} || 's';
+      my $list_vals = {};
+      if($type eq 'list'){
+
+        if(my $listOut = $lkey->{settings}->{list_out}){
+          $list = $self->lkey(name => $args->{name}, controller => $args->{controller} )->{settings}->{list} = $self->lkey(name => $listOut )->{settings}->{list};
+        }
+
+        foreach my $l (split(/~/, $list)) {
+          my ($key, $value) = split(/\|/, $l);
+          $list_vals->{$key} = $value;
+        }
+
+      } elsif($type eq 'tlist'){
+        my $where = $lkey->{settings}->{where} || '';
+        $where = $self->render_to_string( inline => $where ) if $where;
+
+        eval{
+          $list_vals = $self->app->dbi->query(qq/
+            SELECT `ID`,`name`
+            FROM `$list`
+            WHERE 1 $where
+          /)->map;
+        };
+
+        $app->log->error("Error read lkey list '$$args{name}': $@") && return if $@;
+      }
+
+      $lkey->{list} = $list_vals;
+
+      $self->_def_list_labels($lkey);
+    }
+  );
+
+  $app->helper(
+    _def_list_labels => sub {
+      my $self = shift;
+      my $lkey = shift;
+
+      my $list_vals = $lkey->{list} || {};
+      my $sort = $lkey->{settings}->{list_sort} || 0;
+
+      if(!$sort && $lkey->{settings}->{type} eq 'list'){
+        $sort = 'asc_d';
+      }
+
+      my $labels = [];
+      # Сортировка по значению
+      if($sort eq 'asc_d'){
+        push @$labels, $_ foreach sort {$a <=> $b} keys %$list_vals;
+      } elsif($sort eq 'asc_s'){
+        push @$labels, $_ foreach sort {$a cmp $b} keys %$list_vals;
+      } elsif($sort eq 'desc_d'){
+        push @$labels, $_ foreach sort {$b cmp $a} keys %$list_vals;
+      } elsif($sort eq 'desc_s'){
+        push @$labels, $_ foreach sort {$b cmp $a} keys %$list_vals;
+      } else {
+        push @$labels, $_ foreach sort {$list_vals->{$a} cmp $list_vals->{$b}} keys %$list_vals;
+      }
+
+      if(!$list_vals->{0} and (defined $lkey->{settings}->{notnull} && $lkey->{settings}->{notnull} == 0) || not defined $lkey->{settings}->{notnull}){
+        my $null_value = $lkey->{settings}->{nullvalue} || "------";
+        unshift @$labels, 0;
+        $lkey->{list}->{'0'} = $null_value;
+      }
+
+      $lkey->{list_labels} = $labels;
+    }
+  );
+
+  $app->helper(
+    get_keys => sub {
+      my $self         = shift;
+      my %params    = (
+        validator => 1,
+        controller  => '',
+        key_program => '',
+        no_global => 0,
+        type    => [],
+        @_
+      );
+
+      $params{controller} ||= $params{key_program};
+
+      my $type        = delete $params{type};
+      my $keys_table  = 'keys_'.$params{controller} ;
+
+      my $app = $self->app;
+
+
+      if( !$params{no_global} &&
+        $self->app->lkeys->{ '_cached_global_'.$params{controller} } &&
+        $self->app->lkeys->{ '_cached_'.$params{controller} }
+        ){
+        $self->validate( controller => $params{controller} ) if $params{validator};
+        return 1;
+
+      } elsif( $params{no_global} && $self->app->lkeys->{ '_cached_'.$params{controller} } ){
+
+        $self->validate( controller => $params{controller} ) if $params{validator};
+        return 1;
+      }
+
+      unless($params{no_global}){
+        if( my $rows = $app->dbi->query("SELECT * FROM `keys_global` WHERE 1")->hashes){
+          _parseLkeys(
+            app     => $app,
+            controller  => $params{controller},
+            lkeys   => $rows,
+          );
+          _parseLkeys(
+            app     => $app,
+            controller  => 'global',
+            lkeys   => $rows,
+          );
+        }
+
+        $self->app->lkeys->{ '_cached_global_'.$params{controller} } = 1;
+      }
+
+      if($keys_table){
+        if( my $rows = $app->dbi->query("SELECT * FROM `$keys_table` WHERE 1")->hashes){
+          _parseLkeys(
+            app     => $app,
+            controller  => $params{controller},
+            lkeys   => $rows,
+          );
+        }
+        $self->app->lkeys->{ '_cached_'.$params{controller} } = 1;
+      }
+
+      $self->validate( controller => $params{controller} ) if $params{validator};
+    }
+  );
+
+  $app->helper(
+    parse_keys_settings => sub {
+      my $self         = shift;
+      my $settings_result = {};
+
+      foreach my $settings (@_){
+
+        map {
+          my ( $k, $v ) = split( "=", $_, 2);
+          $k =~ s/\s*//g;
+          $settings_result->{$k} = $v;
+        } split( "\n", $settings );
+      }
+      return $settings_result;
+
+    }
+  );
+
+  $app->helper(
+    button => sub {
+      my $self      = shift;
+      my $args    = ref $_[0] ? $_[0] : {@_};
+
+      my $lkeyName = $args->{name};
+      my $controller = $args->{controller} || $self->stash->{controller} || return '';
+
+      return $self->app->buttons->{$controller} unless $lkeyName;
+
+      if($self->app->buttons->{$controller}->{$lkeyName}){
+        if($args->{setting}){
+          $self->app->buttons->{$controller}->{$lkeyName}->{ $args->{setting} } || '';
+        } else {
+          $self->app->buttons->{$controller}->{$lkeyName};
+        }
+      }
+
+    }
+  );
+
+  $app->helper( lkey_folder => sub {
+    my $self = shift;
+    my %params = @_;
+
+    return '' unless my $lkey = delete $params{'lkey'};
+    my $controller = delete $params{'controller'} || $self->stash->{'controller'};
+    $controller = lc($controller);
+    unless($self->app->lkeys->{$controller}){
+      $self->get_keys( type => ['lkey'], controller => $controller);
+    }
+
+    return $self->lkey(name => $lkey, setting => 'folder', controller => $controller, %params);
+  });
+
+  $app->helper( lkey_path => sub {
+    my $self = shift;
+    my %params = @_;
+
+    return '' unless my $lkey = $params{'lkey'};
+    return '' unless my $value = delete $params{'value'};
+
+    my $folder = $self->lkey_folder(%params);
+
+    $params{size} ? return $folder.$params{size}.'_'.$value : return $folder.$value;
+
+  });
+
+  $app->helper(
+    lkey => sub {
+      my $self      = shift;
+      my $args    = ref $_[0] ? $_[0] : {@_};
+
+      my $lkeyName = $args->{name};
+      my $controller = $args->{controller} || $self->stash->{controller} || return '';
+
+      my $lkeys = $self->app->lkeys;
+
+      if(delete $args->{'tmp'}){
+        return $self->app->lkeys->{'global'}->{'tmp'} = Lkey->new( {
+          name     => $lkeyName || 'временный ключ',
+          lkey     => $args->{'lkey'} || 'tmp',
+          object   => 'lkey',
+          tbl    => '',
+          settings => $args->{settings},
+          type   => $args->{type} || $args->{settings}->{type} || 's',
+          group  => 1,
+          access   => {
+            r => 1,
+            w => 0,
+            d => 0,
+          }
+        });
+
+      }
+
+      return $self->app->lkeys->{$controller} unless $lkeyName;
+
+      if($self->app->lkeys->{$controller}->{$lkeyName}){
+
+        if(my $list_table = $args->{'tbl'} || $self->stash->{list_table}){
+
+          my $lkey = ($lkeys->{$controller}->{_tbl}->{$list_table} &&
+                $lkeys->{$controller}->{_tbl}->{$list_table}->{$lkeyName}) ?
+                $lkeys->{$controller}->{_tbl}->{$list_table}->{$lkeyName} :
+                $lkeys->{$controller}->{$lkeyName};
+
+
+          if($args->{setting}){
+            if($lkey->{ $args->{setting} } ){
+              return $lkey->{ $args->{setting} } ;
+
+            } elsif($lkey->{settings}->{ $args->{setting} } ){
+              return $lkey->{settings}->{ $args->{setting} }
+            }
+            return '';
+          }
+
+          return $lkey
+
+        } else {
+          if($args->{setting}){
+
+            if($lkeys->{$controller}->{$lkeyName}->{$args->{setting}}){
+              return $lkeys->{$controller}->{$lkeyName}->{$args->{setting}};
+
+            } elsif($lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }){
+              return $lkeys->{$controller}->{$lkeyName}->{settings}->{ $args->{setting} }
+            }
+            return '';
+
+          } else {
+            return $lkeys->{$controller}->{$lkeyName};
+          }
+        }
+      }
+      return $args->{setting} ? "" : {};
+
+    }
+  );
+
+
+  # проверяем есть ли значение у позиции ( 1=3=5 )
+  $app->helper(
+    has_in_multilist => sub {
+      my $self         = shift;
+      return unless my $itemValues   = shift;
+      return unless my $checkValue   = shift;
+
+      my @itemValues = split('=', $itemValues);
+      return 1 if($checkValue ~~ @itemValues);
+      return;
+    }
+  );
+
+  $app->helper(
+    merge_keys_settings => sub {
+      my $self         = shift;
+      my $settings_result = {};
+
+      foreach my $settings (@_){
+        $settings_result->{$_} = $settings->{$_} foreach (keys %$settings);
+      }
+      return $settings_result;
+
+    }
+  );
 }
 
 sub _parseLkeys{
-	my %params  = @_;
+  my %params  = @_;
 
-	my $app = delete $params{app};
-	my $controller = delete $params{controller};
-	my $lkeys 	= delete $params{lkeys};
+  my $app = delete $params{app};
+  my $controller = delete $params{controller};
+  my $lkeys   = delete $params{lkeys};
 
-	unless($app->buttons->{$controller}){
-		$app->buttons->{$controller} = {};
-	}
-	unless($app->lkeys->{$controller}){
-		$app->lkeys->{$controller} = {};
-		$app->lkeys->{$controller}->{_tbl} = {};
-	}
+  unless($app->buttons->{$controller}){
+    $app->buttons->{$controller} = {};
+  }
+  unless($app->lkeys->{$controller}){
+    $app->lkeys->{$controller} = {};
+    $app->lkeys->{$controller}->{_tbl} = {};
+  }
 
-	foreach my $dbKey (@$lkeys){
+  foreach my $dbKey (@$lkeys){
 
-		my $lkey = _parseLkeySettings($dbKey);
+    my $lkey = _parseLkeySettings($dbKey);
 
-		if($lkey->{object} eq 'lkey'){
+    if($lkey->{object} eq 'lkey'){
 
-			$lkey = Lkey->new( $lkey );
-			$lkey->access->{r} = 1;
+      $lkey = Lkey->new( $lkey );
+      $lkey->access->{r} = 1;
 
-			if($lkey->{tbl}){
-				$app->lkeys->{$controller}->{_tbl}->{$lkey->{tbl}}->{$lkey->{lkey}} = $lkey
+      if($lkey->{tbl}){
+        $app->lkeys->{$controller}->{_tbl}->{$lkey->{tbl}}->{$lkey->{lkey}} = $lkey
 
-			} else {
+      } else {
 
-				$app->lkeys->{$controller}->{$lkey->{lkey}} = $lkey;
-			}
+        $app->lkeys->{$controller}->{$lkey->{lkey}} = $lkey;
+      }
 
 
 
-		} elsif($lkey->{object} eq 'button'){
-			my $button = Button->new( $lkey );
-			$button->access->{r} = 1;
-			$app->buttons->{$controller}->{$lkey->{lkey}} = $button;
+    } elsif($lkey->{object} eq 'button'){
+      my $button = Button->new( $lkey );
+      $button->access->{r} = 1;
+      $app->buttons->{$controller}->{$lkey->{lkey}} = $button;
 
-		}
-	}
+    }
+  }
 }
 
 sub _parseLkeySettings{
-	my $dbKey = shift;
+  my $dbKey = shift;
 
-	my $settings = $dbKey->{settings};
-	$settings =~ s/\r//g;
+  my $settings = $dbKey->{settings};
+  $settings =~ s/\r//g;
 
-	my @settings_strings = split( "\n", $settings );
-	my $settings_hash = {
-		rating	=> 99,
-		type	=> 's',
-	};
+  my @settings_strings = split( "\n", $settings );
+  my $settings_hash = {
+    rating  => 99,
+    type  => 's',
+  };
 
-	map {
-		my ( $k, $v ) = split( "=", $_, 2);
-		$k =~ s/\s*//g;
-		$settings_hash->{$k} = $v;
-	} @settings_strings;
+  map {
+    my ( $k, $v ) = split( "=", $_, 2);
+    $k =~ s/\s*//g;
+    $settings_hash->{$k} = $v;
+  } @settings_strings;
 
-	return {
-		name     => $dbKey->{name},
-		lkey     => $dbKey->{lkey},
-		object   => $dbKey->{object},
-		tbl		 => $dbKey->{tbl},
-		settings => $settings_hash,
-		type	 => $settings_hash->{type} || 's',
-		group	 => $settings_hash->{group} || 1,
-	 };
+  return {
+    name     => $dbKey->{name},
+    lkey     => $dbKey->{lkey},
+    object   => $dbKey->{object},
+    tbl    => $dbKey->{tbl},
+    settings => $settings_hash,
+    type   => $settings_hash->{type} || 's',
+    group  => $settings_hash->{group} || 1,
+   };
 }
 
 1;
@@ -598,32 +598,32 @@ package Lkey;
 use utf8;
 use base 'Mojo::Base';
 
-__PACKAGE__->attr( access	=> sub { shift->{access} }  );
+__PACKAGE__->attr( access => sub { shift->{access} }  );
 
 sub new {
-	my $class = shift;
-	my $args  = shift || {};
+  my $class = shift;
+  my $args  = shift || {};
 
-	my $self = {
-		tbl      => undef,
-		lkey     => undef,
-		name     => undef,
-		type     => "s",
-		filter   => 0,
-		group	 => 1,
-		object   => "lkey",
-		settings => {
-			type	=> 's',
-		},
-		access	 => {
-						d	=> 0,
-						r	=> 0,
-						w	=> 0
-		},
-		%{$args}
-	};
-	bless($self, $class);
-	return $self;
+  my $self = {
+    tbl      => undef,
+    lkey     => undef,
+    name     => undef,
+    type     => "s",
+    filter   => 0,
+    group  => 1,
+    object   => "lkey",
+    settings => {
+      type  => 's',
+    },
+    access   => {
+            d => 0,
+            r => 0,
+            w => 0
+    },
+    %{$args}
+  };
+  bless($self, $class);
+  return $self;
 }
 
 1;
@@ -636,162 +636,162 @@ use utf8;
 
 use base 'Mojo::Base';
 
-__PACKAGE__->attr( access	=> sub { shift->{access} }  );
+__PACKAGE__->attr( access => sub { shift->{access} }  );
 
 sub new {
-	my $class = shift;
-	my $args  = shift || {};
+  my $class = shift;
+  my $args  = shift || {};
 
-	my $self = {
-		lkey   	 => undef,
-		name   	 => undef,
-		image	 => undef,
-		program	 => undef,
-		action	 => undef,
-		object 	 => "button",
-		settings => {},
-		code	 => undef,
-		imageicon	=> '',
-		access	 => {
-						d	=> 0,
-						r	=> 0,
-						w	=> 0
-		},
-		stash	=> {},
-		%{$args}
-	};
-	bless($self, $class);
-	return $self;
+  my $self = {
+    lkey     => undef,
+    name     => undef,
+    image  => undef,
+    program  => undef,
+    action   => undef,
+    object   => "button",
+    settings => {},
+    code   => undef,
+    imageicon => '',
+    access   => {
+            d => 0,
+            r => 0,
+            w => 0
+    },
+    stash => {},
+    %{$args}
+  };
+  bless($self, $class);
+  return $self;
 }
 
 
 sub button_item_json{
-	my $self   = shift;
-	my $vals = {
-		type			=> 'additembutton',
-		menubarkey		=> 'button',
-		id				=> $$self{ID}, #sprintf("%03d%03d", rand('999'), rand('999') ),
-		itemtext		=> $$self{name},
-		itemicon		=> $$self{settings}->{imageiconmenu},
-		helptext		=> $$self{settings}->{title},
-		jsfunction		=> $$self{settings}->{script}
-	};
-	return $vals;
+  my $self   = shift;
+  my $vals = {
+    type      => 'additembutton',
+    menubarkey    => 'button',
+    id        => $$self{ID}, #sprintf("%03d%03d", rand('999'), rand('999') ),
+    itemtext    => $$self{name},
+    itemicon    => $$self{settings}->{imageiconmenu},
+    helptext    => $$self{settings}->{title},
+    jsfunction    => $$self{settings}->{script}
+  };
+  return $vals;
 }
 
 sub def_icons { # Определение кнопки типа "Icons"
-	my $self   = shift();
+  my $self   = shift();
 
 
-	$$self{settings}->{imageicon} ||= "/admin/img/icons/menu/icon_no.gif";
+  $$self{settings}->{imageicon} ||= "/admin/img/icons/menu/icon_no.gif";
 
-	$self -> def_params_button();
-	$self -> def_script_button();
+  $self -> def_params_button();
+  $self -> def_script_button();
 }
 
 sub def_params_button { # определение параметров
-	my $self   = shift;
-	my $stash   = shift;
+  my $self   = shift;
+  my $stash   = shift;
 
-	my %params = @_;
+  my %params = @_;
 
-	my (@params);
+  my (@params);
 
-	my $settings = $$self{settings};
+  my $settings = $$self{settings};
 
-	if ($settings->{params}) {
-		foreach my $p (split(/,/, $settings->{params})) {
-			next unless $p;
-			next unless my $v = $stash->{$p};
+  if ($settings->{params}) {
+    foreach my $p (split(/,/, $settings->{params})) {
+      next unless $p;
+      next unless my $v = $stash->{$p};
 
-			$v = $stash->{controller}.'_'.$stash->{list_table}.'0' if ($settings->{id} && $settings->{id} eq 'newentry' && $p eq 'replaceme');
+      $v = $stash->{controller}.'_'.$stash->{list_table}.'0' if ($settings->{id} && $settings->{id} eq 'newentry' && $p eq 'replaceme');
 
-			push(@params, "$p=$v");
-		}
-	}
+      push(@params, "$p=$v");
+    }
+  }
 
-	$settings->{controller} ||= $stash->{controller};
-	$self->{params_string} = $settings->{params_string} = join("&", @params) || '';
+  $settings->{controller} ||= $stash->{controller};
+  $self->{params_string} = $settings->{params_string} = join("&", @params) || '';
 
-	$settings->{action} ||= $settings->{'do'} || 'undef';
-	$settings->{controller} ||= '';
+  $settings->{action} ||= $settings->{'do'} || 'undef';
+  $settings->{controller} ||= '';
 
-	$settings->{program} = '/admin/'.$settings->{controller}.'/body?do='.$settings->{action};
+  $settings->{program} = '/admin/'.$settings->{controller}.'/body?do='.$settings->{action};
 
-	$$self{settings} = $settings;
+  $$self{settings} = $settings;
 }
 
 sub def_script_button { # определение скрипта выполнения
-	my $self   = shift();
-	my $stash   = shift;
+  my $self   = shift();
+  my $stash   = shift;
 
-	my %params = @_;
-	no warnings;
+  my %params = @_;
+  no warnings;
 
-	my $settings = $$self{settings};
-	if (!$settings->{type_link}) {
-		$settings->{script} = "doNothing()";
-	} else {
+  my $settings = $$self{settings};
+  if (!$settings->{type_link}) {
+    $settings->{script} = "doNothing()";
+  } else {
 
-		     if ($settings->{type_link} eq "openurl") {
-				$settings->{script} = "open_url('$$settings{program}?$$settings{params_string}')";
+         if ($settings->{type_link} eq "openurl") {
+        $settings->{script} = "open_url('$$settings{program}?$$settings{params_string}')";
 
-		} elsif ($settings->{type_link} eq "openlink") {
-				$settings->{script} = "openNewWin($$settings{width}, $$settings{height}, '$$settings{program}', '$$self{params_string}', '$$settings{ID}')";
+    } elsif ($settings->{type_link} eq "openlink") {
+        $settings->{script} = "openNewWin($$settings{width}, $$settings{height}, '$$settings{program}', '$$self{params_string}', '$$settings{ID}')";
 
-		} elsif ($settings->{type_link} eq "modullink") {
-				$settings->{script} = "displayMessage('$$settings{program}&$$self{params_string}', $$settings{width}, $$settings{height}, $$settings{level})";
+    } elsif ($settings->{type_link} eq "modullink") {
+        $settings->{script} = "displayMessage('$$settings{program}&$$self{params_string}', $$settings{width}, $$settings{height}, $$settings{level})";
 
-		} elsif ($settings->{type_link} eq "loadcontent") {
-				my $replaceme = $settings->{replaceme} || $stash->{replaceme} || '';
+    } elsif ($settings->{type_link} eq "loadcontent") {
+        my $replaceme = $settings->{replaceme} || $stash->{replaceme} || '';
 
-				$settings->{program}	  ||= $stash->{script_link};
+        $settings->{program}    ||= $stash->{script_link};
 
-				if ($settings->{confirm}) {
-					if($settings->{loading_msg}){
-						$settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
-					}
-					else {
-						$settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
-					}
-				} else {
-					if($settings->{loading_msg}){
-						$settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
-					}
-					else {
-						$settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
-					}
+        if ($settings->{confirm}) {
+          if($settings->{loading_msg}){
+            $settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
+          }
+          else {
+            $settings->{script} = "if (confirm('$$settings{confirm}')) ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+          }
+        } else {
+          if($settings->{loading_msg}){
+            $settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}', '', 1)";
+          }
+          else {
+            $settings->{script} = "ld_content('$replaceme','$$settings{program}&$$self{params_string}')";
+          }
 
-				}
+        }
 
-		} elsif ($settings->{type_link} eq "javascript") {
-				$settings->{script} = $$self{settings}{function};
+    } elsif ($settings->{type_link} eq "javascript") {
+        $settings->{script} = $$self{settings}{function};
 
-		} elsif ($settings->{type_link} eq "openpage") {
-				$settings->{position} ||= "center";
-				$settings->{id}		 ||= $$self{replaceme};
-				$$self{title}    ||= $$self{settings}{id};
-				$$self{tabtitle} ||= $$self{settings}{id};
+    } elsif ($settings->{type_link} eq "openpage") {
+        $settings->{position} ||= "center";
+        $settings->{id}    ||= $$self{replaceme};
+        $$self{title}    ||= $$self{settings}{id};
+        $$self{tabtitle} ||= $$self{settings}{id};
 
         my $link = $$settings{program};
         $link .= "&".$$settings{params_string} if $$settings{params_string};
 
-				if ($settings->{confirm}) {
-					$settings->{script} = "if (confirm('$$settings{confirm}')) openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
+        if ($settings->{confirm}) {
+          $settings->{script} = "if (confirm('$$settings{confirm}')) openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
 
-				}
-				elsif( $settings->{id} eq 'newentry'){
-					$settings->{tabtitle} = 'Новая запись';
-					my $replaceme = $stash->{controller}.'_'.$stash->{list_table}.'0';
-					$settings->{script} = "openPage('$$settings{position}','$replaceme','$link','$$settings{title}','$$settings{tabtitle}')";
-				}
-				else {
-					$settings->{script} = "openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
-				}
-		}
-	}
-	use warnings;
-	$$self{settings} = $settings;
+        }
+        elsif( $settings->{id} eq 'newentry'){
+          $settings->{tabtitle} = 'Новая запись';
+          my $replaceme = $stash->{controller}.'_'.$stash->{list_table}.'0';
+          $settings->{script} = "openPage('$$settings{position}','$replaceme','$link','$$settings{title}','$$settings{tabtitle}')";
+        }
+        else {
+          $settings->{script} = "openPage('$$settings{position}','$$settings{id}','$link','$$settings{title}','$$settings{tabtitle}')";
+        }
+    }
+  }
+  use warnings;
+  $$self{settings} = $settings;
 }
 
 
