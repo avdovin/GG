@@ -12,156 +12,176 @@ has default_expiration => 3600;
 ## JSON serializer
 #my $JSON = Mojo::JSON->new;
 
-my $user = {
-			login	=> '',
-			cck		=> '',
-			ip		=> '',
-			host	=> '',
-			auth	=> 0,
-			check	=> 0
-};
-
 sub register {
-	my ($self, $app, $conf) = @_;
+  my ($self, $app, $conf) = @_;
 
-	unless (ref($app)->can('user')){
-		ref($app)->attr('user');
-	}
-	unless (ref($app)->can('userdata')){
-		ref($app)->attr('userdata');
-	}
+  $conf ||= {};
 
-	$app->sessions->default_expiration(3600*24*7*48);
-	$app->sessions->cookie_name("GG");
+  my $stash_key = $conf->{'stash_key'} || '__authentication__';
+  my $autoload_user = $conf->{'autoload_user'} || 1;
+  my $session_key = $conf->{'session_key'} || 'auth_data';
 
-	$app->hook(
-		before_dispatch => sub {
-			my ( $self ) = @_;
-			$self->app->user({});
-			$self->app->userdata({});
-		}
-	);
+  $app->sessions->default_expiration(3600*24*7*48);
 
-	$app->hook(
-		after_dispatch => sub {
-			my ( $self ) = @_;
+  # $app->helper(
+  #   userdata => sub{
+  #     return shift->app->userdata;
+  #   }
+  # );
+  $app->helper(current_user_data => sub {
+    my $c = shift;
+    return unless my $current_user = $self->current_user;
 
-			$self->app->user({});
-			$self->app->userdata({});
+    return $current_user->{'data'} || {};
+  });
 
-			#$self->save_userdata();
-		}
-	);
+  $app->helper(save_userdata => sub {
+    my $c = shift;
 
-	$app->helper(
-		userdata => sub{
-			return shift->app->userdata;
-		}
-	);
+    return unless my $uid = $c->session($session_key);
 
-	$app->helper(
-		save_userdata => sub {
-			my $self = shift;
+    # Serialize
+    my $data = $c->current_user_data;
+    my $encodeData = b64_encode(Mojo::JSON::encode_json($data), '');
+    $encodeData =~ y/=/-/;
 
-			#my $stored_filter = freeze($self->userdata);
-			#b64_encode $stored_filter, '';
+    my $cck = $c->app->user->{cck};
+    $c->app->dbh->do("UPDATE `data_users` SET `data`=? WHERE `ID`=?", undef, $encodeData, $uid);
+    return $data;
+  });
 
-		    # Serialize
-		    my $data = $self->userdata;
-		    my $encodeData = b64_encode(Mojo::JSON::encode_json($data), '');
-		    #my $encodeData = b64_encode $JSON->encode($data), '';
-		    $encodeData =~ y/=/-/;
-    		#$encodeData =~ s/\=/\-/g;
+  my $load_user_cb = sub {
+    my $c = shift;
+    my $uid = shift;
 
-			my $cck = $self->app->user->{cck};
+    return undef unless my $user = $c->dbi->query("SELECT * FROM data_users WHERE ID='$uid' AND active=1 ")->hash;
 
-			$self->app->dbh->do("UPDATE `anonymous_session` SET `data`=? WHERE `cck`=?", undef, $encodeData, $cck);
-			return $self->userdata;
-		}
-	);
+    if($user->{'data'}){
+      $user->{'data'} =~ s/\-/\=/;
+      if(my $userData = Mojo::JSON::j(b64_decode $user->{data}) ){
+        $user->{'data'} = $userData;
+      }
+      else {
+        delete $user->{'data'};
+      }
+    }
+
+    return $user;
+  };
+
+  # Unconditionally load the user based on uid in session
+  my $user_loader_sub = sub {
+    my $c = shift;
+
+    if (my $uid = $c->session($session_key)) {
+      my $user = $load_user_cb->($c, $uid);
+      if ($user) {
+        $c->stash($stash_key => { user => $user });
+      }
+      else {
+        # cache result that user does not exist
+        $c->stash($stash_key => { no_user => 1 });
+      }
+    }
+  };
+
+  # Fetch the current user object from the stash - loading it if not already loaded
+  my $user_stash_extractor_sub = sub{
+    my $c = shift;
+
+    if(
+      !(
+        defined($c->stash($stash_key))
+        &&
+        (
+          $c->stash($stash_key)->{no_user} ||
+          defined($c->stash($stash_key)->{user}))
+        )
+      )
+    {
+      $user_loader_sub->($c);
+    }
+
+    my $user_def = defined($c->stash($stash_key))
+                      && defined($c->stash($stash_key)->{user});
+
+    return $user_def ? $c->stash($stash_key)->{user} : undef;
+
+  };
+
+  my $validate_user_cb = sub{
+    my $c = shift;
+    my ($email, $password, $extradata) = @_;
+
+    return undef unless my $user = $c->dbi->query("SELECT ID FROM data_users WHERE email='$email' AND password='$password' AND active=1 ")->hash;
+    return $user->{ID};
+  };
+
+  my $current_user = sub {
+    my $c = shift;
+    return $user_stash_extractor_sub->($c);
+  };
+
+  $app->hook(before_dispatch => $user_loader_sub) if($autoload_user);
+
+  $app->helper(current_user => $current_user);
+
+  $app->routes->add_condition(authenticated => sub {
+    my ($r, $c, $captures, $required) = @_;
+    return (!$required || $c->is_auth) ? 1 : 0;
+  });
+
+  $app->routes->add_condition(signed => sub {
+    my ($r, $c, $captures, $required) = @_;
+    return (!$required || $c->signature_exists) ? 1 : 0;
+  });
+
+  $app->helper(is_auth => sub {
+    my $c = shift;
+    return defined $current_user->($current_user) ? 1 : 0;
+  });
+  $app->helper(signature_exists => sub {
+    my $c = shift;
+    return $c->session($session_key) ? 1 : 0;
+  });
+
+  $app->helper(logout => sub {
+    my $c = shift;
+    delete $c->stash->{$stash_key};
+    delete $c->session->{$session_key};
+  });
+
+  $app->helper(authenticate => sub {
+    my ($c, $email, $password, $extradata) = @_;
 
 
-	$app->helper(
-		is_auth => sub {
-			shift->app->user->{auth};
-		}
-	);
-
-	$app->helper(
-		sessions_check => sub {
-			my $self   	= shift;
-			my %params  = (
-				cck 	=> '',
-				user_id => 0,
-				@_
-			);
-			my $vars 	= _session_vars( $self,  delete $params{cck});
-			return 1 if $self->app->user->{check};
-
-			if($self->app->dbh->do(qq/
-				SELECT
-					*
-				FROM `anonymous_session`
-				WHERE
-					`cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}'
-				/) eq '0E0'){
-
-				$self->app->dbh->do(qq/
-				REPLACE INTO `anonymous_session` (`cck`, `time`, `host`, `ip`)
-				VALUES ('$$vars{cck}', NOW(), '$$vars{host}', '$$vars{ip}')/);
-
-
-				$self->app->dbh->do("DELETE FROM `anonymous_session` WHERE TO_DAYS(NOW())-TO_DAYS(`time`)>5");
-
-				$params{_set_sessions} = 1;
-
-			} else{
-				$self->app->dbh->do("UPDATE `anonymous_session` SET `time`=NOW() WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' ");
-
-			}
-			#warn $params{user_id};
-			if(my $user_id = delete $params{user_id}){
-				#die $user_id;
-				if(my $user = $self->dbi->query(qq/
-					SELECT * FROM `data_users`
-					WHERE `ID`='$user_id' AND `cck`='$$vars{cck}' AND `active`='1'
-					/)->hash){
-					$user->{auth} = 1;
-					$self->app->user($user);
-				}
-			}
-
-
-			my $session = $self->app->dbi->query("SELECT * FROM `anonymous_session`
-			WHERE `cck`='$$vars{cck}' AND `ip`='$$vars{ip}' AND `host`='$$vars{host}' LIMIT 0,1")->hash;
-
-			$self->app->user->{cck} = $$vars{cck};
-			$self->app->user->{check} = 1;
-
-			$self->app->userdata({});
-
-			$session->{data} =~ s/\-/\=/;
-			if(my $userData = Mojo::JSON::j(b64_decode $session->{data}) ){
-  				$self->app->userdata($userData);
-			}
-
-			return $$vars{cck} if $params{_set_sessions};
-
-			return;
-		}
-	);
+    # if extradata contains "auto_validate", assume the passed username is in fact valid, and
+    # auto_validate contains the uid; used for oAuth and other stuff that does not work with
+    # usernames and passwords.
+    if(defined($extradata->{auto_validate})) {
+        $c->session($session_key => $extradata->{auto_validate});
+        delete $c->stash->{$stash_key};
+        return 1 if defined( $current_user->($c) );
+    } elsif (my $uid = $validate_user_cb->($c, $email, $password, $extradata)) {
+        $c->session($session_key => $uid);
+        # Clear stash to force reload of any already loaded user object
+        delete $c->stash->{$stash_key};
+        return 1 if defined( $current_user->($c) );
+    }
+    return undef;
+  });
 }
 
 sub _session_vars{
-	my $self = shift;
-	my $cck  = shift || $self->defCCK();
+  my $c = shift;
+  my $cck  = shift || $c->defCCK();
 
-	return {
-		ip 		=> 'empty',
-		host  	=> 'empty',
-		cck 	=> $cck,
-		user_id => 0,
-	};
+  return {
+    ip    => 'empty',
+    host    => 'empty',
+    cck   => $cck,
+    user_id => 0,
+  };
 }
 
 1;
