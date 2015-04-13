@@ -40,7 +40,7 @@
 			name='<%= $key %>'
 			maxlength='<%= $lkey->{settings}->{maxlength} || 255 %>'
 			%== $lkey->{settings}->{minlength} ? "minlength='".$lkey->{settings}->{minlength}."' " : "";
-			value='<% if($value){ %><%== $value =%><% }else{ %><%== $lkey->{settings}->{default} ? $lkey->{settings}->{default} : '' %><% } =%>'
+			value='<% if($value){ %><%= $value =%><% }else{ %><%== $lkey->{settings}->{default} ? $lkey->{settings}->{default} : '' %><% } =%>'
 		>
 	</td>
 </tr>
