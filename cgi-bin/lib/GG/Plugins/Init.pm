@@ -166,11 +166,6 @@ sub register {
       #
     }
 
-    # check sessions
-    if( my $cck = $self->app->sessions_check( cck => $self->session('cck') || '', user_id => $self->cookie('user_id') || 0 ) ){
-      $self->session( cck => $cck );
-    }
-
     $self->req->url->base( Mojo::URL->new(q{/}) );
     $self->req->url->scheme($conf->{'protocol'});
 
