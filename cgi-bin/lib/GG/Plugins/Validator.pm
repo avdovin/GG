@@ -334,11 +334,12 @@ sub _check_integer{
   my $self = shift;
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
   my $value = delete $settings{value};
-
   $value =~ s{\D+}{}gi;
 
   if ($settings{minimum} && $value && $value < $settings{minimum}) {$value = $settings{minimum}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{minimum}";}
   if ($settings{maximum} && $value && $value > $settings{maximum}) {$value = $settings{maximum}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{minimum}";}
+
+  return $value;
 }
 
 sub _check_decimal{
