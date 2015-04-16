@@ -43,7 +43,7 @@
 					% my $current_filters = $self->stash->{current_filter} ||= [];
 					% if(scalar(@$current_filters) or $self->stash->{'qsearch'}){
 						% if(scalar(@$current_filter)>0){
-							Записей соответствует фильтру: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span> <a href="#" style="margin-left:5px" class="pseudolink" onClick="swich_visible('cur_filter<%= $replaceme %>')">текущие фильтры</a> <div id="cur_filter<%= $replaceme %>" style="display:none;padding:10px;border:solid 1px #ccc;margin-top:5px"><%== include 'Admin/TableList/current_filter'%></div>
+							Записей соответствует фильтру: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span> <a href="#" style="margin-left:5px" class="pseudolink" onClick="toggleFiltersBtn(this, 'cur_filter<%= $replaceme %>')">показать текущие фильтры<%= ref $self->stash->{current_filter} eq 'ARRAY' && scalar(@{$self->stash->{current_filter}}) ? ' ('.scalar(@{$self->stash->{current_filter}}).' шт.)' : '' %></a> <div id="cur_filter<%= $replaceme %>" style="display:none;padding:10px;border:solid 1px #ccc;margin-top:5px"><%== include 'Admin/TableList/current_filter'%></div>
 						% } else {
 							Найдено записей быстрым поиском: <span> <b style="background:red;color:white;padding:3px"><%= $self->stash->{total_with_filter} %></b></span></IF>
 						% }

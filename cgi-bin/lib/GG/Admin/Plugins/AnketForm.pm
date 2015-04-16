@@ -487,13 +487,13 @@ sub register {
 						my $item_index = $self->stash->{index} || 0;
 						if ($item_index && $k ~~ @$changes){
 							$lkey_changes{$k} = {};
-							$lkey_changes{$k}->{history} = $self->dbi->query("SELECT * 
+							$lkey_changes{$k}->{history} = $self->dbi->query("SELECT *
 																			FROM `sys_changes`
 																			WHERE `lkey`='$k'
 																			AND `list_table`='".$self->stash->{list_table}."'
 																			AND `item_id`='$item_index'
 																			ORDER BY `created_at` DESC")->hashes || [];
-							
+
 							$lkey_changes{$k}->{rating} = $lkey->{settings}->{rating};
 						}
 					}
@@ -502,7 +502,7 @@ sub register {
 					$self->def_doptable(lkey => $k, access => $params{access}, key_shablon => $key_shablon) if($lkey->{settings}->{type} eq 'table');
 				}
 			}
-						
+
 			if ($follow_changes){
 				$self->stash('lkey_changes', \%lkey_changes);
 				$self->init_items({

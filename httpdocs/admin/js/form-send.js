@@ -119,22 +119,22 @@ function whenError(replaceme) {
   	var str = '';
 
   	switch(code){
-  		case 404 : 
+  		case 404 :
   			str = 'Не найдено';
   			break;
-  		case 500 : 
+  		case 500 :
   			str = 'Внутренняя ошибка сервера';
   			break;
-  		case 403 : 
+  		case 403 :
   			str = 'Доступ запрещен';
   			break;
-  		case 503 : 
+  		case 503 :
   			str = 'Сервис недоступен';
   			break;
   		case 504 :
   			str = 'Шлюз не отвечает';
   			break;
-  		default : 
+  		default :
   			str = 'Неопределенная ошибка';
   	}
   	return str+' ('+code+')';
@@ -1257,6 +1257,16 @@ function uniqueAlias(node_selector){
 	            e.click();
 	        }
 		})
+	}
+}
+
+function toggleFiltersBtn(element, div){
+	if(document.getElementById(div).style.display == "none") {
+		document.getElementById(div).style.display = "block";
+		$(element).text( $(element).text().replace(/показать/,"скрыть") );
+	} else {
+		document.getElementById(div).style.display = "none";
+		$(element).text( $(element).text().replace(/скрыть/,"показать") );
 	}
 }
 
