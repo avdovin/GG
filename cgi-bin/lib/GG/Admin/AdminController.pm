@@ -754,12 +754,6 @@ sub save_info{
 
 				next unless $old_values->{$key};
 
-				warn "1 - $key";
-				warn $v;
-				warn "2";
-				warn $old_values->{$key};
-				warn $v ne $old_values->{$key};
-
 				next if($v eq $old_values->{$key});
 				$self->insert_hash('sys_changes',{
 					list_table 	=> $table,
@@ -768,7 +762,7 @@ sub save_info{
 					#value 		=> $field_values->{$_},
 					value 		=> $old_values->{$key},
 					operator 	=> $self->app->sysuser->userinfo->{name}.' ('.$self->app->sysuser->userinfo->{login}.')',
-				});
+				}, sys => 1);
 			}
 		}
 	}
