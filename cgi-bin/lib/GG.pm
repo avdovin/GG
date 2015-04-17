@@ -40,7 +40,7 @@ sub startup{
 		return shift->render(text => 'pong');
 	});
 
-	my $routes = $r->under()->to(%routes_args, cb => sub {
+	my $routes = $r->under()->to(%routes_args, seo => $self->config->{'seo'}, cb => sub {
 		my $self = shift;
 
 		return 1;

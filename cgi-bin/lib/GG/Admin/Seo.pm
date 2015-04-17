@@ -16,7 +16,7 @@ sub _init{
 		#controller		=> 'keys',
 	};
 
-	$self->stash->{list_table} ||= 'data_seo_meta';
+	$self->stash->{list_table} ||= 'data_seo';
 
 	$self->stash($_, $config->{$_}) foreach (keys %$config);
 
@@ -253,9 +253,8 @@ sub list_container{
 
 	$self->def_context_menu( lkey => 'table_list');
 
-	if($self->stash->{list_table} eq 'data_seo_meta'){
+	if($self->stash->{list_table} eq 'data_seo'){
 		$self->stash->{win_name} = "Список заголовков";
-
 	}
 
 	$self->stash->{listfield_groups_buttons} = {delete => "удалить"};

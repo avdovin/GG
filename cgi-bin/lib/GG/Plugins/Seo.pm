@@ -4,14 +4,19 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
-my $USE_SEO_META = 0;
+my $DataTable = 'data_seo';
 
 sub register {
 	my ($self, $app, $conf) = @_;
 
-  $USE_SEO_META = $conf->{seo_custom_tags} || 0;
+	$app->hook( before_render => sub{
+		my $self = shift;
+		if ($self->stash->{seo}){
+			$self->seo_custom_tags;
+		}
+	});
 
 	$app->hook( before_dispatch => sub {
 		my ($self) = @_;
@@ -21,6 +26,7 @@ sub register {
 			keywords  	=> [],
 			description => [],
 		};
+
 	});
 
 	$app->helper( meta_title => sub {
@@ -71,11 +77,10 @@ sub register {
 
 		my $metaTags = $self->stash->{'_meta_tags'};
 
-		if($USE_SEO_META && $self->seo_custom_tags ){
+		if($self->stash->{seo}){# && $self->seo_custom_tags ){
 
 			# заданы кастомные теги
-		}
-		else {
+		} else {
 
 			if(!scalar @{ $metaTags->{title} } && $self->stash->{alias}){
 				my $textMetaTags = $self->app->dbi->query("SELECT `title`,`keywords`,`description` FROM `texts_main_".$self->lang."` WHERE `alias`='".$self->stash->{alias}."' LIMIT 0,1 ")->hash;
@@ -100,21 +105,21 @@ sub register {
 		($reqUrl, undef) = split(/\?/, $reqUrl);
 
 		# Собираем все где есть *
-		my $seoMeta = {};
+		my $seo_meta = {};
 		my $found = 0;
-		for my $node  ($self->dbi->query('SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` REGEXP "[*]$" ')->hashes){
+		for my $node  ($self->dbi->query(qq{SELECT *, `name` AS `title` FROM `$DataTable` WHERE `url` REGEXP "[*]$\" })->hashes){
 			$node->{name} =~ s{\*$}{}gi;
 
 			if($reqUrl =~ /$$node{name}.*/gi){
-				$seoMeta = $node;
+				$seo_meta = $node;
 				$found = 1;
 				last;
 			}
 		}
 
 		unless($found){
-			if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `data_seo_meta` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
-				$seoMeta = $node;
+			if(my $node = $self->dbi->query("SELECT *, `name` AS `title` FROM `$DataTable` WHERE `url` LIKE '%".$reqUrl."' LIMIT 0,1")->hash){
+				$seo_meta = $node;
 				$found = 1;
 			}
 		}
@@ -122,8 +127,11 @@ sub register {
 		if($found){
 			# если заданы кастомные теги то показываем только их (все остальное удаляем)
 			foreach (qw(title keywords description)){
-				$self->stash->{'_meta_tags'}->{ $_ } = [$seoMeta->{$_}];
+				$self->stash->{'_meta_tags'}->{ $_ } = [$seo_meta->{$_}];
 			}
+			# сео тексты
+			$self->stash->{'gg.seo.title'} = $seo_meta->{seo_title} || '';
+			$self->stash->{'gg.seo.text'} = $seo_meta->{seo_text} || '';
 			return 1;
 		}
 		return;
