@@ -300,3 +300,7 @@ dd {
     }
     .button16 .order a{
         background-image: url('/admin/img/icons/menu/button.order.gif');
+    }
+    .button16 .link_to a{
+        background-image: url('/admin/img/icons/menu/buttom.link_to.png');
+    }

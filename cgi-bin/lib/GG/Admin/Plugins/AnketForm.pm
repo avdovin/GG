@@ -189,12 +189,14 @@ sub register {
 				}
 			}
 			unless($self->stash->{page_name}){
+				my $progname = $self->program_razdel_name($params{table});
+
 				if($self->stash->{index}){
 					$self->stash->{page_name}  = '['.$self->stash->{index}."]" if $self->stash->{index};
-					$self->stash->{page_name} .= " «".$self->stash->{anketa}->{name}."»" if $self->stash->{anketa}->{name};
-					$self->stash->{page_name} .= " (".$params{table}.")";
+					$self->stash->{page_name} .= " ".$self->stash->{anketa}->{name}." » " if $self->stash->{anketa}->{name};
+					$self->stash->{page_name} .= $progname;
 				} else {
-					$self->stash->{page_name} = "Добавление новой записи в таблицу «".$params{table}."»";
+					$self->stash->{page_name} = "Добавление новой записи в $progname";
 				}
 			}
 			$self->stash->{win_name} = $self->stash->{page_name};
@@ -203,13 +205,8 @@ sub register {
 			if($access eq "r" or $access eq "w" and $self->stash->{index} and $self->stash->{group} == 1){
 				if(my $history_name = $self->stash->{history}->{name} || $self->stash->{anketa}->{name}){
 					my $history_name_short = $self->cut(string => $history_name, size => 20);
-					my $progname = $self->app->program->{name};
-					if($self->stash->{name_razdel}){
-						$progname = $self->stash->{name_razdel}." » ".$progname;
-					}
-					elsif(my $table_title = $self->program_table_title($params{table}) ){
-						$progname = $table_title." » ".$progname;
-					}
+					my $progname = $self->program_razdel_name($params{table});
+
 					$history_name_short = " $history_name_short » ".$progname;
 					$self->save_history(name => $history_name, shortname => $history_name_short);
 				}

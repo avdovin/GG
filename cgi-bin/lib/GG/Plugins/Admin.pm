@@ -446,7 +446,7 @@ sub register {
         my $msg = $self->stash->{message}->{success} || [];
         if(scalar(@$msg) > 0){
           my $no_wrap = delete $self->stash->{msg_no_wrap} || 0;
-          return (!$no_wrap ? "<div class='message-success'>": "").join("<br />", @$msg).(!$no_wrap ? "</div>" : "");
+          return (!$no_wrap ? "<div class='message message-success'>": "").join("<br />", @$msg).(!$no_wrap ? "</div>" : "");
         }
       }
     }
@@ -462,7 +462,7 @@ sub register {
         my $msg = $self->stash->{message}->{errors} || [];
         if(scalar(@$msg) > 0){
           my $no_wrap = delete $self->stash->{msg_no_wrap} || 0;
-          return (!$no_wrap ? "<div class='message-error'>": "").join("<br />", @$msg).(!$no_wrap ? "</div>" : "");
+          return (!$no_wrap ? "<div class='message message-error'>": "").join("<br />", @$msg).(!$no_wrap ? "</div>" : "");
         }
       }
 

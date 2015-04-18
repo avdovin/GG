@@ -18,5 +18,8 @@
 	background-repeat:no-repeat;
 }
 
-div.message-success{color:green;background-color: #BDE5F8;background-image: url('/admin/img/warning.png');border: 1px solid;margin: 10px 0px;padding:15px 10px 15px 50px;background-repeat: no-repeat;background-position: 10px center;}
-div.message-error{color:red;background-color: #BDE5F8;background-image: url('/admin/img/warning.png');border: 1px solid;margin: 10px 0px;padding:15px 10px 15px 50px;background-repeat: no-repeat;background-position: 10px center;}
+.message{
+	font-family:'Lucida Grande','Lucida Sans Unicode',Helvetica,Arial,Verdana,sans-serif;
+}
+.message-success{color:#3c763d;background-color: #dff0d8;border: 1px solid transparent;margin: 10px 0px;padding:15px 10px 15px 50px;background-repeat: no-repeat;background-position: 10px center;}
+.message-error{color:#a94442;background-color: #f2dede;border: 1px solid transparent;margin: 10px 0px;padding:15px 10px 15px 50px;background-repeat: no-repeat;background-position: 10px center;}

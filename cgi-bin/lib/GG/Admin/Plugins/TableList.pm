@@ -712,6 +712,11 @@ sub register {
 			require URI::Escape::JavaScript;
 			my $value = URI::Escape::JavaScript::js_unescape( $self->send_params->{textEditValue} );
 
+			if($sfield eq 'alias'){
+				$value = $self->transliteration($value);
+      	$value = $self->check_unique_field( field => $sfield, value => $value, table => $table, index => $index);
+			}
+
 			if($self->update_hash($table, {$sfield => $value}, "`ID`='$index'")){
 				$self->save_logs(
 					name 	=> "Сохранение записи в таблице объектов (ключей) $table",

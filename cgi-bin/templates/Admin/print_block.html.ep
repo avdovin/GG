@@ -24,7 +24,7 @@
 </div>
 <table width=95% align=center>
 <tr>
-  <td align=center><br /><input id="submit_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>', '<%= $self->stash->{controller_url} %>', 1); return false;" value="ОК" class="submit_save" style="width:90%"></td>
+  <td align=center><br /><input id="submit_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_print<%= $self->stash->{replaceme} %><%= $self->stash->{index} %>', '<%= $self->stash->{controller_url} %>', 1); return false;" value="ОК" class="btn btn-block btn-lg btn-info" style="width:90%"></td>
 </tr>
 </table>
 </form>

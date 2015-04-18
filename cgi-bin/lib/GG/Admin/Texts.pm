@@ -146,6 +146,32 @@ sub body{
 
 }
 
+sub link_to{
+	my $self = shift;
+
+	my $list_table = $self->stash->{'list_table'};
+
+	my $url_for = 'text';
+	if($list_table ne 'texts_main_ru'){
+		$url_for = $self->stash->{key_razdel}.'_item';
+	}
+
+	my $url = '';
+	if ($self->getArraySQL( from => $list_table, where => $self->stash->{index}, stash => 'anketa')) {
+		my $alias = $self->stash->{'anketa'}->{'alias'} || '';
+		$url = $self->url_for($url_for, alias => $alias, list_item_alias => $alias);
+	}
+
+	if($self->req->is_xhr){
+		return $self->render(text => $url);
+	}
+	elsif($url) {
+		return $self->redirect_to($url);
+	}
+
+	return $self->reply->not_found();
+}
+
 sub changeRazdel{
 	my $self = shift;
 
@@ -660,7 +686,7 @@ sub list_items{
 	$self->render_not_found unless $list_table;
 
 	if($self->stash->{key_razdel} eq 'main' or $self->stash->{key_razdel} eq 'news'){
-		$self->stash->{listfield_buttons} =  [qw(delete edit text print)]
+		$self->stash->{listfield_buttons} =  [qw(delete edit text print link_to)]
 
 	} elsif($self->stash->{key_razdel} eq 'docfiles'){
 		$self->stash->{listfield_buttons} =  [qw(delete edit upload)]

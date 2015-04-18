@@ -19,7 +19,7 @@
     <div  id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" style="display:none">
       <div id="pane_tree_<%= $self->stash->{replaceme} %><%= $key %>" style="margin:10px;padding:5px;border:solid 1px #ccc">
 <ul id="tree_<%= $self->stash->{replaceme} %><%= $key %>" class="dhtmlgoodies_tree">
-  <li id="node_<%= $self->stash->{replaceme} %><%= $key %>0" noDrag="true" noSiblings="true" noDelete="true" noRename="true"><a href='#' onClick="set_folder('name_<%= $self->stash->{replaceme} %><%= $key %>', '', 0, '<%= $key %>')"><%= $key %></a>
+  <li id="node_<%= $self->stash->{replaceme} %><%= $key %>0" noDrag="true" noSiblings="true" noDelete="true" noRename="true"><a href='#' onClick="set_folder('name_<%= $self->stash->{replaceme} %><%= $key %>', '', 0, '<%= $key %>')"><%= $self->program_razdel_name($self->stash->{list_table}) %></a>
     <ul>
 %	my $items = $self->field_select_dir( parent_id => 0, items => 1, lfield => $key, index => $index);
 
