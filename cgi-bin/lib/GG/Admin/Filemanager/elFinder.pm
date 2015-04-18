@@ -1086,7 +1086,8 @@ sub _mkdir{
 	}
 	my $dstpath = $self->_hash_api2_decode( $self->{REQUEST}->{'target'} );
 	my $name = $self->{REQUEST}->{'name'} || 'new folder';
-	$name = $self->{app}->transliteration_filename($name);
+
+	$name = $self->{app}->transliteration($name);
 
 	mkdir($dstpath.$DIRECTORY_SEPARATOR.$name, $self->{CONF}->{'dirMode'});
 

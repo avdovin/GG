@@ -155,7 +155,7 @@ sub _update_sizes{
   my $item_id = shift;
   my $sizes = shift;
 
-  $self->dbi->dbh->do("DELETE FROM dtbl_catalog_item_sizes WHERE item_id=?", undef, $item_id);  
+  $self->dbi->dbh->do("DELETE FROM dtbl_catalog_item_sizes WHERE item_id=?", undef, $item_id);
   my @sizes = ();
   foreach my $size (split(',', $sizes)){
     my ($k, $v) = split('=', $size);
@@ -163,13 +163,13 @@ sub _update_sizes{
     $v =~ s{^\s+|\s+$}{}gi;
     $k =~ s{^\s+|\s+$}{}gi;
     next unless $v;
-    
+
     push @sizes, "$k=$v";
-    
+
     $self->dbi->dbh->do("REPLACE INTO dtbl_catalog_item_sizes(item_id, size, qnt) VALUES ('$item_id', '$k', '$v')");
   }
   $self->dbi->query("OPTIMIZE TABLE `dtbl_catalog_item_sizes`");
-  
+
   return join(',', @sizes);
 }
 
@@ -186,12 +186,12 @@ sub save{
   if($self->stash->{list_table} eq 'data_catalog_items' && defined $self->send_params->{'sizes'} ){
     $self->send_params->{'sizes'} = $self->_update_sizes($self->stash->{index}, $self->send_params->{'sizes'});
   }
-  
+
 	if( $self->save_info( table => $self->stash->{list_table}) ){
-    
+
 		if($params{restore}){
 			$self->stash->{tree_reload} = 1;
-			$self->save_logs( 	
+			$self->save_logs(
         name 	=> 'Восстановление записи в таблице '.$self->stash->{list_table},
 				comment	=> "Восстановлена запись в таблице [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap
       );
@@ -256,7 +256,7 @@ sub edit{
 							where	=> "`ID`='".$self->stash->{index}."'",
 							stash	=> 'anketa');
 	}
-  
+
   $self->define_anket_form( access => 'w', noget => 1);
 }
 
@@ -272,15 +272,7 @@ sub list_container{
 
 	$self->def_context_menu( lkey => 'table_list');
 
-	if($self->stash->{list_table} eq 'data_catalog_orders'){
-		$self->stash->{win_name} = "Список заказов";
-
-	} elsif($self->stash->{list_table} eq 'data_catalog_categorys'){
-		$self->stash->{win_name} = "Список категорий";
-
-	} else {
-		$self->stash->{win_name} = "Список товаров";
-	}
+	$self->stash->{win_name} = $self->program_table_title($self->stash->{list_table}) || 'Список';
 
 	$self->stash->{listfield_groups_buttons} = {delete => "удалить", show => 'публиковать', hide => 'скрыть'};
 

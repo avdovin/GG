@@ -7,7 +7,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
 	my ($self, $app, $conf) = @_;
 
-  $app->routes->get("/feedback")->to(seo_title_sitename => $self->config->{seo_title_sitename}, admin_name => 'Контакты', layout => 'default', alias =>  'feedback', cb => sub{
+  $app->routes->get("/feedback")->to(seo_title_sitename => $app->{seo_title_sitename}, admin_name => 'Контакты', layout => 'default', alias =>  'feedback', cb => sub{
 		my $self   = shift;
 		my %params = @_;
 

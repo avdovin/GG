@@ -169,6 +169,8 @@ sub save{
 
 	$self->stash->{index} = 0 if $params{restore};
 
+	$self->stash->{history}->{name} = $self->send_params->{'source_url'};
+
 	if( $self->save_info( table => $self->stash->{list_table}) ){
 
 		if($params{restore}){

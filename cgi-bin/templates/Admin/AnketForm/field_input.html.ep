@@ -20,8 +20,6 @@
 	<td width="10px" id="_<%= $key %>"></td>
 	<td class="edit">
 		% $input_type = 'email' if($lkey_type eq 'email');
-		% $input_type = 'url' if($lkey_type eq 'site');
-		%
 		% $lkey->{settings}->{mask} = 'email' if($lkey_type eq 'email' and !$lkey->{settings}->{mask});
 		% $lkey->{settings}->{mask} = 'numeric' if($lkey_type eq 'd' and !$lkey->{settings}->{mask});
 		%

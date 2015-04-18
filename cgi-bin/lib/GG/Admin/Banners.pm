@@ -415,16 +415,15 @@ sub list_container{
 
 	my $list_table = $self->stash->{list_table};
 
+	$self->stash->{win_name} = $self->program_table_title($self->stash->{list_table}) || 'Список';
+
 	if($list_table eq 'data_banner'){
-		$self->stash->{win_name} = "Список баннеров";
 		$self->def_context_menu( lkey => 'table_list');
 
 	} elsif($list_table eq 'data_banner_advert_block'){
-		$self->stash->{win_name} = "Рекламные места";
 		$self->def_context_menu( lkey => 'table_list_view');
 
 	} elsif($list_table eq 'data_banner_advert_users'){
-		$self->stash->{win_name} = "Рекламодатели";
 		$self->def_context_menu( lkey => 'table_list');
 
 	}

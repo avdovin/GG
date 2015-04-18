@@ -276,6 +276,7 @@
           %= $kv->(URL => $url->to_string)
           %= $kv->('Base URL' => $url->base->to_string)
           %= $kv->(Parameters => dumper $req->params->to_hash)
+          %= $kv->(Stash => dumper $snapshot)
           %= $kv->(Session => dumper session)
           %= $kv->(Version => $req->version)
           % for my $name (sort @{$c->req->headers->names}) {

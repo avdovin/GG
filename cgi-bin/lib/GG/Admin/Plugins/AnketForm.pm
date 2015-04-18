@@ -201,9 +201,20 @@ sub register {
 			$self->stash->{name} = $self->stash->{index} ? "Редактирование: ".$self->stash->{anketa}->{name} : " Добавление новой записи ";
 
 			if($access eq "r" or $access eq "w" and $self->stash->{index} and $self->stash->{group} == 1){
-				my $history_name = $self->stash->{history}->{name} || $self->stash->{anketa}->{name};
-				$history_name = " «$history_name» " if $history_name;
-				$self->save_history(name => '['.$self->stash->{index}."]$history_name (".$params{table}.")");
+				if(my $history_name = $self->stash->{history}->{name} || $self->stash->{anketa}->{name}){
+					my $history_name_short = $self->cut(string => $history_name, size => 20);
+					my $progname = $self->app->program->{name};
+					if($self->stash->{name_razdel}){
+						$progname = $self->stash->{name_razdel}." » ".$progname;
+					}
+					elsif(my $table_title = $self->program_table_title($params{table}) ){
+						$progname = $table_title." » ".$progname;
+					}
+					$history_name_short = " $history_name_short » ".$progname;
+					$self->save_history(name => $history_name, shortname => $history_name_short);
+				}
+				#$history_name = " «$history_name» " if $history_name;
+				#$self->save_history(name => '['.$self->stash->{index}."]$history_name (".$params{table}.")");
 			}
 
 			if ($params{access} eq "r") {

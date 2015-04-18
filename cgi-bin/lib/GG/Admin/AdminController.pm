@@ -3,6 +3,7 @@ package GG::Admin::AdminController;
 use utf8;
 
 use Mojo::Base 'GG::Controller';
+use Mojo::Util qw(xml_escape);
 
 sub sysuser{ shift->app->sysuser }
 
@@ -499,6 +500,14 @@ sub def_access_where{
 	return $self->stash->{access_where} = " AND (".join(' OR ', @access).")";
 }
 
+sub program_table_title{
+	my $self = shift;
+	return unless my $table = shift;
+	return unless my $row = $self->dbi->query("SELECT * FROM sys_program_tables WHERE `table`='$table' LIMIT 1")->hash;
+
+	return $row->{'name'};
+}
+
 sub def_program{
 	my $self = shift;
     my $name = shift;
@@ -546,6 +555,7 @@ sub def_program{
 	}
 }
 
+
 sub save_history{
 	my $self = shift;
 	my %params = @_;
@@ -554,12 +564,15 @@ sub save_history{
 
 	my $replaceme = $self->stash->{replaceme};
 	my $script_link = $self->stash->{script_link};
+	my $do = delete $params{'action'} || 'info';
 
-	$params{name} = "<img width='21' height='21' src='".$self->app->program->{pict}."' align='absmiddle'>$params{name}";
+	next unless my $name = delete $params{name};
+	my $shortname = delete $params{shortname} || $name;
+	my $img = "<img width='21' height='21' alt='".xml_escape($name)."' src='".$self->app->program->{pict}."' align='absmiddle'>$shortname";
 
-	my $link = "<a href='#' onClick=\"openPage('center', '$replaceme', '$script_link?do=info&index=".$self->stash->{index}.$self->stash->{param_default}."', 'Документ', 'Документ')\">$params{name}</a>";
-	my $sql = "REPLACE INTO `sys_history` (`id_user`, `link`, `replaceme`, `created_at`) VALUES (?, ?, ?, NOW())";
-	my $sth = $self->dbh->do($sql, undef, $id_user, $link, $replaceme);
+	my $link = "<a href='#' title='".xml_escape($name)."' onClick=\"openPage('center', '$replaceme', '$script_link?do=$do&index=".$self->stash->{index}.$self->stash->{param_default}."', 'Документ', 'Документ')\">$img</a>";
+	my $sql = "REPLACE INTO `sys_history` (`id_user`, `link`, `title`, `replaceme`, `created_at`) VALUES (?, ?, ?, ?, NOW())";
+	my $sth = $self->dbh->do($sql, undef, $id_user, $link, $name, $replaceme);
 }
 
 sub delete_info {
@@ -737,6 +750,7 @@ sub save_info{
 	my $field_values = delete $params{field_values} || {};
 	my $where	= delete $params{where} || '';
 	my $changes = {};
+
 	foreach (keys %$field_values){
 		unless($self->dbi->exists_keys(from => $table, lkey => $_)){
 			delete $field_values->{$_};
@@ -744,17 +758,20 @@ sub save_info{
 	}
 	my $item_index = $self->stash->{index} || 0;
 	my $send_params = $self->send_params;
-	if($params{send_params} && $follow_changes && $item_index){
-		my $old_values = $self->dbi->query("SELECT * FROM $table WHERE ID='$item_index' ")->hash;
+
+	if($params{send_params}){
+
+		my $old_values = {};
+		if($follow_changes && $item_index){
+			$old_values = $self->dbi->query("SELECT * FROM $table WHERE ID='$item_index' ")->hash;
+		}
 
 		foreach my $key (keys %$send_params){
-			my $v = $field_values->{$key} || $send_params->{$key};
-
 			if($self->dbi->exists_keys(from => $table, lkey => $key)){
+				$field_values->{$key} ||= $send_params->{$key};
 
 				next unless $old_values->{$key};
-
-				next if($v eq $old_values->{$key});
+				next if($field_values->{$key} eq $old_values->{$key});
 				$self->insert_hash('sys_changes',{
 					list_table 	=> $table,
 					item_id 	=> $item_index,
@@ -782,7 +799,6 @@ sub save_info{
 
 
 	if(!$self->stash->{index}){
-
 		$self->stash->{index} = $self->insert_hash($table, $field_values, %params);
 	} else {
 		$where ||= "`ID`='".$self->stash->{index}."'";
@@ -1106,7 +1122,7 @@ sub def_menu_button{
 
 	$user_sys = 1 if ($key_menu eq 'menu_button'); # Если главная страница то кнопки показываем
 
-	foreach my $key (sort { ($$buttons{$a}{settings}{rating}||0 ) <=> ($$buttons{$b}{settings}{rating}||0 ) } keys %$buttons) {
+	foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} grep { $_ == $_ } keys %$buttons) {
 		my $button = $$buttons{$key};
 
 		next if (!$$button{settings}{$key_menu} or (!$access_buttons->{$key}->{r} and !$user_sys));

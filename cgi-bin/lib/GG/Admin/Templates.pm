@@ -157,7 +157,7 @@ sub edit{
 	$self->stash->{replaceme} = "templates_$dir";
 
 	$self->stash->{page_name} = "Редактирование шаблона «$dir»";
-	$self->save_history(name => "Редактирования шаблона «$dir»");
+	$self->save_history(name => "Редактирования шаблона «$dir»", action => 'edit');
 
 	$self->define_anket_form( access => 'w', noget => 1, keys => [qw(name dir modifytime code)]);
 }

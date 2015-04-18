@@ -15,11 +15,11 @@
     <hr>
 <form name="form_<%= $replaceme %><%= $self->stash->{index} %>" id="form_<%= $replaceme %><%= $self->stash->{index} %>" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="do" value="restore">
- 
+
 %	foreach (keys %$param_default_keys){
 		<input type="hidden" name="<%= $_ %>" value="<%== $param_default_keys->{$_} %>">
 %	}
- 	
+
 <div id="formResponse">
 	<table id="anketka_<%= $replaceme %><%= $self->stash->{index} %>" width="95%" align="center" style="border:solid 1px #ccc">
 
@@ -32,7 +32,7 @@
 <table width=95% align=center>
 <tr>
   <td align=center><br />
-    <input id="submit_<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%== $script_link %>'); return false;" value="Восстановить данные" class="submit_save" style="width:90%">
+    <input id="submit_<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, '<%= $replaceme %>', '<%== $script_link %>'); return false;" value="Восстановить данные" class="btn btn-block btn-lg btn-info" style="width:90%">
   </td>
 </tr>
 </table>
