@@ -15,7 +15,11 @@
 %		} elsif($lkey->{settings}->{type} eq 'date' or $lkey->{settings}->{type} eq 'datetime' or $lkey->{settings}->{type} eq 'time'){
 			% my $v = $self->sysuser->settings->{$replaceme.'_filter_'.$f};
 			% $v = substr($v, 0, 10) if(length($v)>10 && substr($v, 11) eq '00:00:00' );
-			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'} %>&nbsp;<%= date_format date => $v =%>
+      % my $prev = $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'};
+      % my $prev_title = '';
+      % $prev_title = 'раньше' if ($prev eq '<');
+      % $prev_title = 'позже' if ($prev eq '>');
+			<%== $prev_title ? $prev_title."&nbsp;" : '' %><%= date_format date => $v =%>
 
 %		} elsif($lkey->{settings}->{type} eq 'd'){
 			% my $v = $self->sysuser->settings->{$replaceme.'_filter_'.$f};

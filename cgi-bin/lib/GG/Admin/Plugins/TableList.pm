@@ -337,7 +337,6 @@ sub register {
 				if ($self->dbi->exists_keys(from => $table, lkey => $k) && $lkeys->{$k}->{settings}->{filter}){
 					if(!$self->stash->{$k}){
 						$user_set{$lkey.'_'.$k} = '';
-
 					} else {
 						if($lkeys->{$k}->{settings}->{type} eq 'date' || $lkeys->{$k}->{settings}->{type} eq 'datetime' || $lkeys->{$k}->{settings}->{type} eq 'd'){
 							$user_set{$lkey.'_'.$k} = $self->stash->{$k};

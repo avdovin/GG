@@ -146,13 +146,12 @@ sub _check_checkbox{
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
   my $value = delete $settings{value};
   my $lkey = $settings{lkey};
-
   $settings{minimum} = 1;
   if ($value =~ m/on/i) {$value = 1;}
   if (($value =~ m/^TRUE/i) or ($value =~ m/ИСТИНА/i)) {$value = 1;}
   if (($value =~ m/^FALSE/i) or ($value =~ m/ЛОЖЬ/i))  {$value = 0;}
 
-  return $self -> check_decimal(minimum => 0, maximum => 1, value => $value);
+  return $value; #$self -> check_decimal(minimum => 0, maximum => 1, value => $value);
 }
 
 sub _check_password_digest{
