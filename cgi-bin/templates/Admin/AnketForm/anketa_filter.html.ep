@@ -44,10 +44,11 @@
     </table>
   </form>
 
-% 	if($self->stash->{flag_select_dir}){
 <script>
-	load_script('/admin/js/select_dir.js');
+  setTimeout(function(){ modalFormInit();}, 1000);
+% if($self->stash->{flag_select_dir}){
 	setTimeout(function(){ init_select_dir('<%== $self->stash->{flag_select_dir} %>');}, 1000);
+% }
 </script>
-%	}
+
 </div>

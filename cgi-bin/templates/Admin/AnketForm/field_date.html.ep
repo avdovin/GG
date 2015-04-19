@@ -14,6 +14,7 @@
 		type="text" name='<%= $key %>'
 		id='<%= $self->stash->{replaceme} %>_<%= $key %>'
 		value='<% if( (!$value or $value eq '0000-00-00') and $lkey->{settings}->{default}){ %><%= $lkey->{settings}->{default} %><% } elsif($value && $value ne '0000-00-00') { %><%= $value %><% } %>'
-		style="width:90px;margin-right:10px"> <button class=submit_save id="button_<%= $self->stash->{replaceme} %>_<%= $key %>" onclick="displayCalendar(event, this.form.<%= $key %>,'yyyy-mm-dd',this,false); return false;"
-		style="border:0px;background-color:white"><img border=0 src="/admin/img/icons/calendar.gif"></button></td>
+		style="width:90px;margin-right:10px">
+		<a href="#" title="выбрать дату" id="calendar-<%= $self->stash->{replaceme} %>_<%= $key %>" data-input-id="<%= $self->stash->{replaceme} %>_<%= $key %>" class="calendar calendar-date"><img border=0 src="/admin/img/icons/calendar.gif"></a>
+		</td>
 </tr>

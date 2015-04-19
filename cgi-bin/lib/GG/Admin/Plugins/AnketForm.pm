@@ -232,7 +232,7 @@ sub register {
     			$self->lkey( name => 'dir')->{settings}->{template_w} = 'field_checkbox_read';
     		}
 
-			if($params{render_html}){
+			if(delete $params{render_html}){
 				$self->render( template	=> $self->stash->{template_dir}.$params{template})
 
 			} else {

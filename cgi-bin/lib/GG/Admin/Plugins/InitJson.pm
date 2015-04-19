@@ -121,13 +121,25 @@ sub register {
 			#},
 
 			#'/admin/js/jquery/ui/jquery-ui.min.js',
+
+			{
+				type		=> 'eval',
+				value		=> "load_css('/admin/css/tooltip.css');",
+
+			},
+			{
+				type		=> 'eval',
+				value		=> "load_script('/admin/js/jquery/jtip.js');",
+
+			},
 			{
 				type		=> 'eval',
 				value		=> qq|load_scripts({
 										loading_key	: 'init_main',
 										scripts		: [
 											'/admin/js/tablelist.js',
-											'/admin/js/calendar.js',
+											'/admin/js/form.js',
+											'/admin/js/select_dir.js',
 											'/admin/js/urlify.js',
 											'/admin/js/drag-drop-folder-tree.js',
 											'/admin/js/jquery/jquery.liteuploader.min.js'
@@ -199,16 +211,6 @@ sub register {
 					value		=> "load_data('$params{replaceme}', '/admin/$params{controller}/body?do=list_items&$params{param_default}&table_flag=1&page=$$stash{page}')",
 
 				},
-				{
-					type		=> 'eval',
-					value		=> "load_css('/admin/css/tooltip.css');",
-
-				},
-				{
-					type		=> 'eval',
-					value		=> "load_script('/admin/js/jquery/jtip.js');",
-
-				},
 #				{
 #					type		=> 'showcontent',
 #					id			=> 'center',
@@ -228,10 +230,10 @@ sub register {
 					value		=> "load_script('/admin/js/mselectboxes.js');",
 
 				},
-				{
-					type		=> 'eval',
-					value		=> "load_css('/admin/css/calendar.css');",
-				},
+				# {
+				# 	type		=> 'eval',
+				# 	value		=> "load_css('/admin/css/calendar.css');",
+				# },
 				{
 					type		=> 'settabtitle',
 					id			=> 'center',
@@ -428,6 +430,11 @@ sub register {
 									|
 				};
 			}
+
+			push @$items, {
+				type		=> 'eval',
+				value		=> "editFormInit('form_".$stash->{replaceme}."');",
+			};
 
 			# if new entry title = subtitle = Новая запись
 			if($stash->{replaceme} eq 'newentry' && !$stash->{index}){

@@ -849,23 +849,16 @@ function displayMessage(url, w, h, level) {
 	url = url + "&rndval=" + ts;
 	index = level;
 
-	if(modalObj[index]) {
-		modalObj[index].setSource(url);
-		modalObj[index].setCssClassMessageBox(false);
-		modalObj[index].setSize(w, h);
-		modalObj[index].setShadowDivVisible(true); // Enable shadow for these boxes
-		modalObj[index].setWaitImage('/loading_128.gif');
-		modalObj[index].display();
-	} else {
+	if(!modalObj[index]){
 		modalObj[index] = new DHTMLSuite.modalMessage();
-		modalObj[index].setShadowOffset(5); // Large shadow
-		modalObj[index].setSource(url);
-		modalObj[index].setCssClassMessageBox(false);
-		modalObj[index].setSize(w, h);
-		modalObj[index].setShadowDivVisible(true); // Enable shadow for these boxes
-		modalObj[index].setWaitImage('/loading_128.gif');
-		modalObj[index].display();
 	}
+	modalObj[index].setShadowOffset(5); // Large shadow
+	modalObj[index].setSource(url);
+	modalObj[index].setCssClassMessageBox(false);
+	modalObj[index].setSize(w, h);
+	modalObj[index].setShadowDivVisible(true); // Enable shadow for these boxes
+	modalObj[index].setWaitImage('/loading_128.gif');
+	modalObj[index].display();
 }
 
 function closeMessage(index) {
@@ -1135,7 +1128,7 @@ function load_script(url) {
 		head = document.getElementsByTagName("head");
 		head[0].appendChild(script);
 	} catch(e) {
-		document.write('<sc' + 'ript language="javascript" type="text/javascript" src="' + url + '"></sc' + 'ript>');
+		document.write('<sc' + 'ript language="javascript" type="text/javascript" charset="utf-8" src="' + url + '"></sc' + 'ript>');
 	}
 	loadedFiles[url] = true;
 }

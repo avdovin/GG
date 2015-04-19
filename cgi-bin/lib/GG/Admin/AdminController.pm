@@ -70,7 +70,7 @@ sub default_actions{
     when('quick_view')        { $self->quick_view; }
 
     when('filter_take')       { $self->filter_take( render => 1); }
-    when('filter')          { $self->filter_form; }
+    when('filter')            { $self->filter_form; }
     when('filter_save')       { $self->filter_save; }
     when('filter_clear')      { $self->filter_clear();  $self->list_container(); }
 
