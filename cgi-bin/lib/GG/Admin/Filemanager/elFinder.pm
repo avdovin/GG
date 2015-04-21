@@ -119,6 +119,9 @@ sub run
 		$self->{RES}->{'netDrivers'} = [];
 		$self->{RES}->{'uplMaxSize'} = $self->{CONF}->{uplMaxSize};
 		$self->{RES}->{'api'} = $VERSION;
+
+		# очищяем кэш
+		#$self->{'app'}->dbi->dbh->do("DELETE FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)>$cache_live_time LIMIT 1000")
 	}
 #		my $ts = $self->_utime();
 #		%{$self->{RES}->{'options'}} = (
@@ -484,7 +487,6 @@ sub _files
 		#}
 	}
 }
-
 
 sub _info
 {
@@ -1106,21 +1108,30 @@ sub _upload{
 	my $app = $self->{app};
 
 	$self->{RES}->{'added'} = [];
-	my @files =$app->req->upload('upload[]');
-	foreach my $upload (@files) {
-		return $self->{RES}->{'error'} .= 'Размер файла слишком большой' if $app->req->is_limit_exceeded;
+	#my @files =$app->req->upload('upload[]');
+	#foreach my $upload (@files) {
+	return $self->{RES}->{'error'} .= 'Размер файла слишком большой' if $app->req->is_limit_exceeded;
 
-		next unless $upload;
+	my $filemanager_max_image_size = $app->get_var('filemanager_max_image_size') || 0;
 
-		my $filename = $upload->filename;
+	for my $file (@{$app->req->uploads('upload[]')}) {
+		next unless $file;
+		my $filename = $file->filename;
+
 		$filename = $app->transliteration_filename($filename);
-		$upload->move_to($dstpath.$DIRECTORY_SEPARATOR.$filename);
+		$file->move_to($dstpath.$DIRECTORY_SEPARATOR.$filename);
 
 		chmod($dstpath.$DIRECTORY_SEPARATOR.$filename, $self->{CONF}->{'fileMode'});
 
-		if(my $size = $app->get_var('filemanager_max_image_size')){
-			$app->resize_pict( fsize => $size, file => $dstpath.$DIRECTORY_SEPARATOR.$filename);
+		if($filemanager_max_image_size){
+			$app->resize_pict( fsize => $filemanager_max_image_size, file => $dstpath.$DIRECTORY_SEPARATOR.$filename);
 		}
+
+		# clear cache
+		my $path_hash = $self->_hash_api2_encode($dstpath.$DIRECTORY_SEPARATOR.$filename);
+		$cache->set($path_hash => undef);
+		$self->{'app'}->dbi->dbh->do("DELETE FROM sys_filemanager_cache WHERE hash=?", undef, $path_hash);
+
 		push @{$self->{RES}->{'added'}}, { $self->_info($dstpath.$DIRECTORY_SEPARATOR.$filename) };
 	}
 }
@@ -1191,10 +1202,6 @@ sub _open
 
 			if (! exists $self->{REQUEST}->{'init'}){
 				$self->{RES}->{'error'} .= 'Invalid parameters'. $p;
-
-
-				# очищяем кэш
-				$self->dbh->dbh->do("DELETE FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)>$cache_live_time LIMIT 100")
 			}
 		}
 #		elsif (_isAllowed($self, $p, 'read') eq 'false')
