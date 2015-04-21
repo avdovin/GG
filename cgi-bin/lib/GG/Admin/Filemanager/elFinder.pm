@@ -1129,8 +1129,10 @@ sub _upload{
 
 		# clear cache
 		my $path_hash = $self->_hash_api2_encode($dstpath.$DIRECTORY_SEPARATOR.$filename);
-		$cache->set($path_hash => undef);
-		$self->{'app'}->dbi->dbh->do("DELETE FROM sys_filemanager_cache WHERE hash=?", undef, $path_hash);
+		if($cache->get($path_hash)){
+			$cache->set($path_hash => undef);
+			$self->{'app'}->dbi->dbh->do("DELETE FROM sys_filemanager_cache WHERE hash=?", undef, $path_hash);
+		}
 
 		push @{$self->{RES}->{'added'}}, { $self->_info($dstpath.$DIRECTORY_SEPARATOR.$filename) };
 	}
