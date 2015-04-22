@@ -402,9 +402,9 @@
         return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + '</table>';
     },
 
-    renderTimePicker = function(num_options, selected_val, select_class, display_func) {
+    renderTimePicker = function(values, selected_val, select_class, display_func) {
         var to_return = '<td><select class="pika-select '+select_class+'">';
-        for (var i=0; i<num_options; i++) {
+        for (var i in values) {
             to_return += '<option value="'+i+'" '+(i==selected_val ? 'selected' : '')+'>'+display_func(i)+'</option>'
         }
         to_return += '</select></td>';
