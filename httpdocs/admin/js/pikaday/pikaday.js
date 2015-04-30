@@ -405,7 +405,7 @@
     renderTimePicker = function(values, selected_val, select_class, display_func) {
         var to_return = '<td><select class="pika-select '+select_class+'">';
         for (var i in values) {
-            to_return += '<option value="'+i+'" '+(i==selected_val ? 'selected' : '')+'>'+display_func(i)+'</option>'
+            to_return += '<option value="'+values[i]+'" '+(values[i]==selected_val ? 'selected' : '')+'>'+display_func(values[i])+'</option>'
         }
         to_return += '</select></td>';
         return to_return;
@@ -509,7 +509,7 @@
             if (!hasClass(target, 'pika-select-hour')
                         && !hasClass(target, 'pika-select-minute')
                         && !hasClass(target, 'pika-select-second')) {
-                e.preventDefault();
+                //e.preventDefault();
             }
 
             if (!hasClass(target, 'is-disabled')) {
