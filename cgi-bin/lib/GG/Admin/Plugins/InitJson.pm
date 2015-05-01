@@ -446,7 +446,7 @@ sub register {
 				{
 					type		=> 'settitle',
 					id			=> $stash->{replaceme},
-					title		=> $stash->{win_name}
+					title		=> $self->cut( string => $stash->{win_name}, size => 50),
 				},
 				{
 					type		=> 'settabtitle',
@@ -506,7 +506,7 @@ sub register {
 			push @$items, {
 				type		=> 'settitle',
 				id			=> $stash->{replaceme},
-				title		=> $stash->{win_name}
+				title		=> $self->cut( string => $stash->{win_name}, size => 50)
 			};
 			push @$items, {
 				type		=> 'settabtitle',
