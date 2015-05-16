@@ -7,7 +7,12 @@ use Carp;
 our $VERSION = '0.5';
 use utf8;
 
-my @SYSTEM_VALUES = qw(text data json inline status);
+# Reserved stash values
+my %RESERVED = map { $_ => 1 } (
+  qw(action app cb controller data extends format handler inline json layout),
+  qw(namespace path status template text variant)
+);
+
 use Mojo::Util qw(url_escape trim squish);
 use Encode qw(encode);
 
@@ -73,7 +78,12 @@ sub register {
           $valid_params->{$k} = $self->check_string( %$settings, value => $v)
         }
 
-        $self->stash->{$k} = $valid_params->{$k} unless(grep(/^$k$/, @SYSTEM_VALUES) ); # переменная text системная для mojo (генерация шаблонов)
+        if($RESERVED{$k}){
+          $self->app->log->warn("validator: param $k is reserved by mojolicious!");
+        }
+        else {
+          $self->stash->{$k} = $valid_params->{$k};
+        }
       }
 
       $self->stash->{index} = $self->stash->{ID} if $self->stash->{ID};
