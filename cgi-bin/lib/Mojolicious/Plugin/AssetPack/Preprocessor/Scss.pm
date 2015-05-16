@@ -58,6 +58,8 @@ use constant LIBSASS_BINDINGS => defined $ENV{ENABLE_LIBSASS_BINDINGS}
   ? $ENV{ENABLE_LIBSASS_BINDINGS}
   : eval 'require CSS::Sass;1';
 
+$ENV{SASS_PATH} ||= '';
+
 =head1 ATTRIBUTES
 
 =head2 executable
@@ -96,17 +98,23 @@ sub checksum {
   my $re       = qr{ \@import \s+ (["']) (.*?) \1 }x;
   my @checksum = md5_sum $$text;
 
+  local $self->{checked} = $self->{checked} || {};
+
   while ($$text =~ /$re/gs) {
-    my $file = $2;
-    if (-r "$dir/$file.$ext") {
-      push @checksum, md5_sum slurp catfile $dir, "$file.$ext";
-    }
-    elsif (-r "$dir/_$file.$ext") {
-      push @checksum, md5_sum slurp catfile $dir, "_$file.$ext";
-    }
+    my $path = $self->_file($dir, $2, $ext) or next;
+    $self->{checked}{$path}++ and next;
+    push @checksum, $self->checksum(\slurp($path), $path);
   }
 
   return Mojo::Util::md5_sum(join '', @checksum);
+}
+
+sub _file {
+  my ($self, $dir, $name, $ext) = @_;
+  my $path;
+  return $path if -r ($path = catfile $dir, "$name.$ext");
+  return $path if -r ($path = catfile $dir, "_$name.$ext");
+  return;
 }
 
 =head2 process
@@ -119,11 +127,13 @@ See L<Mojolicious::Plugin::AssetPack::Preprocessor/process>.
 
 sub process {
   my ($self, $assetpack, $text, $path) = @_;
+  my $err;
 
   if (LIBSASS_BINDINGS) {
-    my %args = (include_paths => [dirname $path]);
+    my %args = (include_paths => [dirname($path), split /:/, $ENV{SASS_PATH}]);
     $args{output_style} = CSS::Sass::SASS_STYLE_COMPRESSED() if $assetpack->minify;
-    $$text = CSS::Sass::sass_compile($$text, %args);
+    ($$text, $err, my $srcmap) = CSS::Sass::sass_compile($$text, %args);
+    die $err if $err;
   }
   else {
     my @cmd = ($self->executable, '--stdin', '--scss', '-I' => dirname $path);

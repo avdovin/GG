@@ -16,6 +16,7 @@ gg.sublime-project
 gg.sublime-workspace
 *.chproj
 httpdocs/userfiles/*
+httpdocs/packed/*
 
 # OS generated files #
 ######################

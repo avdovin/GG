@@ -98,6 +98,7 @@ sub register {
   $app->plugin('AssetPack', {
     base_url    => $conf->{'protocol'}.'://'.$conf->{http_host}.'/packed/',
     minify      => $conf->{pipeline_minify} && $app->mode eq 'production',
+    out_dir     => $app->static_path.'packed/',
   });
 
   $app->hook(before_dispatch => sub {
