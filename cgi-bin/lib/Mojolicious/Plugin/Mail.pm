@@ -6,11 +6,11 @@ use MIME::EncWords ();
 use Mojo::ByteStream 'b';
 
 use constant TEST     => $ENV{MOJO_MAIL_TEST} || 0;
-use constant FROM     => 'no-reply@ifrog.ru';
+use constant FROM     => 'test-mail-plugin@mojolicio.us';
 use constant CHARSET  => 'UTF-8';
 use constant ENCODING => 'base64';
 
-our $VERSION = '1.3';
+our $VERSION = '1.5';
 
 has conf => sub { +{} };
 
@@ -638,4 +638,3 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
- No newline at end of file
