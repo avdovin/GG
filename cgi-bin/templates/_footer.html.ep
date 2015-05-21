@@ -1,17 +1,15 @@
 <!-- start _footer.html.ep -->
-% if(config 'langs'){
-  %= javascript 'http://'.host.'/js/langs/langs.js';
-  %= javascript 'http://'.host.'/js/langs/locales/'.lang.'.js';
-% }
+
 %= asset 'app.js' if config 'pipeline';
 %= js_controller;
+
 <!-- start content_for js_files -->
 %== js_files
 <!-- end content_for js_files -->
 
 % if( $self->stash->{'vfe'} && $self->config->{'vfe_enabled'}){
-	<script type="text/javascript" src="/js/vfe/vfe-2.1.js" data-vfe-plugins="link"></script>
-	<script type="text/javascript" src="/admin/ckeditor/ckeditor.js"></script>
+  <script type="text/javascript" src="/admin/ckeditor/ckeditor.js"></script>
+  <script type="text/javascript" src="/js/vfe/vfe-2.1.js" data-vfe-plugins="link"></script>
 % }
 <!-- end _footer.html.ep -->
 
