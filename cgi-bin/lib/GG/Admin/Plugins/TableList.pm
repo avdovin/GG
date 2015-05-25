@@ -482,7 +482,7 @@ sub register {
 
 					my $v = $user_settings->{$setting_key."_qsearch"};
 					if (($lkeys->{$key}->{settings}->{type} eq "s") or ($lkeys->{$key}->{settings}->{type} eq "site") or
-					 	($lkeys->{$key}->{settings}->{type} eq "slat") or ($lkeys->{$key}->{settings}->{type} eq "text") or ($lkeys->{$key}->{settings}->{type} eq "html")) {
+					 	($lkeys->{$key}->{settings}->{type} eq "slat") or ($lkeys->{$key}->{settings}->{type} eq "text") or ($lkeys->{$key}->{settings}->{type} eq "html") or ($lkeys->{$key}->{settings}->{type} eq "email")) {
 						push(@filter, "$keyf LIKE '%$v%'");
 
 					} elsif ($v =~ m/^[\d]+$/) {
