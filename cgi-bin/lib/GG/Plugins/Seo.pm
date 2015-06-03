@@ -63,17 +63,22 @@ sub register {
 
 	$app->helper( render_footer => sub {
 		my $self	= shift;
-		my %args  = @_;
+		my %args  = (
+			template 	=> '_footer',
+			@_
+		);
 
 		return $self->render_to_string(
-			template 	=> '_footer',
 			%args
 		);
 	});
 
 	$app->helper( render_headers => sub {
 		my $self	= shift;
-		my %args  = @_;
+		my %args  = (
+			template 	=> '_headers',
+			@_
+		);
 
 		my $metaTags = $self->stash->{'_meta_tags'};
 
@@ -93,7 +98,6 @@ sub register {
 		}
 
 		return $self->render_to_string(
-			template 	=> '_headers',
 			%args
 		);
 	});
