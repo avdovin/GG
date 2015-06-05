@@ -540,7 +540,7 @@ sub register {
 #       foreach (@files){
 #         unlink($dir.$_) if (-M $dir.$_ > 1 and -f $dir.$_);
 #       }
-        unlink($dir.$filename);
+
         if(-f $dir.$filename){
           # Если такой файл в папке tmp залит другим пользователем
           $filename = $self->file_check_free_name($dir.$filename);
