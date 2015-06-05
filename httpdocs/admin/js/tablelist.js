@@ -89,18 +89,18 @@ function init_tablelist(id) {
           element.className = Trclass;
           var class_tr = element.className;
           element.classold = class_tr;
-          element.onmouseout = function() {
-            if (this.className == 'selectmarked' || this.className == 'marked') {
-              this.className = 'marked'
-            } else {
-              this.className = this.classold;
-            }
-          }
-          element.onmouseover = function() {
-            if (this.className == 'marked') {
-              this.className = 'selectmarked'
-            } else { this.className = 'select' }
-          }
+          // element.onmouseout = function() {
+          //   if (this.className == 'selectmarked' || this.className == 'marked') {
+          //     this.className = 'marked'
+          //   } else {
+          //     this.className = this.classold;
+          //   }
+          // }
+          // element.onmouseover = function() {
+          //   if (this.className == 'marked') {
+          //     this.className = 'selectmarked'
+          //   } else { this.className = 'select' }
+          // }
           alltd = element.getElementsByTagName("td").length;
           for(t = 0; t < alltd; t++) {
             index = element.id.split('r')[1];
