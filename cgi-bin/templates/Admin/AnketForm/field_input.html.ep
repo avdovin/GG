@@ -4,18 +4,19 @@
 % my $input_type = 'text';
 % my $lkey_type = $lkey->{settings}->{type};
 
-% if($lkey_type eq 'float'){
+% if($lkey_type eq 'decimal' or $lkey_type eq 'float'){
 	% $lkey->{settings}->{default} ||= '0000.00';
 	% $lkey->{settings}->{regexpPattern} ||= '^[0-9]*\.?[0-9]*$';
+	% $value = sprintf("%.".($lkey->{settings}->{minimum} || 2)."f", $value);
 % }
 <tr>
 	<td class="edit" width="150px">
 		%= $lkey ? $lkey->{name} : $key
 	</td>
 	<td class="edit" width="10px" valign=top>
-% 	if($lkey->{settings}->{help}){
-		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
-%	}
+		% if($lkey->{settings}->{help}){
+			<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+		% }
 	</td>
 	<td width="10px" id="_<%= $key %>"></td>
 	<td class="edit">
@@ -42,9 +43,9 @@
 		>
 	</td>
 </tr>
-<% if($key eq 'alias'){ %>
-%	init_items({
-%		type		=> 'eval',
-%		value		=> "uniqueAlias('${replaceme}_name');"
-%	});
-<% } %>
+% if($key eq 'alias'){
+	%	init_items({
+	%		type		=> 'eval',
+	%		value		=> "uniqueAlias('${replaceme}_name');"
+	%	});
+% }
