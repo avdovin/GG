@@ -23,11 +23,6 @@ sub register {
 
   $app->sessions->default_expiration(3600*24*7*48);
 
-  # $app->helper(
-  #   userdata => sub{
-  #     return shift->app->userdata;
-  #   }
-  # );
   $app->helper(current_user_data => sub {
     my $c = shift;
     return unless my $current_user = $self->current_user;
@@ -113,14 +108,33 @@ sub register {
     my $c = shift;
     my ($email, $password, $extradata) = @_;
 
-    return undef unless my $user = $c->dbi->query("SELECT ID FROM data_users WHERE email='$email' AND password='$password' AND active=1 ")->hash;
-    return $user->{ID};
+    my $where = {
+        email    => $email,
+        active   => 1,
+    };
+
+    my $userId = undef;
+    if($c->dbi->exists_keys(from => 'data_users', lkey => 'password_digest')){
+      my $password_digest = $c->dbi->select('data_users', 'password_digest', $where)->list;
+      if ($c->check_password($password, $password_digest)){
+        $userId = $c->dbi->select("data_users", 'ID', $where)->list || undef;
+      }
+    }else{
+      $where->{password} = $password;
+      $userId = $c->dbi->select("data_users", 'ID', $where)->list || undef;
+    }
+
+    return $userId;
   };
 
   my $current_user = sub {
     my $c = shift;
     return $user_stash_extractor_sub->($c);
   };
+  $app->hook(after_static => sub {
+    my $self = shift;
+    return $self->rendered();
+  });
 
   $app->hook(before_dispatch => $user_loader_sub) if($autoload_user);
 
@@ -138,7 +152,7 @@ sub register {
 
   $app->helper(is_auth => sub {
     my $c = shift;
-    return defined $current_user->($current_user) ? 1 : 0;
+    return defined $current_user->($c) ? 1 : 0;
   });
   $app->helper(signature_exists => sub {
     my $c = shift;
@@ -154,19 +168,20 @@ sub register {
   $app->helper(authenticate => sub {
     my ($c, $email, $password, $extradata) = @_;
 
-
     # if extradata contains "auto_validate", assume the passed username is in fact valid, and
     # auto_validate contains the uid; used for oAuth and other stuff that does not work with
     # usernames and passwords.
     if(defined($extradata->{auto_validate})) {
-        $c->session($session_key => $extradata->{auto_validate});
-        delete $c->stash->{$stash_key};
-        return 1 if defined( $current_user->($c) );
+      $c->session($session_key => $extradata->{auto_validate});
+      delete $c->stash->{$stash_key};
+      return 1 if defined( $current_user->($c) );
+
     } elsif (my $uid = $validate_user_cb->($c, $email, $password, $extradata)) {
-        $c->session($session_key => $uid);
-        # Clear stash to force reload of any already loaded user object
-        delete $c->stash->{$stash_key};
-        return 1 if defined( $current_user->($c) );
+
+      $c->session($session_key => $uid);
+      # Clear stash to force reload of any already loaded user object
+      delete $c->stash->{$stash_key};
+      return 1 if defined( $current_user->($c) );
     }
     return undef;
   });
