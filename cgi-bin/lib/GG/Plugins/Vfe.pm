@@ -148,7 +148,7 @@ sub register {
           undef, $content, $self->app->sysuser->{ID}, $block_id);
       }
       else {
-  			my $e = Mojo::Loader->load('GG::Admin::AdminController');
+  			my $e = Mojo::Loader->load_class('GG::Admin::AdminController');
   			if(!ref $e and !$e){
   				$self->app->dbi->update_hash(
   					'texts_main_'.$lang,

@@ -1031,21 +1031,21 @@ function markup_tr(id, classid) {
 	}
 }
 
-function tr_select_over(obj_tr) {
-	if(obj_tr.className == 'marked') {
-		obj_tr.className = 'selectmarked'
-	} else {
-		obj_tr.className = 'select'
-	}
-}
+// function tr_select_over(obj_tr) {
+// 	if(obj_tr.className == 'marked') {
+// 		obj_tr.className = 'selectmarked'
+// 	} else {
+// 		obj_tr.className = 'select'
+// 	}
+// }
 
-function tr_select_out(obj_tr, classid) {
-	if(obj_tr.className == 'selectmarked' || obj_tr.className == 'marked') {
-		obj_tr.className = 'marked'
-	} else {
-		obj_tr.className = classid
-	}
-}
+// function tr_select_out(obj_tr, classid) {
+// 	if(obj_tr.className == 'selectmarked' || obj_tr.className == 'marked') {
+// 		obj_tr.className = 'marked'
+// 	} else {
+// 		obj_tr.className = classid
+// 	}
+// }
 
 function openNewWin(Wx, Hx, program, actions, lkey) {
 	Wx += 20;

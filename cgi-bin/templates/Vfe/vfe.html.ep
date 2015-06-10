@@ -1,1 +1,2 @@
-<script src="/js/vfe/vfe-2.0.js" data-vfe-plugins="link,aloha"></script>
+<script type="text/javascript" src="/admin/ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="/js/vfe/vfe-2.1.js" data-vfe-plugins="link"></script>

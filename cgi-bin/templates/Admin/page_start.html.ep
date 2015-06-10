@@ -7,8 +7,8 @@
 	% asset('admin.js' => '/admin/js/form-send.js', '/admin/js/jquery/jtip.js', '/admin/js/moment/moment.min.js', '/admin/js/moment/moment_locale_ru.js', '/admin/js/pikaday/pikaday.js', '/admin/js/yepnope.min.js');
 	% asset('admin.css' => '/admin/css/panel.css', '/admin/css/pane-content-custom.css', '/admin/js/pikaday/pikaday.css');
 
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.js"></script>
 
 	<script type="text/javascript">
 	if (typeof jQuery == 'undefined') {
@@ -22,7 +22,7 @@
 	<script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
 
 	<link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui-1.10.4.custom.min.css" type="text/css" />
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 	<script type="text/javascript">
 	if (typeof jQuery.ui == 'undefined') {
 			document.write(unescape("%3Cscript src='/admin/js/jquery/ui/jquery-ui-1.10.4.custom.min.js' type='text/javascript'%3E%3C/script%3E"));
