@@ -481,14 +481,23 @@ sub register {
 					my $keyf = "$params{table}.`$key`";
 
 					my $v = $user_settings->{$setting_key."_qsearch"};
-					if (($lkeys->{$key}->{settings}->{type} eq "s") or ($lkeys->{$key}->{settings}->{type} eq "site") or
-					 	($lkeys->{$key}->{settings}->{type} eq "slat") or ($lkeys->{$key}->{settings}->{type} eq "text") or ($lkeys->{$key}->{settings}->{type} eq "html") or ($lkeys->{$key}->{settings}->{type} eq "email")) {
+					my $type = $lkeys->{$key}->{settings}->{type};
+					if (
+							($type eq "s") or
+							($type eq "site") or
+							($type eq "email") or
+							($type eq "d") or
+					 		($type eq "slat") or
+					 		($type eq "text") or
+					 		($type eq "html")
+					 	)
+						{
 						push(@filter, "$keyf LIKE '%$v%'");
 
 					} elsif ($v =~ m/^[\d]+$/) {
 						push(@filter, "$keyf = $v");
 
-					} elsif ($lkeys->{$key}->{settings}->{type} eq "tlist") {
+					} elsif ($type eq "tlist") {
 						push(@filter, "`".$self->stash->{tables}->{ $lkeys->{$key}->{settings}->{list} }."`.`name` LIKE '%$v%'") unless exists $filter{ $lkeys->{$key}->{settings}->{list}.".name" };
 						$filter{$lkeys->{$key}->{settings}->{list}.".name"} = 1;
 
