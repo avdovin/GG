@@ -355,8 +355,11 @@ sub register {
 
       my @list_keys         = split(/,/, $lkey_settings->{table_fields});
       my (@table_list_keys, @table_list_keys_header);
-      push(@table_list_keys, "`$lkey_dop_table`.`ID`");
-      push(@table_list_keys_header, "ID") unless $lkey_settings->{table_noindex};
+
+      unless($lkey_settings->{table_noindex}){
+        push(@table_list_keys, "`$lkey_dop_table`.`ID`");
+        push(@table_list_keys_header, "ID");
+      }
 
       my $sch = 1;
       my @list_from_key = ();
@@ -432,7 +435,7 @@ sub register {
         my $items = $self->getHashSQL(
               select  => join(",", @{$self->stash->{"listfield_dp_".$lkey}}),
               from  => $self->stash->{"table_list_dp_".$lkey}->{table_from},
-              where => "$$lkey_settings{table}.`ID` > 0 AND $where",
+              where => "1 AND $where",
               stash   => "items_dp_$lkey",
         );
 

@@ -1,5 +1,7 @@
 % my $access_flag = $self->stash->{access_flag};
 % my $index = $self->stash->{index} || '';
+% my $svf_field = $lkey->{settings}->{table_svf};
+% my $field_svf_value = $self->stash->{ $svf_field };
 
 <div style="display:none" id="datasource_list<%= $controller_name %>">
 %   foreach my $k (@{$self->stash->{'listfield_header_dp_'.$key}}){
@@ -75,44 +77,52 @@
 <table style="width:100%;">
   <tr>
 	<td style="width:140px;">Страница: &nbsp;
-		<select name="page" onChange="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable='+jQuery(this).val() )">
-		<% foreach (1..$total_page){ %><option value="<%= $_ %>" <% if($_ == $page){ %>selected="selected"<% } %> ><%= $_ %></option><% } =%>
+		<select name="page" onChange="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&<%= $svf_field.'='.$field_svf_value %>&index=<%= $index %>&page_doptable='+jQuery(this).val() )">
+			% foreach (1..$total_page){
+				<option value="<%= $_ %>" <% if($_ == $page){ %>selected="selected"<% } %> ><%= $_ %></option>
+			% }
 		</select>
 	</td>
 	<td style="width:30px;">
-	<% if($page>1){ %><a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $page-1 %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_prev.gif" border="0"></a><% } %>
+		% if($page>1){
+			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $page-1 %>&<%= $svf_field.'='.$field_svf_value %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_prev.gif" border="0"></a>
+		% }
 	</td>
 	<td style="width:400px;">
-	<% if($total_page>1){ %>
-		<% if($page >= 8){ %>
-			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=1')">1</a> ...
-		<% } %>
-		<% foreach ($first_page..$end_page){ %>
-			<% if($_ == $page){ %><b><% } %>
-			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $_ %>')"><%= $_ %></a>
-			<% if($_ == $page){ %></b><% } %>
+	% if($total_page>1){
+		% if($page >= 8){
+			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=1&<%= $svf_field.'='.$field_svf_value %>')">1</a> ...
+		% }
+		% foreach ($first_page..$end_page){
+			% if($_ == $page){
+				<b>
+			% }
+			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&page_doptable=<%= $_ %>&<%= $svf_field.'='.$field_svf_value %>')"><%= $_ %></a>
+			% if($_ == $page){
+				</b>
+			% }
 			<% if($_ < $end_page){ %>|<% } %>
-		<% } %>
-		<% if($total_page>10 and $page<$total_page-1 && $total_page != $end_page){ %>
-			<% if($end_page < $total_page-1){ %> ... <% } %><% if($end_page == $total_page-1){ %>|<% } %> <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&replaceme=<%= $self->stash->{replaceme} %>&index=<%= $index %>&page_doptable=<%= $total_page %>')"><%= $total_page %></a>
-		<% } %>
-	<% } %>
+		% }
+		% if($total_page>10 and $page<$total_page-1 && $total_page != $end_page){
+			<% if($end_page < $total_page-1){ %> ... <% } %><% if($end_page == $total_page-1){ %>|<% } %> <a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&replaceme=<%= $self->stash->{replaceme} %>&index=<%= $index %>&page_doptable=<%= $total_page %>&<%= $svf_field.'='.$field_svf_value %>')"><%= $total_page %></a>
+		% }
+	% }
 	</td>
 	<td style="width:30px;">
-		<% if($page<$total_page){ %>
-		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page+1 %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_next.gif" border="0"></a>
-		<% } %>
+		% if($page<$total_page){
+			<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page+1 %>&<%= $svf_field.'='.$field_svf_value %>')"><img align="absMiddle" src="/admin/img/icons/menu/icon_next.gif" border="0"></a>
+		% }
 	</td>
 	<td style="width:30%;text-align:right;">
 
-	<% foreach my $i (qw(25 50 75 100 200)){ %>
+	% foreach my $i (qw(25 50 75 100 200)){
 		<% if($i == $pcol_doptable){ %><b><% } %>
-		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=<%= $i %>')"><%= $i %></a>
+		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=<%= $i %>&<%= $svf_field.'='.$field_svf_value %>')"><%= $i %></a>
 		<% if($i == $pcol_doptable){ %></b><% } %>
 		|
-	<% } %>
+	% }
 	<% if($pcol_doptable == 1000000){ %><b><% } %>
-		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=1000000')">Все</a>
+		<a href="#" onClick="ld_content('replaceme_doptable_<%= $self->stash->{replaceme} %><%= $key %><%= $index %>', '<%= $url_for_table_reload %>?do=load_table&access_flag=<%= $access_flag %>&lfield=<%= $key %>&index=<%= $index %>&replaceme=<%= $self->stash->{replaceme} %>&page_doptable=<%= $page %>&pcol_doptable=1000000&<%= $svf_field.'='.$field_svf_value %>')">Все</a>
 	<% if($pcol_doptable == 1000000){ %></b><% } %>
 	</td>
 	</tr>
@@ -176,7 +186,7 @@
 			<td width="60px">
 				%= file_nice_size($item->{size})
 			</td>
-		% } elsif($header ne 'pict_folder'){
+		% } else {
 			<td<% if($table_info_link){ %> onClick="openPage('center','<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','<%= $table_info_link %>&index=<%= $item->{ID} %>&replaceme=<%= $lkey->{settings}->{table_info_replaceme} %><%= $item->{ID} %>','edit','edit')"<% } %> >
 			% my $settings = $self->lkey(name => $header )->{settings};
 			% my $t_type = $settings->{type};

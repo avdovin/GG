@@ -285,7 +285,7 @@ sub _check_tlist{
 
   $value = join(',', @$value) if( ref($value) eq 'ARRAY');
   foreach my $v (split(/,/, $value)) {
-    if($list->{$v}){
+    if(defined $list->{$v}){
       push @list_validated, $v;
     }
   }
@@ -310,7 +310,7 @@ sub _check_list{
   my @list_validated = ();
   $value = join(',', @$value) if( ref($value) eq 'ARRAY');
   foreach my $v (split(/,/, $value)) {
-    if($list->{$v}){
+    if(defined $list->{$v}){
       push @list_validated, $v;
     }
   }
@@ -359,7 +359,7 @@ sub _check_decimal{
   $value =~ s/,/./;
   $value =~ s/б/./;
   $value =~ s/ю/./;
-  $value = 0 if ($value !~ m/(-)?[\d\.]+/);
+  $value = 0 if ($value !~ m/^(?:\d+(?:\.\d*)?|\.\d+)/);
 
   $settings{minimum} ||= 2;
 
