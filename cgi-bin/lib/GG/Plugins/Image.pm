@@ -23,7 +23,7 @@ sub register {
   $app->log->debug("register GG::Plugins::Image");
   # usage: p (value => 'pict.jpg', size => '320x320',[controller => 'catalog', tbl => 'dtbl_catalog_item_images'])
   # return '/image/catalog/items/dopimgs/320x320_pict.jpg'
-  $app->helper(p  => sub{
+  $app->helper(p   => sub{
     my $self = shift;
     my %params = (
       lkey  => 'pict',
@@ -32,41 +32,28 @@ sub register {
       controller => lc($self->stash('controller')),
       tbl     => '',
       table   => '',
-      noimage_path => '/img/core/',
-      noimage_name => 'noimage.png',
       @_
     );
     $params{table} ||=$params{tbl};
-    die "GG::Plugins::Image - helper 'p' - value is not defined" unless $params{value};
 
     my $pict = $self->lkey_path(%params);
+    unless ($params{value}){
+      return $self->noimage(size => $params{size});
+    }
+
     return $pict if $self->app->mode eq 'production';
-    if (-e $self->static_path.$pict){
+
+    if (-e $self->static_path.$pict && -s $self->static_path.$pict){
       return $pict;
     }else{
 
       $params{table} ||= $self->dbi->query("SELECT `default_table` FROM `sys_program` WHERE `key_razdel`='$params{controller}' LIMIT 0,1")->list || '';
 
-      die "GG::Plugins::Image - helper 'p' - table is not defined" unless $params{table};
+      return $self->noimage(size => $params{size}) unless $params{table};
       my $path = $self->lkey_folder(%params).$params{value};
-      unless (-e $self->static_path.$path){
-        my $noimage_path = $params{noimage_path}.$params{size}.'_'.$params{noimage_name};
 
-        if (-e $noimage_path){
-          return $noimage_path;
-        }
-
-        my ($w,$h) = split('x',$params{size});
-        my ($to, $filename, $ext, $size) = $self->file_save(from => $params{noimage_path}.$params{noimage_name}, to => $noimage_path);
-        $self->resize_pict(
-          file    => $to,
-          width   => $w,
-          height    => $h,
-          crop      => 1,
-          retina    => $params{retina},
-          watermark   => $params{watermark},
-        );
-        return $to;
+      unless (-e $self->static_path.$path || -s $self->static_path.$pict){
+        return $self->noimage(size => $params{size});
       }
       my ($to, $filename, $ext, $size) = $self->file_save(from => $path, to => $pict);
       if ($params{size}){
@@ -94,6 +81,35 @@ sub register {
       }
       return $self->lkey_path(%params);
     };
+  });
+
+  $app->helper( noimage => sub {
+    my $self = shift;
+    my %params = (
+      noimage_path => '/img/core/',
+      noimage_name => 'noimage.png',
+      size     => '',
+      @_
+    );
+
+    return '' unless $params{size};
+    my $noimage = $params{noimage_path}.$params{size}.'_'.$params{noimage_name};
+
+    if (-e $self->static_path.$noimage){
+      return $noimage;
+    }else{
+      my ($w,$h) = split('x',$params{size});
+      my ($to, $filename, $ext, $size) = $self->file_save(from => $params{noimage_path}.$params{noimage_name}, to => $noimage);
+      $self->resize_pict(
+        file    => $to,
+        width   => $w,
+        height    => $h,
+        crop      => 1,
+        retina    => $params{retina},
+        watermark   => $params{watermark},
+      );
+      return $noimage;
+    }
   });
 
   $app->helper(
