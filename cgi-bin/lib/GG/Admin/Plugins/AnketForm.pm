@@ -413,7 +413,7 @@ sub register {
             $where .= $lkey_settings->{where} if $lkey_settings->{where};
             if ($$lkey_settings{table_sortfield}){
               $where .= " ORDER BY $$lkey_settings{table}.`$$lkey_settings{table_sortfield}`";
-              $where .= " $$lkey_settings{table_asc}" if $$lkey_settings{table_asc};
+              $where .= " $$lkey_settings{table_sortfield_asc}" if $$lkey_settings{table_sortfield_asc};
             }
 
           $self->def_tablelist_param( key => "pcol_doptable", lkey => $lkey, default => 25);

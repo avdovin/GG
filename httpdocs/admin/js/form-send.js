@@ -901,7 +901,8 @@ function init_tableWidget() {
 			if(document.getElementsByTagName("table")[i].getAttribute("ascending")) {
 				ascending = document.getElementsByTagName("table")[i].getAttribute("ascending");
 			}
-			if(document.getElementsByTagName("table")[i].getAttribute("sorttable")) tableWidgetObj.sortTableByColumn(document.getElementsByTagName("table")[i].getAttribute("sorttable"), ascending);
+			var sortColumnIndex = $( document.getElementsByTagName("table")[i] ).find('td[data-sort]').index();
+			if(sortColumnIndex) tableWidgetObj.sortTableByColumn(sortColumnIndex, ascending);
 			else tableWidgetObj.sortTableByColumn(0, ascending);
 
 			//if(jQuery.browser.mozilla) setTimeout("ff_init_tableWidget();", 1500);

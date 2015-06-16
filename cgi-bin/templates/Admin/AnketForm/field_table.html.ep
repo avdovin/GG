@@ -146,10 +146,9 @@
 		%= join(',', ('false') x scalar(@{$self->stash->{'buttons_key_dp_'.$key}}) );
 	));</div>
 
-	% $lkey->{settings}->{table_sortfield_asc} = '';
+	% $lkey->{settings}->{table_sortfield_asc} ||= 'asc';
 	<table class=doptable
-	<% if($lkey->{settings}->{table_sortfield_asc} eq 'asc'){ %>ascending="ascending"<% } %>
-	<% if($lkey->{settings}->{table_sortfield_asc} eq 'desc'){ %>ascending="descending"<% } %>
+	ascending="<%= $lkey->{settings}->{table_sortfield_asc} eq 'desc' ? 'descending' : 'ascending' %>"
 	<% if($lkey->{settings}->{table_width}){ %>width="<%= $lkey->{settings}->{table_width} %>"<% } %>
 	<% if($lkey->{settings}->{table_height}){ %>height="<%= $lkey->{settings}->{table_height} %>"<% } %>
 	id="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" name="<%= $self->stash->{replaceme} %><%= $key %><%= $index %>" align="center"
@@ -157,18 +156,18 @@
 	script_param="&list_table=<%= $lkey->{settings}->{table} %>" >
 		<thead>
 	  <tr class=header>
-		% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){
-			% my $lk = $self->lkey(name => $_, tbl => $self->stash->{'listfield_dp_table_'.$key});
-			<td>
-				<% if($lk && $_ ne 'pict_type_file' && $_ ne 'pict_size'){ %><%= $lk->{name} %><% } %>
-				<% if($lk && $_ eq 'pict_type_file'){ %> <% } %>
-				<% if($lk && $_ eq 'pict_size'){ %>Размер<% } %>
-				<% if(!$lk){ %><%= $_ %><% } %>
-			</td>
-		% }
-		% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){
-			<td style="width:16px;"> </td>
-		% }
+			% foreach (@{$self->stash->{'listfield_header_dp_'.$key}}){
+				% my $lk = $self->lkey(name => $_, tbl => $self->stash->{'listfield_dp_table_'.$key});
+				<td <%== $lkey->{settings}->{table_sortfield} eq $_ ? 'data-sort="true"' : '' %> >
+					<% if($lk && $_ ne 'pict_type_file' && $_ ne 'pict_size'){ %><%= $lk->{name} %><% } %>
+					<% if($lk && $_ eq 'pict_type_file'){ %> <% } %>
+					<% if($lk && $_ eq 'pict_size'){ %>Размер<% } %>
+					<% if(!$lk){ %><%= $_ %><% } %>
+				</td>
+			% }
+			% foreach (@{$self->stash->{'buttons_key_dp_'.$key}}){
+				<td style="width:16px;"> </td>
+			% }
 		</tr>
 		</thead>
 	<tbody>
