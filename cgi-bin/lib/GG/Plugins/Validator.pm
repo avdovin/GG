@@ -343,10 +343,14 @@ sub _check_integer{
   my $self = shift;
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
   my $value = delete $settings{value};
-  $value =~ s{\D+}{}gi;
+  if($settings{signed}){
+    $value = 0 if ($value !~ m/-?\d+/);
+  } else {
+    $value = 0 if ($value !~ m/\D/);
+  }
 
-  if ($settings{minimum} && $value && $value < $settings{minimum}) {$value = $settings{minimum}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{minimum}";}
-  if ($settings{maximum} && $value && $value > $settings{maximum}) {$value = $settings{maximum}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{minimum}";}
+  if ($settings{min} && $value && $value < $settings{min}) {$value = $settings{min}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{min}";}
+  if ($settings{max} && $value && $value > $settings{max}) {$value = $settings{max}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{max}";}
 
   return $value;
 }
@@ -359,14 +363,19 @@ sub _check_decimal{
   $value =~ s/,/./;
   $value =~ s/б/./;
   $value =~ s/ю/./;
-  $value = 0 if ($value !~ m/^(?:\d+(?:\.\d*)?|\.\d+)/);
+  if($settings{signed}){
+    $value = 0 if ($value !~ m/^-?(?:\d+(?:\.\d*)?|\.\d+)/);
+  }
+  else {
+    $value = 0 if ($value !~ m/^(?:\d+(?:\.\d*)?|\.\d+)/);
+  }
 
-  $settings{minimum} ||= 2;
+  $settings{round} ||= 2;
 
-  if ($settings{minimum} && $value && $value < $settings{minimum}) {$value = $settings{minimum}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{minimum}";}
-  if ($settings{maximum} && $value && $value > $settings{maximum}) {$value = $settings{maximum}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{minimum}";}
+  if ($settings{min} && $value && $value < $settings{min}) {$value = $settings{min}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{min}";}
+  if ($settings{max} && $value && $value > $settings{max}) {$value = $settings{max}; $self->stash->{errors} = "Ошибка: значение переменной выше верхнего ограничения - $settings{max}";}
 
-  return sprintf("%.".$settings{minimum}."f", $value);
+  return sprintf("%.".$settings{round}."f", $value);
 }
 
 sub _check_lat{

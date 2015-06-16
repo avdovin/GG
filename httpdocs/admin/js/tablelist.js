@@ -413,7 +413,11 @@ function parse_data_to_table(id, ajaxIndex) {
 
         var td = document.createElement('TD');
 
-        if(qedit && (lkey_type=='s' || lkey_type=='float' || lkey_type=='d' || lkey_type=='tlist' || lkey_type=='list' || lkey_type=='chb')){
+        if( lkey_type=='float' || lkey_type=='decimal' ){
+          td_str[lkey_name] = Number( td_str[lkey_name] ).toFixed(2);
+        }
+
+        if(qedit && (lkey_type=='s' || lkey_type=='float' || lkey_type=='decimal'  || lkey_type=='d' || lkey_type=='tlist' || lkey_type=='list' || lkey_type=='chb')){
 
           if(lkeys[lkeyindex].qedit){
             var label = document.createElement('LABEL');
