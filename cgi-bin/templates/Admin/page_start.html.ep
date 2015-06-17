@@ -85,13 +85,14 @@ DHTMLSuite.commonObj.setCssCacheStatus(false);
 var menuTopBar = new DHTMLSuite.menuBar();
 
 % if($self->app->sysuser->auth){
-	$(document).on('DOMSubtreeModified',function(){
-		if($("#replaceme").length){
-			ld_content("replaceme", "/admin/main/mainpage");
-			$(document).off('DOMSubtreeModified');
-		}
+	$(function(){
+		$(document).on('DOMSubtreeModified',function(){
+			if($("#replaceme").length){
+				ld_content("replaceme", "/admin/main/mainpage");
+				$(document).off('DOMSubtreeModified');
+			}
+		});
 	});
-
 % }
 
 </script>
@@ -99,14 +100,14 @@ var menuTopBar = new DHTMLSuite.menuBar();
 <div id="menuTop" style="display:none"></div>
 
 <table id="loading-layout" >
-		<tr>
-				<td>
-						<div>
-								Пожалуйста, подождите.<br/>
-								<span>Идет загрузка...</span>
-						</div>
-				</td>
-		</tr>
+	<tr>
+		<td>
+			<div>
+				Пожалуйста, подождите.<br/>
+				<span>Идет загрузка...</span>
+			</div>
+		</td>
+	</tr>
 </table>
 %= asset 'admin.js'
 </body>
