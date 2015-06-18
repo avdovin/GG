@@ -404,7 +404,13 @@ sub register {
         $self->lkey(name => $lkey)->{settings}->{table_fields} ||= 'ID,name';
         $self->stash->{"table_list_dp_$lkey"}->{table_from} = $lkey_settings->{table};
         my $sv  = "$$lkey_settings{table}.`$$lkey_settings{table_svf}`";
-        my $svi = $self->stash->{ $$lkey_settings{table_svf} } || $self->stash->{'index'} ;
+        my $svi;
+        if( $self->stash->{anketa} && $self->stash->{anketa}->{$$lkey_settings{table_svf}} ){
+          $svi = $self->stash->{anketa}->{$$lkey_settings{table_svf}};
+        }
+        else {
+          $svi = $self->stash->{ $$lkey_settings{table_svf} } || $self->stash->{'index'};
+        }
 
         #$self->get_keys(no_global => 1, type => ['lkey'], tbl => $lkey_settings->{table}, controller => $self->app->program->{key_razdel}, validator => 0);# if ($params{access} eq "w");
         $self->def_listfield_doptable(lkey => $lkey);
