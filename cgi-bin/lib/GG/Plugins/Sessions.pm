@@ -25,7 +25,7 @@ sub register {
 
   $app->helper(current_user_data => sub {
     my $c = shift;
-    return unless my $current_user = $self->current_user;
+    return unless my $current_user = $c->current_user;
 
     return $current_user->{'data'} || {};
   });
