@@ -4,9 +4,15 @@ use utf8;
 use HTML::Packer;
 
 use Mojo::Base 'Mojolicious::Plugin';
+use Mojo::Util qw(encode);
+use Term::ANSIColor qw(:constants);
+no warnings 'layer';
 
 sub register {
   my ($self, $app) = @_;
+
+
+
 
   $app->helper(_setup_inc => sub {
     my $self = shift;
@@ -50,6 +56,10 @@ sub register {
   $app->plugin('http_cache');
   $app->plugin('crypt');
   $app->plugin('dbi', $conf );
+
+  if($conf->{robokassa} && ref $conf->{robokassa} && scalar keys %{$conf->{robokassa}} == 3){
+    $app->plugin('robokassa', $conf->{robokassa});
+  }
 
   # Load plugins from config
   foreach (@{$conf->{plugins}}){
@@ -99,6 +109,12 @@ sub register {
     base_url    => $conf->{'protocol'}.'://'.$conf->{http_host}.'/packed/',
     minify      => $conf->{pipeline_minify} && $app->mode eq 'production',
     out_dir     => $app->static_path.'packed/',
+  });
+
+
+  $app->hook(before_routes => sub {
+    my $self = shift;
+
   });
 
   $app->hook(before_dispatch => sub {
@@ -165,6 +181,24 @@ sub register {
       }
       # --- END OF REDIRECT MODULE --------------------------
       #
+    }
+
+    if($ENV{IS_MORBO}){
+      my $send_params = $self->req->params->to_hash || {};
+
+      if (keys %{$send_params} && !$self->req->json){
+        print GREEN "============INPUT PARAMS============\n";
+        foreach(sort keys %{$send_params}){
+          next if $_ ~~ qw(csrf_token);
+          my $l = length($_);
+          my $t = "\t"x($l < 5 ? 3 : $l < 13 ? 2 : 1);
+          print MAGENTA "   $_$t";
+          print WHITE " : ";
+          print GREEN "$$send_params{$_} \n";
+        }
+        print GREEN "====================================";
+        print RESET, "\n";
+      }
     }
 
     $self->req->url->base( Mojo::URL->new(q{/}) );

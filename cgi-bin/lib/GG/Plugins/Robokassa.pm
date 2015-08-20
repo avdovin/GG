@@ -4,22 +4,24 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
+use constant DEBUG    => $ENV{GG_ROBOKASSA_BEBUG}    || 0;
 
-my $mrh_login = "tis";
-my $mrh_pass1 = "kAdCJMa49d";
-my $mrh_pass2 = "etFWgJR69Qi";
+my $MRH_URL 	= "https://merchant.roboxchange.com/Index.aspx";
 
 use Digest::MD5 qw(md5_hex);
-
+our $VERSION = '0.02';
 
 sub register {
 	my ($self, $app, $conf) = @_;
 
-	$app->helper( robokassa_mrh_login => sub {
-		return $mrh_login;
-	});
+	my $MRH_LOGIN = $conf->{mrh_login};
+	# пароли тестовые
+	my $MRH_PASS1 = $conf->{mrh_pass1};
+	my $MRH_PASS2 = $conf->{mrh_pass2};
 
-	$app->helper( robokassa_chech_payment => sub {
+	$app->log->debug("register GG::Plugin::Robokassa");
+
+	$app->helper ( 'robokassa.check_payment' => sub {
 		my $self = shift;
 		my %params = (
 			@_
@@ -27,68 +29,70 @@ sub register {
 
 		my $q = $self->req->params->to_hash;
 
-		# считывание параметров
-		# read parameters
-		$q->{SignatureValue} =~ s/([a-z])/uc "$1"/eg;   # force uppercase
-		$q->{InvId} =~ s{\D+}{}gi;
+		my $my_crc = $self->robokassa->params_signature;
 
-		# формирование подписи
-		# generate signature
-
-		#return $self->render( text => "$$q{OutSum}:$$q{InvId}:$mrh_pass2:Shp_item=$$q{Shp_item}" );
-
-		my $my_crc = md5_hex("$$q{OutSum}:$$q{InvId}:$mrh_pass2:Shp_item=$$q{Shp_item}");
-		$my_crc =~ s/([a-z])/uc "$1"/eg;   # force uppercase
-
-		my $is_correct = ($my_crc eq $q->{SignatureValue} ? 1 : 0);
-
-		unless($is_correct){
-			return;
-			#return $self->render( text => 'incorrect sign passed' );
-		}
-
-		return 1;
+		return $my_crc eq uc $q->{SignatureValue} ? 1 : 0;
 	});
 
-	$app->helper( robokassa_build_signaturevalue => sub {
+	$app->helper( 'robokassa.generate_payment_url' => sub {
 		my $self = shift;
+
 		my %params = (
-			OutSum 		=> 0,
-			InvId 		=> 0,
-			Shp_item 	=> 1,
+			MerchantLogin => $MRH_LOGIN,
+			OutSum 				=> 0,
+			InvId  				=> 0,
+			Shp 					=> {},
 			@_
 		);
 
-		return md5_hex("$mrh_login:$params{OutSum}:$params{InvId}:$mrh_pass1:Shp_item=$params{Shp_item}");
-	});
+		$params{IsTest} = 1 if DEBUG;
 
-	$app->helper( robokassa_build_send_params => sub {
-		my $self = shift;
-		my %params = (
-			OutSum 		=> 0,
-			InvId 		=> 0,
-			Shp_item 	=> 1,
-			Desc 		=> '',
-			AddParams 	=> {},
-			@_
-		);
+		my $qs = {};
 
-		my $SignatureValue = md5_hex("$mrh_login:$params{OutSum}:$params{InvId}:$mrh_pass1:Shp_item=$params{Shp_item}");
-
-		my $HTML = qq{
-			<input type=hidden name=MrchLogin value="$mrh_login">
-			<input type=hidden name=OutSum value="$params{OutSum}">
-			<input type=hidden name=InvId value="$params{InvId}">
-			<input type=hidden name=Desc value="$params{Desc}">
-			<input type=hidden name=SignatureValue value="$SignatureValue">
-			<input type=hidden name=Shp_item value="$params{Shp_item}">
-			<input type=hidden name=IncCurrLabel value="">
-			<input type=hidden name=Culture value="ru">
-
-			<input type=submit class="button button-blue button-right" value="Оплатить заказ">
+		foreach my $key (keys %params){
+			if (ref $params{$key}){
+				foreach my $sub (sort keys %{$params{$key}}){
+					$qs->{$key.'_'.$sub} = $params{$key}->{$sub};
+				}
+			}else{
+				$qs->{$key} = $params{$key};
+			}
 		};
 
-		return $HTML;
+		$qs->{SignatureValue} = $self->robokassa->signature_value(%params);
+
+		my @qs = ();
+
+		foreach (sort keys %$qs){
+			push @qs, "$_=$$qs{$_}";
+		}
+
+		return $MRH_URL.'?'.(join('&', @qs));
+
+
+	});
+	$app->helper( 'robokassa.params_signature' => sub {
+		my $self = shift;
+		my $params = $self->req->params->to_hash;
+
+		$params->{InvId} =~ s{\D+}{}gi;
+
+		my $str = "$$params{OutSum}:";
+		$str .= "$$params{InvId}:" if $params->{InvId};
+		$str .= $MRH_PASS2;
+		return md5_hex(uc $str);
+
+	});
+	$app->helper( 'robokassa.signature_value' => sub {
+		my $self = shift;
+		my %params = (
+			@_
+		);
+		my $str = "$MRH_LOGIN:$params{OutSum}:";
+		$str .= $params{InvId}.':' if $params{InvId};
+		$str .= "$MRH_PASS1";
+
+		return md5_hex($str);
 	});
 }
 
