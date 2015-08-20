@@ -205,7 +205,7 @@ sub register {
 			$self->stash->{group}++;
 
 			if($self->param('clear')){
-				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => "");
+				$self->app->sysuser->save_user_settings($self->stash->{replaceme}."_defcol" => "");
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
 
@@ -291,7 +291,7 @@ sub register {
 				}
 				$self->stash->{listfields} = $result;
 
-				$self->app->sysuser->save_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
+				$self->app->sysuser->save_user_settings($self->stash->{replaceme}."_defcol" => $self->stash->{listfields});
 
 				return $self->render( json => { content => 'OK', items => $self->init_tablelist_reload});
 			}
