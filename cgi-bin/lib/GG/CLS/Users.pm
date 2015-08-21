@@ -19,8 +19,8 @@ use base 'Mojo::Base';
 
 __PACKAGE__->attr( userinfo    => sub { shift->{userinfo} }  );
 __PACKAGE__->attr( auth		   => sub { shift->{auth} }  );
-__PACKAGE__->attr( settings	   => sub { shift->{settings} }  );
 __PACKAGE__->attr( ses_settings	   => sub { shift->{ses_settings} }  );
+__PACKAGE__->attr( user_settings	   => sub { shift->{user_settings} }  );
 __PACKAGE__->attr( sys		   => sub { shift->{userinfo}->{sys} }  );
 __PACKAGE__->attr( access	   => sub { shift->{access} }  );
 
@@ -43,8 +43,9 @@ sub new {
 
 	my $self = {
 		error		=> '',
-		settings    => {},
+		#settings    => {},
 		ses_settings => {},
+		user_settings => {},
 		userinfo	=>  $args->{userinfo},
 		auth		=> 0,
 		dbi			=> $args->{dbi},
@@ -70,7 +71,7 @@ sub set_settings { # разбор конфига
 		foreach my $k (split(/\n/, $settings)) {
 			$k =~ s/[ ]+$//;
 			my ($key, $value) = split(/=/, $k, 2);
-			$self -> {settings} -> {$key} = $value;
+			$self -> {user_settings} -> {$key} = $value;
 		}
 	}
 	#$self->{settings}->{sys}=0 unless($self->{userinfo}->{sys});
@@ -81,16 +82,33 @@ sub save_ses_settings{
 	my $self   = shift;
 	if (@_ > 0) {
 		for (my $i = 0; $i <= $#_; $i += 2) {
-			$self->settings->{ $_[$i] } = $self->ses_settings->{ $_[$i] } = $_[$i + 1];
+			$self->ses_settings->{ $_[$i] } = $_[$i + 1];
 		}
 	}
-	my $data = $self->settings;
+	my $data = $self->ses_settings;
   my $encodeData = b64_encode($self->serialize->($data), '');
   $encodeData =~ y/=/-/;
-	#my $encodeData = b64_encode $JSON->encode($data), '';
-	#$encodeData =~ s/\=/\-/g;
+
 
 	$self->{dbi}->{dbh}->do("UPDATE `sys_users_session` SET `data`=? WHERE `id_user`=? AND `cck`=?", undef, $encodeData, $$self{userinfo}{ID}, $$self{userinfo}{cck});
+}
+
+sub save_user_settings{
+	my $self   = shift;
+	if (@_ > 0) {
+		for (my $i = 0; $i <= $#_; $i += 2) {
+			$self->user_settings->{ $_[$i] } = $_[$i + 1];
+		}
+	}
+	my (@settings, %settings);
+
+	foreach (keys %{$$self{user_settings}}) {
+		push(@settings, "$_=$$self{user_settings}{$_}") if ($$self{user_settings}{$_} and length($$self{user_settings}{$_}) > 0 and !exists($settings{$_}));
+		$settings{$_} = 1;
+	}
+	my $set_save = join("\n", @settings);
+
+	$self->{dbi}->{dbh}->do("UPDATE `sys_users` SET `settings`=? WHERE `ID`=?", undef, $set_save, $$self{userinfo}{ID});
 }
 
 sub restore_ses_settings{
@@ -102,8 +120,6 @@ sub restore_ses_settings{
 	$data =~ s/\-/\=/;
 	if(my $userData = $self->deserialize->(b64_decode $data)){
 		$self->ses_settings($userData);
-
-		$self->settings->{$_} = $userData->{$_} foreach (keys %$userData);
 	}
 }
 
@@ -188,6 +204,15 @@ sub check_modul_access {
 	return 1;
 }
 
+sub settings{
+	my $self = shift;
+
+	my %settings = ();
+	$settings{$_} = $self->user_settings->{$_} foreach (keys %{$self->user_settings});
+	$settings{$_} = $self->ses_settings->{$_} foreach (keys %{$self->ses_settings});
+
+	return \%settings;
+}
 
 sub store_access{
 	my $self   = shift();
@@ -271,13 +296,14 @@ sub getAccess {
 		$params{where} = "(`sys_access`.`users`='$$user{ID}') AND `sys_access`.`objecttype`='lkey'";
 	}
 
+	if ($params{modul}){
+		for my $row  ($self->{dbi}->query(qq/
+			SELECT `sys_access`.*
+			FROM `sys_access` LEFT JOIN `sys_program` ON `sys_access`.`modul`=`sys_program`.`ID`
+			WHERE `sys_access`.`ID`>0 AND $params{where} AND `sys_program`.`key_razdel`='$params{modul}'/)->hashes){
 
-	for my $row  ($self->{dbi}->query(qq/
-		SELECT `sys_access`.*
-		FROM `sys_access` LEFT JOIN `sys_program` ON `sys_access`.`modul`=`sys_program`.`ID`
-		WHERE `sys_access`.`ID`>0 AND $params{where} AND `sys_program`.`key_razdel`='$params{modul}'/)->hashes){
-
-		$self -> set_access("lkey", $row);
+			$self -> set_access("lkey", $row);
+		}
 	}
 
 	# Доступ к кнопкам
@@ -286,12 +312,14 @@ sub getAccess {
 	} else {
 		$params{where} = "(`sys_access`.`users`='$$user{ID}') AND `sys_access`.`objecttype`='button'";
 	}
-	for my $row  ($self->{dbi}->query(qq/
-		SELECT `sys_access`.*
-		FROM `sys_access` LEFT JOIN `sys_program` ON `sys_access`.`modul`=`sys_program`.`ID`
-		WHERE `sys_access`.`ID`>0 AND $params{where} AND `sys_program`.`key_razdel`='$params{modul}'/)->hashes){
+	if ($params{modul}){
+		for my $row  ($self->{dbi}->query(qq/
+			SELECT `sys_access`.*
+			FROM `sys_access` LEFT JOIN `sys_program` ON `sys_access`.`modul`=`sys_program`.`ID`
+			WHERE `sys_access`.`ID`>0 AND $params{where} AND `sys_program`.`key_razdel`='$params{modul}'/)->hashes){
 
-		$self -> set_access("button", $row);
+			$self -> set_access("button", $row);
+		}
 	}
 
 	for my $row  ($self->{dbi}->query(qq/
