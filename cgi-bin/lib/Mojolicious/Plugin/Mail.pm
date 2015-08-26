@@ -59,7 +59,7 @@ sub register {
   );
 
   $app->helper(
-    render_mail => sub { shift->render_to_string(@_, format => 'mail') }
+    render_mail => sub { shift->render_to_string(@_, variant => 'mail') }
   );
 }
 
