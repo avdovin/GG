@@ -21,6 +21,9 @@
 # PNG - libpng-dev
 
 #sudo apt-get update
+
+#sudo apt-get install build-essential checkinstall libx11-dev libxext-dev zlib1g-dev libpng12-dev libjpeg-dev
+
 #sudo apt-get install libjpeg62-dev
 #sudo apt-get install libpng-dev
 #sudo apt-get install libfreetype6-dev

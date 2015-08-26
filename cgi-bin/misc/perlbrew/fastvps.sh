@@ -4,6 +4,14 @@
 
 # IMPORTANT! Run only by root user
 
+# fix locale problem
+
+#/etc/environment
+#EDITOR="/usr/bin/vim"
+#LC_ALL=en_US.UTF-8
+#LANG=en_US.UTF-8
+#LANGUAGE=en_US.UTF-8
+
 
 # Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
@@ -24,12 +32,15 @@ curl -kL http://install.perlbrew.pl | bash
 echo 'source /opt/perl5/etc/bashrc' >>~/.bash_profile
 source ~/.bash_profile
 
-perlbrew install perl-5.20.1 -Duselargefiles \
-  -Dcccdlflags=-fPIC \
-  -Duseshrplib \
-  --as fPIC-lFiles-5.20.1
+# perlbrew install perl-5.20.2 -Duselargefiles \
+#   -Dcccdlflags=-fPIC \
+#   -Duseshrplib \
+#   --as fPIC-lFiles-5.20.2
 
-perlbrew switch perl-5.20.1
+
+perlbrew --notest install perl-5.20.2 -Dcccdlflags=-fPIC -Duseshrplib -Duse64bitall -Duselargefiles
+
+perlbrew switch perl-5.20.2
 perlbrew install-cpanm
 
 apt-get update
@@ -37,6 +48,10 @@ apt-get install libmysqlclient-dev
 cpanm -f  DBD::mysql
 
 cpanm JSON::XS JavaScript::Minifier::XS CSS::Minifier::XS Crypt::Eksblowfish::Bcrypt
+
+# PostgreSQL
+# apt-get install libpq-dev
+# cpanm DBD::Pg
 
 
 touch "/var/www/$LOGIN/data/.bash_profile"

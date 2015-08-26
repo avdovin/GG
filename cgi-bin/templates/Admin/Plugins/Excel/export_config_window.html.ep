@@ -18,7 +18,7 @@
       <div id="formResponsewin" style="overflow:scroll;width:670px;height:300px">
         <table id="anketka_win<%= $replaceme %>" width="95%" align="center" style="border:solid 1px #ccc"><tr><td>
         % foreach my $lkey (@{$listfields}){
-          <input class="checkbox_exportexcel" type="checkbox" id="checkbox_<%= $lkey %>" name="<%= $lkey %>" value="<%= $lkey %>"> <label for="checkbox_<%= $lkey %>" style="cursor:pointer;float:none;"><%= lkey(name =>$lkey, controller => $controller )->{name} %></label><br />
+          <input checked="checked" class="checkbox_exportexcel" type="checkbox" id="checkbox_<%= $lkey %>" name="<%= $lkey %>" value="<%= $lkey %>"> <label for="checkbox_<%= $lkey %>" style="cursor:pointer;float:none;"><%= lkey(name =>$lkey, controller => $controller )->{name} %></label><br />
         % }
         </td></tr>
         </table>

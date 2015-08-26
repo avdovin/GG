@@ -189,24 +189,31 @@ sub load_items{
 	#my $sth_check_articul_exist = $self->dbi->dbh->prepare("SELECT ID FROM $Table__items WHERE articul=?");
 	$self->dbi->dbh->do("TRUNCATE TABLE dtbl_catalog_items_synccode");
 
+	#my $categories = $self->dbi->query("SELECT ID,parent_category_id FROM data_catalog_categorys WHERE parent_category_id > 0")->map;
+	#
+
+	#$self->dbi->dbh->do("TRUNCATE TABLE dtbl_catalog_genders");
+	my $sth_gender = $self->dbi->dbh->prepare("DELETE FROM dtbl_catalog_genders WHERE item_id=?");
+	my $genders_flush = {};
+
+	my $sync_img_dir = $self->static_path.$ImgDir;
 	foreach my $item (@{$items->{'Товар'}}){
 		next unless $item->{'Ид'};
 
 		my $data = {
-			synccode 			=> $item->{'Ид'}->[0],
-			name 					=> $item->{'Наименование'}->[0],
+			synccode 			=> $item->{'Ид'}->[0] || '',
+			name 					=> $item->{'Наименование'}->[0] || '',
 			active 				=> 1,
-			pict_updated 	=> 0,
+			pict_updated 	=> 1,
 			operator 			=> $InsertOperator,
 		};
 
-		$data->{'alias'} = $self->transliteration( $data->{'name'} );
+		$data->{'articul'} = $item->{'Артикул'}->[0] || '';
+		$data->{'text'} = $item->{'Описание'}->[0] || '';
 
-		$data->{'articul'} = $item->{'Артикул'}->[0];
-		$data->{'text'} = $item->{'Описание'}->[0];
+		$data->{'alias'} = $self->transliteration( $data->{'articul'}.'_'.$data->{'name'} );
 
 		my $cat_synccode = $item->{'Группы'}->[0]->{'Ид'}->[0];
-
 		# ищем ИД категории у БД
 		#next unless my $cat_id = $tmp__categorys->{$cat_synccode};
 		# if( my $parent_synccode = $tmp__categorys_parent->{ $cat_synccode } ){
@@ -227,12 +234,10 @@ sub load_items{
 			warn $prop_id;
 
 			next unless my $p = $tmp__props->{ $prop_value };
-			warn "found: $prop_id";
+			next unless $p->{'lkey'};
 
 			$data->{ $p->{'lkey'} } = $data->{ $p->{'lkey'} } ? $data->{ $p->{'lkey'} }.','.$p->{'id'} : $p->{'id'};
 		}
-
-
 		#Картинки
 		if($item->{'Картинка'} && scalar($item->{'Картинка'})){
 			my $picts = [];
@@ -242,18 +247,65 @@ sub load_items{
 			}
 
 			$data->{'pict_imported'} = join(',', @$picts);
+
+			# если размер первой фотки не изменился то пропускаем обновление
+			if(scalar(@$picts)){
+				#$data->{pict_updated} = 0;
+
+				foreach my $p (@$picts){
+					if(!-e $sync_img_dir.$p){
+						$data->{pict_updated} = 0;
+						last;
+					}
+					elsif(!-e $self->static_path.'/image/catalog/items/'.$p){
+						$data->{pict_updated} = 0;
+					 	last;
+					}
+					else{
+						my $pict_sync_size = -s $sync_img_dir.$p;
+						my $pict_size = -s $self->static_path.'/image/catalog/items/'.$p;
+
+						if($pict_sync_size != $pict_size){
+							$data->{pict_updated} = 0;
+							last;
+						}
+					}
+				}
+
+			}
+
 		}
+
+		#$data->{'top_category_id'} = $categories->{ $data->{'category_id'} } || 0;
+
 
 		$self->stash->{'index'} = $self->dbi->upsert($Table__items, $data);
 
-		delete $self->stash->{'index'};
+		unless($genders_flush->{ $self->stash->{index} }){
+			$sth_gender->execute($self->stash->{index});
+			$genders_flush->{ $self->stash->{index} } = 1;
+		}
 
+		if($self->stash->{index} && $data->{'gender_id'}){
+			$self->dbi->dbh->do("REPLACE dtbl_catalog_genders(item_id, gender_id) VALUES ('".$self->stash->{index}."', '$$data{gender_id}') ");
+		}
+
+
+
+		#use Data::Dumper;
+		#die Dumper($data) if ($data->{synccode} eq '9f8f9079-3a95-11e4-826e-e0cb4e271d42');
+
+		# unless($item->{'Картинка'}){
+		# 	$self->dbi->dbh->do("DELETE FROM dtbl_catalog_items_images WHERE id_item=?", undef, $self->stash->{'index'} );
+		# }
+
+		delete $self->stash->{'index'};
 
 		$self->dbi->insert_hash('dtbl_catalog_items_synccode',{
 			synccode 	=> $data->{'synccode'},
 			articul 	=> $data->{'articul'},
 			size_id		=> $data->{'sizes'},
-		});
+		}) if $data->{'sizes'};
 	}
 
 	$self->dbi->dbh->do("UPDATE $Table__items SET pict='', pict_updated=1 WHERE pict_imported=''");
@@ -290,12 +342,27 @@ sub load_catalog{
 	$self->load_props( $ref->{'Классификатор'}->[0]->{'Свойства'}->[0] );
 	$self->load_items( $ref->{'Каталог'}->[0]->{'Товары'}->[0] );
 
+	$self->_set_top_categories();
+
 	if($self->stash->{'_import'}->{'path_catalog_items_backup'}){
 		copy($self->static_path().$self->path_catalog_items.'__proccess', $self->static_path().$self->stash->{'_import'}->{'path_catalog_items_backup'}, 8*1024);
 	}
 	unlink($self->static_path().$self->path_catalog_items.'__proccess');
 
 	#$self->_set_item_sizes();
+}
+
+sub _set_top_categories{
+	my $self = shift;
+
+	my $categories = $self->dbi->query("SELECT ID,parent_category_id FROM data_catalog_categorys WHERE parent_category_id > 0")->map;
+
+	my $sth = $self->dbh->prepare("UPDATE data_catalog_items SET top_category_id=? WHERE ID=?");
+
+	for my $item ($self->dbi->query("SELECT ID,category_id FROM data_catalog_items WHERE category_id>0")->hashes){
+		$sth->execute( $categories->{ $item->{category_id} } || 0, $item->{ID} );
+	}
+	$sth->finish();
 }
 
 sub load_images{
@@ -321,13 +388,16 @@ sub load_images{
 				$self->stash->{'index'} = $item->{'ID'};
 				if(my $mini = $self->lkey(name => $lkey, setting => 'mini', controller => 'catalog' ) ){
 					my $filetmp = $self->file_copy_tmp( $sync_img_dir.$img );
-					$self->file_save_pict(
-						filename 	=> $filetmp,
-						lfield		=> $lkey,
-						table 		=> $Table__items,
-						fields		=> {pict => $img},
-						replace		=> 1,
-					);
+					eval{
+						$self->file_save_pict(
+							filename 	=> $filetmp,
+							lfield		=> $lkey,
+							table 		=> $Table__items,
+							fields		=> {pict => $img},
+							replace		=> 1,
+						);
+					};
+					warn $@ if $@;
 				}
 			}
 			else {
@@ -344,13 +414,16 @@ sub load_images{
 
 				if(my $mini = $self->lkey(name => $lkey, setting => 'mini', controller => 'catalog', tbl => 'dtbl_catalog_items_images' ) ){
 					my $filetmp = $self->file_copy_tmp( $sync_img_dir.$img );
-					$self->file_save_pict(
-						filename 	=> $filetmp,
-						lfield		=> $lkey,
-						table 		=> 'dtbl_catalog_items_images',
-						fields		=> {pict => $img},
-						replace		=> 1,
-					);
+					eval{
+						$self->file_save_pict(
+							filename 	=> $filetmp,
+							lfield		=> $lkey,
+							table 		=> 'dtbl_catalog_items_images',
+							fields		=> {pict => $img},
+							replace		=> 1,
+						);
+					};
+					warn $@ if $@;
 				}
 			}
 			$img_count++;
@@ -391,7 +464,10 @@ sub load_catalog_offers{
 		next unless my $dtbl_synccode = $offer->{'Ид'}->[0];
 
 		my $price = $offer->{'Цены'}->[0]->{'Цена'}->[0]->{'ЦенаЗаЕдиницу'}->[0];
-		my $quantity = $offer->{'Количество'}->[0] || 0;
+		my $quantity = 0;
+		if($offer->{'Количество'} && $offer->{'Количество'}->[0]){
+			$quantity = $offer->{'Количество'}->[0];
+		}
 
 
 		$self->dbi->update_hash('dtbl_catalog_items_synccode', {
@@ -399,7 +475,7 @@ sub load_catalog_offers{
 		}, "synccode='$dtbl_synccode'");
 
 		$self->dbi->update($Table__items, {
-			price 		=> $price,
+			price_1c 		=> $price,
 			#quantity 	=> $quantity,
 			#active		=> $quantity > 0 ? 1 : 0,
 		}, "synccode='$dtbl_synccode'");
@@ -411,6 +487,8 @@ sub load_catalog_offers{
 	unlink($self->static_path().$self->path_catalog_offers.'__proccess');
 
 	$self->_set_item_sizes();
+
+	$self->_set_item_prices();
 }
 
 
@@ -423,6 +501,21 @@ sub path_catalog_items{
 	return shift->stash->{'_import'}->{'path_catalog_items'};
 }
 
+
+sub _set_item_prices{
+	my $self = shift;
+
+	my $sth = $self->dbi->dbh->prepare("UPDATE data_catalog_items SET price=? WHERE ID=?");
+
+	for my $r ($self->dbi->query(qq/SELECT ID,price_1c, price_discount FROM data_catalog_items WHERE 1/)->hashes){
+		my $price = $r->{price_discount} && $r->{price_discount} ne '0.00' ? $r->{price_discount} : $r->{price_1c};
+		$sth->execute($price, $r->{ID});
+
+	}
+
+	$sth->finish();
+
+}
 
 sub _set_item_sizes{
 	my $self = shift;
@@ -452,14 +545,17 @@ sub _set_item_sizes{
 	}
 
 
-	my $sth_update_size = $self->dbi->dbh->prepare("UPDATE data_catalog_items SET sizes=? WHERE synccode=?");
+	my $sth_update_size = $self->dbi->dbh->prepare("UPDATE data_catalog_items SET sizes=?, active=? WHERE synccode=?");
 	foreach my $synccode (keys %$synccodes){
 		my $sizes = [];
 		my $s = [];
+		my $quantity_total = 0;
+
 		foreach my $s (sort keys %{$synccodes->{$synccode}} ){
 			push @$sizes, "$s=".$synccodes->{$synccode}->{$s};
+			$quantity_total += $synccodes->{$synccode}->{$s};
 		}
-		$sth_update_size->execute(join(',', @$sizes), $synccode);
+		$sth_update_size->execute(join(',', @$sizes), $quantity_total > 0 ? 1 : 0, $synccode);
 	}
 	$sth_update_size->finish();
 
