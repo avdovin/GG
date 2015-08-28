@@ -108,6 +108,8 @@ sub register {
 
 		($reqUrl, undef) = split(/\?/, $reqUrl);
 
+		return unless $reqUrl;
+
 		# Собираем все где есть *
 		my $seo_meta = {};
 		my $found = 0;
