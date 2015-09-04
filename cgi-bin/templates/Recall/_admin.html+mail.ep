@@ -1,0 +1,42 @@
+<table border="0" cellpadding="0" cellspacing="0" width="600">
+  <tr>
+    <td colspan="2" style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:18px;line-height:1.57em;">
+      Получен новый отзыв с сайта <%= site_name %>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" width="200">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333">
+        Имя:
+      </div>
+    </td>
+    <td align="left" width="400">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333">
+        %= stash 'name'
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" width="200">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333"></div>
+      Телефон:
+    </td>
+    <td align="left" width="400">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333">
+        %= stash 'phone'
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" width="200">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333">
+        Вопрос:
+      </div>
+    </td>
+    <td align="left" width="400">
+      <div style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;font-size:14px;line-height:1.57em;font-weight:normal;color:#333333">
+        %= stash 'recall'
+      </div>
+    </td>
+  </tr>
+</table>
