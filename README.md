@@ -17,6 +17,13 @@
 	* Mysql 5+
 	* utf8 encoding
 
+####Setup
+#####Installation
+Using cpanm, run:
+```
+cpanm --installdeps .
+```
+
 
 #### Contributing
 
