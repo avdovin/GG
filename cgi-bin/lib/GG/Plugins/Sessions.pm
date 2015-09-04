@@ -68,6 +68,8 @@ sub register {
   my $user_loader_sub = sub {
     my $c = shift;
 
+    return if $c->req->url->path->[0] eq 'admin';
+
     if (my $uid = $c->session($session_key)) {
       my $user = $load_user_cb->($c, $uid);
       if ($user) {
