@@ -254,20 +254,19 @@ sub load_items{
 
 				foreach my $p (@$picts){
 					if(!-e $sync_img_dir.$p){
-						$data->{pict_updated} = 0;
-						last;
+						delete $data->{pict_waiting_update};
+						next;
 					}
 					elsif(!-e $self->static_path.'/image/catalog/items/'.$p){
-						$data->{pict_updated} = 0;
-					 	last;
+					 	next;
 					}
 					else{
 						my $pict_sync_size = -s $sync_img_dir.$p;
 						my $pict_size = -s $self->static_path.'/image/catalog/items/'.$p;
 
-						if($pict_sync_size != $pict_size){
-							$data->{pict_updated} = 0;
-							last;
+						if($pict_sync_size == $pict_size){
+							delete $data->{pict_waiting_update};
+							next;
 						}
 					}
 				}
