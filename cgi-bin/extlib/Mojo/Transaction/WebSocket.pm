@@ -82,7 +82,7 @@ sub build_message {
 
   # Raw text or binary
   if (exists $frame->{text}) { $frame = [1, 0, 0, 0, TEXT, $frame->{text}] }
-  else { $frame = [1, 0, 0, 0, BINARY, $frame->{binary}] }
+  else                       { $frame = [1, 0, 0, 0, BINARY, $frame->{binary}] }
 
   # "permessage-deflate" extension
   return $self->build_frame(@$frame) unless $self->compressed;
@@ -106,7 +106,7 @@ sub client_challenge {
     if ($headers->sec_websocket_extensions // '') =~ /permessage-deflate/;
 
   return _challenge($self->req->headers->sec_websocket_key) eq
-    $headers->sec_websocket_accept;
+    $headers->sec_websocket_accept && ++$self->{open};
 }
 
 sub client_handshake {
@@ -138,6 +138,8 @@ sub finish {
 
   return $self;
 }
+
+sub is_established { !!shift->{open} }
 
 sub is_websocket {1}
 
@@ -212,11 +214,7 @@ sub remote_port    { shift->handshake->remote_port }
 sub req            { shift->handshake->req }
 sub res            { shift->handshake->res }
 
-sub resume {
-  my $self = shift;
-  $self->handshake->resume;
-  return $self;
-}
+sub resume { $_[0]->handshake->resume and return $_[0] }
 
 sub send {
   my ($self, $msg, $cb) = @_;
@@ -246,6 +244,8 @@ sub server_handshake {
   $res_headers->sec_websocket_accept(
     _challenge($req_headers->sec_websocket_key));
 }
+
+sub server_open { shift->{open}++ }
 
 sub server_read {
   my ($self, $chunk) = @_;
@@ -316,7 +316,7 @@ sub _message {
       WindowBits  => -15
     );
     $inflate->inflate(($msg .= "\x00\x00\xff\xff"), my $out);
-    return $self->finish(1009) if length $msg;
+    return $self->finish(1009) if $msg ne '';
     $msg = $out;
   }
 
@@ -576,11 +576,17 @@ Connection identifier.
 
 Close WebSocket connection gracefully.
 
+=head2 is_established
+
+ my $bool = $ws->is_established;
+
+Check if WebSocket connection has been established yet.
+
 =head2 is_websocket
 
-  my $true = $ws->is_websocket;
+  my $bool = $ws->is_websocket;
 
-True.
+True, this is a L<Mojo::Transaction::WebSocket> object.
 
 =head2 kept_alive
 
@@ -681,6 +687,12 @@ Transaction closed server-side, used to implement web servers.
   $ws->server_handshake;
 
 Perform WebSocket handshake server-side, used to implement web servers.
+
+=head2 server_open
+
+  $ws->server_open;
+
+WebSocket connection established server-side, used to implement web servers.
 
 =head2 server_read
 

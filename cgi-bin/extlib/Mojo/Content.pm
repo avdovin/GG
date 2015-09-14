@@ -24,9 +24,6 @@ sub boundary {
   (shift->headers->content_type // '') =~ $BOUNDARY_RE ? $1 // $2 : undef;
 }
 
-sub build_body    { shift->_build('get_body_chunk') }
-sub build_headers { shift->_build('get_header_chunk') }
-
 sub charset {
   my $type = shift->headers->content_type // '';
   return $type =~ /charset\s*=\s*"?([^"\s;]+)"?/i ? $1 : undef;
@@ -42,9 +39,9 @@ sub generate_body_chunk {
   my ($self, $offset) = @_;
 
   $self->emit(drain => $offset)
-    if !delete $self->{delay} && !length($self->{body_buffer} // '');
+    if !delete $self->{delay} && ($self->{body_buffer} // '') eq '';
   my $chunk = delete $self->{body_buffer} // '';
-  return $self->{eof} ? '' : undef unless length $chunk;
+  return $self->{eof} ? '' : undef if $chunk eq '';
 
   return $chunk;
 }
@@ -53,19 +50,11 @@ sub get_body_chunk {
   croak 'Method "get_body_chunk" not implemented by subclass';
 }
 
-sub get_header_chunk {
-  my ($self, $offset) = @_;
+sub get_header_chunk { substr shift->_headers->{header_buffer}, shift, 131072 }
 
-  unless (defined $self->{header_buffer}) {
-    my $headers = $self->headers->to_string;
-    $self->{header_buffer}
-      = $headers ? "$headers\x0d\x0a\x0d\x0a" : "\x0d\x0a";
-  }
+sub header_size { length shift->_headers->{header_buffer} }
 
-  return substr $self->{header_buffer}, $offset, 131072;
-}
-
-sub header_size { length shift->build_headers }
+sub headers_contain { index(shift->_headers->{header_buffer}, shift) >= 0 }
 
 sub is_chunked { !!shift->headers->transfer_encoding }
 
@@ -115,7 +104,7 @@ sub parse {
   # Relaxed parsing
   my $headers = $self->headers;
   my $len = $headers->content_length // '';
-  if ($self->auto_relax && !length $len) {
+  if ($self->auto_relax && $len eq '') {
     my $connection = lc($headers->connection // '');
     $self->relaxed(1)
       if $connection eq 'close' || (!$connection && $self->expect_close);
@@ -175,30 +164,11 @@ sub write_chunk {
   return $self;
 }
 
-sub _build {
-  my ($self, $method) = @_;
-
-  my ($buffer, $offset) = ('', 0);
-  while (1) {
-
-    # No chunk yet, try again
-    next unless defined(my $chunk = $self->$method($offset));
-
-    # End of part
-    last unless my $len = length $chunk;
-
-    $offset += $len;
-    $buffer .= $chunk;
-  }
-
-  return $buffer;
-}
-
 sub _build_chunk {
   my ($self, $chunk) = @_;
 
   # End
-  return "\x0d\x0a0\x0d\x0a\x0d\x0a" unless length $chunk;
+  return "\x0d\x0a0\x0d\x0a\x0d\x0a" if $chunk eq '';
 
   # First chunk has no leading CRLF
   my $crlf = $self->{chunks}++ ? "\x0d\x0a" : '';
@@ -226,6 +196,14 @@ sub _decompress {
   # Check buffer size
   @$self{qw(state limit)} = ('finished', 1)
     if length($self->{post_buffer} // '') > $self->max_buffer_size;
+}
+
+sub _headers {
+  my $self = shift;
+  return $self if defined $self->{header_buffer};
+  my $headers = $self->headers->to_string;
+  $self->{header_buffer} = $headers ? "$headers\x0d\x0a\x0d\x0a" : "\x0d\x0a";
+  return $self;
 }
 
 sub _parse_chunked {
@@ -458,18 +436,6 @@ Content size in bytes. Meant to be overloaded in a subclass.
 
 Extract multipart boundary from C<Content-Type> header.
 
-=head2 build_body
-
-  my $str = $content->build_body;
-
-Render whole body.
-
-=head2 build_headers
-
-  my $str = $content->build_headers;
-
-Render all headers.
-
 =head2 charset
 
   my $charset = $content->charset;
@@ -499,13 +465,21 @@ overloaded in a subclass.
 
   my $bytes = $content->get_header_chunk(13);
 
-Get a chunk of the headers starting from a specific position.
+Get a chunk of the headers starting from a specific position. Note that this
+method finalizes the content.
 
 =head2 header_size
 
   my $size = $content->header_size;
 
-Size of headers in bytes.
+Size of headers in bytes. Note that this method finalizes the content.
+
+=head2 headers_contain
+
+  my $bool = $content->headers_contain('foo bar baz');
+
+Check if headers contain a specific string. Note that this method finalizes the
+content.
 
 =head2 is_chunked
 
@@ -540,9 +514,9 @@ Check if buffer has exceeded L</"max_buffer_size">.
 
 =head2 is_multipart
 
-  my $false = $content->is_multipart;
+  my $bool = $content->is_multipart;
 
-False.
+False, this is not a L<Mojo::Content::MultiPart> object.
 
 =head2 is_parsing_body
 

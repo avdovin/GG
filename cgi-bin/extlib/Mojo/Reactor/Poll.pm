@@ -20,6 +20,13 @@ sub io {
 
 sub is_running { !!shift->{running} }
 
+sub next_tick {
+  my ($self, $cb) = @_;
+  push @{$self->{next_tick}}, $cb;
+  $self->{next_timer} //= $self->timer(0 => \&_next);
+  return undef;
+}
+
 sub one_tick {
   my $self = shift;
 
@@ -57,7 +64,7 @@ sub one_tick {
     }
 
     # Wait for timeout if poll can't be used
-    elsif ($timeout) { usleep $timeout * 1000 }
+    elsif ($timeout) { usleep($timeout * 1000) }
 
     # Timers (time should not change in between timers)
     my $now = steady_time;
@@ -84,7 +91,7 @@ sub remove {
   return !!delete $self->{io}{fileno $remove};
 }
 
-sub reset { delete @{shift()}{qw(io timers)} }
+sub reset { delete @{shift()}{qw(io next_tick next_timer timers)} }
 
 sub start {
   my $self = shift;
@@ -112,6 +119,12 @@ sub _id {
   my $id;
   do { $id = md5_sum 't' . steady_time . rand 999 } while $self->{timers}{$id};
   return $id;
+}
+
+sub _next {
+  my $self = shift;
+  delete $self->{next_timer};
+  while (my $cb = shift @{$self->{next_tick}}) { $self->$cb }
 }
 
 sub _timer {
@@ -207,6 +220,13 @@ readable or writable.
   my $bool = $reactor->is_running;
 
 Check if reactor is running.
+
+=head2 next_tick
+
+  my $undef = $reactor->next_tick(sub {...});
+
+Invoke callback as soon as possible, but not before returning or other
+callbacks that have been registered with this method, always returns C<undef>.
 
 =head2 one_tick
 

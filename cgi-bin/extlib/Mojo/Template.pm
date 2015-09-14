@@ -40,7 +40,7 @@ sub build {
     if ($op eq 'text') {
       $value = join "\n", map { quotemeta $_ } split("\n", $value, -1);
       $value .= '\n' if $newline;
-      $blocks[-1] .= "\$_O .= \"" . $value . "\";" if length $value;
+      $blocks[-1] .= "\$_O .= \"" . $value . "\";" if $value ne '';
     }
 
     # Code or multiline expression
@@ -343,7 +343,7 @@ automatically enabled.
   <%== Perl expression, replaced with XML escaped result %>
   <%# Comment, useful for debugging %>
   <%% Replaced with "<%", useful for generating templates %>
-  % Perl code line, treated as "<% line =%>"
+  % Perl code line, treated as "<% line =%>" (explained later)
   %= Perl expression line, treated as "<%= line %>"
   %== Perl expression line, treated as "<%== line %>"
   %# Comment line, useful for debugging
@@ -363,7 +363,9 @@ L<Mojo::ByteStream> objects are always excluded from automatic escaping.
 Whitespace characters around tags can be trimmed by adding an additional equal
 sign to the end of a tag.
 
-  <%= All whitespace characters around this expression will be trimmed =%>
+  <% for (1 .. 3) { %>
+    <%= 'Trim all whitespace characters around this expression' =%>
+  <% } %>
 
 Newline characters can be escaped with a backslash.
 

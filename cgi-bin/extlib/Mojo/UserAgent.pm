@@ -477,8 +477,9 @@ L<Mojo::UserAgent> implements the following attributes.
   my $ca = $ua->ca;
   $ua    = $ua->ca('/etc/tls/ca.crt');
 
-Path to TLS certificate authority file, defaults to the value of the
-C<MOJO_CA_FILE> environment variable. Also activates hostname verification.
+Path to TLS certificate authority file used to verify the peer certificate,
+defaults to the value of the C<MOJO_CA_FILE> environment variable. Also
+activates hostname verification.
 
   # Show certificate authorities for debugging
   IO::Socket::SSL::set_defaults(
@@ -511,6 +512,14 @@ L<Mojo::UserAgent::CookieJar> object.
 
   # Disable collecting cookies from responses
   $ua->cookie_jar->collecting(0);
+
+  # Ignore cookies for public suffixes
+  my $ps = IO::Socket::SSL::PublicSuffix->default;
+  $ua->cookie_jar->ignore(sub {
+    my $cookie = shift;
+    return undef unless my $domain = $cookie->domain;
+    return ($ps->public_suffix($domain))[0] eq '';
+  });
 
   # Add custom cookie to the jar
   $ua->cookie_jar->add(

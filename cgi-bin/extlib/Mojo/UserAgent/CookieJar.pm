@@ -4,7 +4,8 @@ use Mojo::Base -base;
 use Mojo::Cookie::Request;
 use Mojo::Path;
 
-has collecting      => 1;
+has collecting => 1;
+has 'ignore';
 has max_cookie_size => 4096;
 
 sub add {
@@ -22,9 +23,8 @@ sub add {
     # Replace cookie
     my $origin = $cookie->origin // '';
     next unless my $domain = lc($cookie->domain // $origin);
-    $domain =~ s/^\.//;
     next unless my $path = $cookie->path;
-    next unless length(my $name = $cookie->name // '');
+    next if (my $name = $cookie->name // '') eq '';
     my $jar = $self->{jar}{$domain} ||= [];
     @$jar = (grep({ _compare($_, $path, $name, $origin) } @$jar), $cookie);
   }
@@ -48,9 +48,8 @@ sub collect {
     # Validate domain
     my $host = $url->ihost;
     my $domain = lc($cookie->domain // $cookie->origin($host)->origin);
-    $domain =~ s/^\.//;
-    next
-      if $host ne $domain && ($host !~ /\Q.$domain\E$/ || $host =~ /\.\d+$/);
+    if (my $cb = $self->ignore) { next if $cb->($cookie) }
+    next if $host ne $domain && ($host !~ /\Q.$domain\E$/ || $host =~ /\.\d+$/);
 
     # Validate path
     my $path = $cookie->path // $url->path->to_dir->to_abs_string;
@@ -68,7 +67,7 @@ sub find {
   my @found;
   return \@found unless my $domain = my $host = $url->ihost;
   my $path = $url->path->to_abs_string;
-  while ($domain =~ /[^.]+\.[^.]+|localhost$/) {
+  while ($domain) {
     next unless my $old = $self->{jar}{$domain};
 
     # Grab cookies
@@ -155,6 +154,19 @@ L<Mojo::UserAgent::CookieJar> implements the following attributes.
 
 Allow L</"collect"> to L</"add"> new cookies to the jar, defaults to a true
 value.
+
+=head2 ignore
+
+  my $ignore = $jar->ignore;
+  $jar       = $jar->ignore(sub {...});
+
+A callback used to decide if a cookie should be ignored by L</"collect">.
+
+  $jar->ignore(sub {
+    my $cookie = shift;
+    return undef unless my $domain = $cookie->domain;
+    return $domain eq 'com';
+  });
 
 =head2 max_cookie_size
 

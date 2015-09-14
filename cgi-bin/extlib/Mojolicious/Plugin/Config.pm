@@ -14,10 +14,9 @@ sub parse {
   my ($self, $content, $file, $conf, $app) = @_;
 
   # Run Perl code in sandbox
-  my $config
-    = eval 'package Mojolicious::Plugin::Config::Sandbox; no warnings;'
+  my $config = eval 'package Mojolicious::Plugin::Config::Sandbox; no warnings;'
     . "sub app; local *app = sub { \$app }; use Mojo::Base -strict; $content";
-  die qq{Can't load configuration from file "$file": $@} if !$config && $@;
+  die qq{Can't load configuration from file "$file": $@} if $@;
   die qq{Configuration file "$file" did not return a hash reference.\n}
     unless ref $config eq 'HASH';
 
@@ -77,7 +76,7 @@ Mojolicious::Plugin::Config - Perl-ish configuration plugin
   };
 
   # Mojolicious
-  my $config = $self->plugin('Config');
+  my $config = $app->plugin('Config');
   say $config->{foo};
 
   # Mojolicious::Lite
@@ -134,8 +133,9 @@ File extension for generated configuration filenames, defaults to C<conf>.
   plugin Config => {file => 'myapp.conf'};
   plugin Config => {file => '/etc/foo.stuff'};
 
-Full path to configuration file, defaults to the value of the C<MOJO_CONFIG>
-environment variable or C<$moniker.conf> in the application home directory.
+Path to configuration file, absolute or relative to the application home
+directory, defaults to the value of the C<MOJO_CONFIG> environment variable or
+C<$moniker.conf> in the application home directory.
 
 =head1 METHODS
 

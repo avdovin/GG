@@ -17,7 +17,7 @@ sub client_read {
   return $self->{state} = 'finished'
     if !$res->is_status_class(100) || $res->headers->upgrade;
   $self->res($res->new)->emit(unexpected => $res);
-  return unless length(my $leftovers = $res->content->leftovers);
+  return if (my $leftovers = $res->content->leftovers) eq '';
   $self->client_read($leftovers);
 }
 
@@ -85,7 +85,7 @@ sub _body {
 
   # Finished
   $self->{state} = $finish ? 'finished' : 'read'
-    if $self->{write} <= 0 || defined $buffer && !length $buffer;
+    if $self->{write} <= 0 || defined $buffer && $buffer eq '';
 
   return defined $buffer ? $buffer : '';
 }
@@ -142,16 +142,8 @@ sub _write {
   # Nothing written yet
   $self->{$_} ||= 0 for qw(offset write);
   my $msg = $server ? $self->res : $self->req;
-  unless ($self->{http_state}) {
-
-    # Connection header
-    my $headers = $msg->headers;
-    $headers->connection($self->keep_alive ? 'keep-alive' : 'close')
-      unless $headers->connection;
-
-    # Switch to start-line
-    @$self{qw(http_state write)} = ('start_line', $msg->start_line_size);
-  }
+  @$self{qw(http_state write)} = ('start_line', $msg->start_line_size)
+    unless $self->{http_state};
 
   # Start-line
   my $chunk = '';

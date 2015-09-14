@@ -28,10 +28,6 @@ use constant {
   PC_INITIAL_N    => 128
 };
 
-# Will be shipping with Perl 5.22
-my $NAME
-  = eval { require Sub::Util; Sub::Util->can('set_subname') } || sub { $_[1] };
-
 # To generate a new HTML entity table run this command
 # perl examples/entities.pl
 my %ENTITIES;
@@ -125,12 +121,8 @@ sub html_unescape {
 sub md5_bytes { md5 @_ }
 sub md5_sum   { md5_hex @_ }
 
-sub monkey_patch {
-  my ($class, %patch) = @_;
-  no strict 'refs';
-  no warnings 'redefine';
-  *{"${class}::$_"} = $NAME->("${class}::$_", $patch{$_}) for keys %patch;
-}
+# Declared in Mojo::Base to avoid circular require problems
+sub monkey_patch { Mojo::Base::_monkey_patch(@_) }
 
 # Direct translation of RFC 3492
 sub punycode_decode {
@@ -145,7 +137,7 @@ sub punycode_decode {
   # Consume all code points before the last delimiter
   push @output, split('', $1) if $input =~ s/(.*)\x2d//s;
 
-  while (length $input) {
+  while ($input ne '') {
     my $oldi = $i;
     my $w    = 1;
 
@@ -183,8 +175,8 @@ sub punycode_encode {
   my @input = map {ord} split '', $output;
   my @chars = sort grep { $_ >= PC_INITIAL_N } @input;
   $output =~ s/[^\x00-\x7f]+//gs;
-  my $h = my $b = length $output;
-  $output .= "\x2d" if $b > 0;
+  my $h = my $basic = length $output;
+  $output .= "\x2d" if $basic > 0;
 
   for my $m (@chars) {
     next if $m < $n;
@@ -209,7 +201,7 @@ sub punycode_encode {
         }
 
         $output .= chr $q + ($q < 26 ? 0x61 : 0x30 - 26);
-        $bias = _adapt($delta, $h + 1, $h == $b);
+        $bias = _adapt($delta, $h + 1, $h == $basic);
         $delta = 0;
         $h++;
       }
@@ -229,10 +221,10 @@ sub quote {
 }
 
 sub secure_compare {
-  my ($a, $b) = @_;
-  return undef if length $a != length $b;
+  my ($one, $two) = @_;
+  return undef if length $one != length $two;
   my $r = 0;
-  $r |= ord(substr $a, $_) ^ ord(substr $b, $_) for 0 .. length($a) - 1;
+  $r |= ord(substr $one, $_) ^ ord(substr $two, $_) for 0 .. length($one) - 1;
   return $r == 0;
 }
 
@@ -241,9 +233,12 @@ sub sha1_sum   { sha1_hex @_ }
 
 sub slurp {
   my $path = shift;
-  croak qq{Can't open file "$path": $!} unless open my $file, '<', $path;
-  my $content = '';
-  while ($file->sysread(my $buffer, 131072, 0)) { $content .= $buffer }
+
+  open my $file, '<', $path or croak qq{Can't open file "$path": $!};
+  my $ret = my $content = '';
+  while ($ret = $file->sysread(my $buffer, 131072, 0)) { $content .= $buffer }
+  croak qq{Can't read from file "$path": $!} unless defined $ret;
+
   return $content;
 }
 
@@ -252,9 +247,9 @@ sub split_header        { _header(shift, 0) }
 
 sub spurt {
   my ($content, $path) = @_;
-  croak qq{Can't open file "$path": $!} unless open my $file, '>', $path;
-  croak qq{Can't write to file "$path": $!}
-    unless defined $file->syswrite($content);
+  open my $file, '>', $path or croak qq{Can't open file "$path": $!};
+  defined $file->syswrite($content)
+    or croak qq{Can't write to file "$path": $!};
   return $content;
 }
 
@@ -372,7 +367,7 @@ sub _decode {
 
   # Find entity name
   my $rest = '';
-  while (length $name) {
+  while ($name ne '') {
     return "$ENTITIES{$name}$rest" if exists $ENTITIES{$name};
     $rest = chop($name) . $rest;
   }
@@ -385,7 +380,7 @@ sub _encoding {
 
 # Supported on Perl 5.14+
 sub _global_destruction {
-  defined(${^GLOBAL_PHASE}) && ${^GLOBAL_PHASE} eq 'DESTRUCT';
+  defined ${^GLOBAL_PHASE} && ${^GLOBAL_PHASE} eq 'DESTRUCT';
 }
 
 sub _header {
@@ -783,7 +778,7 @@ L<RFC 3986|http://tools.ietf.org/html/rfc3986>, the pattern used defaults to
 C<^A-Za-z0-9\-._~>.
 
   # "foo%3Bbar"
-  url_unescape 'foo;bar';
+  url_escape 'foo;bar';
 
 =head2 url_unescape
 
