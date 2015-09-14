@@ -6,8 +6,8 @@ Mojolicious::Plugin::AssetPack::Handler::Http - A URL handler for http:// assets
 
 =head1 DESCRIPTION
 
-L<Mojolicious::Plugin::AssetPack::Handler::Sprites> is a module that can
-fetch assets from web.
+L<Mojolicious::Plugin::AssetPack::Handler::Http> is a module that can
+fetch assets from the web.
 
 This class is EXPERIMENTAL.
 
@@ -24,18 +24,13 @@ use constant DEBUG => $ENV{MOJO_ASSETPACK_DEBUG} || 0;
 
   $asset = $self->asset_for($url, $assetpack);
 
-This method tries to download the asset from web.
+This method tries to download the asset from the web.
 
 =cut
 
 sub asset_for {
   my ($self, $url, $assetpack) = @_;
-  my $lookup = Mojolicious::Plugin::AssetPack::_name($url);
-
-  if (my $asset = $assetpack->_find('packed', qr{^$lookup\.\w+$})) {
-    $assetpack->_app->log->debug("Asset $url is fetched") if DEBUG;
-    return $asset;
-  }
+  my $name = Mojolicious::Plugin::AssetPack::_name($url);
 
   my $tx  = $assetpack->_ua->get($url);
   my $ct  = $tx->res->headers->content_type // 'text/plain';
@@ -47,8 +42,8 @@ sub asset_for {
 
   $ext = $ext->[0] if ref $ext;
   $ext = $tx->req->url->path =~ m!\.(\w+)$! ? $1 : 'txt' if !$ext or $ext eq 'bin';
-  $assetpack->_app->log->info("Asset $url was fetched");
-  $assetpack->_asset("$lookup.$ext")->content($tx->res->body);
+  $assetpack->_app->log->info("Asset $url was fetched successfully");
+  $assetpack->_asset("$name.$ext")->content($tx->res->body);
 }
 
 =head1 COPYRIGHT AND LICENSE
