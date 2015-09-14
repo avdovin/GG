@@ -57,41 +57,6 @@ sub body{
 
 
 
-sub delete{
-	my $self = shift;
-
-	$self->backup_doptable;
-
-	if ($self->getArraySQL( from => $self->stash->{list_table}, where => $self->stash->{index}, stash => 'anketa')) {
-
-		if($self->stash->{dop_table}){
-			if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index})){
-				$self->restore_doptable;
-				return $self->field_dop_table_reload;
-			}
-		}
-
-		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index} )){
-
-			$self->stash->{tree_reload} = 1;
-
-			$self->save_logs( 	name 	=> 'Удаление записи из таблицы '.$self->stash->{list_table},
-								comment	=> "Удалена запись из таблицы [".$self->stash->{index}."] «".$self->stash->{anketa}->{name}."» . Таблица ".$self->stash->{list_table});
-
-			$self->define_anket_form( noget => 1, access => 'd', table => $self->stash->{list_table});
-
-		}
-
-	} else {
-
-	$self->save_logs( 	name 	=> 'Попытка удаления записи из таблицы '.$self->stash->{list_table},
-						comment	=> "Неудачная попытка удаления записи из таблицы [".$self->stash->{index}."]. Таблица ".$self->stash->{list_table}.". ".$self->msg_no_wrap);
-
-	$self->block_null;
-	}
-
-}
-
 sub save{
 	my $self = shift;
 	my %params = @_;

@@ -374,6 +374,8 @@ sub register {
         $params{eventtype} = 4;
       } elsif($params{event} eq 'auth'){
         $params{eventtype} = 5;
+      } elsif($params{event} eq 'error'){
+        $params{eventtype} = 6;
       }
 
       my $sysuser = $self->app->sysuser->auth ? $self->app->sysuser->userinfo : {};

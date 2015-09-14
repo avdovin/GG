@@ -122,6 +122,30 @@ sub default_actions{
 }
 
 
+sub delete{
+	my $self = shift;
+
+  $self->backup_doptable;
+
+	my $index = $self->stash->{index};
+	my $table = $self->stash->{list_table};
+
+	if($self->stash->{dop_table}){
+		if($self->delete_info( from => $self->stash->{list_table}, where => $self->stash->{index})){
+
+			$self->restore_doptable;
+			return $self->field_dop_table_reload;
+		}
+	}
+	else {
+		if( $self->delete_info( from => $table, where => $index ) ){
+			return $self->define_anket_form( noget => 1, access => 'd', table =>$table );
+		}
+	}
+
+	return $self->edit();
+}
+
 sub item_copy{
   my $self = shift;
 
@@ -588,27 +612,59 @@ sub delete_info {
   my $self = shift;
   my %params = @_;
 
-  my $table = $params{from} || $params{table};
-  $params{index} = $self->stash->{index};
+  my $table = $params{'from'} || $params{'table'};
+  my $index = $params{'index'} || $self->stash->{index};
 
   die "Функция delete_info. Отсутствует параметр from" unless $table;
 
   if ($params{where} && ($params{where} =~ m/^([\d]+)/)) {
-    $params{index} = $1;
-    $params{where} = "WHERE `ID`='$params{index}'";
+    $index = $1;
+    $params{where} = "WHERE `ID`='$index'";
 
   } elsif ($params{where}) {
     $params{where} = "WHERE $params{where}";
   }
 
-  if ($params{index} && $self -> getHashSQL(from => "sys_related", where => "`tbl_main` = '$params{from}'", stash => "related", sys => 1)) {
+  my $dir_field = $self->stash->{dir_field};
+  if($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => $dir_field)){
+    if($self->dbi->query("SELECT `ID` FROM `$table` WHERE `$dir_field`='$index'")->hash){
+      $self->admin_msg_errors('Удалить нельзя: в папке есть документы');
+      return;
+    }
+  }
+
+  if(
+    $self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => 'delnot') &&
+      (
+        $self->stash->{anketa}->{delnot} ||
+        $self->dbi->query("SELECT `ID` FROM `$table` WHERE `ID`='$index' AND `delnot`='1'")->hash
+      )
+    ){
+    $self->admin_msg_errors('Удалить нельзя: системная запись');
+    return;
+  }
+
+  unless(
+    $self->getArraySQL( from => $table, where => $index, stash => 'anketa')
+  ){
+    $self->save_logs(
+      name 	  => 'Попытка удаления записи из таблицы '.$table,
+      comment	=> "Неудачная попытка удаления записи из таблицы [$index]. Таблица ".$table.".\n ".$self->msg_no_wrap,
+      event   => 'error'
+    );
+    #$self->block_null;
+    $self->admin_msg_errors('У вас нет прав на удаление записи');
+    return;
+  }
+
+  if ($index && $self -> getHashSQL(from => "sys_related", where => "`tbl_main` = '$params{from}'", stash => "related", sys => 1)) {
     my $items = $self->stash->{related};
     foreach my $item (@$items){
-      my $where = "`".$item->{field}."`='$params{index}'";
+      my $where = "`".$item->{field}."`='$index'";
 
       if($item->{mult}){
         my $f = $item->{field};
-        $where = "`$f`='$params{index}' OR (`$f` LIKE '$params{index}=%' OR `$f` LIKE '%=$params{index}' OR `$f` LIKE '%=$params{index}=%')";
+        $where = "`$f`='$index' OR (`$f` LIKE '$index=%' OR `$f` LIKE '%=$index' OR `$f` LIKE '%=$index=%')";
       }
       if (!$item->{delete} && $self->getArraySQL( select  => "`ID`",
                             from    => $item->{tbl_dep},
@@ -616,7 +672,6 @@ sub delete_info {
                             stash   => "r",
                             sys   => 1)){
         $self->admin_msg_errors("С записью связана запись $$item{ID} из таблицы «".($$item{tbl_dep_title} || $$item{tbl_dep})."». Удаление запрещено.");
-        $self->edit;
         return
 
       } elsif($item->{delete}){
@@ -634,8 +689,15 @@ sub delete_info {
   }
 
   # удаление сложных полей
-  $self->getArraySQL( from => $table, where => $params{index}, stash => 'delete_info');
+  $self->getArraySQL( from => $table, where => $index, stash => 'delete_info');
   my $delValues = delete $self->stash->{delete_info};
+
+  my $progname = $self->program_razdel_name( $table );
+  $self->save_logs(
+    name 	  => "Удаление записи в $progname",
+    comment	=> "Удаление записи [".$index."] «".$self->stash->{anketa}->{name}."». $progname [$table]",
+    event   => 'delete',
+  );
 
   foreach my $k (keys %$delValues ) {
     next unless my $v = $delValues->{$k};
@@ -645,7 +707,7 @@ sub delete_info {
     my $type = $lkey_settings->{type};
 
     if($type eq 'pict'){
-      $self->file_delete_pict(index => $params{index}, lfield => $k, pict => $v);
+      $self->file_delete_pict(index => $index, lfield => $k, pict => $v);
     }
     elsif($type eq 'file'){
       eval{
@@ -659,7 +721,7 @@ sub delete_info {
   my $res = $sth->execute();
 
   unless($self->stash->{win_name}){
-    $self->stash->{win_name} = "Удаление объекта #$params{index}";
+    $self->stash->{win_name} = "Удаление объекта #$index";
     $self->stash->{win_name} .= " «".$self->stash->{anketa}->{name}."»" if $self->stash->{anketa}->{name};
   }
 
@@ -807,11 +869,27 @@ sub save_info{
   }
 
 
+  my $progname = $self->program_razdel_name( $table );
   if(!$self->stash->{index}){
-    $self->stash->{index} = $self->insert_hash($table, $field_values, %params);
+    if($self->stash->{index} = $self->insert_hash($table, $field_values, %params)){
+
+      $self->save_logs(
+        name 	  => "Добавление запись в $progname",
+        comment	=> "Добавление запись [".$self->stash->{index}."] «".$field_values->{name}."». $progname [$table]",
+        event   => 'add',
+      );
+    }
   } else {
     $where ||= "`ID`='".$self->stash->{index}."'";
-    $self->update_hash($table, $field_values, $where, %params);
+
+    if( $self->update_hash($table, $field_values, $where, %params) ){
+
+      $self->save_logs(
+        name 	  => "Обновление запись в $progname",
+        comment	=> "Обновление запись [".$self->stash->{index}."] «".$field_values->{name}."». $progname [$table]",
+        event   => 'update',
+      );
+    }
   }
 
   if($params{send_params} && $self->stash->{index}){
@@ -1150,4 +1228,3 @@ sub def_menu_button{
 
 
 1;
-

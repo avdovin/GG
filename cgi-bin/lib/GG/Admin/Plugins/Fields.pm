@@ -174,18 +174,26 @@ sub register {
       my $fields = delete $params{fields};
       my $index = delete $params{index};
       my $lfield  = delete $params{lfield};
+      my $clear_fields = {};
+      $clear_fields->{$_} = '' foreach (@$fields);
+      $clear_fields->{$lfield} = '';
 
-      if(my $item = $self->getArraySQL(   from  => $params{table},
-                        where => "`ID`='$index'",
-                        sys   => 1)){
+      if(my $item = $self->getArraySQL(
+          from  => $params{table},
+          where => "`ID`='$index'",
+          sys   => 1)
+        ){
 
         $self->file_delete_pict(%params, pict => $item->{ $lfield });
 
-        my $clear_fields = {};
-        $clear_fields->{$_} = '' foreach (@$fields);
-        $clear_fields->{$lfield} = '';
+        if( $self->save_info( table => $params{table}, field_values => $clear_fields) ){
+          my $lkey = $self->lkey(name => $lfield);
 
-        $self->save_info( table => $params{table}, field_values => $clear_fields);
+          $self->save_logs(
+            name 	  => 'Удаление картинки из таблицы '.$params{table},
+    				comment	=> "Удалена картинки из таблицы [$index] «".($lkey->{name})."»[$lfield] . Таблица ".$params{table}
+          );
+        }
       }
 
       my $content = $self->render_to_string(
@@ -206,7 +214,7 @@ sub register {
       my %params = (
           table => $self->stash->{dop_table} || $self->stash->{list_table},
           folder  => '', #$self->stash->{folder},
-          fields  => [qw(folder docfile type_file)],
+          fields  => [],
           lfield  => $self->stash->{lfield},
           index => $self->stash->{index},
           @_
@@ -218,19 +226,35 @@ sub register {
       my $fields = delete $params{fields};
       my $lfield  = delete $params{lfield};
       my $index = delete $params{index};
+      my $clear_fields = {};
 
-      if(my $item = $self->getArraySQL(   from  => $params{table},
-                        where => "`ID`='$index'")){
+      if( scalar @$fields ){
+        $clear_fields->{$_} = '' foreach (@$fields);
+      }
+      else {
+        $clear_fields->{$lfield} = '';
+        $clear_fields->{$lfield."_folder"} = '';
+        $clear_fields->{$lfield."_size"} = '';
+        $clear_fields->{$lfield."_file_type"} = '';
+      }
 
+      if(my $item = $self->getArraySQL(
+          from  => $params{table},
+          where => "`ID`='$index'")
+        ){
 
         my $document_root = $ENV{DOCUMENT_ROOT};
-
         unlink($document_root.$folder.$item->{$lfield}) if $item->{$lfield};
 
-        my $clear_fields = {};
-        $clear_fields->{$_} = ''foreach (@$fields);
+        if( $self->save_info( table => $params{table}, field_values => $clear_fields) ){
+          my $lkey = $self->lkey(name => $lfield);
 
-        $self->save_info( table => $params{table}, field_values => $clear_fields);
+          $self->save_logs(
+            name 	  => 'Удаление файла из таблицы '.$params{table},
+            comment	=> "Удалена файла из таблицы [$index] «".($lkey->{name})."»[$lfield] . Таблица ".$params{table},
+            event   => 'delete',
+          );
+        }
       }
 
       my $content = $self->render_to_string(key => $lfield, lkey => $self->lkey(name => $lfield), template => '/Admin/AnketForm/Reload/field_file_reload');
