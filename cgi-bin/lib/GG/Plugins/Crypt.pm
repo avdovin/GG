@@ -21,7 +21,7 @@ sub register {
 		$ALGORITM = 'pbkdf2' unless $@;
 	}
 
-	$app->log->debug("Ctypt password using algoritm - $ALGORITM");
+	$app->log->debug("Crypt password using algoritm - $ALGORITM");
 
 	$app->helper( encrypt_password => sub {
 		my $self = shift;
