@@ -62,7 +62,7 @@ sub register {
 
     return {
       ip      => $c->ip_to_number( $c->ip ) || 'empty',
-      host    => $c->req->host || 'empty',
+      host    => $c->host || 'empty',
       cck     => $cck,
       user_id => 0,
     }
