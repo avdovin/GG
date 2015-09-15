@@ -343,10 +343,11 @@ sub _check_integer{
   my $self = shift;
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
   my $value = delete $settings{value};
+
   if($settings{signed}){
     $value = 0 if ($value !~ m/-?\d+/);
   } else {
-    $value = 0 if ($value !~ m/\D/);
+    $value = 0 if ($value !~ m/\d+/);
   }
 
   if ($settings{min} && $value && $value < $settings{min}) {$value = $settings{min}; $self->stash->{errors} = "Ошибка: значение переменной ниже нижнего ограничения - $settings{min}";}
