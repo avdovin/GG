@@ -21,7 +21,9 @@ sub register {
 	my $max_requests_per_connection = $args->{requests_per_connection} || 100;
 
 	$app->hook(before_dispatch => sub {
-		shift->dbi_connect(@_);
+		my $self = shift;
+		return if $self->res->code;	# skip static request
+		$self->dbi_connect(@_);
 	});
 
 	$app->helper(dbi => sub {
