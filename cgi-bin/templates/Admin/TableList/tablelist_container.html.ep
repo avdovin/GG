@@ -192,7 +192,7 @@
 		<tr class=header>
 			<td style="width: 10px;"> </td>
 			<td colspan="<%= $total_col_list %>">отмеченные:
-				%	foreach( keys %$listfield_groups_buttons){
+				%	foreach( sort keys %$listfield_groups_buttons){
 					<img border="0" src="/admin/img/icons/menu/button.<%= $_ %>.gif"/ align="absMiddle" hspace=3> <a href="#" onClick="sendAllchecked('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&<%= $_ %>=1', '<%= $_ %>');"><%= $listfield_groups_buttons->{$_} %></a> |
 				%	}
 				<img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif" hspace=3/> <a href="#" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>')">обновить</a>
