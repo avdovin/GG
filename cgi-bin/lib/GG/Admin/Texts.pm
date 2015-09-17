@@ -845,14 +845,13 @@ sub list_items {
   my $list_table = $self->stash->{list_table};
   $self->render_not_found unless $list_table;
 
-  if (
-		$self->stash->{key_razdel} eq 'main' or
-    $self->stash->{key_razdel} eq 'news'
-	){
-    $self->stash->{listfield_buttons} = [qw(delete edit text print link_to)]
-	}
+  if ( $self->stash->{key_razdel} eq 'main'
+    or $self->stash->{key_razdel} eq 'news')
+  {
+    $self->stash->{listfield_buttons} = [qw(delete edit text print link_to)];
+  }
   elsif ($self->stash->{key_razdel} eq 'docfiles') {
-    $self->stash->{listfield_buttons} = [qw(delete edit upload)]
+    $self->stash->{listfield_buttons} = [qw(delete edit upload)];
   }
   else {
     $self->stash->{listfield_buttons} = [qw(delete edit)];

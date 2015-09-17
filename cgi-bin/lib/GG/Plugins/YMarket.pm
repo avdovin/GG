@@ -13,15 +13,17 @@ sub register {
       my $self = shift;
 
       my $CONFIG = {
-        'name'    		=> 'Obey Russia',    #название магазина
-        'company' 		=> 'Obey Russia',    # название компании
+        'name'    => 'Obey Russia',    #название магазина
+        'company' => 'Obey Russia',    # название компании
         'url'         => "http://" . $self->host,    #сайт
         'cms'         => 'GG CMS',                   #cms
         'cms_version' => '9',                        # версия cms
         'agency'      => 'ООО "Айфрог"'
         , # организация, которая обслуживает сайт
-        'email' => 'ifrogseo@gmail.com',    # email обслуживающей организации
-        'cpa' => '0', # участие в программе "покупка на маркете"
+        'email' => 'ifrogseo@gmail.com'
+        ,    # email обслуживающей организации
+        'cpa' => '0'
+        , # участие в программе "покупка на маркете"
         'currencies' =>
           { # соответствие валют, короткий код => отношение к рублю, подробнее http://help.yandex.ru/partnermarket/currencies.xml
           'RUR' => {'rate' => '1',}
@@ -55,7 +57,7 @@ sub register {
         'where_categories' => ' AND `active`=1'
         , # дополнительное условие для категорий
         'manufacturer_warranty' =>
-          'true',  #гарантия производителя, true || false;
+          'true',   #гарантия производителя, true || false;
         'pickup' => 'true',    # самовывоз, true || false;
         'store'  => 'true'
         , # взозможность забрать товар из магазина, true || false;

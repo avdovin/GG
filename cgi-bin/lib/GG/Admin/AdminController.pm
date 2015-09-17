@@ -395,10 +395,12 @@ sub zipimport_save_pict {
     );
   }
 
-  my $item
-    = $self->dbi->query("
-      SELECT `pict` FROM `" . $self->stash->{list_table}
-      . "` WHERE `ID`='" . $self->stash->{index} . "'")->hash;
+  my $item = $self->dbi->query("
+      SELECT `pict` FROM `"
+      . $self->stash->{list_table}
+      . "` WHERE `ID`='"
+      . $self->stash->{index}
+      . "'")->hash;
 
   my $folder = $self->lfield_folder(lfield => $lfield) || $item->{folder};
   $self->render(
@@ -1320,7 +1322,8 @@ sub read_json {
   }
 }
 
-sub getArraySQL {    # Получение массива значений из базы MySQL
+sub getArraySQL
+{    # Получение массива значений из базы MySQL
   my $self = shift;
   my %params = (select => "*", sys => 0, where => " `ID`>0 ", from => '', @_,);
 
@@ -1465,7 +1468,7 @@ sub def_context_menu {
     keys %$buttons
     )
   {
-    # копировани объектов доступно только для уже сохранненой карточки
+# копировани объектов доступно только для уже сохранненой карточки
     next if ($key eq 'copy' && !$self->stash->{index});
 
     my $button = $$buttons{$key};
@@ -1503,9 +1506,8 @@ sub def_menu_button {
   my $access_buttons = $self->sysuser->access->{button} || {};
   my $user_sys = $self->sysuser->sys;
 
-  # Если главная страница то кнопки показываем
-  $user_sys = 1
-    if ($key_menu eq 'menu_button');
+# Если главная страница то кнопки показываем
+  $user_sys = 1 if ($key_menu eq 'menu_button');
 
 #foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} grep { $_ == $_ } keys %$buttons) {
   foreach my $key (
