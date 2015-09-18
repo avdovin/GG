@@ -23,10 +23,9 @@
 
 <% if(!$self->stash->{dop_table_reload}){ %>
 <% if($access_flag eq 'w'){ %>
-
-<tr>
+	<tr>
 <% } else { %>
-<tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+	<tr id="tr<%= $key %>" class="<%= $class %>">
 <% } %>
 <% if($access_flag eq 'w'){ %>
   <td class=edit width="150px">
@@ -289,4 +288,3 @@
 %       type        => 'eval',
 %       value       => $str_init
 %   });
-

@@ -1,4 +1,4 @@
-<tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+<tr id="tr<%= $key %>" class="<%= $class %>">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey ? $lkey->{name} : $key %>:</td>
   <td class=read valign=top>
     % my $lkey_type = $lkey->{settings}->{type};
