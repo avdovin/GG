@@ -64,7 +64,7 @@ sub register {
           $valid_params->{$k} = $self->check_string(%$settings, value => $v);
         }
         elsif ($type eq 'file') {
-          $valid_params->{$k} = $self->check_string(%$settings, value => $v);
+          $valid_params->{$k} = $self->check_filename(%$settings, value => $v);
         }
         elsif ($type eq 'email') {
           $valid_params->{$k} = $self->check_email(%$settings, value => $v);
@@ -141,6 +141,7 @@ sub register {
   $app->helper(check_tlist           => \&_check_tlist);
   $app->helper(check_list            => \&_check_list);
   $app->helper(check_string          => \&_check_string);
+  $app->helper(check_filename        => \&_check_filename);
   $app->helper(check_float           => \&_check_float);
   $app->helper(check_integer         => \&_check_integer);
   $app->helper(check_decimal         => \&_check_decimal);
@@ -415,6 +416,18 @@ sub _check_list {
   }
 
   return join("=", sort @list_validated);
+}
+
+sub _check_filename{
+  my $self     = shift;
+  my %settings = @_ % 2 ? (value => shift, @_) : @_;
+  return unless my $value    = delete $settings{value};
+
+  $value =~ s/^\s+|\s+$//g;
+  $value =~ s{^.*(\\|\/)}{}gi; # get only the filename, not the whole path
+  $value =~ s{[^0-9A-Za-z.\-]}{_}gi; # # Strip out the non-ascii character
+
+  return $value;
 }
 
 sub _check_string {
