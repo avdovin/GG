@@ -1,6 +1,7 @@
 %	my $folder = $self->lfield_folder( lfield => $key );
 %	my $type_file = ($value =~ m/([^.]+)$/)[0] || '';
 %	my $rand = $self->stash->{rndval};
+% my $is_remote = $lkey->{settings}->{remote} ? 1 : 0;
 <tr>
   <td class=edit width="150px" valign=top>
     <%= $lkey->{name} %>
@@ -16,10 +17,11 @@
 %	if($value and $type_file ne 'swf'){
 		<% if($lkey->{settings}->{crop}){ %>
 			<img src="/admin/img/icons/menu/x_crop.gif" align=absMiddle> <a onclick="displayMessage('<%= $self->stash->{controller_url} %>?do=crop&index=<%= $index %>&razdel=<%= $self->stash->{razdel} %>&replaceme=<%= $self->stash->{replaceme} %>', 780, 520, 3); return false" title="Кадрировать" href="#">Кадрировать</a>
-		<% } %> 
+		<% } %>
 		<br />
   		<br />
-    	<img src="<%= $folder %><%= $value %>?<%= $rand %>" <% if($self->stash->{anketa}->{width}){ %>width="<%= $self->stash->{anketa}->{width} %>"<% } %> <% if($self->stash->{anketa}->{height}){ %>height="<%= $self->stash->{anketa}->{height} %>"<% } %> />
+      % my $pict_path = $is_remote ? $value : $folder.$value.'?'.$rand;
+    	<img src="<%= $pict_path  %>" <% if($self->stash->{anketa}->{width}){ %>width="<%= $self->stash->{anketa}->{width} %>"<% } %> <% if($self->stash->{anketa}->{height}){ %>height="<%= $self->stash->{anketa}->{height} %>"<% } %> />
 %	}
 
 %#	Флеш
@@ -32,14 +34,14 @@
 			<param name="wmode" value="opaque"/>
 			<param value="#ffffff" name="bgcolor"/>
 			<embed wmode="opaque" width="<% if($self->stash->{anketa}->{width}){ %><%= $self->stash->{anketa}->{width} %><% } else { %>150<% } %>" height="<% if($self->stash->{anketa}->{height}){ %><%= $self->stash->{anketa}->{height} %><% } else { %>150<% } %>"  pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" allowscriptaccess="sameDomain" name="flash_banner<%= $index %>" bgcolor="#ffffff" quality="high" src="<%= $folder %><%= $value %>?<%= $rand %>"/>
-		</object>		
+		</object>
 %	}
 
 %	if(!$value){
 		<%== include '/Admin/AnketForm/Reload/field_pict_reload', lkey => $lkey, key => $key %>
 %	} else {
 		<br />
-  		<br />файл:<% if($type_file){ %><img src="/admin/img/icons/file/<%= $type_file %>.png" width="24" height="24" align="absMiddle"><% } %> <%= $folder %><%= $value %> | <a href="#" onClick="if (confirm('Загрузить новое изображение?')) ld_content('reload<%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?do=delete_pict&index=<%= $index %>&<%= $self->stash->{param_defaut} %>&dop_table=<%= $self->stash->{dop_table} %>&list_table=<%= $self->stash->{list_table} %>&lfield=<%= $key %>', 1, 1);">загрузить заново</a>
+  		<br />файл:<% if($type_file){ %><img src="/admin/img/icons/file/<%= $type_file %>.png" width="24" height="24" align="absMiddle"><% } %> <%= $is_remote ? $value : $folder.$value %> | <a href="#" onClick="if (confirm('Загрузить новое изображение?')) ld_content('reload<%= $key %><%= $index %>', '<%= $self->stash->{controller_url} %>?do=delete_pict&index=<%= $index %>&<%= $self->stash->{param_defaut} %>&dop_table=<%= $self->stash->{dop_table} %>&list_table=<%= $self->stash->{list_table} %>&lfield=<%= $key %>', 1, 1);">загрузить заново</a>
 %	}
 	</div>
 </td>
