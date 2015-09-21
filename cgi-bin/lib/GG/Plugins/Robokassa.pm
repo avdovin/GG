@@ -4,96 +4,97 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-use constant DEBUG    => $ENV{GG_ROBOKASSA_BEBUG}    || 0;
+use constant DEBUG => $ENV{GG_ROBOKASSA_BEBUG} || 0;
 
-my $MRH_URL 	= "https://merchant.roboxchange.com/Index.aspx";
+my $MRH_URL = "https://merchant.roboxchange.com/Index.aspx";
 
 use Digest::MD5 qw(md5_hex);
 our $VERSION = '0.02';
 
 sub register {
-	my ($self, $app, $conf) = @_;
+  my ($self, $app, $conf) = @_;
 
-	my $MRH_LOGIN = $conf->{mrh_login};
-	# пароли тестовые
-	my $MRH_PASS1 = $conf->{mrh_pass1};
-	my $MRH_PASS2 = $conf->{mrh_pass2};
+  my $MRH_LOGIN = $conf->{mrh_login};
 
-	$app->log->debug("register GG::Plugin::Robokassa");
+  # пароли тестовые
+  my $MRH_PASS1 = $conf->{mrh_pass1};
+  my $MRH_PASS2 = $conf->{mrh_pass2};
 
-	$app->helper ( 'robokassa.check_payment' => sub {
-		my $self = shift;
-		my %params = (
-			@_
-		);
+  $app->log->debug("register GG::Plugin::Robokassa");
 
-		my $q = $self->req->params->to_hash;
+  $app->helper(
+    'robokassa.check_payment' => sub {
+      my $self   = shift;
+      my %params = (@_);
 
-		my $my_crc = $self->robokassa->params_signature;
+      my $q = $self->req->params->to_hash;
 
-		return $my_crc eq uc $q->{SignatureValue} ? 1 : 0;
-	});
+      my $my_crc = $self->robokassa->params_signature;
 
-	$app->helper( 'robokassa.generate_payment_url' => sub {
-		my $self = shift;
+      return $my_crc eq uc $q->{SignatureValue} ? 1 : 0;
+    }
+  );
 
-		my %params = (
-			MerchantLogin => $MRH_LOGIN,
-			OutSum 				=> 0,
-			InvId  				=> 0,
-			Shp 					=> {},
-			@_
-		);
+  $app->helper(
+    'robokassa.generate_payment_url' => sub {
+      my $self = shift;
 
-		$params{IsTest} = 1 if DEBUG;
+      my %params
+        = (MerchantLogin => $MRH_LOGIN, OutSum => 0, InvId => 0, Shp => {}, @_);
 
-		my $qs = {};
+      $params{IsTest} = 1 if DEBUG;
 
-		foreach my $key (keys %params){
-			if (ref $params{$key}){
-				foreach my $sub (sort keys %{$params{$key}}){
-					$qs->{$key.'_'.$sub} = $params{$key}->{$sub};
-				}
-			}else{
-				$qs->{$key} = $params{$key};
-			}
-		};
+      my $qs = {};
 
-		$qs->{SignatureValue} = $self->robokassa->signature_value(%params);
+      foreach my $key (keys %params) {
+        if (ref $params{$key}) {
+          foreach my $sub (sort keys %{$params{$key}}) {
+            $qs->{$key . '_' . $sub} = $params{$key}->{$sub};
+          }
+        }
+        else {
+          $qs->{$key} = $params{$key};
+        }
+      }
 
-		my @qs = ();
+      $qs->{SignatureValue} = $self->robokassa->signature_value(%params);
 
-		foreach (sort keys %$qs){
-			push @qs, "$_=$$qs{$_}";
-		}
+      my @qs = ();
 
-		return $MRH_URL.'?'.(join('&', @qs));
+      foreach (sort keys %$qs) {
+        push @qs, "$_=$$qs{$_}";
+      }
+
+      return $MRH_URL . '?' . (join('&', @qs));
 
 
-	});
-	$app->helper( 'robokassa.params_signature' => sub {
-		my $self = shift;
-		my $params = $self->req->params->to_hash;
+    }
+  );
+  $app->helper(
+    'robokassa.params_signature' => sub {
+      my $self   = shift;
+      my $params = $self->req->params->to_hash;
 
-		$params->{InvId} =~ s{\D+}{}gi;
+      $params->{InvId} =~ s{\D+}{}gi;
 
-		my $str = "$$params{OutSum}:";
-		$str .= "$$params{InvId}:" if $params->{InvId};
-		$str .= $MRH_PASS2;
-		return md5_hex(uc $str);
+      my $str = "$$params{OutSum}:";
+      $str .= "$$params{InvId}:" if $params->{InvId};
+      $str .= $MRH_PASS2;
+      return md5_hex(uc $str);
 
-	});
-	$app->helper( 'robokassa.signature_value' => sub {
-		my $self = shift;
-		my %params = (
-			@_
-		);
-		my $str = "$MRH_LOGIN:$params{OutSum}:";
-		$str .= $params{InvId}.':' if $params{InvId};
-		$str .= "$MRH_PASS1";
+    }
+  );
+  $app->helper(
+    'robokassa.signature_value' => sub {
+      my $self   = shift;
+      my %params = (@_);
+      my $str    = "$MRH_LOGIN:$params{OutSum}:";
+      $str .= $params{InvId} . ':' if $params{InvId};
+      $str .= "$MRH_PASS1";
 
-		return md5_hex($str);
-	});
+      return md5_hex($str);
+    }
+  );
 }
 
 1;

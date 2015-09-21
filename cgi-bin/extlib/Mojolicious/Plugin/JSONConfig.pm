@@ -8,7 +8,7 @@ sub parse {
   my ($self, $content, $file, $conf, $app) = @_;
 
   my $config = eval { from_json $self->render($content, $file, $conf, $app) };
-  die qq{Can't parse config "$file": $@} if !$config && $@;
+  die qq{Can't parse config "$file": $@} if $@;
   die qq{Invalid config "$file"} unless ref $config eq 'HASH';
 
   return $config;
@@ -52,7 +52,7 @@ Mojolicious::Plugin::JSONConfig - JSON configuration plugin
   }
 
   # Mojolicious
-  my $config = $self->plugin('JSONConfig');
+  my $config = $app->plugin('JSONConfig');
   say $config->{foo};
 
   # Mojolicious::Lite

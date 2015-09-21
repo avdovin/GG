@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title></title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <css>
+      @media only screen and (max-width:600px) {
+          		#wrapper {
+            			width:100% !important;
+          		}
+      		}
+    </css>
+  </head>
+  <body>
+    <table align="center" cellpadding="20" cellspacing="0" id="wrapper" style="border-collapse: collapse;" width="600">
+      <tr>
+        <td style="font-family:'Lucida Grande','Lucida Sans','Lucida Sans Unicode',Arial,Helvetica,Verdana,sans-serif;color:#7b7b7b;font-size:16px;line-height:18px;">
+          %== content
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

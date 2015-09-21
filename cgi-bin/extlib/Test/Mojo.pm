@@ -47,12 +47,6 @@ sub content_like {
   return $self->_test('like', $self->tx->res->text, $regex, $desc);
 }
 
-sub content_unlike {
-  my ($self, $regex, $desc) = @_;
-  $desc ||= 'content is not similar';
-  return $self->_test('unlike', $self->tx->res->text, $regex, $desc);
-}
-
 sub content_type_is {
   my ($self, $type, $desc) = @_;
   $desc ||= "Content-Type: $type";
@@ -77,11 +71,24 @@ sub content_type_like {
 sub content_type_unlike {
   my ($self, $regex, $desc) = @_;
   $desc ||= 'Content-Type is not similar';
-  return $self->_test('unlike', $self->tx->res->headers->content_type,
-    $regex, $desc);
+  return $self->_test('unlike', $self->tx->res->headers->content_type, $regex,
+    $desc);
+}
+
+sub content_unlike {
+  my ($self, $regex, $desc) = @_;
+  $desc ||= 'content is not similar';
+  return $self->_test('unlike', $self->tx->res->text, $regex, $desc);
 }
 
 sub delete_ok { shift->_build_ok(DELETE => @_) }
+
+sub element_count_is {
+  my ($self, $selector, $count, $desc) = @_;
+  $desc ||= encode 'UTF-8', qq{element count for selector "$selector"};
+  my $size = $self->tx->res->dom->find($selector)->size;
+  return $self->_test('is', $size, $count, $desc);
+}
 
 sub element_exists {
   my ($self, $selector, $desc) = @_;
@@ -503,6 +510,11 @@ User agent used for testing, defaults to a L<Mojo::UserAgent> object.
 
   # Allow redirects
   $t->ua->max_redirects(10);
+  $t->get_ok('/redirect')->status_is(200)->content_like(qr/redirected/);
+
+  # Switch protocol from HTTP to HTTPS
+  $t->ua->server->url('https');
+  $t->get_ok('/secure')->status_is(200)->content_like(qr/secure/);
 
   # Use absolute URL for request with Basic authentication
   my $url = $t->ua->server->url->userinfo('sri:secr3t')->path('/secrets.json');
@@ -515,6 +527,7 @@ User agent used for testing, defaults to a L<Mojo::UserAgent> object.
     my ($ua, $tx) = @_;
     $tx->req->headers->accept_language('en-US');
   });
+  $t->get_ok('/hello')->status_is(200)->content_like(qr/Howdy/);
 
 =head1 METHODS
 
@@ -545,10 +558,13 @@ Access application with L<Mojo::UserAgent::Server/"app">.
     $c->render(text => 'This request did not reach the router.')
       if $c->req->url->path->contains('/user');
   });
+  $t->get_ok('/user')->status_is(200)->content_like(qr/not reach the router/);
 
   # Extract additional information
   my $stash;
   $t->app->hook(after_dispatch => sub { $stash = shift->stash });
+  $t->get_ok('/hello')->status_is(200);
+  is $stash->{foo}, 'bar', 'right value';
 
 =head2 content_is
 
@@ -572,13 +588,6 @@ Opposite of L</"content_is">.
 
 Check response content for similar match after retrieving it from
 L<Mojo::Message/"text">.
-
-=head2 content_unlike
-
-  $t = $t->content_unlike(qr/working!/);
-  $t = $t->content_unlike(qr/working!/, 'different content');
-
-Opposite of L</"content_like">.
 
 =head2 content_type_is
 
@@ -608,8 +617,16 @@ Check response C<Content-Type> header for similar match.
 
 Opposite of L</"content_type_like">.
 
+=head2 content_unlike
+
+  $t = $t->content_unlike(qr/working!/);
+  $t = $t->content_unlike(qr/working!/, 'different content');
+
+Opposite of L</"content_like">.
+
 =head2 delete_ok
 
+  $t = $t->delete_ok('http://example.com/foo');
   $t = $t->delete_ok('/foo');
   $t = $t->delete_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->delete_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -617,6 +634,14 @@ Opposite of L</"content_type_like">.
 
 Perform a C<DELETE> request and check for transport errors, takes the same
 arguments as L<Mojo::UserAgent/"delete">, except for the callback.
+
+=head2 element_count_is
+
+  $t = $t->element_count_is('div.foo[x=y]', 5);
+  $t = $t->element_count_is('html body div', 30, 'thirty elements');
+
+Checks the number of HTML/XML elements matched by the CSS selector with
+L<Mojo::DOM/"find">.
 
 =head2 element_exists
 
@@ -657,6 +682,7 @@ Wait for WebSocket connection to be closed gracefully and check status.
 
 =head2 get_ok
 
+  $t = $t->get_ok('http://example.com/foo');
   $t = $t->get_ok('/foo');
   $t = $t->get_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->get_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -679,6 +705,7 @@ arguments as L<Mojo::UserAgent/"get">, except for the callback.
 
 =head2 head_ok
 
+  $t = $t->head_ok('http://example.com/foo');
   $t = $t->head_ok('/foo');
   $t = $t->head_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->head_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -854,6 +881,7 @@ Construct a new L<Test::Mojo> object.
 
 =head2 options_ok
 
+  $t = $t->options_ok('http://example.com/foo');
   $t = $t->options_ok('/foo');
   $t = $t->options_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->options_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -874,6 +902,7 @@ Invoke callback if the value of L</"success"> is false.
 
 =head2 patch_ok
 
+  $t = $t->patch_ok('http://example.com/foo');
   $t = $t->patch_ok('/foo');
   $t = $t->patch_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->patch_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -884,6 +913,7 @@ arguments as L<Mojo::UserAgent/"patch">, except for the callback.
 
 =head2 post_ok
 
+  $t = $t->post_ok('http://example.com/foo');
   $t = $t->post_ok('/foo');
   $t = $t->post_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->post_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -903,6 +933,7 @@ arguments as L<Mojo::UserAgent/"post">, except for the callback.
 
 =head2 put_ok
 
+  $t = $t->put_ok('http://example.com/foo');
   $t = $t->put_ok('/foo');
   $t = $t->put_ok('/foo' => {Accept => '*/*'} => 'Hi!');
   $t = $t->put_ok('/foo' => {Accept => '*/*'} => form => {a => 'b'});
@@ -1001,6 +1032,7 @@ Opposite of L</"text_like">.
 
 =head2 websocket_ok
 
+  $t = $t->websocket_ok('http://example.com/echo');
   $t = $t->websocket_ok('/echo');
   $t = $t->websocket_ok('/echo' => {DNT => 1} => ['v1.proto']);
 

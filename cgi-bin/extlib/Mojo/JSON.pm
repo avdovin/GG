@@ -57,7 +57,7 @@ sub _decode {
   eval {
 
     # Missing input
-    die "Missing or empty input\n" unless length(local $_ = shift);
+    die "Missing or empty input\n" if (local $_ = shift) eq '';
 
     # UTF-8
     $_ = Mojo::Util::decode 'UTF-8', $_ unless shift;
@@ -105,8 +105,7 @@ sub _decode_object {
     my $key = _decode_string();
 
     # Colon
-    /\G[\x20\x09\x0a\x0d]*:/gc
-      or _throw('Expected colon while parsing object');
+    /\G[\x20\x09\x0a\x0d]*:/gc or _throw('Expected colon while parsing object');
 
     # Value
     $hash{$key} = _decode_value();
@@ -161,11 +160,11 @@ sub _decode_string {
 
         # High surrogate
         ($ord & 0xfc00) == 0xd800
-          or pos($_) = $pos + pos($str), _throw('Missing high-surrogate');
+          or pos = $pos + pos($str), _throw('Missing high-surrogate');
 
         # Low surrogate
         $str =~ /\G\\u([Dd][C-Fc-f]..)/gc
-          or pos($_) = $pos + pos($str), _throw('Missing low-surrogate');
+          or pos = $pos + pos($str), _throw('Missing low-surrogate');
 
         $ord = 0x10000 + ($ord - 0xd800) * 0x400 + (hex($1) - 0xdc00);
       }

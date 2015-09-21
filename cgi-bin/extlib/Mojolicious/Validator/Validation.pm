@@ -23,10 +23,10 @@ sub check {
 
   return $self unless $self->is_valid;
 
-  my $cb    = $self->validator->checks->{$check};
-  my $name  = $self->topic;
-  my $input = $self->input->{$name};
-  for my $value (ref $input eq 'ARRAY' ? @$input : $input) {
+  my $cb     = $self->validator->checks->{$check};
+  my $name   = $self->topic;
+  my $values = $self->output->{$name};
+  for my $value (ref $values eq 'ARRAY' ? @$values : $values) {
     next unless my $result = $self->$cb($name, $value, @_);
     return $self->error($name => [$check, $result, @_]);
   }
@@ -69,7 +69,7 @@ sub optional {
   my $input = $self->input->{$name};
   my @input = ref $input eq 'ARRAY' ? @$input : $input;
   $self->output->{$name} = $input
-    unless grep { !defined($_) || !length($_) } @input;
+    unless grep { !defined($_) || $_ eq '' } @input;
 
   return $self->topic($name);
 }
@@ -191,9 +191,9 @@ array reference.
 
   my $names = $validation->failed;
 
-Return a list of all names for parameters that failed validation.
+Return a list of all names for values that failed validation.
 
-  # Names of all parameters that failed
+  # Names of all values that failed
   say for @{$validation->failed};
 
 =head2 has_data
@@ -227,17 +227,16 @@ Change validation L</"topic">.
 
   my $value = $validation->param('foo');
 
-Access validated parameters. If there are multiple values sharing the same
-name, and you want to access more than just the last one, you can use
-L</"every_param">.
+Access validated values. If there are multiple values sharing the same name, and
+you want to access more than just the last one, you can use L</"every_param">.
 
 =head2 passed
 
   my $names = $validation->passed;
 
-Return a list of all names for parameters that passed validation.
+Return a list of all names for values that passed validation.
 
-  # Names of all parameters that passed
+  # Names of all values that passed
   say for @{$validation->passed};
 
 =head2 required

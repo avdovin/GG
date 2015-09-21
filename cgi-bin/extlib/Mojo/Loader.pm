@@ -7,7 +7,8 @@ use File::Spec::Functions qw(catdir catfile splitdir);
 use Mojo::Exception;
 use Mojo::Util qw(b64_decode class_to_path);
 
-our @EXPORT_OK = qw(data_section file_is_binary find_modules load_class);
+our @EXPORT_OK
+  = qw(data_section file_is_binary find_modules find_packages load_class);
 
 my (%BIN, %CACHE);
 
@@ -31,6 +32,12 @@ sub find_modules {
   }
 
   return sort keys %modules;
+}
+
+sub find_packages {
+  my $ns = shift;
+  no strict 'refs';
+  return sort map { /^(.+)::$/ ? "${ns}::$1" : () } keys %{"${ns}::"};
 }
 
 sub load_class {
@@ -140,6 +147,7 @@ individually.
 Extract embedded file from the C<DATA> section of a class, all files will be
 cached once they have been accessed for the first time.
 
+  # List embedded files
   say for keys %{data_section 'Foo::Bar'};
 
 =head2 file_is_binary
@@ -147,6 +155,12 @@ cached once they have been accessed for the first time.
   my $bool = file_is_binary 'Foo::Bar', 'test.png';
 
 Check if embedded file from the C<DATA> section of a class was Base64 encoded.
+
+=head2 find_packages
+
+  my @pkgs = find_packages 'MyApp::Namespace';
+
+Search for packages in a namespace non-recursively.
 
 =head2 find_modules
 
@@ -161,6 +175,7 @@ Search for modules in a namespace non-recursively.
 Load a class and catch exceptions. Note that classes are checked for a C<new>
 method to see if they are already loaded.
 
+  # Handle exceptions
   if (my $e = load_class 'Foo::Bar') {
     die ref $e ? "Exception: $e" : 'Not found!';
   }

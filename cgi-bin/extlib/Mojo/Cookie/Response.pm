@@ -19,6 +19,7 @@ sub parse {
 
     while (my ($name, $value) = splice @$pairs, 0, 2) {
       next unless $ATTRS{my $attr = lc $name};
+      $value =~ s/^\.// if $attr eq 'domain';
       $value = Mojo::Date->new($value)->epoch if $attr eq 'expires';
       $value = 1 if $attr eq 'secure' || $attr eq 'httponly';
       $cookies[-1]{$attr eq 'max-age' ? 'max_age' : $attr} = $value;
@@ -32,7 +33,7 @@ sub to_string {
   my $self = shift;
 
   # Name and value
-  return '' unless length(my $name = $self->name // '');
+  return '' if (my $name = $self->name // '') eq '';
   my $value = $self->value // '';
   my $cookie = join '=', $name, $value =~ /[,;" ]/ ? quote $value : $value;
 

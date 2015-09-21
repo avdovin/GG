@@ -10,81 +10,88 @@ use Mojo::Util 'quote';
 our $VERSION = '0.06';
 
 sub register {
-    my ( $self, $app ) = @_;
+  my ($self, $app) = @_;
 
-    $app->helper( 'render_file' => sub {
-        my $c        = shift;
-        my %args     = @_;
+  $app->helper(
+    'render_file' => sub {
+      my $c    = shift;
+      my %args = @_;
 
-        my $filename            = decode_utf8($args{filename});
-        my $status              = $args{status}               || 200;
-        my $content_disposition = $args{content_disposition}  || 'attachment';
+      my $filename            = decode_utf8($args{filename});
+      my $status              = $args{status} || 200;
+      my $content_disposition = $args{content_disposition} || 'attachment';
 
-        # Content type based on format
-        my $content_type;
-        $content_type = $c->app->types->type( $args{format} ) if $args{format};
-        $content_type ||= 'application/x-download';
+      # Content type based on format
+      my $content_type;
+      $content_type = $c->app->types->type($args{format}) if $args{format};
+      $content_type ||= 'application/x-download';
 
-        # Create asset
-        my $asset;
-        if ( my $filepath = decode_utf8($args{filepath}) ) {
-            unless ( -f $filepath && -r $filepath ) {
-                $c->app->log->error("Cannot read file [$filepath]. error [$!]");
-                return;
-            }
-
-            $filename ||= fileparse($filepath);
-            $asset = Mojo::Asset::File->new( path => $filepath );
-        } elsif ( $args{data} ) {
-            $filename ||= $c->req->url->path->parts->[-1] || 'download';
-            $asset = Mojo::Asset::Memory->new();
-            $asset->add_chunk( $args{data} );
-        } else {
-            $c->app->log->error('You must provide "data" or "filepath" option');
-            return;
+      # Create asset
+      my $asset;
+      if (my $filepath = decode_utf8($args{filepath})) {
+        unless (-f $filepath && -r $filepath) {
+          $c->app->log->error("Cannot read file [$filepath]. error [$!]");
+          return;
         }
 
-        # Create response headers
-        $filename = quote($filename); # quote the filename, per RFC 5987
-        $filename = encode("UTF-8", $filename);
+        $filename ||= fileparse($filepath);
+        $asset = Mojo::Asset::File->new(path => $filepath);
+      }
+      elsif ($args{data}) {
+        $filename ||= $c->req->url->path->parts->[-1] || 'download';
+        $asset = Mojo::Asset::Memory->new();
+        $asset->add_chunk($args{data});
+      }
+      else {
+        $c->app->log->error('You must provide "data" or "filepath" option');
+        return;
+      }
 
-        my $headers = Mojo::Headers->new();
-        $headers->add( 'Content-Type', $content_type . ';name=' . $filename );
-        $headers->add( 'Content-Disposition', $content_disposition . ';filename=' . $filename );
+      # Create response headers
+      $filename = quote($filename);           # quote the filename, per RFC 5987
+      $filename = encode("UTF-8", $filename);
 
-        # Range
-        # Partially based on Mojolicious::Static
-        if ( my $range = $c->req->headers->range ) {
-            my $start = 0;
-            my $size  = $asset->size;
-            my $end   = $size - 1 >= 0 ? $size - 1 : 0;
+      my $headers = Mojo::Headers->new();
+      $headers->add('Content-Type', $content_type . ';name=' . $filename);
+      $headers->add('Content-Disposition',
+        $content_disposition . ';filename=' . $filename);
 
-            # Check range
-            if ( $range =~ m/^bytes=(\d+)-(\d+)?/ && $1 <= $end ) {
-                $start = $1;
-                $end = $2 if defined $2 && $2 <= $end;
+      # Range
+      # Partially based on Mojolicious::Static
+      if (my $range = $c->req->headers->range) {
+        my $start = 0;
+        my $size  = $asset->size;
+        my $end   = $size - 1 >= 0 ? $size - 1 : 0;
 
-                $status = 206;
-                $headers->add( 'Content-Length' => $end - $start + 1 );
-                $headers->add( 'Content-Range'  => "bytes $start-$end/$size" );
-            } else {
-                # Not satisfiable
-                return $c->rendered(416);
-            }
+        # Check range
+        if ($range =~ m/^bytes=(\d+)-(\d+)?/ && $1 <= $end) {
+          $start = $1;
+          $end = $2 if defined $2 && $2 <= $end;
 
-            # Set range for asset
-            $asset->start_range($start)->end_range($end);
-        } else {
-            $headers->add( 'Content-Length' => $asset->size );
+          $status = 206;
+          $headers->add('Content-Length' => $end - $start + 1);
+          $headers->add('Content-Range'  => "bytes $start-$end/$size");
+        }
+        else {
+          # Not satisfiable
+          return $c->rendered(416);
         }
 
-        # Set response headers
-        $c->res->content->headers($headers);
+        # Set range for asset
+        $asset->start_range($start)->end_range($end);
+      }
+      else {
+        $headers->add('Content-Length' => $asset->size);
+      }
 
-        # Stream content directly from file
-        $c->res->content->asset($asset);
-        return $c->rendered($status);
-    } );
+      # Set response headers
+      $c->res->content->headers($headers);
+
+      # Stream content directly from file
+      $c->res->content->asset($asset);
+      return $c->rendered($status);
+    }
+  );
 }
 
 1;

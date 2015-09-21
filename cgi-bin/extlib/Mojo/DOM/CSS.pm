@@ -6,11 +6,11 @@ has 'tree';
 my $ESCAPE_RE = qr/\\[^0-9a-fA-F]|\\[0-9a-fA-F]{1,6}/;
 my $ATTR_RE   = qr/
   \[
-  ((?:$ESCAPE_RE|[\w\-])+)           # Key
+  ((?:$ESCAPE_RE|[\w\-])+)                              # Key
   (?:
-    (\W)?=                           # Operator
-    (?:"((?:\\"|[^"])*)"|([^\]]+?))  # Value
-    (?:\s+(i))?                      # Case-sensitivity
+    (\W)?=                                              # Operator
+    (?:"((?:\\"|[^"])*)"|'((?:\\'|[^'])*)'|([^\]]+?))   # Value
+    (?:\s+(i))?                                         # Case-sensitivity
   )?
   \]
 /x;
@@ -24,11 +24,14 @@ sub select     { _select(0, shift->tree, _compile(@_)) }
 sub select_one { _select(1, shift->tree, _compile(@_)) }
 
 sub _ancestor {
-  my ($selectors, $current, $tree, $pos) = @_;
+  my ($selectors, $current, $tree, $one, $pos) = @_;
+
   while ($current = $current->[3]) {
     return undef if $current->[0] eq 'root' || $current eq $tree;
     return 1 if _combinator($selectors, $current, $tree, $pos);
+    last if $one;
   }
+
   return undef;
 }
 
@@ -56,7 +59,7 @@ sub _combinator {
   }
 
   # ">" (parent only)
-  return _parent($selectors, $current, $tree, ++$pos) if $c eq '>';
+  return _ancestor($selectors, $current, $tree, 1, ++$pos) if $c eq '>';
 
   # "~" (preceding siblings)
   return _sibling($selectors, $current, $tree, 0, ++$pos) if $c eq '~';
@@ -65,7 +68,7 @@ sub _combinator {
   return _sibling($selectors, $current, $tree, 1, ++$pos) if $c eq '+';
 
   # " " (ancestor)
-  return _ancestor($selectors, $current, $tree, ++$pos);
+  return _ancestor($selectors, $current, $tree, 0, ++$pos);
 }
 
 sub _compile {
@@ -90,7 +93,7 @@ sub _compile {
 
     # Attributes
     elsif ($css =~ /\G$ATTR_RE/gco) {
-      push @$last, ['attr', _name($1), _value($2 // '', $3 // $4, $5)];
+      push @$last, ['attr', _name($1), _value($2 // '', $3 // $4 // $5, $6)];
     }
 
     # Pseudo-class (":not" contains more selectors)
@@ -123,7 +126,7 @@ sub _equation {
   # Equation
   my $num = [1, 1];
   return $num if $equation !~ /(?:(-?(?:\d+)?)?(n))?\s*\+?\s*(-?\s*\d+)?\s*$/i;
-  $num->[0] = defined($1) && length($1) ? $1 : $2 ? 1 : 0;
+  $num->[0] = defined($1) && $1 ne '' ? $1 : $2 ? 1 : 0;
   $num->[0] = -1 if $num->[0] eq '-';
   $num->[1] = $3 // 0;
   $num->[1] =~ s/\s+//g;
@@ -137,13 +140,6 @@ sub _match {
 }
 
 sub _name {qr/(?:^|:)\Q@{[_unescape(shift)]}\E$/}
-
-sub _parent {
-  my ($selectors, $current, $tree, $pos) = @_;
-  return undef unless my $parent = $current->[3];
-  return undef if $parent->[0] eq 'root' || $parent eq $tree;
-  return _combinator($selectors, $parent, $tree, $pos);
-}
 
 sub _pc {
   my ($class, $args, $current) = @_;

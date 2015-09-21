@@ -5,15 +5,15 @@ use utf8;
 use base 'GG::Controller';
 
 sub catalog_category_menu {
-    my $self = shift;
+  my $self = shift;
 
-    my $search = $self->param('search');
+  my $search = $self->param('search');
 
 
-    return $self->render_partial(
-        categorys => \@categorys,
-        template  => "Catalog/category_menu"
-    );
+  return $self->render_partial(
+    categorys => \@categorys,
+    template  => "Catalog/category_menu"
+  );
 }
 
 1;

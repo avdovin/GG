@@ -14,38 +14,33 @@ sub register {
     $app->helper("${name}_field" => sub { _input(@_, type => $name) });
   }
 
+  my @helpers = (
+    qw(csrf_field form_for hidden_field javascript label_for link_to),
+    qw(select_field stylesheet submit_button tag_with_error text_area)
+  );
+  $app->helper($_ => __PACKAGE__->can("_$_")) for @helpers;
+
   $app->helper(check_box =>
       sub { _input(shift, shift, value => shift, @_, type => 'checkbox') });
-  $app->helper(csrf_field => \&_csrf_field);
-  $app->helper(file_field =>
-      sub { shift; _tag('input', name => shift, @_, type => 'file') });
-
-  $app->helper(form_for     => \&_form_for);
-  $app->helper(hidden_field => \&_hidden_field);
+  $app->helper(file_field => sub { _empty_field('file', @_) });
   $app->helper(image => sub { _tag('img', src => shift->url_for(shift), @_) });
   $app->helper(input_tag => sub { _input(@_) });
-  $app->helper(javascript => \&_javascript);
-  $app->helper(label_for  => \&_label_for);
-  $app->helper(link_to    => \&_link_to);
-
-  $app->helper(password_field => \&_password_field);
+  $app->helper(password_field => sub { _empty_field('password', @_) });
   $app->helper(radio_button =>
       sub { _input(shift, shift, value => shift, @_, type => 'radio') });
 
-  $app->helper(select_field  => \&_select_field);
-  $app->helper(stylesheet    => \&_stylesheet);
-  $app->helper(submit_button => \&_submit_button);
-
   # "t" is just a shortcut for the "tag" helper
   $app->helper($_ => sub { shift; _tag(@_) }) for qw(t tag);
-
-  $app->helper(tag_with_error => \&_tag_with_error);
-  $app->helper(text_area      => \&_text_area);
 }
 
 sub _csrf_field {
   my $c = shift;
   return _hidden_field($c, csrf_token => $c->helpers->csrf_token, @_);
+}
+
+sub _empty_field {
+  my ($type, $c, $name) = (shift, shift, shift);
+  return _validation($c, $name, 'input', name => $name, @_, type => $type);
 }
 
 sub _form_for {
@@ -80,11 +75,12 @@ sub _input {
     my $value = $attrs{value} // '';
     if ($type eq 'checkbox' || $type eq 'radio') {
       $attrs{value} = $value;
+      delete $attrs{checked} if @values;
       $attrs{checked} = undef if grep { $_ eq $value } @values;
     }
 
     # Others
-    else { $attrs{value} = $values[0] }
+    else { $attrs{value} = $values[-1] }
   }
 
   return _validation($c, $name, 'input', name => $name, %attrs);
@@ -122,16 +118,13 @@ sub _link_to {
 
 sub _option {
   my ($values, $pair) = @_;
-  $pair = [$pair => $pair] unless ref $pair eq 'ARRAY';
-  my %attrs = (value => $pair->[1]);
-  $attrs{selected} = undef if exists $values->{$pair->[1]};
-  return _tag('option', %attrs, @$pair[2 .. $#$pair], $pair->[0]);
-}
 
-sub _password_field {
-  my ($c, $name) = (shift, shift);
-  return _validation($c, $name, 'input', name => $name, @_,
-    type => 'password');
+  $pair = [$pair => $pair] unless ref $pair eq 'ARRAY';
+  my %attrs = (value => $pair->[1], @$pair[2 .. $#$pair]);
+  delete $attrs{selected} if keys %$values;
+  $attrs{selected} = undef if $values->{$pair->[1]};
+
+  return _tag('option', %attrs, $pair->[0]);
 }
 
 sub _select_field {
@@ -153,8 +146,7 @@ sub _select_field {
     else { $groups .= _option(\%values, $group) }
   }
 
-  return _validation($c, $name, 'select', name => $name, %attrs,
-    sub {$groups});
+  return _validation($c, $name, 'select', name => $name, %attrs, sub {$groups});
 }
 
 sub _stylesheet {
@@ -224,7 +216,7 @@ Mojolicious::Plugin::TagHelpers - Tag helpers plugin
 =head1 SYNOPSIS
 
   # Mojolicious
-  $self->plugin('TagHelpers');
+  $app->plugin('TagHelpers');
 
   # Mojolicious::Lite
   plugin 'TagHelpers';
@@ -263,13 +255,13 @@ L<Mojolicious::Plugin::TagHelpers> implements the following helpers.
 =head2 check_box
 
   %= check_box employed => 1
-  %= check_box employed => 1, disabled => 'disabled'
+  %= check_box employed => 1, checked => undef, id => 'foo'
 
 Generate C<input> tag of type C<checkbox>. Previous input values will
 automatically get picked up and shown as default.
 
   <input name="employed" type="checkbox" value="1">
-  <input disabled="disabled" name="employed" type="checkbox" value="1">
+  <input checked id="foo" name="employed" type="checkbox" value="1">
 
 =head2 color_field
 
@@ -371,22 +363,22 @@ C<_method> query parameter will be added as well.
 
   <form action="/path/to/login">
     <input name="first_name" type="text">
-    <input value="Ok" type="submit">
+    <input type="submit" value="Ok">
   </form>
   <form action="/path/to/login.txt" method="POST">
     <input name="first_name" type="text">
-    <input value="Ok" type="submit">
+    <input type="submit" value="Ok">
   </form>
   <form action="/path/to/login" enctype="multipart/form-data">
     <input disabled="disabled" name="first_name" type="text">
-    <input value="Ok" type="submit">
+    <input type="submit" value="Ok">
   </form>
   <form action="http://example.com/login" method="POST">
     <input name="first_name" type="text">
-    <input value="Ok" type="submit">
+    <input type="submit" value="Ok">
   </form>
   <form action="/path/to/delete/route?_method=DELETE" method="POST">
-    <input value="Remove" type="submit">
+    <input type="submit" value="Remove">
   </form>
 
 =head2 hidden_field
@@ -524,13 +516,13 @@ Generate C<input> tag of type C<password>.
 =head2 radio_button
 
   %= radio_button country => 'germany'
-  %= radio_button country => 'germany', id => 'foo'
+  %= radio_button country => 'germany', checked => undef, id => 'foo'
 
 Generate C<input> tag of type C<radio>. Previous input values will
 automatically get picked up and shown as default.
 
   <input name="country" type="radio" value="germany">
-  <input id="foo" name="country" type="radio" value="germany">
+  <input checked id="foo" name="country" type="radio" value="germany">
 
 =head2 range_field
 
@@ -562,7 +554,7 @@ automatically get picked up and shown as default.
 
   %= select_field country => [qw(de en)]
   %= select_field country => [[Germany => 'de'], 'en'], id => 'eu'
-  %= select_field country => [[Germany => 'de', disabled => 'disabled'], 'en']
+  %= select_field country => [[Germany => 'de', selected => 'selected'], 'en']
   %= select_field country => [c(EU => [[Germany => 'de'], 'en'], id => 'eu')]
   %= select_field country => [c(EU => [qw(de en)]), c(Asia => [qw(cn jp)])]
 
@@ -579,7 +571,7 @@ get picked up and shown as default.
     <option value="en">en</option>
   </select>
   <select name="country">
-    <option disabled="disabled" value="de">Germany</option>
+    <option selected="selected" value="de">Germany</option>
     <option value="en">en</option>
   </select>
   <select name="country">
@@ -625,7 +617,7 @@ Generate C<input> tag of type C<submit>.
 
 =head2 t
 
-  %=t div => 'test & 123'
+  %= t div => 'test & 123'
 
 Alias for L</"tag">.
 

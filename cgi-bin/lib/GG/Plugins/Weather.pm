@@ -3,74 +3,75 @@ package GG::Plugins::Weather;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use utf8;
+
 #use XML::Simple;
 use Mojo::UserAgent;
 use File::stat;
 
-my $CityId = 26063; # Санкт-Петербург, http://weather.yandex.ru/static/cities.xml
-my $TmpFilename  = '__weaher.csv';
+my $CityId = 26063
+  ;  # Санкт-Петербург, http://weather.yandex.ru/static/cities.xml
+my $TmpFilename = '__weaher.csv';
 
 sub register {
-	my ( $self, $app ) = @_;
+  my ($self, $app) = @_;
 
-	$app->log->debug("register GG::Plugin::Weather");
+  $app->log->debug("register GG::Plugin::Weather");
 
-	my $ua = Mojo::UserAgent->new;
-
-
-	# Получает погоду с сервиса яндекс используя код города
-	$app->helper( weather_by_city_id => sub{
-		my $self 	= shift;
-		my $cityId 	= shift;
-
-		my $tmpDir = $self->file_tmpdir;
-		my $localtime = $self->setLocalTime;
-
-		# проверяем есть ли уже файл с погодой на сегодня
-
-		if(-e $tmpDir.$TmpFilename ){
-			my $data = $self->file_read_data( path => $tmpDir.$TmpFilename);
-
-			my @dataVals = split(';', $data);
-			if($dataVals[0] eq $localtime){
-
-				return $self->render_to_string(
-					temp 		=> $dataVals[1],
-					icon 		=> $dataVals[2],
-					template 	=> 'Plugins/Weather/_weather_by_city',
-				);
-			}
-		}
-
-		my $city_id = $cityId || $CityId;
-		my $xmlUrl = "http://export.yandex.ru/weather-ng/forecasts/$city_id.xml";
-
-		my $tx = $self->ua->get($xmlUrl);
-		unless ($tx->success) {
-			return warn(scalar $tx->error);
-		}
-		my $dom = $tx->res->dom;
-		$dom->xml(1);
-
-		my $temp = $dom->at('fact temperature')->text;
-		my $icon = $dom->at('fact image-v2')->text;
-		my $data = $localtime.';'.$temp.';'.$icon;
+  my $ua = Mojo::UserAgent->new;
 
 
-		$self->file_save_data(
-			path  	=> $tmpDir.$TmpFilename,
-			data 	=> $data,
-		);
+# Получает погоду с сервиса яндекс используя код города
+  $app->helper(
+    weather_by_city_id => sub {
+      my $self   = shift;
+      my $cityId = shift;
 
-		return $self->render(
-			temp 		=> $temp,
-			icon 		=> $icon,
-			template 	=> 'Plugins/Weather/_weather_by_city',
-			partial 	=> 1,
-		);
+      my $tmpDir    = $self->file_tmpdir;
+      my $localtime = $self->setLocalTime;
 
-		return '';
-	});
+# проверяем есть ли уже файл с погодой на сегодня
+
+      if (-e $tmpDir . $TmpFilename) {
+        my $data = $self->file_read_data(path => $tmpDir . $TmpFilename);
+
+        my @dataVals = split(';', $data);
+        if ($dataVals[0] eq $localtime) {
+
+          return $self->render_to_string(
+            temp     => $dataVals[1],
+            icon     => $dataVals[2],
+            template => 'Plugins/Weather/_weather_by_city',
+          );
+        }
+      }
+
+      my $city_id = $cityId || $CityId;
+      my $xmlUrl = "http://export.yandex.ru/weather-ng/forecasts/$city_id.xml";
+
+      my $tx = $self->ua->get($xmlUrl);
+      unless ($tx->success) {
+        return warn(scalar $tx->error);
+      }
+      my $dom = $tx->res->dom;
+      $dom->xml(1);
+
+      my $temp = $dom->at('fact temperature')->text;
+      my $icon = $dom->at('fact image-v2')->text;
+      my $data = $localtime . ';' . $temp . ';' . $icon;
+
+
+      $self->file_save_data(path => $tmpDir . $TmpFilename, data => $data,);
+
+      return $self->render(
+        temp     => $temp,
+        icon     => $icon,
+        template => 'Plugins/Weather/_weather_by_city',
+        partial  => 1,
+      );
+
+      return '';
+    }
+  );
 }
 
 1;

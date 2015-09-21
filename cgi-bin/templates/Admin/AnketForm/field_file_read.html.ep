@@ -1,11 +1,11 @@
-<tr id="tr<%= $lkey %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+<tr id="tr<%= $lkey %>" class="<%= $class %>">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
   <td class=read valign=top>
   	<% if($value){ %>
   		<%  my $type_file = ($value =~ m/([^.]+)$/)[0] || ''; %>
         <img align="absMiddle" src="/admin/img/icons/file/<%= $type_file %>.png" />
         <br />
-          		
+
   		<img border="0" src="/admin/img/icons/menu/button.upload.gif" align="absMiddle"/> <a href="<%= $self->stash->{controller_url} %>?do=upload&index=<%= $self->stash->{index} %>&lfield=<%= $key %>&<%= $self->stash->{param_default} %>" target=_blank>скачать</a>
   	<% } %>
   </td>

@@ -80,7 +80,7 @@
     % my $section_key = $1;
     % my $url = $section_key eq 'main' ? menu_item($self->stash->{anketa}) : url_for($section_key.'_item', list_item_alias => $self->stash->{anketa}->{alias});
     %   if (!($section_key ne 'main' and $url eq $section_key.'_item')){
-        <tr onmouseout="tr_select_out(this, 'odd');" onmouseover="tr_select_over(this);" class="odd" id="trtdate">
+        <tr class="odd" id="trtdate">
           <td width="150px" valign="top" colspan="3" class="edit">Ссылка на страницу:</td>
             <td valign="top" class="read">
               <a href="<%= 'http://'.$self->host.$url %>" target="_blank"><%= 'http://'.$self->host.$url %></a>

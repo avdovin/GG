@@ -1,7 +1,7 @@
-<tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+<tr id="tr<%= $key %>" class="<%= $class %>">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
   <td class=read valign=top>
-    <% if($key ne 'ID' and $lkey->{settings}->{qedit} and !$self->sysuser->settings->{$controller.'_qedit_off'} and ($self->sysuser->access->{lkey}->{$lkey}->{w} or $self->sysuser->sys)){ %> 
+    <% if($key ne 'ID' and $lkey->{settings}->{qedit} and !$self->sysuser->settings->{$controller.'_qedit_off'} and ($self->sysuser->access->{lkey}->{$lkey}->{w} or $self->sysuser->sys)){ %>
 		<div id="<%= $index %>__<%= $key %>_print"><%= $value ? $lkey->{settings}->{yes} : $lkey->{settings}->{no} %></div>
     	<label class="list" id="label<%= $index %>__<%= $key %>_print"></label>
 	% } else {

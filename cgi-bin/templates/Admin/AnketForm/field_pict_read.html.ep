@@ -2,7 +2,7 @@
 %	my $type_file = ($value =~ m/([^.]+)$/)[0] || '';
 %	my $rand = $self->stash->{rndval};
 
-<tr id="tr<%= $key %>" class="<%= $class %>" onmouseover="tr_select_over(this);" onmouseout="tr_select_out(this, '<%= $class %>');">
+<tr id="tr<%= $key %>" class="<%= $class %>">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
   <td class=read valign=top>
   <% if($value){ %>

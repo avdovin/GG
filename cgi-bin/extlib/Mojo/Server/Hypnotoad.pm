@@ -27,9 +27,9 @@ sub configure {
   $prefork->max_clients($c->{clients})   if $c->{clients};
   $prefork->max_requests($c->{requests}) if $c->{requests};
   defined $c->{$_} and $prefork->$_($c->{$_})
-    for qw(accepts backlog graceful_timeout group heartbeat_interval),
+    for qw(accepts backlog graceful_timeout heartbeat_interval),
     qw(heartbeat_timeout inactivity_timeout listen multi_accept pid_file),
-    qw(user workers);
+    qw(workers);
 }
 
 sub run {
@@ -69,8 +69,7 @@ sub run {
   $self->_hot_deploy unless $ENV{HYPNOTOAD_PID};
 
   # Daemonize as early as possible (but not for restarts)
-  $prefork->daemonize
-    if !$ENV{HYPNOTOAD_FOREGROUND} && $ENV{HYPNOTOAD_REV} < 3;
+  $prefork->daemonize if !$ENV{HYPNOTOAD_FOREGROUND} && $ENV{HYPNOTOAD_REV} < 3;
 
   # Start accepting connections
   local $SIG{USR2} = sub { $self->{upgrade} ||= steady_time };
@@ -272,13 +271,6 @@ Maximum amount of time in seconds stopping a worker gracefully may take before
 being forced, defaults to the value of
 L<Mojo::Server::Prefork/"graceful_timeout">.
 
-=head2 group
-
-  group => 'staff'
-
-Group name for worker processes, defaults to the value of
-L<Mojo::Server/"group">.
-
 =head2 heartbeat_interval
 
   heartbeat_interval => 3
@@ -345,12 +337,6 @@ L<Mojo::Server::Daemon/"max_requests">.
 
 Maximum amount of time in seconds a zero downtime software upgrade may take
 before getting canceled, defaults to C<60>.
-
-=head2 user
-
-  user => 'sri'
-
-Username for worker processes, defaults to the value of L<Mojo::Server/"user">.
 
 =head2 workers
 

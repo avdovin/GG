@@ -34,19 +34,19 @@ sub authority {
   return _encode($info, '^A-Za-z0-9\-._~!$&\'()*+,;=:') . '@' . $authority;
 }
 
-sub host_port {
-  my $self = shift;
-  return undef unless defined(my $host = $self->ihost);
-  return $host unless my $port = $self->port;
-  return "$host:$port";
-}
-
 sub clone {
   my $self  = shift;
   my $clone = $self->new;
   @$clone{keys %$self} = values %$self;
   $clone->{$_} && ($clone->{$_} = $clone->{$_}->clone) for qw(base path query);
   return $clone;
+}
+
+sub host_port {
+  my $self = shift;
+  return undef unless defined(my $host = $self->ihost);
+  return $host unless my $port = $self->port;
+  return "$host:$port";
 }
 
 sub ihost {
@@ -101,7 +101,7 @@ sub path {
 sub path_query {
   my $self  = shift;
   my $query = $self->query->to_string;
-  return $self->path->to_string . (length $query ? "?$query" : '');
+  return $self->path->to_string . ($query eq '' ? '' : "?$query");
 }
 
 sub protocol { lc(shift->scheme // '') }
@@ -153,7 +153,7 @@ sub to_abs {
       = $abs->path($base_path->clone)->path->trailing_slash(0)->canonicalize;
 
     # Query
-    return $abs if length $abs->query->to_string;
+    return $abs if $abs->query->to_string ne '';
     $abs->query($base->query->clone);
   }
 

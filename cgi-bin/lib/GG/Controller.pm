@@ -31,15 +31,14 @@ sub _load_controller {
 
   # Load
   my $e = Mojo::Loader->load($class);
-  if ( ref $e ) { die $e }
+  if (ref $e) { die $e }
   if ($e) {
-      $app->log->debug("can't load_module $class - $e");
-      return;
+    $app->log->debug("can't load_module $class - $e");
+    return;
   }
 
   $class = $class->new($self) unless ref $class;
-  my $continue = $class->$action(%params)
-    if $action;    # if $class->can($action);
+  my $continue = $class->$action(%params) if $action; # if $class->can($action);
 
   #   Merge stash
   # my $new = $class->stash;
@@ -47,8 +46,8 @@ sub _load_controller {
 
   return $continue;
 
-    # Register
-    #return $class->$action($app, %params);
+  # Register
+  #return $class->$action($app, %params);
 }
 
 sub render_not_found {
@@ -60,43 +59,36 @@ sub render_not_found {
 }
 
 sub save_info {
-  my $self   = shift;
-  my %params = (
-    send_params => 1,
-    insType     => 'INSERT',
-    where       => '',
-    @_
-  );
+  my $self = shift;
+  my %params = (send_params => 1, insType => 'INSERT', where => '', @_);
 
   my $table        = delete $params{table};
   my $field_values = delete $params{field_values} || {};
   my $where        = delete $params{where} || '';
 
-  foreach ( keys %$field_values ) {
-    unless ( $self->dbi->exists_keys( from => $table, lkey => $_ ) ) {
-       delete $field_values->{$_};
+  foreach (keys %$field_values) {
+    unless ($self->dbi->exists_keys(from => $table, lkey => $_)) {
+      delete $field_values->{$_};
     }
   }
 
-  if ( $params{send_params} ) {
+  if ($params{send_params}) {
     my $send_params = $self->send_params;
-    foreach ( keys %$send_params ) {
-      if ( $self->dbi->exists_keys( from => $table, lkey => $_ ) ) {
+    foreach (keys %$send_params) {
+      if ($self->dbi->exists_keys(from => $table, lkey => $_)) {
         $field_values->{$_} ||= $send_params->{$_};
       }
     }
   }
 
-  if ( !$self->stash->{index} ) {
+  if (!$self->stash->{index}) {
 
-      return $self->dbi->insert_hash( $table, $field_values,
-          $params{insType} );
+    return $self->dbi->insert_hash($table, $field_values, $params{insType});
   }
   else {
-      $where ||= "`ID`='" . $self->stash->{index} . "'";
-      $self->dbi->update_hash( $table, $field_values, $where,
-          $params{where} );
-      return $self->stash->{index};
+    $where ||= "`ID`='" . $self->stash->{index} . "'";
+    $self->dbi->update_hash($table, $field_values, $where, $params{where});
+    return $self->stash->{index};
   }
 }
 

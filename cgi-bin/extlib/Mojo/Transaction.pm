@@ -51,8 +51,9 @@ sub remote_address {
   return $self->original_remote_address unless $self->req->reverse_proxy;
 
   # Reverse proxy
-  return ($self->req->headers->header('X-Forwarded-For') // '')
-    =~ /([^,\s]+)$/ ? $1 : $self->original_remote_address;
+  return ($self->req->headers->header('X-Forwarded-For') // '') =~ /([^,\s]+)$/
+    ? $1
+    : $self->original_remote_address;
 }
 
 sub resume       { shift->_state(qw(write resume)) }
@@ -235,9 +236,9 @@ Check if transaction is finished.
 
 =head2 is_websocket
 
-  my $false = $tx->is_websocket;
+  my $bool = $tx->is_websocket;
 
-False.
+False, this is not a L<Mojo::Transaction::WebSocket> object.
 
 =head2 is_writing
 

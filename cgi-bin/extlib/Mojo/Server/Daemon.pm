@@ -1,6 +1,7 @@
 package Mojo::Server::Daemon;
 use Mojo::Base 'Mojo::Server';
 
+use Carp 'croak';
 use Mojo::IOLoop;
 use Mojo::URL;
 use Mojo::Util 'term_escape';
@@ -30,7 +31,7 @@ sub run {
   my $loop = $self->ioloop;
   my $int = $loop->recurring(1 => sub { });
   local $SIG{INT} = local $SIG{TERM} = sub { $loop->stop };
-  $self->start->setuidgid->ioloop->start;
+  $self->start->ioloop->start;
   $loop->remove($int);
 }
 
@@ -123,6 +124,7 @@ sub _finish {
     if ($ws->res->code == 101) {
       weaken $self;
       $ws->on(resume => sub { $self->_write($id) });
+      $ws->server_open;
     }
 
     # Failed upgrade
@@ -137,7 +139,7 @@ sub _finish {
   return $self->_remove($id) if $req->error || !$tx->keep_alive;
 
   # Build new transaction for leftovers
-  return unless length(my $leftovers = $req->content->leftovers);
+  return if (my $leftovers = $req->content->leftovers) eq '';
   $tx = $c->{tx} = $self->_build_tx($id, $c);
   $tx->server_read($leftovers);
 }
@@ -145,7 +147,10 @@ sub _finish {
 sub _listen {
   my ($self, $listen) = @_;
 
-  my $url     = Mojo::URL->new($listen);
+  my $url   = Mojo::URL->new($listen);
+  my $proto = $url->protocol;
+  croak qq{Invalid listen location "$listen"} unless $proto =~ /^https?$/;
+
   my $query   = $url->query;
   my $options = {
     address => $url->host,
@@ -153,11 +158,11 @@ sub _listen {
     reuse   => $query->param('reuse')
   };
   if (my $port = $url->port) { $options->{port} = $port }
-  $options->{"tls_$_"} = $query->param($_) for qw(ca cert ciphers key);
+  $options->{"tls_$_"} = $query->param($_) for qw(ca cert ciphers key version);
   my $verify = $query->param('verify');
   $options->{tls_verify} = hex $verify if defined $verify;
   delete $options->{address} if $options->{address} eq '*';
-  my $tls = $options->{tls} = $url->protocol eq 'https';
+  my $tls = $options->{tls} = $proto eq 'https';
 
   weaken $self;
   push @{$self->acceptors}, $self->ioloop->server(
@@ -375,7 +380,7 @@ These parameters are currently available:
 
   ca=/etc/tls/ca.crt
 
-Path to TLS certificate authority file.
+Path to TLS certificate authority file used to verify the peer certificate.
 
 =item cert
 
@@ -387,7 +392,8 @@ Path to the TLS cert file, defaults to a built-in test certificate.
 
   ciphers=AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH
 
-Cipher specification string.
+TLS cipher specification string. For more information about the format see
+L<https://www.openssl.org/docs/manmaster/apps/ciphers.html#CIPHER-STRINGS>.
 
 =item key
 
@@ -407,6 +413,12 @@ option.
   verify=0x00
 
 TLS verification mode, defaults to C<0x03>.
+
+=item version
+
+  version=TLSv1_2
+
+TLS protocol version.
 
 =back
 
