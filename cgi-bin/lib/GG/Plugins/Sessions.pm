@@ -147,9 +147,16 @@ sub register {
 
     return if $c->req->url->path->[0] eq 'admin';
 
+<<<<<<< HEAD
+    if (my $uid = $c->session($session_key)) {
+      my $user = $load_user_cb->($c, $uid);
+      if ($user) {
+        $c->stash($stash_key => { user => $user });
+=======
     if (my $cck = $c->session($session_key)) {
       if (my $user = $load_user_cb->($c, $cck)) {
         $c->stash($stash_key => {user => $user});
+>>>>>>> 18cc7331a1490c2e013bb486438ec744b793329d
       }
       else {
         # cache result that user does not exist
