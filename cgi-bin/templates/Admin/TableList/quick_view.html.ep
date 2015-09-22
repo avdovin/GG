@@ -11,8 +11,9 @@
 			<td><div style="overflow:auto">
 			<% my $type = $lkey->{settings}->{type}; %>
             <% if($type eq 'pict'){ %>
+                % my $is_remote = $lkey->{settings}->{remote} ? 1 : 0;
                 <% my $folder = $self->lfield_folder( lfield => $k ); %>
-                <img style="border:0;" src="<% if($item->{$k}){ %><%= $folder =%><%= $item->{$k} =%><% } else { %>/admin/img/no_img.png<% } %>" width="100" />
+                <img style="border:0;" src="<% if($item->{$k}){ %><%= $is_remote ? $item->{$k} : $folder.$item->{$k} =%><% } else { %>/admin/img/no_img.png<% } %>" width="100" />
             <% } else { %>
                 <% if($lkey->{settings}->{type} eq 'code'){ %><pre><% } =%>
 				    <%== VALUES( name => $k, value => $$item{$k}) =%>

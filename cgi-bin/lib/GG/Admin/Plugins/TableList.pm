@@ -219,7 +219,12 @@ sub register {
 
                 $folders->{$v} = $folder;
               }
-              $item->{$v} = $folders->{$v} . $item->{$v};
+              $item->{$v} = $lkey->{settings}->{remote}
+                            ?
+                              $item->{ $v }
+                            :
+                              $folders->{ $v } . $item->{ $v };
+
             }
 
           }

@@ -40,6 +40,10 @@ sub register {
         @_
       );
 
+      if($self->lkey(name => $params{lfield}, setting => 'remote')){
+        return 1;
+      }
+
       $params{folder}
         ||= $self->lkey(name => $params{lfield}, setting => 'folder');
 
@@ -91,6 +95,10 @@ sub register {
         replace   => 0,
         @_
       );
+
+      if($self->lkey(name => $params{lfield}, setting => 'remote')){
+        return 1;
+      }
 
       $params{filename} ||= $self->send_params->{$params{lfield}}
         if $self->send_params->{$params{lfield}};
