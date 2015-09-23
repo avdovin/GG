@@ -6,13 +6,6 @@
 
 # fix locale problem
 
-#/etc/environment
-#EDITOR="/usr/bin/vim"
-#LC_ALL=en_US.UTF-8
-#LANG=en_US.UTF-8
-#LANGUAGE=en_US.UTF-8
-
-
 # Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root" 1>&2
@@ -25,6 +18,10 @@ read LOGIN
 locale-gen en_US en_US.UTF-8 ru_RU ru_RU.UTF-8
 dpkg-reconfigure locales
 
+echo 'EDITOR="/usr/bin/vim"' >> /etc/environment
+echo 'LC_ALL=en_US.UTF-8' >> /etc/environment
+echo 'LANG=en_US.UTF-8' >> /etc/environment
+echo 'LANGUAGE=en_US.UTF-8' >> /etc/environment
 
 export PERLBREW_ROOT=/opt/perl5
 curl -kL http://install.perlbrew.pl | bash
@@ -32,20 +29,15 @@ curl -kL http://install.perlbrew.pl | bash
 echo 'source /opt/perl5/etc/bashrc' >>~/.bash_profile
 source ~/.bash_profile
 
-# perlbrew install perl-5.20.2 -Duselargefiles \
-#   -Dcccdlflags=-fPIC \
-#   -Duseshrplib \
-#   --as fPIC-lFiles-5.20.2
-
-
 perlbrew --notest install perl-5.20.2 -Dcccdlflags=-fPIC -Duseshrplib -Duse64bitall -Duselargefiles
 
 perlbrew switch perl-5.20.2
 perlbrew install-cpanm
 
 apt-get update
-apt-get install libmysqlclient-dev
-cpanm -f  DBD::mysql
+apt-get install bzip2 patch build-essential libmysqlclient-dev
+
+cpanm -f DBD::mysql
 
 cpanm JSON::XS JavaScript::Minifier::XS CSS::Minifier::XS Crypt::Eksblowfish::Bcrypt
 
@@ -59,6 +51,3 @@ echo 'export PERLBREW_ROOT=/opt/perl5' >> "/var/www/$LOGIN/data/.bash_profile"
 echo 'source ${PERLBREW_ROOT}/etc/bashrc' >> "/var/www/$LOGIN/data/.bash_profile"
 
 chmod 777 -R /opt
-
-
-

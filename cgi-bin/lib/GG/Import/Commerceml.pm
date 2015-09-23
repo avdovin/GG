@@ -1,10 +1,8 @@
 package GG::Import::Commerceml;
 
-use utf8;
-
 use Mojo::Base 'GG::Controller';
 
-#use Modern::Perl;
+use utf8;
 use File::Copy;
 use XML::Simple;
 use Encode;
@@ -80,7 +78,6 @@ sub init{
 	}
 
 	$self->stash->{'controller'} = 'catalog';
-	$self->app->static->paths(['/var/www/vhosts/fabstore.ru/httpdocs/']);
 
 	return 1;
 }
@@ -600,3 +597,16 @@ sub _set_item_sizes{
 # }
 
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Commerce ML import
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+supported version 2.07

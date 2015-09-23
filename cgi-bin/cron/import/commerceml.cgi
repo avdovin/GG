@@ -7,16 +7,20 @@ use MojoX::Loader;
 
 $ENV{DOCUMENT_ROOT} = "$FindBin::Bin/../../../";
 
-my $import = MojoX::Loader->load(app => 'GG', controller => 'GG::Import::Commerceml', prefix => '../../');
-
-$import->init(
-	path_catalog_items 	=> 'sync/import.xml',
-	path_catalog_items_backup 	=> 'sync/backup/import.xml',
-	path_catalog_offers => 'sync/offers.xml',
-	path_catalog_offers_backup => 'sync/backup/offers.xml',
+my $import = MojoX::Loader->load(
+  app        => 'GG',
+  controller => 'GG::Import::Commerceml',
+  prefix     => '../../'
 );
 
-$import->app->static->paths(['/var/www/fabstore/data/www/fabstore.ru/']);
+$import->init(
+  path_catalog_items         => 'sync/import.xml',
+  path_catalog_items_backup  => 'sync/backup/import.xml',
+  path_catalog_offers        => 'sync/offers.xml',
+  path_catalog_offers_backup => 'sync/backup/offers.xml',
+);
+
+$import->app->static->paths(['/var/www/fabstore/data/www/demo.ru/']);
 
 $import->dbi_connect;
 
