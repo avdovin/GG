@@ -245,11 +245,6 @@ sub save {
       );
       return $self->info;
     }
-    $self->file_save_pict(
-      filename => $self->send_params->{pict},
-      lfield   => 'pict',
-      fields   => {pict => 'pict'},
-    ) if $self->send_params->{pict};
 
     if ($params{continue}) {
       $self->admin_msg_success("Данные сохранены");
