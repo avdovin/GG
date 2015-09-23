@@ -17,7 +17,7 @@
 </tr>
 <tr>
   <td colspan="4">
-    <textarea onmouseup="this.focus();" class="template" id="template_<%= $index %>" onmousedown="this.focus();" name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){%>required<% } %> style="height:350px;width:100%;"><%= $value =%></textarea>
+    <textarea class="template" id="template_<%= $index %>" name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){%>required<% } %> style="height:350px;width:100%;"><%= $value =%></textarea>
   </td>
 </tr>
 

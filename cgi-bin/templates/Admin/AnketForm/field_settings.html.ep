@@ -9,8 +9,8 @@
 	</td>
 	<td width="10px" id="<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
 	<td>
-		<textarea onmouseup="this.focus();" onmousedown="this.focus();" name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){%>required<% } %> id="code<%= $index %>"><%== $value || '' =%></textarea>
-		
+		<textarea name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){%>required<% } %> id="code<%= $index %>"><%== $value || '' =%></textarea>
+
 		<span>
 			<p>Основные настройки для объекта=ключ:</p>
 			<dl>

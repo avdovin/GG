@@ -9,6 +9,6 @@
 	</td>
 	<td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
 	<td>
-		<textarea onmouseup="this.focus();" onmousedown="this.focus();" name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){ %>required<% } %> style="height:350px" id="code<%= $index %>"><%= $value =%></textarea>
+		<textarea name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){ %>required<% } %> style="height:350px" id="code<%= $index %>"><%= $value =%></textarea>
 	</td>
 </tr>
