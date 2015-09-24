@@ -7,6 +7,8 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app, $conf) = @_;
 
+  $app->log->debug("register GG::Plugin::Feedback");
+
   $app->routes->get("/feedback")->to(
     seo_title_sitename => $app->{seo_title_sitename},
     admin_name         => 'Контакты',
@@ -16,7 +18,7 @@ sub register {
       my $self   = shift;
       my %params = @_;
 
-      $self->feedback_form(%params);
+      $self->feedback->form(%params);
     }
   )->name('feedback');
 
@@ -26,12 +28,12 @@ sub register {
       my $self   = shift;
       my %params = @_;
 
-      $self->feedback_form(%params, submit => 1);
+      $self->feedback->form(%params, submit => 1);
     }
   )->name('feedback_submit');
 
   $app->helper(
-    feedback_form => sub {
+    'feedback.form' => sub {
       my $self = shift;
       my %params = (submit => 0, template => "Plugins/Feedback/form", @_);
 
@@ -114,20 +116,17 @@ sub register {
           );
 
           $json->{message_success} = $self->render_to_string(
-            template => 'Plugins/Feedback/_message_success',
-            partial  => 1,
-          );
+            template => 'Plugins/Feedback/_message_success',);
         }
 
         return $self->render(json => $json);
       }
 
       $self->render(
-        errors => $self->stash->{errors} || {},
-        template => $params{template},
-        page     => $page,
+        errors    => $self->stash->{errors} || {},
+        template  => $params{template},
+        page      => $page,
       );
-
     }
   );
 }

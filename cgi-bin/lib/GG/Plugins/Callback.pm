@@ -15,13 +15,15 @@ sub register {
     cb => sub {
       my $self = shift;
 
-      $self->callback__send;
+      $self->callback->send;
     }
   )->name('callback');
 
   $app->helper(
-    callback__send => sub {
+    'callback.send' => sub {
       my $self = shift;
+      my $args = {@_};
+
 
       my $vals = {error => '',};
 
@@ -43,7 +45,6 @@ sub register {
           },
         };
 
-
         foreach my $f (keys %$fields) {
           if ($send_params->{$f}) {
             $self->stash->{$f} = $send_params->{$f}
@@ -53,12 +54,13 @@ sub register {
             $json->{errors}->{$f} = $fields->{$f}->{error_text};
 
           }
-
         }
 
         unless (keys %{$json->{errors}}) {
-          my $email_body
-            = $self->render_mail(template => "Plugins/Callback/_admin");
+          my $templates_mail
+            = $args->{'templates_mail'} || 'Plugins/Callback/_admin';
+
+          my $email_body = $self->render_mail(template => $templates_mail);
 
           $self->mail(
             to => $self->get_var(
@@ -76,16 +78,19 @@ sub register {
             data => $email_body,
           );
 
-          $json->{message_success} = $self->render_to_string(
-            template => 'Plugins/Callback/_message_success',);
+          my $templates_msg_success = $args->{'templates_msg_success'}
+            || 'Plugins/Callback/_message_success';
+          $json->{message_success}
+            = $self->render_to_string(template => $templates_msg_success);
         }
 
         return $self->render(json => $json);
       }
     }
   );
+
   $app->helper(
-    callback__form => sub {
+    'callback.form' => sub {
       return shift->render_to_string(template => 'Plugins/Callback/_form');
     }
   );
