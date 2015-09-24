@@ -6,11 +6,9 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::JSON;
 use Mojo::Util qw(b64_decode b64_encode);
+no warnings 'experimental::smartmatch';
 
 has default_expiration => 3600;
-
-## JSON serializer
-#my $JSON = Mojo::JSON->new;
 
 sub register {
   my ($self, $app, $conf) = @_;
