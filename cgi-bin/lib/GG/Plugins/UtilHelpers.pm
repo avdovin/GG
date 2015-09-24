@@ -11,6 +11,8 @@ sub register {
 
   $app->helper(vu => sub { shift->tx->req->url->path->parts->[+shift] || '' });
 
+  $app->helper(alias_re => sub { return qr/[a-zA-Z0-9-_]+/ });
+
   $app->helper(
     retina_src => sub {
       my $self = shift;

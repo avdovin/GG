@@ -80,9 +80,13 @@ sub startup {
     ->name('catalog_basket_flush');
   $routesCatalog->any('/basket')->to('Catalog#basket')->name('catalog_basket');
 
-  $routesCatalog->any('/:category_alias/:subcategory_alias')
-    ->to('Catalog#list')->name('catalog_list_by_sub_category');
-  $routesCatalog->any('/:category_alias')->to('Catalog#list')
+  $routesCatalog->any('/:category_alias/:subcategory_alias',
+    category_alias => $self->alias_re,
+    subcategory_alias => $self->alias_re)
+    ->to('Catalog#list')
+    ->name('catalog_list_by_sub_category');
+  $routesCatalog->any('/:category_alias')
+    ->to('Catalog#list')
     ->name('catalog_list_by_category');
   $routesCatalog->any('/')
     ->to('Catalog#list', admin_name => 'Продукция')
@@ -92,22 +96,24 @@ sub startup {
     ->name('main');
 
   $routes->any('/news/list')->to(
-    "Texts#texts_list",
-    alias      => 'news',
-    key_razdel => "news",
-    admin_name => 'Новости'
+      "Texts#texts_list",
+      alias      => 'news',
+      key_razdel => "news",
+      admin_name => 'Новости'
   )->name('news_list');
-  $routes->any('/news/:list_item_alias')
+
+  $routes->any('/news/:list_item_alias', list_item_alias => $self->alias_re)
     ->to("Texts#text_list_item", alias => 'news', key_razdel => "news")
     ->name('news_item');
 
   $routes->any("/images")->to(
-    "Images#images_list",
-    key_razdel => 'gallery',
-    alias      => 'gallery',
-    admin_name => 'Фотогалерея'
+      "Images#images_list",
+      key_razdel => 'gallery',
+      alias      => 'gallery',
+      admin_name => 'Фотогалерея'
   )->name('gallery_dir_list');
-  $routes->any("/images/:dir_alias")
+
+  $routes->any("/images/:dir_alias", dir_alias => $self->alias_re)
     ->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')
     ->name('gallery_items_list');
 
@@ -116,7 +122,8 @@ sub startup {
   $routes->post('/faq')->to("Faq#list", alias => "faq", submit => 1)
     ->name('faq_submit');
 
-  $routes->any("/:alias")->to("Texts#text_main_item", redirect_to_url_for => 1)
+  $routes->any("/:alias", alias => $self->alias_re )
+    ->to("Texts#text_main_item", redirect_to_url_for => 1)
     ->name('text');
 
   # subscribe
