@@ -242,6 +242,9 @@ sub save {
 
   if ($self->save_info(table => $self->stash->{list_table})) {
 
+    $self->app->vars = undef;
+    $self->loadVars();
+
     if ($params{restore}) {
       $self->stash->{tree_reload} = 1;
       $self->save_logs(
