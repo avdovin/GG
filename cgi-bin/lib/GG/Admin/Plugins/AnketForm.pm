@@ -360,11 +360,11 @@ sub register {
 
         if ($dir) {
           $self->sysuser->access->{lkey}->{$k}->{w} = 0
-            if !$lkey->{settings}->{dirview};
+            unless $lkey->{settings}->{dirview};
         }
         else {
           $self->sysuser->access->{lkey}->{$k}->{w} = 0
-            if !$lkey->{settings}->{fileview};
+            unless $lkey->{settings}->{fileview};
         }
 
         $lkey->{settings}->{group} ||= 1;
