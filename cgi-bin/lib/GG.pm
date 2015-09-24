@@ -2,7 +2,7 @@ package GG;
 
 use Mojo::Base 'Mojolicious';
 
-#use 5.20.1;
+#use 5.20.2;
 #use experimental 'signatures';
 
 use utf8;
@@ -31,11 +31,9 @@ sub startup {
   );
 
   # check site availability
-  $r->any("/ping")->to(
-    cb => sub {
-      return shift->render(text => 'pong');
-    }
-  );
+  $r->any("/ping")->to(cb => sub {
+    return shift->render(text => 'pong');
+  });
 
   my $routes = $r->under()->to(
     %routes_args,
@@ -46,13 +44,6 @@ sub startup {
       return 1;
     }
   );
-
-  $routes->post("callback")->to(
-    cb => sub {
-      shift->callbackSend;
-    }
-  )->name('callback_submit');
-
 
   my $routesCatalog = $routes->under('/catalog')->to(
     alias  => 'catalog',
