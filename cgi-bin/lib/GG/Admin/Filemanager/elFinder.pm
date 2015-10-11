@@ -55,7 +55,7 @@ sub new
     , # directory name for image thumbnails. Set to "" to avoid thumbnails generation
     'tmbCleanProb' => 1
     , # how frequiently clean thumbnails dir (0 - never, 200 - every init request)
-    'tmbAtOnce' => 5,         # number of thumbnails to generate per request
+    'tmbAtOnce' => 5,         # number of thumbnails to generate per request, default 5
     'tmbSize'   => 48,        # images thumbnails size (px)
     'fileURL'   => 'true',    # display file URL in "get info"
     'DateTimeFormat' => '%d-%m-%Y %H:%i:%S',    # file modification date format
@@ -232,34 +232,20 @@ sub _tmb {
     push @$targets, $self->{REQUEST}->{'targets[]'};
   }
 
+  my $max = $self->{CONF}->{'tmbAtOnce'} || 5;
+  my $cnt = 1;
   $self->{RES}->{'images'} = {};
   foreach my $target (@$targets) {
     my $dstpath = $self->_hash_api2_decode($target);
 
     next unless $dstpath;
 
-#		my $filename = _basename($dstpath);
-#		my $dir = substr($dstpath, 0, -length($filename));
-#		if (substr($dir, -1) ne $DIRECTORY_SEPARATOR){
-#			$dir .= $DIRECTORY_SEPARATOR;
-#		}
-#
-#		unless(-d $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR){
-#			mkdir($dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR, $self->{CONF}->{'dirMode'});
-#		}
-#
-#
-#		File::Copy::Recursive::fcopy($dir.$filename, $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename) or die $!;
-#
-#		$self->{app}->resize_pict(
-#							file	=> $dir.$self->{CONF}->{tmbDir}.$DIRECTORY_SEPARATOR.$filename,
-#							width	=> 48,
-#							height	=> 48,
-#		);
     if (my ($dir, $filename) = $self->__create_tmp($dstpath)) {
       $self->{RES}->{'images'}->{$target} = $filename;
+      $cnt++;
     }
 
+    return if ($cnt > $max);
   }
 }
 
@@ -289,14 +275,15 @@ sub __create_tmp {
         or die $!;
     };
 
+    my $tmb_size = $self->{CONF}->{'tmbSize'} || 48;
     unless ($@) {
       $self->{app}->resize_pict(
         file => $dir
           . $self->{CONF}->{tmbDir}
           . $DIRECTORY_SEPARATOR
           . $filename,
-        width  => 48,
-        height => 48,
+        width  => $tmb_size,
+        height => $tmb_size,
         retina => 0,
       );
 
