@@ -19,9 +19,9 @@ locale-gen en_US en_US.UTF-8 ru_RU ru_RU.UTF-8
 dpkg-reconfigure locales
 
 echo 'EDITOR="/usr/bin/vim"' >> /etc/environment
-echo 'LC_ALL=en_US.UTF-8' >> /etc/environment
-echo 'LANG=en_US.UTF-8' >> /etc/environment
-echo 'LANGUAGE=en_US.UTF-8' >> /etc/environment
+echo 'LC_ALL=ru_RU.UTF-8' >> /etc/environment
+echo 'LANG=ru_RU.UTF-8' >> /etc/environment
+echo 'LANGUAGE=ru_RU.UTF-8' >> /etc/environment
 
 export PERLBREW_ROOT=/opt/perl5
 curl -kL http://install.perlbrew.pl | bash
