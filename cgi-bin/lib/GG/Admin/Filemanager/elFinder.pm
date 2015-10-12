@@ -132,6 +132,7 @@ sub run {
 # очищяем кэш
 #$self->{'app'}->dbi->dbh->do("DELETE FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)>$cache_live_time LIMIT 1000")
   }
+  $self->{'stash'} = {};
 
 #		my $ts = $self->_utime();
 #		%{$self->{RES}->{'options'}} = (
@@ -513,7 +514,7 @@ sub _info {
       #warn 'cache exist!';
       return %{$hashCache};
     }
-    else {
+    elsif( !$self->{'stash'}->{'sys_filemanager_cache_readed'} ) {
       if (
         my $sth = $self->{'app'}->dbi->dbh->prepare(
           "SELECT `hash`,`info` FROM `sys_filemanager_cache` WHERE TO_DAYS(NOW())-TO_DAYS(`updated`)<$cache_live_time"
@@ -532,6 +533,8 @@ sub _info {
         if (my $hashCache = $cache->get($hash)) {
           return %{$hashCache};
         }
+
+        $self->{'stash'}->{'sys_filemanager_cache_readed'} = 1;
       }
       else {
         $self->{'cache_on'} = 0;
