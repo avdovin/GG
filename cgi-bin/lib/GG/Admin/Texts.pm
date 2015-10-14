@@ -311,7 +311,7 @@ sub tree {
     my $table = "texts_" . $_->{key_razdel} . "_$lang";
 
     push @tmp, {
-      ID            => $controller . $_->{ID},
+      #ID            => $controller . $_->{ID},
       name          => $_->{name},
       param_default => "&list_table=" . $table . "&first_flag=1&lang=$lang",
       replaceme  => 'replaceme',             ##$controller.$table,

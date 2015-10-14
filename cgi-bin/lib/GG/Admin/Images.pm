@@ -496,7 +496,7 @@ sub tree {
     my $table = "images_" . $_->{key_razdel};
 
     push @tmp, {
-      ID            => $controller . $_->{ID},
+      #ID            => $controller . $_->{ID},
       name          => $_->{name},
       param_default => "&list_table=" . $table . "&first_flag=1",
       replaceme  => 'replaceme',            # $controller.$table,
