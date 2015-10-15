@@ -1,9 +1,10 @@
 # file for Carton (aka bundler)
 # http://search.cpan.org/~miyagawa/Carton-v1.0.12/lib/Carton.pm
+requires 'perl', '5.10.1';
 
-required 'JavaScript::Minifier::XS';
-require 'Socket';
-require 'CSS::Minifier::XS';
-require 'Crypt::Eksblowfish::Bcrypt';
-requires 'Plack';
-requires 'Starman';
+requires 'JavaScript::Minifier::XS'   => 0;
+requires 'Socket'                     => 0;
+requires 'CSS::Minifier::XS'          => 0;
+requires 'Crypt::Eksblowfish::Bcrypt' => 0;
+requires 'Plack'                      => 0;
+requires 'Starman'                    => 0;
