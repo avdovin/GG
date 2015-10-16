@@ -24,11 +24,8 @@
 
 #sudo apt-get install build-essential checkinstall libx11-dev libxext-dev zlib1g-dev libpng12-dev libjpeg-dev
 
-#sudo apt-get install libjpeg62-dev
-#sudo apt-get install libpng-dev
-#sudo apt-get install libfreetype6-dev
-#sudo apt-get install libtiff5-dev
-#sudo apt-get install liblcms1-dev
+#sudo apt-get install libjpeg62-dev libpng-dev libfreetype6-dev libfreetype6-dev libtiff5-dev liblcms1-dev
+
 
 TOP="$HOME/local"
 
@@ -58,6 +55,7 @@ LDFLAGS=-L$PERL_CORE \
     ./configure --with-jpeg=yes --with-png=yes  --with-jp2=yes --prefix $TOP \
     --with-perl=$PERL_BIN --with-gslib --with-fontconfig=yes \
     --with-freetype=yes --with-webp=yes --with-ghostscript=yes --with-jasper=yes --with-librsvg=yes --with-libtiff=yes \
+		--with-webp=yes \
     --enable-shared $THREAD_FLAG
 
 make install
