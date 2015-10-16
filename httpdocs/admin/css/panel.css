@@ -304,3 +304,5 @@ dd {
     .button16 .link_to a{
         background-image: url('/admin/img/icons/menu/buttom.link_to.png');
     }
+    
+#auth_raptor {width: 20%; position: absolute; bottom: 0px; right:0px;}
