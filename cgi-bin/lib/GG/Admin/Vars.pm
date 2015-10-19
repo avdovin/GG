@@ -241,9 +241,7 @@ sub save {
   $self->send_params->{envvalue} = $value if defined $value;
 
   if ($self->save_info(table => $self->stash->{list_table})) {
-
-    $self->app->vars({});
-    $self->loadVars();
+    $self->loadVars(1);
 
     if ($params{restore}) {
       $self->stash->{tree_reload} = 1;

@@ -107,22 +107,22 @@ sub register {
 
   $app->helper(
     loadVars => sub {
-      return _loadVars(shift);
+      return _loadVars(@_);
     }
   );
 
   $app->hook(
     before_dispatch => sub {
-      return _loadVars(shift);
+      return _loadVars(@_);
     }
   );
 }
 
 sub _loadVars {
   my $self = shift;
+  my $force = shift;
 
-
-  unless ($self->app->vars) {
+  if(!$self->app->vars or $force){
     $self->app->vars({});
 
     for my $row (
