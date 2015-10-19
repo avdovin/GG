@@ -23,6 +23,9 @@ echo 'LC_ALL=ru_RU.UTF-8' >> /etc/environment
 echo 'LANG=ru_RU.UTF-8' >> /etc/environment
 echo 'LANGUAGE=ru_RU.UTF-8' >> /etc/environment
 
+apt-get update
+apt-get install bzip2 patch build-essential libmysqlclient-dev
+
 export PERLBREW_ROOT=/opt/perl5
 curl -kL http://install.perlbrew.pl | bash
 
@@ -33,9 +36,6 @@ perlbrew --notest install perl-5.20.2 -Dcccdlflags=-fPIC -Duseshrplib -Duse64bit
 
 perlbrew switch perl-5.20.2
 perlbrew install-cpanm
-
-apt-get update
-apt-get install bzip2 patch build-essential libmysqlclient-dev
 
 cpanm -f DBD::mysql
 
