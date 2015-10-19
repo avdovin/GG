@@ -249,32 +249,27 @@ sub register {
   $app->helper(
     text_page_by_alias => sub {
       my $self = shift;
-      my $alias = shift || $self->stash->{alias};
+      return unless my $alias = shift || $self->stash->{alias};
+
+      return $self->stash->{'_page_' . $alias}
+        if defined $self->stash->{'_page_' . $alias};
 
       my $item
-        = $self->app->dbi->query("SELECT * FROM `texts_main_"
-          . $self->lang
-          . "` WHERE `viewtext`='1' AND `alias`='$alias'")->hash;
-      return $item;
+        = $self->dbi->query("
+        SELECT * FROM texts_main_" . $self->lang . "
+        WHERE `viewtext`='1' AND `alias`='$alias'")->hash;
+
+      return $self->stash->{'_page_' . $alias} = $item;
     }
   );
 
   $app->helper(
     text_by_alias => sub {
       my $self = shift;
-      my $alias = shift || return;
 
-      if (
-        my $item = $self->app->dbi->query(
-              "SELECT `text` FROM `texts_main_"
-            . $self->lang
-            . "` WHERE `viewtext`='1' AND `alias`='$alias'"
-        )->hash
-        )
-      {
-        return $item->{text};
+      if( my $page = $self->text_page_by_alias(@_) ){
+        return $page->{'text'};
       }
-      return;
     }
   );
 
