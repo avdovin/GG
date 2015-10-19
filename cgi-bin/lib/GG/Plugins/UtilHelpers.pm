@@ -249,7 +249,7 @@ sub register {
   $app->helper(
     text_page_by_alias => sub {
       my $self = shift;
-      return unless my $alias = shift || $self->stash->{alias};
+      return unless my $alias = shift // $self->stash->{alias};
 
       return $self->stash->{'_page_' . $alias}
         if defined $self->stash->{'_page_' . $alias};
