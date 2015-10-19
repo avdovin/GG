@@ -242,7 +242,7 @@ sub save {
 
   if ($self->save_info(table => $self->stash->{list_table})) {
 
-    $self->app->vars = undef;
+    $self->app->vars({});
     $self->loadVars();
 
     if ($params{restore}) {
