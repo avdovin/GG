@@ -467,10 +467,9 @@ sub register {
       my @list_keys = split(/,/, $lkey_settings->{table_fields});
       my (@table_list_keys, @table_list_keys_header);
 
-      unless ($lkey_settings->{table_noindex}) {
-        push(@table_list_keys,        "`$lkey_dop_table`.`ID`");
-        push(@table_list_keys_header, "ID");
-      }
+      push @table_list_keys, "`$lkey_dop_table`.`ID`";
+      
+      push @table_list_keys_header, 'ID' unless $lkey_settings->{table_noindex};
 
       my $sch           = 1;
       my @list_from_key = ();
