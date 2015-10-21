@@ -696,7 +696,7 @@ sub _parseLkeySettings {
 package Lkey;
 
 use utf8;
-use base 'Mojo::Base';
+use Mojo::Base -base;
 
 __PACKAGE__->attr(access => sub { shift->{access} });
 
@@ -724,11 +724,8 @@ sub new {
 
 package Button;
 
-use strict;
-use warnings;
 use utf8;
-
-use base 'Mojo::Base';
+use Mojo::Base -base;
 
 __PACKAGE__->attr(access => sub { shift->{access} });
 

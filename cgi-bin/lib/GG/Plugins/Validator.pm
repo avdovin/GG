@@ -63,6 +63,9 @@ sub register {
         elsif ($type eq 'pict') {
           $valid_params->{$k} = $self->check_string(%$settings, value => $v);
         }
+        elsif ($type eq 'videolink') {
+          $valid_params->{$k} = $self->check_videolink(%$settings, value => $v);
+        }
         elsif ($type eq 'file') {
           $valid_params->{$k} = $self->check_filename(%$settings, value => $v);
         }
@@ -149,6 +152,18 @@ sub register {
   $app->helper(check_formatted_text  => \&_check_formatted_text);
   $app->helper(check_no_tag          => \&_check_no_tag);
   $app->helper(check_html            => \&_check_html);
+  $app->helper(check_videolink       => \&_check_videolink);
+}
+
+sub _check_videolink{
+  my $self = shift;
+  my %settings = @_ % 2 ? (value => shift, @_) : @_;
+
+  return '' unless my $value = delete $settings{value};
+
+  $value =~ s/.+v=(\w+).+/$1/i; # youtube
+
+  return $value;
 }
 
 sub _check_float {

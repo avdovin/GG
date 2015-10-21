@@ -30,6 +30,7 @@ my $templates = {
     file     => "field_file",
     filename => "field_file",
     filesize => "field_input_read",
+    videolink => "field_videolink",
     table    => "field_table"
   },
   r => {
@@ -55,6 +56,7 @@ my $templates = {
     file     => "field_file_read",
     filename => "field_input_read",
     filesize => "field_input_read",
+    videolink => "field_input_read",
     table    => "field_table"
   },
   f => {
@@ -80,6 +82,7 @@ my $templates = {
     file     => "field_file_filter",
     filename => "field_input_filter",
     filesize => "field_input_filter",
+    videolink => "field_input_filter",
     table    => "tabledop_container_filter"
   }
 };
