@@ -38,7 +38,7 @@
 %			$class = $class eq 'odd' ? 'even' : 'odd';
 %			$self->stash->{anketa_ok} = 1;
 			<%== include $lk->{settings}->{template_dir_w}.$lk->{settings}->{template_w}, key => $_, class => $class, lkey => $lk, value => $self->stash->{anketa}->{$_}, index => $self->stash->{index} || '' =%>
-%		}	
+%		}
 %	}
 	<% unless($self->stash->{anketa_ok}){ %><h3>В данной группе полей для редактирования нет</h3><% } %>
 </table>
@@ -48,7 +48,7 @@
   <td align=center>
     <br />
     <% if($self->stash->{anketa_ok}){ %>
-      <input id="submit_win<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_win<%= $replaceme %><%= $self->stash->{index} %>', '<%= $self->stash->{controller_url} %>'); return false;" value="Сохранить данные" class="submit_save" style="width:90%">
+      <input id="submit_win<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_win<%= $replaceme %><%= $self->stash->{index} %>', '<%= $self->stash->{controller_url} %>'); return false;" value="Сохранить данные" class="btn btn-block btn-lg btn-info" style="width:90%">
     <% } %>
   </td>
 </tr>
@@ -59,7 +59,7 @@
     enableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
         document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = false;
     }
-    
+
     disableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
         document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = true;
     }
@@ -69,4 +69,3 @@
 </script>
 
 </div>
-

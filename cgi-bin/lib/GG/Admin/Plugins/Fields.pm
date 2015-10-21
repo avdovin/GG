@@ -323,6 +323,7 @@ sub register {
 
       my $controller = $self->param('replaceme');
       $controller = $1 if $controller =~ /^([^_]+)/;
+      $controller =~ s{\d+$}{}gi;
 
       return unless $self->def_program($controller);
 
@@ -341,12 +342,13 @@ sub register {
         controller => $controller
       ) || 1;
 
-
       $self->stash->{not_init}         = 1;
       $self->stash->{dop_table_reload} = 1;
       $self->stash->{key}              = $self->stash->{lfield};
-      $self->stash->{lkey} = $self->lkey(name => $self->stash->{lfield},
-        controller => $controller);
+      $self->stash->{lkey} = $self->lkey(
+        name => $self->stash->{lfield},
+        controller => $controller
+      );
       $self->stash->{class} = '';
 
       $self->restore_doptable;

@@ -40,7 +40,7 @@
 %			$class = $class eq 'odd' ? 'even' : 'odd';
 %			$self->stash->{anketa_ok} = 1;
 			<%== include $lk->{settings}->{template_dir_w}.$lk->{settings}->{template_w}, key => $_, class => $class, lkey => $lk, value => $self->stash->{anketa}->{$_}, index => $self->stash->{index} || '' =%>
-%		}	
+%		}
 %	}
 	<% unless($self->stash->{anketa_ok}){ %><h3>В данной группе полей для редактирования нет</h3><% } %>
 </table>
@@ -51,7 +51,7 @@
   <td align=left width=150>
   <% if($group>1 and $group<=$group_index){ %>
   <p style="text-align:right"><img src="/admin/img/icons/menu/icon_prev.gif" align="absMiddle"> <a href="#" onClick="ld_content('replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>?<%= $self->stash->{param_default} %>&index=<%= $index %>&do=edit&group=<%= $group - 1 %>&dop_table=<%= $self->stash->{dop_table} %>&lfield=<%= $self->stash->{lfield} %>')">предыдущая</a></p><% } %></td>
-  <td align=center><br /><% if($self->stash->{anketa_ok}){ %><input id="submit_dop<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>'); return false;" value="Сохранить данные" class="submit_save" style="width:90%"><% } %></td>
+  <td align=center><br /><% if($self->stash->{anketa_ok}){ %><input id="submit_dop<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>'); return false;" value="Сохранить данные" class="btn btn-block btn-lg btn-info" style="width:90%"><% } %></td>
   <td align=right width=150><% if($group<$group_index-1 and $index){ %>
   <p style="text-align:left"><a href="#" onClick="ld_content('replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>?<%= $self->stash->{param_default} %>&index=<%= $index %>&do=edit&group=<%= $group+1 %>&dop_table=<%= $self->stash->{dop_table} %>&lfield=<%= $self->stash->{lfield} %>')">следующая</a> <img src="/admin/img/icons/menu/icon_next.gif" align="absMiddle"></p><% } %></td>
 </tr>

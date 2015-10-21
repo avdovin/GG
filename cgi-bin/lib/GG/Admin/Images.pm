@@ -9,16 +9,9 @@ sub _init {
 
   $self->def_program('images');
 
-  $self->get_keys(
-    type       => ['lkey', 'button'],
-    controller => $self->app->program->{key_razdel}
-  );
+  $self->get_keys(type => ['lkey', 'button'], controller => $self->app->program->{key_razdel});
 
-  my $config = {
-    controller_name => $self->app->program->{name},
-
-    #controller		=> 'keys',
-  };
+  my $config = {controller_name => $self->app->program->{name},};
   $self->stash->{img_razdel} = 'lst_images';
 
 #my $access_where = $self->def_access_where( base => $self->stash->{img_razdel}, show_empty => 0);
@@ -47,8 +40,7 @@ sub _init {
     $self->sysuser->save_settings(images_razdel => $self->stash->{razdel});
   }
 
-  $self->stash->{razdel} = $self->send_params->{razdel}
-    || $self->sysuser->settings->{'images_razdel'};
+  $self->stash->{razdel} = $self->send_params->{razdel} || $self->sysuser->settings->{'images_razdel'};
 
   if (
     !$self->stash->{key_razdel}
@@ -81,8 +73,7 @@ sub _init {
 
   unless ($self->send_params->{replaceme}) {
     $self->send_params->{replaceme} = $self->stash->{controller};
-    $self->stash->{replaceme}       = $self->send_params->{replaceme}
-      .= '_' . $self->stash->{list_table}
+    $self->stash->{replaceme} = $self->send_params->{replaceme} .= '_' . $self->stash->{list_table}
       if $self->stash->{list_table};
   }
 
@@ -101,25 +92,16 @@ sub _init {
 
 
   foreach (qw(list_table replaceme)) {
-    $self->param_default($_ => $self->send_params->{$_})
-      if $self->send_params->{$_};
+    $self->param_default($_ => $self->send_params->{$_}) if $self->send_params->{$_};
   }
 
   $self->stash->{replaceme} = $self->send_params->{replaceme};
   $self->stash->{lkey}      = $self->stash->{controller};
-  $self->stash->{lkey} .= '_' . $self->send_params->{list_table}
-    if $self->send_params->{list_table};
-  $self->stash->{script_link}
-    = '/admin/' . $self->stash->{controller} . '/body';
+  $self->stash->{lkey} .= '_' . $self->send_params->{list_table} if $self->send_params->{list_table};
+  $self->stash->{script_link} = '/admin/' . $self->stash->{controller} . '/body';
 
 
-  if (
-    $self->dbi->exists_keys(
-      table => $self->stash->{list_table},
-      lkey  => 'image_' . $self->stash->{key_razdel}
-    )
-    )
-  {
+  if ($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => 'image_' . $self->stash->{key_razdel})) {
     $self->stash->{dir_field} = 'image_' . $self->stash->{key_razdel};
   }
   else {
@@ -127,10 +109,14 @@ sub _init {
   }
 
   #Groupname
-  my $kr = $self->stash->{key_razdel};
-  $self->app->program->{groupname}
-    = $self->app->program->{settings}->{'groupname_' . $kr}
-    if ($kr && $self->app->program->{settings}->{'groupname_' . $kr});
+  my $kr         = $self->stash->{key_razdel};
+  my $list_table = $self->stash->{list_table};
+  if ($list_table && $program->{settings}->{'groupname_' . $list_table}) {
+    $self->app->program->{groupname} = $self->app->program->{settings}->{'groupname_' . $list_table};
+  }
+  elsif ($kr && $self->app->program->{settings}->{'groupname_' . $kr}) {
+    $self->app->program->{groupname} = $self->app->program->{settings}->{'groupname_' . $kr};
+  }
 
 }
 
@@ -155,10 +141,8 @@ sub body {
 sub changeRazdel {
   my $self = shift;
 
-  $self->sysuser->save_ses_settings(
-    images_razdel => $self->send_params->{razdel});
-  $self->sysuser->save_ses_settings(
-    $self->stash->{replaceme} . '_sfield' => 'ID');
+  $self->sysuser->save_ses_settings(images_razdel                         => $self->send_params->{razdel});
+  $self->sysuser->save_ses_settings($self->stash->{replaceme} . '_sfield' => 'ID');
 
   #$self->sysuser->save_settings(images_razdel => $self->send_params->{razdel});
   #$self->sysuser->save_settings($self->stash->{replaceme}.'_sfield' => 'ID');
@@ -175,24 +159,15 @@ sub zipimport {
 
   $self->param_default('list_table' => $self->stash->{list_table});
 
-  $self->define_anket_form(
-    template    => 'anketa_zipimport',
-    access      => 'w',
-    render_html => 1,
-    keys        => \@keys
-  );
+  $self->define_anket_form(template => 'anketa_zipimport', access => 'w', render_html => 1, keys => \@keys);
 }
 
 sub zipimport_save {
   my $self = shift;
 
-  my $files = $self->file_extract_zip(
-    path => $self->file_tmpdir . $self->send_params->{zip});
+  my $files = $self->file_extract_zip(path => $self->file_tmpdir . $self->send_params->{zip});
 
-  my $html = $self->render_to_string(
-    files    => $files,
-    template => 'Admin/Plugins/File/zipimport_img_node'
-  );
+  my $html = $self->render_to_string(files => $files, template => 'Admin/Plugins/File/zipimport_img_node');
 
   $self->render(json => {html => $html, count => scalar(@$files)});
 }
@@ -202,59 +177,33 @@ sub zipimport_save_pict {
 
   my $lfield = $self->send_params->{lfield};
 
-  if (
-    $self->file_save_pict(
-      filename => $self->send_params->{filename},
-      lfield   => $lfield,
-    )
-    )
-  {
+  if ($self->file_save_pict(filename => $self->send_params->{filename}, lfield => $lfield,)) {
     my $item_name = $self->send_params->{filename};
 
     $item_name =~ s/\.[^.]+$//gi;
 
-    my $vals
-      = {name => $self->send_params->{filename}, viewimg => 1, rating => 99,};
-    if (
-      $self->dbi->exists_keys(
-        from => $self->stash->{list_table},
-        lkey => "alias"
-      )
-      )
-    {
+    my $vals = {name => $self->send_params->{filename}, viewimg => 1, rating => 99,};
+    if ($self->dbi->exists_keys(from => $self->stash->{list_table}, lkey => "alias")) {
       $vals->{"alias"} = $self->check_unique_field(
         field => 'alias',
         value => $self->transliteration($item_name),
         table => $self->stash->{list_table}
       ) || '';
     }
-    if (
-      $self->dbi->exists_keys(
-        from => $self->stash->{list_table},
-        lkey => "image_" . $self->stash->{key_razdel}
-      )
-      )
-    {
-      $vals->{"image_" . $self->stash->{key_razdel}}
-        = $self->send_params->{'image_' . $self->stash->{key_razdel}} || 0;
+    if ($self->dbi->exists_keys(from => $self->stash->{list_table}, lkey => "image_" . $self->stash->{key_razdel})) {
+      $vals->{"image_" . $self->stash->{key_razdel}} = $self->send_params->{'image_' . $self->stash->{key_razdel}} || 0;
     }
 
-    $self->save_info(
-      table        => $self->stash->{list_table},
-      field_values => $vals
-    );
+    $self->save_info(table => $self->stash->{list_table}, field_values => $vals);
   }
 
   my $item
-    = $self->dbi->query("SELECT `pict`,`folder` FROM `"
-      . $self->stash->{list_table}
-      . "` WHERE `ID`='"
-      . $self->stash->{index}
-      . "'")->hash;
+    = $self->dbi->query(
+    "SELECT `pict`,`folder` FROM `" . $self->stash->{list_table} . "` WHERE `ID`='" . $self->stash->{index} . "'")
+    ->hash;
 
   my $folder = $self->lfield_folder(lfield => $lfield) || $item->{folder};
-  $self->render(
-    json => {filename => $item->{pict}, src => $folder . $item->{pict}});
+  $self->render(json => {filename => $item->{pict}, src => $folder . $item->{pict}});
 }
 
 
@@ -280,33 +229,20 @@ sub lists_select {
   }
 
   # Смотрим в разделах:
-  for my $item (
-    $self->dbi->query(
-      "SELECT `ID`,`name`,`key_razdel` FROM `lst_texts` WHERE $where")->hashes
-    )
-  {
+  for my $item ($self->dbi->query("SELECT `ID`,`name`,`key_razdel` FROM `lst_texts` WHERE $where")->hashes) {
     my $name = &def_name_list_select("Раздел: ", $item->{name});
     my $index = "$$item{key_razdel}:0";
-    $list_out
-      .= "lstobj[out].options[lstobj[out].options.length] = new Option('$name', '$index');\n"
-      if $name;
+    $list_out .= "lstobj[out].options[lstobj[out].options.length] = new Option('$name', '$index');\n" if $name;
 
     $sch++;
   }
 
   foreach my $l (@array_lang) {
-    for my $item (
-      $self->dbi->query(
-        "SELECT `ID`,`name` FROM `texts_main_${l}` WHERE $where")->hashes
-      )
-    {
-      my $name
-        = &def_name_list_select("Страница ($l): ", $item->{name});
+    for my $item ($self->dbi->query("SELECT `ID`,`name` FROM `texts_main_${l}` WHERE $where")->hashes) {
+      my $name = &def_name_list_select("Страница ($l): ", $item->{name});
 
       my $index = "$l:main:$$item{ID}";
-      $list_out
-        .= "lstobj[out].options[lstobj[out].options.length] = new Option('$name', '$index');\n"
-        if $name;
+      $list_out .= "lstobj[out].options[lstobj[out].options.length] = new Option('$name', '$index');\n" if $name;
 
       $sch++;
     }
@@ -344,8 +280,7 @@ sub save {
     if ($params{restore}) {
       $self->stash->{tree_reload} = 1;
       $self->save_logs(
-        name => 'Восстановление записи в таблице '
-          . $self->stash->{list_table},
+        name    => 'Восстановление записи в таблице ' . $self->stash->{list_table},
         comment => "Восстановлена запись в таблице ["
           . $self->stash->{index}
           . "]. Таблица "
@@ -367,8 +302,7 @@ sub save {
 
   if ($self->stash->{dop_table}) {
     $self->restore_doptable;
-    return $self->render(
-      json => {content => "OK", items => $self->init_dop_tablelist_reload(),});
+    return $self->render(json => {content => "OK", items => $self->init_dop_tablelist_reload(),});
   }
   return $self->edit;
 
@@ -407,8 +341,7 @@ sub edit {
   # Создание папки
   if ($params{dir}) {
     $self->stash->{page_name}
-      = "Создание новой папки в разделе «"
-      . $self->stash->{name_razdel} . "»";
+      = "Создание новой папки в разделе «" . $self->stash->{name_razdel} . "»";
     $self->param_default('dir' => $self->stash->{anketa}->{dir} = 1);
   }
 
@@ -441,20 +374,15 @@ sub list_container {
 
   $self->stash->{enter} = 1 if ($params{enter});
 
-  if (
-    $self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => "dir"))
-  {
+  if ($self->dbi->exists_keys(table => $self->stash->{list_table}, lkey => "dir")) {
     $self->def_context_menu(lkey => 'table_list_dir');
   }
   else {
     $self->def_context_menu(lkey => 'table_list');
   }
 
-  $self->stash->{listfield_groups_buttons} = {
-    delete => "удалить",
-    show   => 'публиковать',
-    hide   => 'скрыть'
-  };
+  $self->stash->{listfield_groups_buttons}
+    = {delete => "удалить", show => 'публиковать', hide => 'скрыть'};
 
   return $self->list_items(%params, container => 1);
 }
@@ -483,11 +411,9 @@ sub tree {
 
   $self->param_default('replaceme' => '');
 
-  my $folders = $self->getHashSQL(
-    from  => $self->stash->{img_razdel},
-    sys   => 1,
-    where => "1 " . $self->stash->{access_where},
-  ) || [];
+  my $folders
+    = $self->getHashSQL(from => $self->stash->{img_razdel}, sys => 1, where => "1 " . $self->stash->{access_where},)
+    || [];
 
   my @tmp = ();
   foreach (@$folders) {
@@ -496,13 +422,14 @@ sub tree {
     my $table = "images_" . $_->{key_razdel};
 
     push @tmp, {
+
       #ID            => $controller . $_->{ID},
       name          => $_->{name},
       param_default => "&list_table=" . $table . "&first_flag=1",
-      replaceme  => 'replaceme',            # $controller.$table,
-      tabname    => $table,
-      click_type => 'list',
-      params     => {razdel => $_->{ID}},
+      replaceme     => 'replaceme',                                 # $controller.$table,
+      tabname       => $table,
+      click_type    => 'list',
+      params        => {razdel => $_->{ID}},
       }
       if $self->sysuser->access->{table}->{$table}->{r};
   }
@@ -522,20 +449,14 @@ sub tree_block {
 
   if ($self->sysuser->access->{table}->{$table}->{r}) {
     my $select = "`ID`,`name`,`type_file`";
-    $select .= ", `dir` "
-      if $self->dbi->exists_keys(table => $table, lkey => "dir");
+    $select .= ", `dir` " if $self->dbi->exists_keys(table => $table, lkey => "dir");
 
     $items = $self->getHashSQL(
       select => $select,
       from   => $table,
-      where  => (
-        $self->stash->{dir_field}
-        ? "`" . $self->stash->{dir_field} . "`='$index' "
-        : " `ID`>0 "
-        )
+      where  => ($self->stash->{dir_field} ? "`" . $self->stash->{dir_field} . "`='$index' " : " `ID`>0 ")
         . " ORDER BY `dir` DESC, `created_at` DESC ",
-      )
-      || [];
+    ) || [];
 
     foreach my $i (0 .. $#$items) {
       my $item = $items->[$i];
@@ -544,10 +465,7 @@ sub tree_block {
         $items->[$i]->{flag_plus}  = 1;
         $items->[$i]->{replaceme}  = $controller;
         $items->[$i]->{click_type} = 'list_filtered';
-        $items->[$i]->{params}     = {
-          $self->stash->{dir_field} => $items->[$i]->{ID},
-          razdel                    => $self->stash->{razdel},
-        };
+        $items->[$i]->{params} = {$self->stash->{dir_field} => $items->[$i]->{ID}, razdel => $self->stash->{razdel},};
 
       }
       elsif ($item->{type_file}) {
@@ -557,27 +475,17 @@ sub tree_block {
         $items->[$i]->{icon} = 'image';
       }
 
-      $items->[$i]->{key_element} = $table;
-      $items->[$i]->{tabname}     = $table . $item->{ID};
-      $items->[$i]->{replaceme}
-        = $controller . '_' . $table . $items->[$i]->{ID};
-      $items->[$i]->{param_default}
-        = "&list_table=$table&replaceme=" . $items->[$i]->{replaceme};
+      $items->[$i]->{key_element}   = $table;
+      $items->[$i]->{tabname}       = $table . $item->{ID};
+      $items->[$i]->{replaceme}     = $controller . '_' . $table . $items->[$i]->{ID};
+      $items->[$i]->{param_default} = "&list_table=$table&replaceme=" . $items->[$i]->{replaceme};
     }
   }
 
   $self->render(
     json => {
-      content => $self->render_to_string(
-        items    => $items,
-        template => 'Admin/tree_elements'
-      ),
-      items => [
-        {
-          type  => 'eval',
-          value => "treeObj['" . $self->stash->{controller} . "'].initTree();"
-        },
-      ]
+      content => $self->render_to_string(items => $items, template => 'Admin/tree_elements'),
+      items => [{type => 'eval', value => "treeObj['" . $self->stash->{controller} . "'].initTree();"},]
     }
   );
 
