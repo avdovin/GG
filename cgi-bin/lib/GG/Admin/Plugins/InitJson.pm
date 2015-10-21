@@ -1,11 +1,10 @@
 package GG::Admin::Plugins::InitJson;
 
 use utf8;
-
+use Mojo::Parameters;
 use Mojo::Base 'Mojolicious::Plugin';
-use Mojo::URL;
 
-our $VERSION = '1';
+our $VERSION = '1.01';
 
 sub register {
   my ($self, $app, $opts) = @_;
@@ -592,16 +591,13 @@ sub register {
       my $main_url = $self->url_for('admin_routes', controller => 'main', action => 'body');
       my $items = [];
 
-      my $url = Mojo::URL->new;
-      $url->path($main_url);
-      $url->query({
-        do          => 'load_table',
-        replaceme   => $stash->{replaceme},
-        list_table  => $stash->{list_table},
-        access_flag => $stash->{access_flag},
-        index       => $stash->{index},
-        lfield      => $stash->{lfield},
-      });
+      my $qs = Mojo::Parameters->new();
+      $qs->append(do => 'load_table');
+      $qs->append(replaceme => $stash->{replaceme});
+      $qs->append(list_table => $stash->{list_table});
+      $qs->append(access_flag => $stash->{access_flag});
+      $qs->append(index => $stash->{index});
+      $qs->append(lfield => $stash->{lfield});
 
       if ($self->has_errors) {
 
@@ -612,7 +608,9 @@ sub register {
             . $stash->{replaceme}
             . $stash->{lfield}
             . $stash->{index} . "', '"
-            . $url
+            . $main_url
+            . '?'
+            . $qs->to_string
             . "');",
           };
         push @$items, {type => 'eval', value => "closeMessage(4);",};
@@ -627,7 +625,9 @@ sub register {
             . $stash->{replaceme}
             . $stash->{lfield}
             . $stash->{index} . "', '"
-            . $url
+            . $main_url
+            . '?'
+            . $qs->to_string
             . "');",
           };
         push @$items, {type => 'eval', value => "closeMessage(4);",};
