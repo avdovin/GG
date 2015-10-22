@@ -9,9 +9,11 @@
 	</td>
 	<td width="10px" id="_<%= $key %>"></td>
 	<td>
-		<input name='<%= $key %>'><%== $value || '' =%></input>
+		<input name="<%= $key %>" value="<%= $value || '' =%>" style="width:112px;" />
 		% if($value){
-			<img src="http://img.youtube.com/vi/<%= $value %>/default.jpg" alt="<%= $value %>"></img>
+			<a href="https://www.youtube.com/watch?v=<%= $value %>" target="_blank">
+				<img src="http://img.youtube.com/vi/<%= $value %>/hqdefault.jpg" style="display:block; width:116px; margin-top:10px;" alt="<%= $value %>" />
+			</a>
 		% }
 	</td>
 </tr>

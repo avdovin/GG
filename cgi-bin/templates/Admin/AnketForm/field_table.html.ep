@@ -225,6 +225,15 @@
 					%= $value
 				% }
 
+			% } elsif($t_type eq 'videolink'){
+				% if($item->{$header}){
+					<a href="https://www.youtube.com/watch?v=<%= lfield_folder( lfield => $header, tbl => $lkey->{settings}->{table} ) =%><%= $item->{$header} %>" target="_blank">
+						<img width="116" src="http://img.youtube.com/vi/<%= lfield_folder( lfield => $header, tbl => $lkey->{settings}->{table} ) =%><%= $item->{$header} %>/hqdefault.jpg" />
+					</a>
+				% } else {
+					<img border="0" src="/admin/img/no_img.png" alt="Нет картинки" />
+				% }
+
 			% } elsif($t_type eq 'pict'){
 				% if($item->{$header}){
 					<img width="100" src="<%= lfield_folder( lfield => $header, tbl => $lkey->{settings}->{table} ) =%><%= $item->{$header} %>" />

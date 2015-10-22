@@ -161,7 +161,7 @@ sub _check_videolink{
 
   return '' unless my $value = delete $settings{value};
 
-  $value =~ s/.+v=(\w+).+/$1/i; # youtube
+  $value =~ s/.+v=(\w+)/$1/i; # youtube
 
   return $value;
 }
