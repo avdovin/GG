@@ -28,7 +28,7 @@ sub register {
   $app->plugin('fields');
 
   my %defaults
-    = (namespace => 'GG::Admin', controller => 'global', cb => undef);
+    = (namespace => 'GG::Admin', controller => 'global', cb => undef, layout => undef);
 
   my $r = $app->routes;
 
