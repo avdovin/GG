@@ -238,8 +238,11 @@ sub register {
         }
       }
 
-      $self->req->url->base(Mojo::URL->new(q{/}));
-      $self->req->url->scheme($conf->{'protocol'});
+      my $url = Mojo::URL->new('/');
+      $url->host($conf->{'http_host'})  if $conf->{'http_host'};
+      $url->scheme($conf->{'protocol'}) if $conf->{'protocol'};
+
+      $self->req->url->base($url);
 
       foreach my $k (keys %{$conf->{pipeline_assets}}) {
         if ($conf->{pipeline}) {
