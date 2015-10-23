@@ -22,13 +22,10 @@ sub startup {
   my $r = $self->routes;
   $r->namespaces(['GG::Content']);
 
-  # значения по умолчанию для маршрутов
-  my %routes_args = (
-    handler => 'ep'
-    , # Тип шаблонозитора и соответсвенно файлов шаблона
-    controller_class => 'GG::Controller', # Папка с модулями
-    layout           => 'default',        # Скелет (layout) страниц
-  );
+  # значения по умолчанию
+  $self->defaults(layout => 'default');
+  $self->defaults(controller_class => 'GG::Controller');
+  $self->defaults(handler => 'ep');
 
   # check site availability
   $r->any("/ping")->to(cb => sub {
@@ -36,7 +33,6 @@ sub startup {
   });
 
   my $routes = $r->under()->to(
-    %routes_args,
     seo => $self->config->{'seo'},
     cb  => sub {
       my $self = shift;
@@ -92,7 +88,7 @@ sub startup {
     ->to('Catalog#list', admin_name => 'Продукция')
     ->name('catalog_list');
 
-  $routes->any('/')->to("Texts#text_main_item", alias => 'main', %routes_args)
+  $routes->any('/')->to("Texts#text_main_item", alias => 'main')
     ->name('main');
 
   $routes->any('/news/list')->to(
