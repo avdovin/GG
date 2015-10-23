@@ -23,14 +23,16 @@ sub startup {
   $r->namespaces(['GG::Content']);
 
   # значения по умолчанию
-  $self->defaults(layout => 'default');
+  $self->defaults(layout           => 'default');
   $self->defaults(controller_class => 'GG::Controller');
-  $self->defaults(handler => 'ep');
+  $self->defaults(handler          => 'ep');
 
   # check site availability
-  $r->any("/ping")->to(cb => sub {
-    return shift->render(text => 'pong');
-  });
+  $r->any("/ping")->to(
+    cb => sub {
+      return shift->render(text => 'pong');
+    }
+  );
 
   my $routes = $r->under()->to(
     seo => $self->config->{'seo'},
@@ -61,7 +63,8 @@ sub startup {
     cb     => sub {
 
       return 1;
-  });
+    }
+  );
   $routesCatalogAjax->route("/order/checkout")->to("Catalog#order_checkout");
   $routesCatalogAjax->any('/list_items')->to('Catalog#list_items');
   $routesCatalogAjax->any('/update_basket_items')
@@ -76,26 +79,24 @@ sub startup {
     ->name('catalog_basket_flush');
   $routesCatalog->any('/basket')->to('Catalog#basket')->name('catalog_basket');
 
-  $routesCatalog->any('/:category_alias/:subcategory_alias',
-    category_alias => $self->alias_re,
-    subcategory_alias => $self->alias_re)
-    ->to('Catalog#list')
-    ->name('catalog_list_by_sub_category');
-  $routesCatalog->any('/:category_alias')
-    ->to('Catalog#list')
+  $routesCatalog->any(
+    '/:category_alias/:subcategory_alias',
+    category_alias    => $self->alias_re,
+    subcategory_alias => $self->alias_re
+  )->to('Catalog#list')->name('catalog_list_by_sub_category');
+  $routesCatalog->any('/:category_alias')->to('Catalog#list')
     ->name('catalog_list_by_category');
   $routesCatalog->any('/')
     ->to('Catalog#list', admin_name => 'Продукция')
     ->name('catalog_list');
 
-  $routes->any('/')->to("Texts#text_main_item", alias => 'main')
-    ->name('main');
+  $routes->any('/')->to("Texts#text_main_item", alias => 'main')->name('main');
 
   $routes->any('/news/list')->to(
-      "Texts#texts_list",
-      alias      => 'news',
-      key_razdel => "news",
-      admin_name => 'Новости'
+    "Texts#texts_list",
+    alias      => 'news',
+    key_razdel => "news",
+    admin_name => 'Новости'
   )->name('news_list');
 
   $routes->any('/news/:list_item_alias', list_item_alias => $self->alias_re)
@@ -103,10 +104,10 @@ sub startup {
     ->name('news_item');
 
   $routes->any("/images")->to(
-      "Images#images_list",
-      key_razdel => 'gallery',
-      alias      => 'gallery',
-      admin_name => 'Фотогалерея'
+    "Images#images_list",
+    key_razdel => 'gallery',
+    alias      => 'gallery',
+    admin_name => 'Фотогалерея'
   )->name('gallery_dir_list');
 
   $routes->any("/images/:dir_alias", dir_alias => $self->alias_re)
@@ -118,9 +119,8 @@ sub startup {
   $routes->post('/faq')->to("Faq#list", alias => "faq", submit => 1)
     ->name('faq_submit');
 
-  $routes->any("/:alias", alias => $self->alias_re )
-    ->to("Texts#text_main_item", redirect_to_url_for => 1)
-    ->name('text');
+  $routes->any("/:alias", alias => $self->alias_re)
+    ->to("Texts#text_main_item", redirect_to_url_for => 1)->name('text');
 
   # subscribe
   $routes->any('/ajax/subscribe/add')->to("Subscribe#add_ajax");
