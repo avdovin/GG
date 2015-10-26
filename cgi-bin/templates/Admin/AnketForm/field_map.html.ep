@@ -1,0 +1,21 @@
+<tr>
+  <td class=edit width="150px" valign=top>
+    <%= $lkey->{name} %>
+  </td>
+  <td class=edit width="10px" valign=top>
+%   if($lkey->{settings}->{help}){
+    <a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+% }
+  </td>
+  <td width="10px"></td>
+  <td width="70%">
+
+  % my $replaceme = $self->stash->{replaceme}. '_' .$key;
+  %= hidden_field $key  => ( $value || '' , id => $replaceme);
+  %== field_map(lkey  => $lkey, key   => $key, value    => $value);
+  % if ( $lkey->access->{w} or $self->sysuser->sys ){
+  % stash('flag_map', 1);
+  <a href="#" onClick="if (confirm('Выбрать новую точку?')) displayMessage('<%= $self->stash->{controller_url} %>?do=change_map&replaceme=<%= $self->stash->{replaceme} %>&access_flag=<%= $access_flag %>&lfield=<%= $key %>&list_table=<%= stash 'list_table' %>&index=<%= $index %>', 780, 580, 4); return false;">выбрать новую точку</a>
+  % }
+  </td>
+</tr>

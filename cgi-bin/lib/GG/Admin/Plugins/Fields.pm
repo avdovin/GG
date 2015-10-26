@@ -15,6 +15,55 @@ sub register {
   $app->log->debug("register GG::Admin::Plugins::Fields");
 
   $app->helper(
+    field_map     => sub {
+      my $self = shift;
+      my %params = (
+        value     => '',
+        @_
+      );
+
+      my $lkey = $params{lkey};
+
+      my %link_settings = (
+        size    => '400x200',
+        zoom    => 10,
+        layout  => 'map',
+        center  => '59.9531,30.2454',
+        markstyle => ',pm2bll',
+        %{ $lkey->{settings} },
+      );
+
+      # обрежем центр если не указано другое
+      if ( !$lkey->{settings}->{center} and $params{value} ){
+        $link_settings{center} = $params{value};
+      }
+
+
+
+      $link_settings{size} =~ s/x/,/;
+
+      my $constructed_link  = 'https://static-maps.yandex.ru/1.x/?';
+      $constructed_link    .= 'll='       . $link_settings{center};
+      $constructed_link    .= '&size='    . $link_settings{size};
+      $constructed_link    .= '&z='       . $link_settings{zoom};
+      $constructed_link    .= '&l='       . $link_settings{layout};
+      $constructed_link    .= '&pt=';
+
+      return
+        $self->image(
+            $constructed_link.$params{value}.( $params{value} ? $link_settings{markstyle} : '' ) =>
+              (
+                id          => $self->stash->{replaceme}. '_' .$params{key}. '_img',
+                style       => 'display:' . ( $params{value} ? 'block;' : 'none;'),
+                'data-url'    => $constructed_link,
+                'data-markstyle' => $link_settings{markstyle},
+              )
+            )
+
+
+  });
+
+  $app->helper(
     field_url_for => sub {
       my $self   = shift;
       my %params = @_;

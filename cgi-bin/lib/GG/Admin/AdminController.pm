@@ -17,124 +17,120 @@ sub default_actions {
   my $self = shift;
   my $do   = shift;
 
-  given ($do) {
-    when ('list_container') { $self->list_container; }
-    when ('enter')          { $self->list_container(enter => 1); }
-    when ('list_items')     { $self->list_items; }
+  if    ( $do eq 'list_container' ) { $self->list_container; }
+  elsif ( $do eq 'enter')           { $self->list_container(enter => 1); }
+  elsif ( $do eq 'list_items')      { $self->list_items; }
 
-    when ('mainpage') { $self->mainpage; }
+  elsif ( $do eq 'mainpage')        { $self->mainpage; }
 
-    when ('add') { $self->edit(add => 1); }
-    when ('add_dir') { $self->edit(add => 1, dir => 1); }
-    when ('edit')             { $self->edit; }
-    when ('info')             { $self->info; }
-    when ('save')             { $self->save; }
-    when ('save_continue‎') { $self->save(continue => 1); }
-    when ('delete')           { $self->delete; }
-    when ('restore_change')   { $self->restore_change; }
-    when ('delete_change')    { $self->delete_change; }
-    when ('restore')          { $self->save(restore => 1); }
-    when ('link_to')          { $self->link_to; }
+  elsif ( $do eq 'add')             { $self->edit(add => 1); }
+  elsif ( $do eq 'add_dir')         { $self->edit(add => 1, dir => 1); }
+  elsif ( $do eq 'edit')            { $self->edit; }
+  elsif ( $do eq 'info')            { $self->info; }
+  elsif ( $do eq 'save')            { $self->save; }
+  elsif ( $do eq 'save_continue‎')   { $self->save(continue => 1); }
+  elsif ( $do eq 'delete')          { $self->delete; }
+  elsif ( $do eq 'restore_change')  { $self->restore_change; }
+  elsif ( $do eq 'delete_change')   { $self->delete_change; }
+  elsif ( $do eq 'restore')         { $self->save(restore => 1); }
 
-    when ('menu_button') {
-      $self->def_menu_button(
-        key        => $self->app->program->{menu_btn_key},
-        controller => $self->app->program->{key_razdel},
+  elsif ( $do eq 'link_to')         { $self->link_to; }
+  elsif ( $do eq 'change_map')      { $self->change_map; }
+
+  elsif ( $do eq 'menu_button')
+  {
+    $self->def_menu_button(
+      key        => $self->app->program->{menu_btn_key},
+      controller => $self->app->program->{key_razdel},
+    );
+  }
+
+  elsif( $do eq 'download')
+  {
+    if (
+      my $item = $self->getArraySQL(
+        from => $self->param('dop_table') || $self->stash->{list_table},
+        where => "`ID`='" . $self->stash->{index} . "'"
+      )
+      )
+    {
+      my $lfield = $self->param('dfield');
+      my $folder = $self->lkey(
+        name       => $lfield,
+        controller => $self->stash->{controller},
+        tbl        => $self->param('dop_table') || '',
+        setting    => 'folder'
       );
+      return $self->file_download(path => $folder . $item->{$lfield});
     }
+    return $self->render_not_found;
+  }
 
-    when ('download') {
-      if (
-        my $item = $self->getArraySQL(
-          from => $self->param('dop_table') || $self->stash->{list_table},
-          where => "`ID`='" . $self->stash->{index} . "'"
-        )
-        )
-      {
-        my $lfield = $self->param('dfield');
-        my $folder = $self->lkey(
-          name       => $lfield,
-          controller => $self->stash->{controller},
-          tbl        => $self->param('dop_table') || '',
-          setting    => 'folder'
-        );
-        return $self->file_download(path => $folder . $item->{$lfield});
+  elsif ( $do eq 'copy')                { $self->item_copy; }
+
+  elsif ( $do eq 'tree')                { $self->tree; }
+  elsif ( $do eq 'tree_block')          { $self->tree_block; }
+  elsif ( $do eq 'tree_reload')         { $self->tree_block; }
+
+  elsif ( $do eq 'lists_select')        { $self->lists_select; }
+
+  elsif ( $do eq 'sel_treeblock')       { $self->field_select_dir; }
+
+  elsif ( $do eq 'quick_view')          { $self->quick_view; }
+
+  elsif ( $do eq 'filter_take')         { $self->filter_take(render => 1); }
+  elsif ( $do eq 'filter')              { $self->filter_form; }
+  elsif ( $do eq 'filter_save')         { $self->filter_save; }
+  elsif ( $do eq 'filter_clear')        { $self->filter_clear(); $self->list_container(); }
+
+  elsif ( $do eq 'set_qedit')           { $self->set_qedit; }
+  elsif ( $do eq 'set_qedit_i')         { $self->set_qedit(info => 1); }
+  elsif ( $do eq 'save_qedit')          { $self->save_qedit; }
+  elsif ( $do eq 'save_qedit_i')        { $self->save_qedit; }
+
+  elsif ( $do eq 'delete_file')         { $self->field_delete_file(lfield => 'docfile'); }
+  elsif ( $do eq 'delete_pict')         { $self->field_delete_pict; }
+  elsif ( $do eq 'field_upload_swf')    { $self->field_upload_swf; }
+  elsif ( $do eq 'file_upload_tmp')     { $self->render(text => $self->file_upload_tmp); }
+
+  elsif ( $do eq 'zipimport')           { $self->zipimport; }
+  elsif ( $do eq 'zipimport_save')      { $self->zipimport_save; }
+  elsif ( $do eq 'zipimport_save_pict') { $self->zipimport_save_pict; }
+
+  elsif ( $do eq 'print')               { $self->print_choose; }
+  elsif ( $do eq 'print_anketa')        { $self->print_anketa; }
+
+  elsif ( $do eq 'chrazdel')            { $self->changeRazdel; $self->list_container;}
+
+  elsif ( $do eq 'chlang'){
+    $self->sysuser->save_ses_settings(lang => $self->stash->{lang});
+    $self->sysuser->save_ses_settings( $self->stash->{replaceme} . '_sfield' => 'ID' );
+
+    delete $self->lkey
+            (
+              name => 'razdel',
+              controller => $self->stash->{controller}
+            )->{list};
+
+    $self->render(
+      json => {
+        content => 'Изменение языковой версии',
+        items   => [
+          {
+            type  => 'eval',
+            value => "ld_content('"
+              . $self->stash->{replaceme} . "', '"
+              . $self->stash->{controller_url}
+              . "?do=list_container&"
+              . $self->stash->{param_default} . "')",
+          },
+        ]
       }
-      return $self->render_not_found;
-    }
+    )
+  }
 
-    when ('copy') { $self->item_copy; }
-
-    when ('tree')        { $self->tree; }
-    when ('tree_block')  { $self->tree_block; }
-    when ('tree_reload') { $self->tree_block; }
-
-    when ('lists_select') { $self->lists_select; }
-
-    when ('sel_treeblock') { $self->field_select_dir; }
-
-    when ('quick_view') { $self->quick_view; }
-
-    when ('filter_take') { $self->filter_take(render => 1); }
-    when ('filter')      { $self->filter_form; }
-    when ('filter_save') { $self->filter_save; }
-    when ('filter_clear') { $self->filter_clear(); $self->list_container(); }
-
-    when ('set_qedit')    { $self->set_qedit; }
-    when ('set_qedit_i')  { $self->set_qedit(info => 1); }
-    when ('save_qedit')   { $self->save_qedit; }
-    when ('save_qedit_i') { $self->save_qedit; }
-
-    when ('delete_file') { $self->field_delete_file(lfield => 'docfile'); }
-    when ('delete_pict') { $self->field_delete_pict; }
-    when ('field_upload_swf') { $self->field_upload_swf; }
-    when ('file_upload_tmp') { $self->render(text => $self->file_upload_tmp); }
-
-
-    # Загрузка архива
-    when ('zipimport')           { $self->zipimport; }
-    when ('zipimport_save')      { $self->zipimport_save; }
-    when ('zipimport_save_pict') { $self->zipimport_save_pict; }
-
-    when ('print')        { $self->print_choose; }
-    when ('print_anketa') { $self->print_anketa; }
-
-    when ('chrazdel') {
-      $self->changeRazdel;
-
-      $self->list_container;
-    }
-    when ('chlang') {
-      $self->sysuser->save_ses_settings(lang => $self->stash->{lang});
-      $self->sysuser->save_ses_settings(
-        $self->stash->{replaceme} . '_sfield' => 'ID');
-
-      delete $self->lkey(name => 'razdel',
-        controller => $self->stash->{controller})->{list};
-
-      $self->render(
-        json => {
-          content => 'Изменение языковой версии',
-          items   => [
-            {
-              type  => 'eval',
-              value => "ld_content('"
-                . $self->stash->{replaceme} . "', '"
-                . $self->stash->{controller_url}
-                . "?do=list_container&"
-                . $self->stash->{param_default} . "')",
-            },
-          ]
-        }
-        )
-
-        #$self->list_container;
-    }
-
-    default {
-      $self->render(text => "действие не определенно");
-    }
-
+  else {
+    $self->render(text => "действие не определенно");
   }
 }
 
@@ -755,6 +751,23 @@ sub save_history {
   my $sql
     = "REPLACE INTO `sys_history` (`id_user`, `link`, `title`, `replaceme`, `created_at`) VALUES (?, ?, ?, ?, NOW())";
   my $sth = $self->dbh->do($sql, undef, $id_user, $link, $name, $replaceme);
+}
+
+sub change_map {
+  my $self = shift;
+
+  my %params = @_;
+
+  $self->define_anket_form
+    (
+      access        => 'w',
+      dop           => 1,
+      render_html   => 1,
+      table         => $self->param('list_table') || '',
+      index         => $self->param('index') || 0,
+      template      => 'Reload/field_map_reload',
+      keys          => [$self->param('lfield')],
+    );
 }
 
 sub delete_info {

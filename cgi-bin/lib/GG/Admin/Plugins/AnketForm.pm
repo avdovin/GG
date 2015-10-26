@@ -31,7 +31,8 @@ my $templates = {
     filename => "field_file",
     filesize => "field_input_read",
     videolink => "field_videolink",
-    table    => "field_table"
+    table    => "field_table",
+    map      => "field_map",
   },
   r => {
     slat     => "field_input_read",
@@ -57,7 +58,8 @@ my $templates = {
     filename => "field_input_read",
     filesize => "field_input_read",
     videolink => "field_input_read",
-    table    => "field_table"
+    table    => "field_table",
+    map      => 'field_map_read',
   },
   f => {
     slat     => "field_input_filter",
@@ -83,7 +85,8 @@ my $templates = {
     filename => "field_input_filter",
     filesize => "field_input_filter",
     videolink => "field_input_filter",
-    table    => "tabledop_container_filter"
+    table    => "tabledop_container_filter",
+    map      => "field_input_filter",
   }
 };
 
@@ -468,7 +471,7 @@ sub register {
       my (@table_list_keys, @table_list_keys_header);
 
       push @table_list_keys, "`$lkey_dop_table`.`ID`";
-      
+
       push @table_list_keys_header, 'ID' unless $lkey_settings->{table_noindex};
 
       my $sch           = 1;

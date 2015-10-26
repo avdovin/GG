@@ -376,6 +376,13 @@ sub register {
         };
       }
 
+      if($stash->{flag_map}) {
+        push @$items, {
+          type  => 'eval',
+          value => "load_script('https://api-maps.yandex.ru/2.1/?lang=ru_RU');",
+        }
+      }
+
       push @$items, {type => 'eval', value => "editFormInit('form_" . $stash->{replaceme} . "');",};
 
       # if new entry title = subtitle = Новая запись
