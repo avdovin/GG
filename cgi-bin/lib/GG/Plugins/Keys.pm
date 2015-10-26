@@ -450,25 +450,55 @@ sub register {
 
   $app->helper(
     button => sub {
-      my $self = shift;
-      my $args = ref $_[0] ? $_[0] : {@_};
+      my $self      = shift;
+      my $args    = ref $_[0] ? $_[0] : {@_};
 
-      my $lkeyName = $args->{name};
-      my $controller
-        = $args->{controller} || $self->stash->{controller} || return '';
+      my $buttonName = $args->{name};
+      my $controller = $args->{controller} || $self->stash->{controller} || return '';
 
-      return $self->app->buttons->{$controller} unless $lkeyName;
+      my $buttons = $self->app->buttons;
 
-      if ($self->app->buttons->{$controller}->{$lkeyName}) {
-        if ($args->{setting}) {
-          $self->app->buttons->{$controller}->{$lkeyName}->{$args->{setting}}
-            || '';
-        }
-        else {
-          $self->app->buttons->{$controller}->{$lkeyName};
+      return $self->app->buttons->{$controller} unless $buttonName;
+
+      if($self->app->buttons->{$controller}->{$buttonName}){
+
+        if(my $list_table = $args->{'tbl'} || $self->stash->{list_table}){
+
+          my $button = ($buttons->{$controller}->{_tbl}->{$list_table} &&
+                $buttons->{$controller}->{_tbl}->{$list_table}->{$buttonName}) ?
+                $buttons->{$controller}->{_tbl}->{$list_table}->{$buttonName} :
+                $buttons->{$controller}->{$buttonName};
+
+
+          if($args->{setting}){
+            if($button->{ $args->{setting} } ){
+              return $button->{ $args->{setting} } ;
+
+            } elsif($button->{settings}->{ $args->{setting} } ){
+              return $button->{settings}->{ $args->{setting} }
+            }
+            return '';
+          }
+
+          return $button
+
+        } else {
+          if($args->{setting}){
+
+            if($buttons->{$controller}->{$buttonName}->{$args->{setting}}){
+              return $buttons->{$controller}->{$buttonName}->{$args->{setting}};
+
+            } elsif($buttons->{$controller}->{$buttonName}->{settings}->{ $args->{setting} }){
+              return $buttons->{$controller}->{$buttonName}->{settings}->{ $args->{setting} }
+            }
+            return '';
+
+          } else {
+
+            return $buttons->{$controller}->{$buttonName};
+          }
         }
       }
-
     }
   );
 
@@ -620,48 +650,38 @@ sub register {
   );
 }
 
-sub _parseLkeys {
-  my %params = @_;
+sub _parseLkeys{
+  my %params  = @_;
 
-  my $app        = delete $params{app};
+  my $app = delete $params{app};
   my $controller = delete $params{controller};
-  my $lkeys      = delete $params{lkeys};
+  my $lkeys   = delete $params{lkeys};
 
-  unless ($app->buttons->{$controller}) {
+  unless($app->buttons->{$controller}){
     $app->buttons->{$controller} = {};
+    $app->buttons->{$controller}->{_tbl} = {};
   }
-  unless ($app->lkeys->{$controller}) {
+  unless($app->lkeys->{$controller}){
     $app->lkeys->{$controller} = {};
     $app->lkeys->{$controller}->{_tbl} = {};
   }
 
-  foreach my $dbKey (@$lkeys) {
+  foreach my $dbKey (@$lkeys){
 
     my $lkey = _parseLkeySettings($dbKey);
 
-    if ($lkey->{object} eq 'lkey') {
+    my $object = $lkey->{object} eq 'lkey' ? Lkey->new( $lkey ) : Button->new( $lkey );
 
-      $lkey = Lkey->new($lkey);
-      $lkey->access->{r} = 1;
+    $object->access->{r} = 1;
+    my $storage = $lkey->{object} eq 'lkey' ? $app->lkeys : $app->buttons;
 
-      if ($lkey->{tbl}) {
-        $app->lkeys->{$controller}->{_tbl}->{$lkey->{tbl}}->{$lkey->{lkey}}
-          = $lkey
-
-      }
-      else {
-
-        $app->lkeys->{$controller}->{$lkey->{lkey}} = $lkey;
-      }
-
-
+    if($lkey->{tbl}){
+      $storage->{$controller}->{_tbl}->{$lkey->{tbl}}->{$lkey->{lkey}} = $object;
+      $storage->{$controller}->{$lkey->{lkey}} ||= $object;
+    } else {
+      $storage->{$controller}->{$lkey->{lkey}} = $object;
     }
-    elsif ($lkey->{object} eq 'button') {
-      my $button = Button->new($lkey);
-      $button->access->{r} = 1;
-      $app->buttons->{$controller}->{$lkey->{lkey}} = $button;
 
-    }
   }
 }
 

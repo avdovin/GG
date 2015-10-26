@@ -1461,11 +1461,12 @@ sub getHashSQL {
   return;
 }
 
-sub def_context_menu {
-  my $self   = shift;
+sub def_context_menu{
+  my $self = shift;
   my %params = @_;
 
-  my $lkey    = delete $params{lkey};
+  my $lkey = delete $params{lkey};
+
   my $buttons = $self->button;
 
   my $context_menu = "";
@@ -1476,32 +1477,24 @@ sub def_context_menu {
   my $access_buttons = $self->sysuser->access->{button} || {};
   my $user_sys = $self->sysuser->sys;
 
-  foreach my $key (
-    sort { $$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating} }
-    keys %$buttons
-    )
-  {
-# копировани объектов доступно только для уже сохранненой карточки
-    next if ($key eq 'copy' && !$self->stash->{index});
+  foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} keys %$buttons) {
+    # копировани объектов доступно только для уже сохранненой карточки
+    next if(($key eq 'copy' && !$self->stash->{index})); #or grep($_ eq $key, @added_buttons));
 
-    my $button = $$buttons{$key};
+    my $button = $self->button(name => $key);
 
-    next
-      if (!$$button{settings}{$lkey}
-      or (!$access_buttons->{$key}->{r} and !$user_sys));
+    next if ($button->{tbl} and $button->{tbl} ne $self->stash->{list_table});
+    next if (!$$button{settings}{$lkey} or (!$access_buttons->{$key}->{r} and !$user_sys));
 
     $button->def_params_button($stash);
     $button->def_script_button($stash);
 
-    $context_menu .= $self->render_to_string(
-      template => 'Admin/anchor_html',
-      button   => $button
-    );
+    $context_menu .= $self->render_to_string( template => 'Admin/anchor_html', button => $button);
+
   }
 
   return $self->stash->{context_menu} = $context_menu;
 }
-
 sub def_menu_button {
   my $self     = shift;
   my %params   = (controller => 'global', @_);
