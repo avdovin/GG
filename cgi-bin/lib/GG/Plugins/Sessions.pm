@@ -143,7 +143,7 @@ sub register {
   my $user_loader_sub = sub {
     my $c = shift;
 
-    return if $c->req->url->path->[0] eq 'admin';
+    return if $c->req->url->path->[0] =~ /(admin|packed)/;
 
     if (my $cck = $c->session($session_key)) {
       if (my $user = $load_user_cb->($c, $cck)) {
