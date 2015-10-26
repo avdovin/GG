@@ -510,6 +510,9 @@ sub _check_decimal {
 
   $settings{round} ||= 2;
 
+  $settings{min} ||= $settings{minimum};
+  $settings{max} ||= $settings{maximum};
+
   if ($settings{min} && $value && $value < $settings{min}) {
     $value = $settings{min};
     $self->stash->{errors}
