@@ -10,45 +10,6 @@
 	<td width="10px" id="<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
 	<td>
 		<textarea name='<%= $key %>' class="textarea" <% if($lkey->{settings}->{required}){%>required<% } %> id="code<%= $index %>"><%== $value || '' =%></textarea>
-
-		<span>
-			<p>Основные настройки для объекта=ключ:</p>
-			<dl>
-				<dt>type*</dt>
-				<dd>тип поля (s/slat/list/tlist/email)</dd>
-				<dt>rating*</dt>
-				<dd>порядок сортировки полей, по возрастанию (нр: rating=99)</dd>
-				<dt>fileview</dt>
-				<dd>показывать поле при редактирование НЕ папки  (по умолчанию, нр: fileview=1)</dd>
-				<dt>dirview</dt>
-				<dd>показывать поле при редактирование папки (нр: dirview=1)</dd>
-				<dt>required</dt>
-				<dd>поле будет обязательным для заполнения (нр: required=1)</dd>
-				<dt>filter</dt>
-				<dd>показывать поле в фильтре (нр: filter=1)</dd>
-				<dt>table_list</dt>
-				<dd>показывать в списке, поля сортируются по значению (нр: table_list=3)</dd>
-				<dt>table_list_name</dt>
-				<dd>название колонки в списке (нр: table_list_name=Название поля)</dd>
-				<dt>table_list_width</dt>
-				<dd>ширина колонки в списке в пикселях (нр: table_list_width=150)</dd>
-				<dt>group</dt>
-				<dd>вкладка на которой выводить поле (нр: group=2)</dd>
-				<dt>qedit</dt>
-				<dd>разрешить быстрое редактирование для поля (нр: qedit=1)</dd>
-				<dt>qview</dt>
-				<dd>показывать в карточке быстрого просмотра (нр: qview=1)</dd>
-				<dt>template_r</dt>
-				<dd>названия шаблона для чтения</dd>
-				<dt>template_w</dt>
-				<dd>названия шаблона для редактирования</dd>
-				<dt>sys</dt>
-				<dd>системное поле, не будет отображаться в карточке (нр: sys=1)</dd>
-				<dt>rules</dt>
-				<dd>автоподгрузка зависимых выподающих списков
-					(нр: rules=id_city:lst_city.id_country=index)
-				</dd>
-			</dl>
-		</span>
+		%== link_to 'Документация по ключам' => 'https://github.com/romkaspb/GG/wiki/%D0%9A%D0%BB%D1%8E%D1%87%D0%B8' => (target => '_blank')
 	</td>
 </tr>
