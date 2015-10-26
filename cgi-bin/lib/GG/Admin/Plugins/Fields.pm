@@ -29,7 +29,7 @@ sub register {
         zoom    => 10,
         layout  => 'map',
         center  => '59.9531,30.2454',
-        markstyle => ',pm2bll',
+        markstyle => 'pm2bll',
         %{ $lkey->{settings} },
       );
 
@@ -41,6 +41,7 @@ sub register {
 
 
       $link_settings{size} =~ s/x/,/;
+      $link_settings{markstyle} = ','.$link_settings{markstyle};
 
       my $constructed_link  = 'https://static-maps.yandex.ru/1.x/?';
       $constructed_link    .= 'll='       . $link_settings{center};
