@@ -511,8 +511,22 @@ function parse_data_to_table(id, ajaxIndex) {
         } else if(lkey_type=='date' && td_str[lkey_name]){
           var parts = td_str[lkey_name].split('-');
           jQuery(td).text( parts[2]+'.'+parts[1]+'.'+parts[0] );
+
+        } else if(lkey_type=='videolink'){
+    			if(td_str[lkey_name]){
+    				jQuery(td).html('<a href="https://www.youtube.com/watch?v='+td_str[lkey_name]+'" target="_blank"><img width="116" src="http://img.youtube.com/vi/'+td_str[lkey_name]+'/hqdefault.jpg" /></a>');
+    			} else{
+    				var img = new Image();
+    				img.src = '/admin/img/no_img.png';
+    				jQuery(img).css('width', '64px');
+    				jQuery(img).css('height', '64px');
+    				jQuery(td).append(img);
+    				jQuery(td).css("text-align", 'center');
+    			}
+
         } else{
           jQuery(td).html( td_str[lkey_name] );
+
         }
         jQuery(tr).append(td);
       };
