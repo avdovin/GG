@@ -162,25 +162,31 @@ sub register {
         }
       }
 
-      # --- SEO 301 redirect to none www domain ---------
-      my $url = $self->req->url->clone;
-      my $host = $url->base->host || '';
 
-      if (!$conf->{'www_prefix'} && $host =~ /^www\./
-        or $conf->{'www_prefix'} && $host !~ /^www\./)
-      {
-        $host =~ s{^www\.}{};
+      if(defined $conf->{'www_prefix'}){
+        # --- SEO 301 redirect to none www domain ---------
 
-        $url->base->host($host);
-        my $res = $self->res;
-        $res->code(301);
-        $res->headers->location($url->to_abs);
-        $res->headers->content_length(0);
-        $self->rendered;
-        return;
+        my $url = $self->req->url->clone;
+        my $host = $url->base->host || '';
+        my $redirect;
+
+        if( !$conf->{'www_prefix'} && $host =~ /^www\./ ){
+          $host =~ s{^www\.}{}; $redirect = 1;
+        }
+        elsif( $conf->{'www_prefix'} && $host !~ /^www\./ ){
+          $host = 'www.'.$host; $redirect = 1;
+        }
+
+        if( $redirect ){
+          $url->base->host($host);
+          my $res = $self->res;
+          $res->code(301);
+          $res->headers->location($url->to_abs);
+          $res->headers->content_length(0);
+          $self->rendered;
+          return;
+        }
       }
-
-      # --- END OF SEO MODULE --------------------------
 
       # If not morbo server
       unless ($ENV{IS_MORBO}) {
@@ -226,7 +232,8 @@ sub register {
         if (keys %{$send_params} && !$self->req->json) {
           print GREEN "============INPUT PARAMS============\n";
           foreach (sort keys %{$send_params}) {
-            next if $_ ~~ qw(csrf_token);
+            next if $_ eq 'csrf_token';
+
             my $l = length($_);
             my $t = "\t" x ($l < 5 ? 3 : $l < 13 ? 2 : 1);
             print MAGENTA "   $_$t";
