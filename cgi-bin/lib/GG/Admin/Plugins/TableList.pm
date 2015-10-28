@@ -24,26 +24,14 @@ sub register {
       my $table = $params{table};
       my $lkey  = $params{lkey};
 
-      $self->def_tablelist_param(
-        key => "page",
-        lkey => $lkey,
-        default => 1
-      );
-      $self->def_tablelist_param(
-        key => "pcol",
-        lkey => $lkey,
-        default => 25
-      );
+      $self->def_tablelist_param(key => "page", lkey => $lkey, default => 1);
+      $self->def_tablelist_param(key => "pcol", lkey => $lkey, default => 25);
       $self->def_tablelist_param(
         key     => "sfield",
         lkey    => $lkey,
         default => 'ID'
       );
-      $self->def_tablelist_param(
-        key => "asc",
-        lkey => $lkey,
-        default => 'asc'
-      );
+      $self->def_tablelist_param(key => "asc", lkey => $lkey, default => 'asc');
       $self->def_tablelist_param(
         key     => "qsearch",
         lkey    => $lkey . '_filter',
@@ -120,8 +108,7 @@ sub register {
       if ($params{container}) {
 
         if (  !$self->sysuser->access->{table}->{$table}->{r}
-          and !$self->sysuser->sys)
-        {
+          and !$self->sysuser->sys) {
           $self->admin_msg_errors(
             "Доступ к разделу запрещен");
           $self->stash->{listfield_header} = [];
@@ -210,8 +197,7 @@ sub register {
                   if $lkey->{settings}->{table_list_folder};
                 if ( $lkey->{settings}->{mini}
                   && !$mini_prefix->{$v}
-                  && !$lkey->{settings}->{table_list_folder})
-                {
+                  && !$lkey->{settings}->{table_list_folder}) {
                   my @first_mini = split(',', $lkey->{settings}->{mini});
                   $first_mini[0] =~ s{~[\w]+$}{};
                   $folder .= $mini_prefix->{$v} = $first_mini[0] . '_';
@@ -219,11 +205,10 @@ sub register {
 
                 $folders->{$v} = $folder;
               }
-              $item->{$v} = $lkey->{settings}->{remote}
-                            ?
-                              $item->{ $v }
-                            :
-                              $folders->{ $v } . $item->{ $v };
+              $item->{$v}
+                = $lkey->{settings}->{remote}
+                ? $item->{$v}
+                : $folders->{$v} . $item->{$v};
 
             }
 
@@ -307,14 +292,12 @@ sub register {
               $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
                 or $a cmp $b
             } keys %$lkeys
-            )
-          {
+            ) {
             if ( $self->dbi->exists_keys(table => $list_table, lkey => $k)
               && ($lkeys_access->{$k}->{r} || $user_sys)
               && !$$lkeys{$k}{settings}{sys}
               && !exists $types{$$lkeys{$k}{settings}{type}}
-              && $$lkeys{$k}{settings}{table_list})
-            {
+              && $$lkeys{$k}{settings}{table_list}) {
               my $size = $$lkeys{$k}{settings}{table_list_width} || 100;
               $defcol .= $defcol ? ",$k~$size" : "$k~$size";
             }
@@ -330,17 +313,15 @@ sub register {
 
         foreach my $k (
           sort {
-            $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
+                 $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
               or $a cmp $b
           } keys %$lkeys
-          )
-        {
+          ) {
 
           if ( $self->dbi->exists_keys(table => $list_table, lkey => $k)
             && ($lkeys_access->{$k}->{r} || $user_sys)
             && !$$lkeys{$k}{settings}{sys}
-            && !exists $types{$$lkeys{$k}{settings}{type}})
-          {
+            && !exists $types{$$lkeys{$k}{settings}{type}}) {
             push @anketa_keys, $k;
           }
 
@@ -370,8 +351,7 @@ sub register {
           if ( $self->dbi->exists_keys(table => $list_table, lkey => $k)
             && ($lkeys_access->{$k}->{r} || $user_sys)
             && !$$lkeys{$k}{settings}{sys}
-            && !exists $types{$$lkeys{$k}{settings}{type}})
-          {
+            && !exists $types{$$lkeys{$k}{settings}{type}}) {
             push @anketa_keys, $k;
           }
         }
@@ -440,22 +420,19 @@ sub register {
 
       foreach my $k (
         sort {
-          $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
+               $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
             or $a cmp $b
         } keys %$lkeys
-        )
-      {
+        ) {
         if ( $self->dbi->exists_keys(from => $table, lkey => $k)
-          && $lkeys->{$k}->{settings}->{filter})
-        {
+          && $lkeys->{$k}->{settings}->{filter}) {
           if (!$self->stash->{$k}) {
             $user_set{$lkey . '_' . $k} = '';
           }
           else {
             if ( $lkeys->{$k}->{settings}->{type} eq 'date'
               || $lkeys->{$k}->{settings}->{type} eq 'datetime'
-              || $lkeys->{$k}->{settings}->{type} eq 'd')
-            {
+              || $lkeys->{$k}->{settings}->{type} eq 'd') {
               $user_set{$lkey . '_' . $k} = $self->stash->{$k};
               $user_set{$lkey . '_' . $k . 'pref'}
                 = $self->param($k . 'pref') || '=';
@@ -501,14 +478,12 @@ sub register {
 
       foreach my $k (
         sort {
-          $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
+               $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating}
             or $a cmp $b
         } keys %$lkeys
-        )
-      {
+        ) {
         if ( $self->dbi->exists_keys(from => $table, lkey => $k)
-          && $lkeys->{$k}->{settings}->{filter})
-        {
+          && $lkeys->{$k}->{settings}->{filter}) {
           if (!$lfield or ($lfield and $lfield eq $k)) {
             delete $self->sysuser->settings->{$lkey . '_' . $k};
             delete $self->sysuser->settings->{$lkey . '_' . $k . 'pref'}
@@ -538,15 +513,13 @@ sub register {
       foreach (0 .. $#{$default_buttons}) {
         if (  $default_buttons->[$_] eq 'edit'
           and !$self->sysuser->access->{table}->{$params{table}}->{w}
-          and !$user_sys)
-        {
+          and !$user_sys) {
           delete $default_buttons->[$_];
 
         }
         elsif ($default_buttons->[$_] eq 'delete'
           and !$self->sysuser->access->{table}->{$params{table}}->{d}
-          and !$user_sys)
-        {
+          and !$user_sys) {
           delete $default_buttons->[$_];
         }
 #
@@ -574,8 +547,7 @@ sub register {
       foreach (keys %$default_groups_buttons) {
         if (  $_ eq 'delete'
           and !$self->sysuser->access->{table}->{$params{table}}->{d}
-          and !$user_sys)
-        {
+          and !$user_sys) {
           delete $default_groups_buttons->{$_};
         }
       }
@@ -641,8 +613,7 @@ sub register {
             or ($type eq "d")
             or ($type eq "slat")
             or ($type eq "text")
-            or ($type eq "html"))
-          {
+            or ($type eq "html")) {
             push(@filter, "$keyf LIKE '%$v%'");
 
           }
@@ -673,8 +644,7 @@ sub register {
         !$user_settings->{$setting_key . '_qsearch'}
         || (  $user_settings->{$setting_key . '_qsearch'}
           and $user_settings->{$setting_key . '_take'})
-        )
-      {
+        ) {
 
         foreach my $key (%$lkeys) {
           my $lkey = $self->lkey(name => $key);
@@ -688,8 +658,7 @@ sub register {
             if ( ($lkey->{settings}->{type} eq "s")
               or ($lkey->{settings}->{type} eq "site")
               or ($lkey->{settings}->{type} eq "text")
-              or ($lkey->{settings}->{type} eq "html"))
-            {
+              or ($lkey->{settings}->{type} eq "html")) {
               $filter_string .= " AND ($keyf LIKE '%$v%' OR $keyf='$v')";
 
             }
@@ -700,8 +669,7 @@ sub register {
               )
               and ($lkey->{settings}->{list_type} eq 'checkbox'
                 or $lkey->{settings}->{mult})
-              )
-            {
+              ) {
               $filter_string
                 .= " AND ($keyf='$v' OR $keyf LIKE '$v=%' OR $keyf LIKE '%=$v=%' OR $keyf LIKE '%=$v')";
 
@@ -716,8 +684,8 @@ sub register {
             }
             elsif (($lkey->{settings}->{type} eq "date")
               or ($lkey->{settings}->{type} eq "datetime")
-              or ($lkey->{settings}->{type} eq "time"))
-            {
+              or ($lkey->{settings}->{type} eq "time")) {
+
               # if datetime convert to date
               $v = substr($v, 0, 10) if (length($v) > 10);
               next if ($v eq '0000-00-00');
@@ -814,8 +782,7 @@ sub register {
               <=> ($$lkeys{$b}{settings}{table_list} || 0)
               or $a cmp $b
           } keys %$lkeys
-          )
-        {
+          ) {
 
           my $lkey = $self->lkey(name => $k);
           if (
@@ -823,8 +790,7 @@ sub register {
             and $self->dbi->exists_keys(from => $params{table}, lkey => $k)
             and ($self->sysuser->access->{lkey}->{$k}->{r}
               || $self->app->sysuser->sys)
-            )
-          {
+            ) {
             push(@table_list_keys,        "`$params{table}`.`$k`");
             push(@table_list_keys_header, $k);
 
@@ -834,8 +800,7 @@ sub register {
                   table => $params{table},
                   lkey  => "folder"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`folder`");
               }
               if (
@@ -843,8 +808,7 @@ sub register {
                   table => $params{table},
                   lkey  => "type_file"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`type_file`");
               }
               if (
@@ -852,8 +816,7 @@ sub register {
                   table => $params{table},
                   lkey  => "width"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`width`");
               }
               if (
@@ -861,8 +824,7 @@ sub register {
                   table => $params{table},
                   lkey  => "height"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`height`");
               }
             }
@@ -892,8 +854,7 @@ sub register {
             ($self->dbi->exists_keys(table => $params{table}, lkey => $k))
             and ($self->sysuser->access->{lkey}->{$k}->{r}
               || $self->app->sysuser->sys)
-            )
-          {
+            ) {
             $lkey->{settings}->{table_list_width} = $size || 100;
             push(@table_list_keys,        "`$params{table}`.`$k`");
             push(@table_list_keys_header, $k);
@@ -904,8 +865,7 @@ sub register {
                   table => $params{table},
                   lkey  => "folder"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`folder`");
               }
               if (
@@ -913,8 +873,7 @@ sub register {
                   table => $params{table},
                   lkey  => "type_file"
                 )
-                )
-              {
+                ) {
                 push(@table_list_keys, "`$params{table}`.`type_file`");
               }
             }
@@ -959,8 +918,7 @@ sub register {
       if ($list_table && $index) {
 
         if (my $item
-          = $self->getArraySQL(from => $list_table, where => "`ID`='$index'"))
-        {
+          = $self->getArraySQL(from => $list_table, where => "`ID`='$index'")) {
           foreach (keys %$item) {
             my $lkey = $self->lkey(name => $_);
             delete $item->{$_} unless $lkey->{settings}->{qview};
@@ -995,6 +953,10 @@ sub register {
           table => $table,
           index => $index
         );
+      }
+      else {
+        my $valid_params = $self->validate({$sfield => $value});
+        $value = $valid_params->{$sfield};
       }
 
       if ($self->update_hash($table, {$sfield => $value}, "`ID`='$index'")) {

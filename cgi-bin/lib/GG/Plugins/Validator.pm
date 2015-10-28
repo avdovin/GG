@@ -35,9 +35,16 @@ sub register {
   $app->helper(
     validate => sub {
       my $self = shift;
-      my %params = (controller => '', @_);
+      my %params = (controller => '');
 
-      my $vals = $self->req->params->to_hash;
+      unless (@_ % 2) {
+        %params = (%params, vals => $self->req->params->to_hash, @_);
+      }
+      else {
+        $params{'vals'} = shift;
+      }
+
+      my $vals = delete $params{'vals'};
 
       my $valid_params = {};
       my $lkeys        = $self->lkey;
@@ -131,6 +138,8 @@ sub register {
 
       $self->stash->{index} = $self->stash->{ID} if $self->stash->{ID};
       $app->send_params($valid_params);
+
+      return $valid_params;
     }
   );
 
@@ -155,13 +164,13 @@ sub register {
   $app->helper(check_videolink       => \&_check_videolink);
 }
 
-sub _check_videolink{
+sub _check_videolink {
   my $self = shift;
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
 
   return '' unless my $value = delete $settings{value};
 
-  $value =~ s/.+v=(\w+)/$1/i; # youtube
+  $value =~ s/.+v=(\w+)/$1/i;    # youtube
 
   return $value;
 }
@@ -323,8 +332,7 @@ sub _check_date {
       and (($value =~ m/0000-00-00/) or ($value !~ m/\d\d\d\d-\d\d-\d\d/))
     )
     or (!$value)
-    )
-  {
+    ) {
     return "0000-00-00";
   }
 
@@ -375,8 +383,7 @@ sub _check_tlist {
       controller => $settings{controller},
       setting    => 'list'
     )
-    )
-  {
+    ) {
     $self->def_list(name => $lkey->{lkey}, controller => $settings{controller});
   }
   my $list = $self->lkey(
@@ -411,8 +418,7 @@ sub _check_list {
       controller => $settings{controller},
       setting    => 'list'
     )
-    )
-  {
+    ) {
     $self->def_list(name => $lkey->{lkey}, controller => $settings{controller});
   }
   my $list = $self->lkey(
@@ -433,13 +439,13 @@ sub _check_list {
   return join("=", sort @list_validated);
 }
 
-sub _check_filename{
-  my $self     = shift;
+sub _check_filename {
+  my $self = shift;
   my %settings = @_ % 2 ? (value => shift, @_) : @_;
-  return unless my $value    = delete $settings{value};
+  return unless my $value = delete $settings{value};
 
   $value =~ s/^\s+|\s+$//g;
-  $value =~ s{^.*(\\|\/)}{}gi; # get only the filename, not the whole path
+  $value =~ s{^.*(\\|\/)}{}gi;       # get only the filename, not the whole path
   $value =~ s{[^0-9A-Za-z.\-]}{_}gi; # # Strip out the non-ascii character
 
   return $value;
@@ -615,8 +621,7 @@ sub _check_html {
       while (my $token = $stream->get_token) {
         if (  $token->[0] eq "S"
           and $token->[1] eq "img"
-          and $token->[2]{class} eq "FCK__Flash")
-        {
+          and $token->[2]{class} eq "FCK__Flash") {
           my %params;
           foreach my $k (keys %{$token->[2]}) {
             if ($k =~ m/_flash_/) {
