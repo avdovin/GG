@@ -79,11 +79,9 @@ sub startup {
     ->name('catalog_basket_flush');
   $routesCatalog->any('/basket')->to('Catalog#basket')->name('catalog_basket');
 
-  $routesCatalog->any(
-    '/:category_alias/:subcategory_alias',
-    category_alias    => $self->alias_re,
-    subcategory_alias => $self->alias_re
-  )->to('Catalog#list')->name('catalog_list_by_sub_category');
+  $routesCatalog->any('/:category_alias/:subcategory_alias',
+    [category_alias => $self->alias_re, subcategory_alias => $self->alias_re])
+    ->to('Catalog#list')->name('catalog_list_by_sub_category');
   $routesCatalog->any('/:category_alias')->to('Catalog#list')
     ->name('catalog_list_by_category');
   $routesCatalog->any('/')
@@ -99,7 +97,7 @@ sub startup {
     admin_name => 'Новости'
   )->name('news_list');
 
-  $routes->any('/news/:list_item_alias', list_item_alias => $self->alias_re)
+  $routes->any('/news/:list_item_alias', [list_item_alias => $self->alias_re])
     ->to("Texts#text_list_item", alias => 'news', key_razdel => "news")
     ->name('news_item');
 
@@ -110,7 +108,7 @@ sub startup {
     admin_name => 'Фотогалерея'
   )->name('gallery_dir_list');
 
-  $routes->any("/images/:dir_alias", dir_alias => $self->alias_re)
+  $routes->any("/images/:dir_alias", [dir_alias => $self->alias_re])
     ->to("Images#images_list", key_razdel => 'gallery', alias => 'gallery')
     ->name('gallery_items_list');
 
@@ -119,7 +117,7 @@ sub startup {
   $routes->post('/faq')->to("Faq#list", alias => "faq", submit => 1)
     ->name('faq_submit');
 
-  $routes->any("/:alias", alias => $self->alias_re)
+  $routes->any("/:alias", [alias => $self->alias_re])
     ->to("Texts#text_main_item", redirect_to_url_for => 1)->name('text');
 
   # subscribe
