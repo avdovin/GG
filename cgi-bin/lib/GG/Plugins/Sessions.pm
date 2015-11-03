@@ -15,17 +15,22 @@ sub register {
 
   $conf ||= {};
 
-  my $stash_key         = $conf->{'stash_key'}         || '__authentication__';
-  my $autoload_user     = $conf->{'autoload_user'}     || 1;
-  my $session_key       = $conf->{'session_key'}       || 'auth_data';
-  my $anonymous_session = $conf->{'anonymous_session'} || 1;
-  my $merge_userdata    = $conf->{'merge_userdata'}    || 1;
+  my $stash_key         = $conf->{'stash_key'}          || '__authentication__';
+  my $autoload_user     = $conf->{'autoload_user'}      || 1;
+  my $session_key       = $conf->{'session_key'}        || 'auth_data';
+  my $anonymous_session = $conf->{'anonymous_session'}  || 1;
+  my $merge_userdata    = $conf->{'merge_userdata'}     || 1;
+  my $session_days      = $conf->{'session_days'}       || 14;
 
   # tables
   my $User_Table      = 'data_users';
   my $Anonymous_Table = 'anonymous_session';
 
   $app->sessions->default_expiration(3600 * 24 * 7 * 48);
+
+  $app->helper(clear_anonymous_sessions_helper => sub {
+    shift->dbi->query("DELETE FROM `anonymous_session` WHERE DATEDIFF(NOW(), `time`) >= $session_days");
+  });
 
   $app->helper(
     current_user_data => sub {
