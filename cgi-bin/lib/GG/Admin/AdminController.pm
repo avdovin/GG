@@ -1517,7 +1517,7 @@ sub def_menu_button {
 
 #foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} grep { $_ == $_ } keys %$buttons) {
   foreach my $key (
-    sort { $$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating} }
+    sort { ($$buttons{$a}{settings}{rating} || 0) <=> ($$buttons{$b}{settings}{rating} || 0)}
     keys %$buttons
     )
   {

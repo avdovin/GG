@@ -358,7 +358,7 @@ sub menu_top {
       if (my $button_key = $$row{'key_razdel'} . '_topmenu') {
         foreach my $b (
           sort {
-            $$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}
+            ($$buttons{$a}{settings}{rating} || 0) <=> ($$buttons{$b}{settings}{rating} || 0)
           } keys %$buttons
           )
         {
