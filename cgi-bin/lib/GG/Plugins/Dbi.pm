@@ -82,14 +82,13 @@ sub register {
           my $err_msg
             = "DB connect error. 'DBI:mysql:$args->{db_name}:$args->{db_host}, $args->{db_user}, $args->{db_password}, error: $DBI::errstr";
           $self->app->log->error($err_msg);
-
           # Render exception template
-          $self->render(
-            status    => 500,
-            format    => 'html',
-            template  => 'exception',
-            exception => $err_msg
-          );
+          # $self->render(
+          #   status    => 500,
+          #   format    => 'html',
+          #   template  => 'exception',
+          #   exception => $err_msg
+          # );
           $self->stash(rendered => 1);
           return;
         }
