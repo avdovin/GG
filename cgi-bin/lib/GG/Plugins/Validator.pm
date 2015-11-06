@@ -359,7 +359,7 @@ sub _check_site {
 
   return '' unless my $value = delete $settings{value};
 
-  if ($value !~ m{^/} && $value !~ m/^http:\/\//) {
+  if($value !~ m{^/} && $value !~ m/^http:\/\// && $value !~ m/^https:\/\//){
 
 # если ссылка не относительная добавляем протокол HTTP
     $value = "http://$value";
