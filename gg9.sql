@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.44-0ubuntu0.12.04.1)
 # Database: gg9
-# Generation Time: 2015-11-10 14:28:33 +0000
+# Generation Time: 2015-11-10 16:33:42 +0000
 # ************************************************************
 
 
@@ -2929,7 +2929,6 @@ VALUES
 	(59,'Год','','year','lkey','type=d','2010-05-07 13:59:22'),
 	(60,'Месяц','','month','lkey','type=d','2010-05-07 13:59:22'),
 	(61,'День','','day','lkey','type=d','2010-05-07 13:59:22'),
-	(86,'Тексты','','texts','menu','type_link=loadcontent\naction=enter\nprogram=/cgi-bin/text_a.cgi\nrating=11\nparentid=edit\nreplaceme=replaceme\nsubmenuwidth=200\n','0000-00-00 00:00:00'),
 	(66,'Группа','','texts_articles','lkey','type=tlist\r\nlist=texts_articles_ru\r\nsort=1\r\nrating=7\r\ngroup=1\r\nfilter=1\r\nwhere=AND `dir`=1\r\nhelp=Тематическая группа, к которой принадлежит данная статья. Выберите из списка.\r\nfileview=1\r\n','2010-07-06 16:01:54'),
 	(67,'Автор','','author','lkey','type=s\r\nfilter=1\r\ngroup=1\r\nrating=25\r\nno_format=1\r\nhelp=Введите автора или ссылку на первоисточник','2010-07-12 14:12:49'),
 	(83,'Документ','','docfile','lkey','type=file\r\nrating=14\r\ntemplate_w=field_file\r\ntemplate_r=field_file_read\r\nsizelimit=20000\r\next=*.*\r\nfolder=/docfiles/\r\nfileview=1\r\ntable_list=2\r\nhelp=Название документа\r\n','2010-10-25 15:11:09'),
@@ -3903,7 +3902,6 @@ CREATE TABLE `texts_main_ru` (
   `h1` varchar(255) NOT NULL,
   `alias` varchar(128) NOT NULL DEFAULT '',
   `title` varchar(255) NOT NULL DEFAULT '',
-  `map` varchar(255) NOT NULL DEFAULT '',
   `keywords` text NOT NULL,
   `description` text NOT NULL,
   `rating` smallint(5) unsigned NOT NULL DEFAULT '0',
@@ -3927,12 +3925,12 @@ CREATE TABLE `texts_main_ru` (
 LOCK TABLES `texts_main_ru` WRITE;
 /*!40000 ALTER TABLE `texts_main_ru` DISABLE KEYS */;
 
-INSERT INTO `texts_main_ru` (`ID`, `name`, `h1`, `alias`, `title`, `map`, `keywords`, `description`, `rating`, `texts_main_ru`, `operator`, `menu`, `viewtext`, `delnot`, `link`, `layout`, `url_for`, `text`, `updated_at`, `created_at`)
+INSERT INTO `texts_main_ru` (`ID`, `name`, `h1`, `alias`, `title`, `keywords`, `description`, `rating`, `texts_main_ru`, `operator`, `menu`, `viewtext`, `delnot`, `link`, `layout`, `url_for`, `text`, `updated_at`, `created_at`)
 VALUES
-	(1,'Главная страница123','','glavnaya_stranica1','Главная страница22','30.437101075943225,59.94228319196769','Главная страница','Главная страница',1,0,'root',0,1,1,'','default','','<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>\n\n<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat vol</p>','2015-10-26 14:07:33','2012-03-05 13:28:44'),
-	(21,'О студии','','about','О студии','','О студии','О студии',3,0,'root',1,1,1,'','default','','','2014-02-20 14:20:27','2012-10-19 12:43:19'),
-	(23,'Портфолио','','portfolio','Портфолио','','Портфолио','Портфолио',5,0,'root',1,1,1,'','default','','','2014-02-20 14:20:27','2012-10-19 12:43:56'),
-	(24,'Контакты','','contacts','Контакты','','Контакты','Контакты',6,0,'root',1,1,1,'','default','feedback','','2014-02-20 14:20:27','2012-10-19 12:44:19');
+	(1,'Главная страница123','','glavnaya_stranica1','Главная страница22','Главная страница','Главная страница',1,0,'root',0,1,1,'','default','','<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>\n\n<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat vol</p>','2015-10-26 14:07:33','2012-03-05 13:28:44'),
+	(21,'О студии','','about','О студии','О студии','О студии',3,0,'root',1,1,1,'','default','','','2014-02-20 14:20:27','2012-10-19 12:43:19'),
+	(23,'Портфолио','','portfolio','Портфолио','Портфолио','Портфолио',5,0,'root',1,1,1,'','default','','','2014-02-20 14:20:27','2012-10-19 12:43:56'),
+	(24,'Контакты','','contacts','Контакты','Контакты','Контакты',6,0,'root',1,1,1,'','default','feedback','','2014-02-20 14:20:27','2012-10-19 12:44:19');
 
 /*!40000 ALTER TABLE `texts_main_ru` ENABLE KEYS */;
 UNLOCK TABLES;
