@@ -127,10 +127,8 @@ sub save {
 
   $self->stash->{index} = 0 if $params{restore};
 
-
-# if($self->send_params->{'password_digest'}){
-# 	$self->send_params->{'password_digest'} = $self->encrypt_password( $self->send_params->{'password_digest'} );
-# }
+  delete $self->send_params->{password_digest}
+		unless $self->send_params->{password_digest};
 
   if (my $ok = $self->save_info(table => $self->stash->{list_table})) {
 

@@ -495,8 +495,8 @@ sub _check_integer {
     $self->stash->{errors}
       = "Ошибка: значение переменной выше верхнего ограничения - $settings{max}";
   }
-
-  return $value;
+  $value = undef if ($value eq '');
+  $value;
 }
 
 sub _check_decimal {
