@@ -13,5 +13,10 @@
     );
   }
 </script>
+% js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
+% js_files_cdn(file => '/js/bundled/html4andhtml5/jquery.history.js', template => '_headers.html.ep');
+% js_files_cdn(file => '/js/jquery.quickSubmit.js', template => '_headers.html.ep');
+
+%= stylesheet 'http://s3-eu-west-1.amazonaws.com/ifrogcdn/css/core.css'
 %= asset 'app.css' if config 'pipeline';
 %= content_for 'headers'
