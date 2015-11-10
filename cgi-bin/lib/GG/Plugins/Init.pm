@@ -122,7 +122,7 @@ sub register {
   $app->plugin(
     'AssetPack',
     {
-      base_url => $conf->{'protocol'} . '://' . $conf->{http_host} . '/packed/',
+      base_url => '/packed/',
       minify   => $conf->{pipeline_minify} && $app->mode eq 'production',
       out_dir  => $app->static_path . 'packed/',
     }
