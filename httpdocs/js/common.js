@@ -1,5 +1,6 @@
+/*global $, document, GG*/
 // INIT GG
-if (typeof GG != 'undefined') {
+$(document).ready(function(){
   GG = new GG();
   GG.init({
     local: true,
@@ -62,7 +63,7 @@ if (typeof GG != 'undefined') {
 
     }
   });
-}
+});
 
 
 $(function() {
