@@ -250,21 +250,6 @@ sub register {
       $url->scheme($conf->{'protocol'}) if $conf->{'protocol'};
 
       $self->req->url->base($url);
-
-      foreach my $k (keys %{$conf->{pipeline_assets}}) {
-        if ($conf->{pipeline}) {
-          $self->asset($k => @{$conf->{pipeline_assets}->{$k}});
-
-          #$self->asset($k => $conf->{pipeline_assets}->{$k} );
-        }
-        else {
-          foreach my $sources (@{$conf->{pipeline_assets}->{$k}}) {
-            $sources =~ /^(.+)\.(\w+)$/;
-            $self->css_files("$1.$2") if $2 eq 'css';
-            $self->js_files("$1.$2")  if $2 eq 'js';
-          }
-        }
-      }
     }
   );
 
@@ -276,16 +261,6 @@ sub register {
         my $packer = HTML::Packer->init();
         $$output = $packer->minify($output, {remove_comments => 1});
       }
-    }
-  );
-
-  $app->hook(
-    before_render => sub {
-      my ($self, $args) = @_;
-
-      #return unless my $template = $args->{template};
-
-      #$self->js_controller() if ($template eq '_footer');
     }
   );
 }

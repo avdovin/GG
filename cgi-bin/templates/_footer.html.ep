@@ -1,6 +1,6 @@
 <!-- start _footer.html.ep -->
 
-%= asset 'app.js' if config 'pipeline';
+%= asset 'app.js';
 %= js_controller;
 
 <!-- start content_for js_files -->
