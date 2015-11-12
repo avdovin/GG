@@ -276,13 +276,10 @@ sub register {
           my $lkey = $self->lkey(name => $lfield);
 
           $self->save_logs(
-            name => 'Удаление картинки из таблицы '
-              . $params{table},
-            comment =>
-              "Удалена картинки из таблицы [$index] «"
-              . ($lkey->{name})
-              . "»[$lfield] . Таблица "
-              . $params{table}
+            name       => "Удалена картинка [$index] «$$lkey{name}»",
+            comment    => $params{table},
+            event      => 'delete',
+            parameters => $clear_fields,
           );
         }
       }
@@ -338,21 +335,18 @@ sub register {
         if (
           $self->save_info(
             table        => $params{table},
-            field_values => $clear_fields
+            field_values => $clear_fields,
+            add_to_log   => 0
           )
           )
         {
           my $lkey = $self->lkey(name => $lfield);
 
           $self->save_logs(
-            name => 'Удаление файла из таблицы '
-              . $params{table},
-            comment =>
-              "Удалена файла из таблицы [$index] «"
-              . ($lkey->{name})
-              . "»[$lfield] . Таблица "
-              . $params{table},
-            event => 'delete',
+            name       => "Удален файл [$index] «$$lkey{name}»",
+            comment    => $params{table},
+            event      => 'delete',
+            parameters => $clear_fields,
           );
         }
       }

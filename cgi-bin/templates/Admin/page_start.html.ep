@@ -19,7 +19,9 @@
 
 	<script type="text/javascript">var DHTML_SUITE_THEME = 'gg'; // SPecifying gray theme</script>
 	<script type="text/javascript" src="/admin/js/dhtml-suite-for-applications-without-comments.js"></script>
-	<script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>
+	<!--<script>DHTMLSuite.include('formValidator'); DHTMLSuite.include('form');</script>-->
+	<!-- <script>DHTMLSuite.include('form');</script> -->
+	<script type="text/javascript" src="/admin/js/separateFiles/ajax.js"></script>
 
 	<link rel="stylesheet" href="/admin/js/jquery/ui/css/smoothness/jquery-ui-1.10.4.custom.min.css" type="text/css" />
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -45,7 +47,7 @@
 <div id="center"></div>
 <div id="eastContent"></div>
 <div id="southContent" style="">
-	<div id="debug-mode" style="width:130px;color:white; margin:0 auto;display:none;text-shadow:1px 2px 3px #000;font-weight: bold;">РЕЖИМ ОТЛАДКИ</div>
+	<div id="debug-mode" style="width:160px;color:white; margin:0 auto;display:none;text-shadow:1px 2px 3px #000;font-weight: bold;text-transform:uppercase;">режим разработки</div>
 </div>
 <!-- конец. данные для панелей -->
 <script type="text/javascript">

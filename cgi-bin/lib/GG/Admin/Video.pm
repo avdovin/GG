@@ -157,23 +157,7 @@ sub save {
   $self->send_params->{vimeolink}
     =~ s/(?:http|https|)(?::\/\/|)(?:player\.|)?vimeo\.com(?:\/video)?\/(\d+)/$1/i;
 
-  $self->stash->{index} = 0 if $params{restore};
-
-  if ($self->save_info(table => $self->stash->{list_table})) {
-
-    if ($params{restore}) {
-      $self->stash->{tree_reload} = 1;
-      $self->save_logs(
-        name => 'Восстановление записи в таблице '
-          . $self->stash->{list_table},
-        comment => "Восстановлена запись в таблице ["
-          . $self->stash->{index}
-          . "]. Таблица "
-          . $self->stash->{list_table} . ". "
-          . $self->msg_no_wrap
-      );
-      return $self->info;
-    }
+  if ($self->save_info(%params, table => $self->stash->{list_table})) {
 
     $self->file_save_pict(
       filename => $self->send_params->{pict},

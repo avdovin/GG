@@ -630,8 +630,6 @@ sub save {
 
   $self->backup_doptable;
 
-  $self->stash->{index} = 0 if $params{restore};
-
   $self->send_params->{size} = 0
     if ($self->send_params->{docfile} && !$self->stash->{index});
 
@@ -653,36 +651,7 @@ sub save {
     }
   }
 
-  if ($self->save_info(table => $self->stash->{list_table})) {
-
-    # $self->file_save_pict( 	filename 	=> $self->send_params->{pict},
-    # 						lfield		=> 'pict',
-    # 						) if $self->send_params->{pict};
-
-    # if($self->send_params->{docfile}){
-    # 	my $docfile = $self->send_params->{docfile};
-
-# 	my (undef, $docfile_saved, $type_file) = $self->file_save_from_tmp( filename => $self->send_params->{docfile}, lfield => 'docfile' );
-
-# 	my $folder = $self->lkey(name => 'docfile', controller => 'texts', setting => 'folder');
-# 	my $size = -s $self->static_path.$folder.$docfile_saved || 0;
-
-# 	$self->save_info(send_params => 0, table => $self->stash->{list_table}, field_values => {size => $size, docfile => $docfile_saved} );
-# }
-
-    if ($params{restore}) {
-      $self->stash->{tree_reload} = 1;
-      $self->save_logs(
-        name => 'Восстановление записи в таблице '
-          . $self->stash->{list_table},
-        comment => "Восстановлена запись в таблице ["
-          . $self->stash->{index}
-          . "]. Таблица "
-          . $self->stash->{list_table} . ". "
-          . $self->msg_no_wrap
-      );
-      return $self->info;
-    }
+  if ($self->save_info(%params, table => $self->stash->{list_table})) {
 
     if ($params{continue}) {
       $self->admin_msg_success("Данные сохранены");

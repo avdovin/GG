@@ -125,12 +125,10 @@ sub save {
   my $self   = shift;
   my %params = @_;
 
-  $self->stash->{index} = 0 if $params{restore};
-
   delete $self->send_params->{password_digest}
 		unless $self->send_params->{password_digest};
 
-  if (my $ok = $self->save_info(table => $self->stash->{list_table})) {
+  if ($self->save_info(%params, table => $self->stash->{list_table})) {
 
   # Добавляем текущего пользователя в список
     my $index = $self->stash->{index};

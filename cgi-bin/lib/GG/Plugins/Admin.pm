@@ -447,6 +447,7 @@ sub register {
         eventtype  => 0,
         event      => '',
         id_sysuser => 0,
+        parameters => '',
         @_
       );
       return unless $params{name};
@@ -484,7 +485,16 @@ sub register {
         $params{id_program} = $self->app->program->{ID};
       }
 
-      $self->app->dbi->insert_hash(
+      my $parameters_str = undef;
+      if (my $parameters = delete $params{'parameters'}) {
+        if (ref $parameters eq 'HASH') {
+          foreach (keys %$parameters) {
+            $parameters_str .= "$_: $$parameters{$_}\n";
+          }
+        }
+      }
+
+      $self->dbi->insert_hash(
         'sys_datalogs',
         {
           name            => $params{name},
@@ -494,6 +504,7 @@ sub register {
           ip              => $params{ip},
           comment         => $params{comment},
           eventtype       => $params{eventtype},
+          parameters      => $parameters_str,
         }
       );
     }

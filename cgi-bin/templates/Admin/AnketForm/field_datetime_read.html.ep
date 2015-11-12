@@ -1,8 +1,8 @@
 <tr id="tr<%= $key %>" class="<%= $class %>">
   <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
   <td class=read valign=top>
-  	% if($value && $value ne '0000-00-00'){
-      %= date_format date => $value, format => 'dd.mm.yyyy'
+  	% if($value && $value ne '0000-00-00 00:00:00'){
+      %= date_format date => $value, format => 'dd.mm.yyyy в hh:min'
     % }
   </td>
 </tr>

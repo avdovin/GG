@@ -17,43 +17,40 @@ sub default_actions {
   my $self = shift;
   my $do   = shift;
 
-  if    ( $do eq 'list_container' ) { $self->list_container; }
-  elsif ( $do eq 'enter')           { $self->list_container(enter => 1); }
-  elsif ( $do eq 'list_items')      { $self->list_items; }
+  if    ($do eq 'list_container') { $self->list_container; }
+  elsif ($do eq 'enter')          { $self->list_container(enter => 1); }
+  elsif ($do eq 'list_items')     { $self->list_items; }
 
-  elsif ( $do eq 'mainpage')        { $self->mainpage; }
+  elsif ($do eq 'mainpage') { $self->mainpage; }
 
-  elsif ( $do eq 'add')             { $self->edit(add => 1); }
-  elsif ( $do eq 'add_dir')         { $self->edit(add => 1, dir => 1); }
-  elsif ( $do eq 'edit')            { $self->edit; }
-  elsif ( $do eq 'info')            { $self->info; }
-  elsif ( $do eq 'save')            { $self->save; }
-  elsif ( $do eq 'save_continue‎')   { $self->save(continue => 1); }
-  elsif ( $do eq 'delete')          { $self->delete; }
-  elsif ( $do eq 'restore_change')  { $self->restore_change; }
-  elsif ( $do eq 'delete_change')   { $self->delete_change; }
-  elsif ( $do eq 'restore')         { $self->save(restore => 1); }
+  elsif ($do eq 'add') { $self->edit(add => 1); }
+  elsif ($do eq 'add_dir') { $self->edit(add => 1, dir => 1); }
+  elsif ($do eq 'edit')             { $self->edit; }
+  elsif ($do eq 'info')             { $self->info; }
+  elsif ($do eq 'save')             { $self->save; }
+  elsif ($do eq 'save_continue‎') { $self->save(continue => 1); }
+  elsif ($do eq 'delete')           { $self->delete; }
+  elsif ($do eq 'restore_change')   { $self->restore_change; }
+  elsif ($do eq 'delete_change')    { $self->delete_change; }
+  elsif ($do eq 'restore')          { $self->save(restore => 1); }
 
-  elsif ( $do eq 'link_to')         { $self->link_to; }
-  elsif ( $do eq 'change_map')      { $self->change_map; }
+  elsif ($do eq 'link_to')    { $self->link_to; }
+  elsif ($do eq 'change_map') { $self->change_map; }
 
-  elsif ( $do eq 'menu_button')
-  {
+  elsif ($do eq 'menu_button') {
     $self->def_menu_button(
       key        => $self->app->program->{menu_btn_key},
       controller => $self->app->program->{key_razdel},
     );
   }
 
-  elsif( $do eq 'download')
-  {
+  elsif ($do eq 'download') {
     if (
       my $item = $self->getArraySQL(
         from => $self->param('dop_table') || $self->stash->{list_table},
         where => "`ID`='" . $self->stash->{index} . "'"
       )
-      )
-    {
+      ) {
       my $lfield = $self->param('dfield');
       my $folder = $self->lkey(
         name       => $lfield,
@@ -66,51 +63,56 @@ sub default_actions {
     return $self->render_not_found;
   }
 
-  elsif ( $do eq 'copy')                { $self->item_copy; }
+  elsif ($do eq 'copy') { $self->item_copy; }
 
-  elsif ( $do eq 'tree')                { $self->tree; }
-  elsif ( $do eq 'tree_block')          { $self->tree_block; }
-  elsif ( $do eq 'tree_reload')         { $self->tree_block; }
+  elsif ($do eq 'tree')        { $self->tree; }
+  elsif ($do eq 'tree_block')  { $self->tree_block; }
+  elsif ($do eq 'tree_reload') { $self->tree_block; }
 
-  elsif ( $do eq 'lists_select')        { $self->lists_select; }
+  elsif ($do eq 'lists_select') { $self->lists_select; }
 
-  elsif ( $do eq 'sel_treeblock')       { $self->field_select_dir; }
+  elsif ($do eq 'sel_treeblock') { $self->field_select_dir; }
 
-  elsif ( $do eq 'quick_view')          { $self->quick_view; }
+  elsif ($do eq 'quick_view') { $self->quick_view; }
 
-  elsif ( $do eq 'filter_take')         { $self->filter_take(render => 1); }
-  elsif ( $do eq 'filter')              { $self->filter_form; }
-  elsif ( $do eq 'filter_save')         { $self->filter_save; }
-  elsif ( $do eq 'filter_clear')        { $self->filter_clear(); $self->list_container(); }
+  elsif ($do eq 'filter_take') { $self->filter_take(render => 1); }
+  elsif ($do eq 'filter')      { $self->filter_form; }
+  elsif ($do eq 'filter_save') { $self->filter_save; }
+  elsif ($do eq 'filter_clear') {
+    $self->filter_clear();
+    $self->list_container();
+  }
 
-  elsif ( $do eq 'set_qedit')           { $self->set_qedit; }
-  elsif ( $do eq 'set_qedit_i')         { $self->set_qedit(info => 1); }
-  elsif ( $do eq 'save_qedit')          { $self->save_qedit; }
-  elsif ( $do eq 'save_qedit_i')        { $self->save_qedit; }
+  elsif ($do eq 'set_qedit')    { $self->set_qedit; }
+  elsif ($do eq 'set_qedit_i')  { $self->set_qedit(info => 1); }
+  elsif ($do eq 'save_qedit')   { $self->save_qedit; }
+  elsif ($do eq 'save_qedit_i') { $self->save_qedit; }
 
-  elsif ( $do eq 'delete_file')         { $self->field_delete_file(lfield => 'docfile'); }
-  elsif ( $do eq 'delete_pict')         { $self->field_delete_pict; }
-  elsif ( $do eq 'field_upload_swf')    { $self->field_upload_swf; }
-  elsif ( $do eq 'file_upload_tmp')     { $self->render(text => $self->file_upload_tmp); }
+  elsif ($do eq 'delete_file') {
+    $self->field_delete_file(lfield => 'docfile');
+  }
+  elsif ($do eq 'delete_pict')      { $self->field_delete_pict; }
+  elsif ($do eq 'field_upload_swf') { $self->field_upload_swf; }
+  elsif ($do eq 'file_upload_tmp') {
+    $self->render(text => $self->file_upload_tmp);
+  }
 
-  elsif ( $do eq 'zipimport')           { $self->zipimport; }
-  elsif ( $do eq 'zipimport_save')      { $self->zipimport_save; }
-  elsif ( $do eq 'zipimport_save_pict') { $self->zipimport_save_pict; }
+  elsif ($do eq 'zipimport')           { $self->zipimport; }
+  elsif ($do eq 'zipimport_save')      { $self->zipimport_save; }
+  elsif ($do eq 'zipimport_save_pict') { $self->zipimport_save_pict; }
 
-  elsif ( $do eq 'print')               { $self->print_choose; }
-  elsif ( $do eq 'print_anketa')        { $self->print_anketa; }
+  elsif ($do eq 'print')        { $self->print_choose; }
+  elsif ($do eq 'print_anketa') { $self->print_anketa; }
 
-  elsif ( $do eq 'chrazdel')            { $self->changeRazdel; $self->list_container;}
+  elsif ($do eq 'chrazdel') { $self->changeRazdel; $self->list_container; }
 
-  elsif ( $do eq 'chlang'){
+  elsif ($do eq 'chlang') {
     $self->sysuser->save_ses_settings(lang => $self->stash->{lang});
-    $self->sysuser->save_ses_settings( $self->stash->{replaceme} . '_sfield' => 'ID' );
+    $self->sysuser->save_ses_settings(
+      $self->stash->{replaceme} . '_sfield' => 'ID');
 
-    delete $self->lkey
-            (
-              name => 'razdel',
-              controller => $self->stash->{controller}
-            )->{list};
+    delete $self->lkey(name => 'razdel',
+      controller => $self->stash->{controller})->{list};
 
     $self->render(
       json => {
@@ -126,7 +128,7 @@ sub default_actions {
           },
         ]
       }
-    )
+    );
   }
 
   else {
@@ -149,8 +151,7 @@ sub delete {
         from  => $self->stash->{list_table},
         where => $self->stash->{index}
       )
-      )
-    {
+      ) {
 
       $self->restore_doptable;
       return $self->field_dop_table_reload;
@@ -176,8 +177,7 @@ sub item_copy {
       stash => 'anketa',
       sys   => 1,
     )
-    )
-  {
+    ) {
     $self->admin_msg_errors(
       "Перед созданием копии необходимо сохранить текущий объект"
     );
@@ -230,8 +230,7 @@ sub item_copy {
     elsif ($lkeyType ne 'pict'
       && $lkeyType ne 'table'
       && $lkeyType ne 'file'
-      && $lkeyType ne 'filename')
-    {
+      && $lkeyType ne 'filename') {
 
       $self->send_params->{$f} = $anketa->{$f};
     }
@@ -286,8 +285,7 @@ sub item_copy {
         for my $dopItems (
           $self->dbi->query(
             "SELECT * FROM `$dopTable` WHERE `$svf_field`='$index'")->hashes
-          )
-        {
+          ) {
           delete $dopItems->{ID};
           $dopItems->{$svf_field} = $copiedIndex;
 
@@ -380,8 +378,7 @@ sub zipimport_save_pict {
       filename => $self->send_params->{filename},
       lfield   => $lfield,
     )
-    )
-  {
+    ) {
     my $vals
       = {name => $self->send_params->{filename}, rating => 99, id_item =>};
 
@@ -482,8 +479,7 @@ sub print_anketa {
       where => "`ID`='$id'",
       stash => "print",
     )
-    )
-  {
+    ) {
 
     my $values = $self->stash->{'print'};
     my $filename
@@ -516,8 +512,7 @@ HEAD
     my $lkeys = $self->lkey;
     foreach my $key (
       sort { $$lkeys{$a}{settings}{rating} <=> $$lkeys{$b}{settings}{rating} }
-      grep { $_ == $_ } keys %$lkeys)
-    {
+      grep { $_ == $_ } keys %$lkeys) {
       next unless defined $values->{$key};
       next
         if (
@@ -670,8 +665,7 @@ sub def_program {
     FROM `sys_program`
     WHERE `key_razdel`='$name'"
     )->hash
-    )
-  {
+    ) {
 
     my $set = {};
     foreach my $p (split(/\n/, $program->{settings})) {
@@ -758,16 +752,15 @@ sub change_map {
 
   my %params = @_;
 
-  $self->define_anket_form
-    (
-      access        => 'w',
-      dop           => 1,
-      render_html   => 1,
-      table         => $self->param('list_table') || '',
-      index         => $self->param('index') || 0,
-      template      => 'Reload/field_map_reload',
-      keys          => [$self->param('lfield')],
-    );
+  $self->define_anket_form(
+    access      => 'w',
+    dop         => 1,
+    render_html => 1,
+    table       => $self->param('list_table') || '',
+    index       => $self->param('index') || 0,
+    template    => 'Reload/field_map_reload',
+    keys        => [$self->param('lfield')],
+  );
 }
 
 sub delete_info {
@@ -795,13 +788,11 @@ sub delete_info {
       table => $self->stash->{list_table},
       lkey  => $dir_field
     )
-    )
-  {
+    ) {
     if (
       $self->dbi->query(
         "SELECT `ID` FROM `$table` WHERE `$dir_field`='$index'")->hash
-      )
-    {
+      ) {
       $self->admin_msg_errors(
         'Удалить нельзя: в папке есть документы'
       );
@@ -819,16 +810,14 @@ sub delete_info {
       || $self->dbi->query(
         "SELECT `ID` FROM `$table` WHERE `ID`='$index' AND `delnot`='1'")->hash
     )
-    )
-  {
+    ) {
     $self->admin_msg_errors(
       'Удалить нельзя: системная запись');
     return;
   }
 
   unless (
-    $self->getArraySQL(from => $table, where => $index, stash => 'anketa'))
-  {
+    $self->getArraySQL(from => $table, where => $index, stash => 'anketa')) {
     $self->save_logs(
       name =>
         'Попытка удаления записи из таблицы '
@@ -854,8 +843,7 @@ sub delete_info {
       stash => "related",
       sys   => 1
     )
-    )
-  {
+    ) {
     my $items = $self->stash->{related};
     foreach my $item (@$items) {
       my $where = "`" . $item->{field} . "`='$index'";
@@ -874,8 +862,7 @@ sub delete_info {
           stash  => "r",
           sys    => 1
         )
-        )
-      {
+        ) {
         $self->admin_msg_errors(
           "С записью связана запись $$item{ID} из таблицы «"
             . ($$item{tbl_dep_title} || $$item{tbl_dep})
@@ -1003,8 +990,7 @@ sub restore_change {
       from => $change->{list_table},
       lkey => $change->{lkey}
     )
-    )
-  {
+    ) {
     my $current_values
       = $self->dbi->query(
       "SELECT * FROM `$$change{list_table}` WHERE `ID`='$$change{item_id}'")
@@ -1044,19 +1030,23 @@ sub delete_change {
 
 sub save_info {
   my $self           = shift;
-  my %params         = (send_params => 1, @_);
+  my %params         = (send_params => 1, add_to_log => 1, @_);
   my $follow_changes = $self->app->program->{settings}->{follow_changes} || 0;
-
-  my $table        = delete $params{table};
-  my $field_values = delete $params{field_values} || {};
-  my $where        = delete $params{where} || '';
-  my $changes      = {};
+  my $table          = delete $params{table};
+  my $field_values   = delete $params{field_values} || {};
+  my $where          = delete $params{where} || '';
+  my $changes        = {};
 
   foreach (keys %$field_values) {
     unless ($self->dbi->exists_keys(from => $table, lkey => $_)) {
       delete $field_values->{$_};
     }
   }
+
+  if ($params{restore}) {
+    $self->stash->{index} = 0;
+  }
+
   my $item_index = $self->stash->{index} || 0;
   my $send_params = $self->send_params;
 
@@ -1094,11 +1084,9 @@ sub save_info {
   }
 
   $self->stash->{index} = $item_index;
-
   if ( exists $field_values->{alias}
     && !$field_values->{alias}
-    && $field_values->{name})
-  {
+    && $field_values->{name}) {
     $field_values->{alias} = $self->make_alias($field_values->{name});
   }
 
@@ -1118,32 +1106,49 @@ sub save_info {
   my $progname = $self->program_razdel_name($table);
   if (!$self->stash->{index}) {
     if ($self->stash->{index}
-      = $self->insert_hash($table, $field_values, %params))
-    {
+      = $self->insert_hash($table, $field_values, %params)) {
 
-      $self->save_logs(
-        name    => "Добавление запись в $progname",
-        comment => "Добавление запись ["
-          . $self->stash->{index} . "] «"
-          . $field_values->{name}
-          . "». $progname [$table]",
-        event => 'add',
-      );
+      if ($params{'add_to_log'}) {
+        my $log_name
+          = "Добавлена запись [" . $self->stash->{index} . "]";
+        $log_name
+          .= " «" . ($field_values->{name} || $field_values->{title}) . "»"
+          if ($field_values->{name} || $field_values->{title});
+
+        $self->save_logs(
+          name       => $log_name,
+          comment    => "$progname [$table]",
+          event      => 'add',
+          parameters => $field_values,
+        );
+      }
     }
   }
   else {
     $where ||= "`ID`='" . $self->stash->{index} . "'";
 
     if ($self->update_hash($table, $field_values, $where, %params)) {
+      if ($params{'add_to_log'}) {
+        my $log_name = '';
+        if($params{restore}){
+          $log_name
+            = "Восстановлена запись [" . $self->stash->{index} . "]";
+        }
+        else {
+          $log_name
+            = "Обновлена запись [" . $self->stash->{index} . "]";
+        }
+        $log_name
+          .= " «" . ($field_values->{name} || $field_values->{title}) . "»"
+          if ($field_values->{name} || $field_values->{title});
 
-      $self->save_logs(
-        name    => "Обновление запись в $progname",
-        comment => "Обновление запись ["
-          . $self->stash->{index} . "] «"
-          . $field_values->{name}
-          . "». $progname [$table]",
-        event => 'update',
-      );
+        $self->save_logs(
+          name       => $log_name,
+          comment    => "$progname [$table]",
+          event      => 'update',
+          parameters => $field_values,
+        );
+      }
     }
   }
 
@@ -1187,7 +1192,8 @@ sub save_info {
         $self->save_info(
           send_params  => 0,
           table        => $table,
-          field_values => $fv
+          field_values => $fv,
+          add_to_log   => 0,
         );
       }
     }
@@ -1202,8 +1208,7 @@ sub insert_hash {
 
   if (  !$params{sys}
     and !$self->sysuser->access->{table}->{$table}->{w}
-    and !$self->sysuser->sys)
-  {
+    and !$self->sysuser->sys) {
     $self->admin_msg_errors(
       "Доступ к таблице &laquo$table&raquo для пользователя &laquo"
         . $self->sysuser->userinfo->{name}
@@ -1225,8 +1230,7 @@ sub insert_hash {
       and !$self->sysuser->access->{lkey}->{$_}->{w}
       and !$lkey->{settings}->{sys}
       and $_ ne "ID"
-      and !$self->sysuser->sys)
-    {
+      and !$self->sysuser->sys) {
       delete $field_values->{$_};
       $self->admin_msg_errors('Доступ к полю &laquo'
           . $lkey->{name}
@@ -1282,8 +1286,7 @@ sub update_hash {
       and !$self->sysuser->access->{lkey}->{$_}->{r}
       and !$lkey->{settings}->{sys}
       and $_ ne "ID"
-      and !$self->sysuser->sys)
-    {
+      and !$self->sysuser->sys) {
       delete $field_values->{$_};
       $self->admin_msg_errors("Доступ к полю &laquo"
           . $lkey->{name}
@@ -1365,8 +1368,7 @@ sub getArraySQL
 
   if (  !$self->sysuser->access->{table}->{$params{from}}->{r}
     and !$params{sys}
-    and !$self->sysuser->sys)
-  {
+    and !$self->sysuser->sys) {
     $self->admin_msg_errors(
       "Доступ к таблице &laquo$params{from}&raquo запрещен"
     );
@@ -1425,8 +1427,7 @@ sub getHashSQL {
 
   if (  !$self->sysuser->access->{table}->{$tbl}->{r}
     and !$params{sys}
-    and !$self->sysuser->sys)
-  {
+    and !$self->sysuser->sys) {
     $self->admin_msg_errors(
       "Доступ к таблице &laquo$params{from}&raquo запрещен"
     );
@@ -1461,8 +1462,8 @@ sub getHashSQL {
   return;
 }
 
-sub def_context_menu{
-  my $self = shift;
+sub def_context_menu {
+  my $self   = shift;
   my %params = @_;
 
   my $lkey = delete $params{lkey};
@@ -1477,24 +1478,35 @@ sub def_context_menu{
   my $access_buttons = $self->sysuser->access->{button} || {};
   my $user_sys = $self->sysuser->sys;
 
-  foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} keys %$buttons) {
-    # копировани объектов доступно только для уже сохранненой карточки
-    next if(($key eq 'copy' && !$self->stash->{index})); #or grep($_ eq $key, @added_buttons));
+  foreach my $key (
+    sort { $$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating} }
+    keys %$buttons
+    ) {
+# копировани объектов доступно только для уже сохранненой карточки
+    next
+      if (($key eq 'copy' && !$self->stash->{index}))
+      ;    #or grep($_ eq $key, @added_buttons));
 
     my $button = $self->button(name => $key);
 
     next if ($button->{tbl} and $button->{tbl} ne $self->stash->{list_table});
-    next if (!$$button{settings}{$lkey} or (!$access_buttons->{$key}->{r} and !$user_sys));
+    next
+      if (!$$button{settings}{$lkey}
+      or (!$access_buttons->{$key}->{r} and !$user_sys));
 
     $button->def_params_button($stash);
     $button->def_script_button($stash);
 
-    $context_menu .= $self->render_to_string( template => 'Admin/anchor_html', button => $button);
+    $context_menu .= $self->render_to_string(
+      template => 'Admin/anchor_html',
+      button   => $button
+    );
 
   }
 
   return $self->stash->{context_menu} = $context_menu;
 }
+
 sub def_menu_button {
   my $self     = shift;
   my %params   = (controller => 'global', @_);
@@ -1517,10 +1529,11 @@ sub def_menu_button {
 
 #foreach my $key (sort {$$buttons{$a}{settings}{rating} <=> $$buttons{$b}{settings}{rating}} grep { $_ == $_ } keys %$buttons) {
   foreach my $key (
-    sort { ($$buttons{$a}{settings}{rating} || 0) <=> ($$buttons{$b}{settings}{rating} || 0)}
-    keys %$buttons
-    )
-  {
+    sort {
+      ($$buttons{$a}{settings}{rating} || 0)
+        <=> ($$buttons{$b}{settings}{rating} || 0)
+    } keys %$buttons
+    ) {
     my $button = $$buttons{$key};
 
     next

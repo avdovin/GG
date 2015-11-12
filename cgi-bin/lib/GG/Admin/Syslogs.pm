@@ -142,9 +142,6 @@ sub save {
   my $self   = shift;
   my %params = @_;
 
-  $self->stash->{index} = 0 if $params{restore};
-
-
   if (my $ok = $self->save_info(table => $self->stash->{list_table})) {
 
   # Добавляем текущего пользователя в список
