@@ -25,7 +25,6 @@ table.tablelist tr:nth-child(2n) td{
 }
 
 table.tablelist tr.marked td{background-color:#E4CCE3;padding:5px;}
-table.tablelist tr td{text-align:center;}
 table.tablelist tr.header td, table.tablelist tr td p{text-align:left;}
 table.tablelist tr td label{color:black;width:100%;min-height:18px; display: block; vertical-align: middle; background:none !important; text-align:center; cursor:text;}
 table.tablelist tr td div{color:black;background-color:inherit!important;}
