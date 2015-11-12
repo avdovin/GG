@@ -298,36 +298,46 @@ sub register {
   );
 
   $app->helper(
-    js_controller => sub {
+    controller_files => sub {
       my $self = shift;
       return unless my $controller = shift || $self->stash->{controller};
 
       $controller = lc $controller;
+      my $static_path = $self->static_path;
 
-      my @files = ();
-      if (-e $self->static_path . '/js/controllers/' . $controller . '.js') {
+      my @js_files = ();
+      my @css_files = ();
+      if (-e $static_path . '/js/controllers/' . $controller . '.js') {
 
         #$self->js_files( '/js/controllers/'.$controller.'.js' );
-        push @files, '/js/controllers/' . $controller . '.js';
+        push @js_files, '/js/controllers/' . $controller . '.js';
       }
-      if (-d $self->static_path . '/js/controllers/' . $controller) {
-        opendir(DIR,
-          $self->app->static->paths->[0] . '/js/controllers/' . $controller);
+      if (-d $static_path . '/js/controllers/' . $controller) {
+        opendir(DIR, $static_path . '/js/controllers/' . $controller);
         while (my $file = readdir(DIR)) {
           next if ($file =~ m/^\./);
+
           my $ext = ($file =~ m/([^.]+)$/)[0];
 
-          #$self->js_files('/js/controllers/'.$controller.'/'.$file)
-          push @files, '/js/controllers/' . $controller . '/' . $file
-            if ($ext eq 'js');
+          if($ext eq 'js'){
+            push @js_files, '/js/controllers/' . $controller . '/' . $file
+          }
+          elsif($ext eq 'css'){
+            push @css_files, '/js/controllers/' . $controller . '/' . $file
+          }
         }
         closedir(DIR);
       }
-      if (scalar(@files)) {
-        $self->asset($controller . '.js' => @files);
-        return $self->asset($controller . '.js');
+      my $out = '';
+      if (scalar(@js_files)) {
+        $self->asset($controller . '.js' => @js_files);
+        $out .= $self->render_to_string(inline => "%= asset '$controller.js'; ");
       }
-      return '';
+      if (scalar(@css_files)) {
+        $self->asset($controller . '.css' => @css_files);
+        $out .= $self->render_to_string(inline => "%= asset '$controller.css'; ");
+      }
+      return Mojo::ByteStream->new($out);
     }
   );
 

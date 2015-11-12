@@ -1,7 +1,7 @@
 <!-- start _footer.html.ep -->
 
 %= asset 'app.js';
-%= js_controller;
+%= controller_files;
 
 <!-- start content_for js_files -->
 %== js_files
