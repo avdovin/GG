@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.44-0ubuntu0.12.04.1)
 # Database: gg9
-# Generation Time: 2015-11-10 16:33:42 +0000
+# Generation Time: 2015-11-13 15:28:38 +0000
 # ************************************************************
 
 
@@ -604,7 +604,7 @@ CREATE TABLE `data_users` (
   `id_manager` int(6) unsigned NOT NULL DEFAULT '0',
   `email` varchar(255) NOT NULL,
   `password_digest` varchar(255) NOT NULL DEFAULT '',
-  `vdate` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `vdate` datetime DEFAULT NULL,
   `operator` varchar(100) NOT NULL,
   `active` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `data` blob NOT NULL,
@@ -2283,8 +2283,8 @@ VALUES
 	(128,'Системный журнал','','syslogs','button','type_link=loadcontent\r\nmenu_settings=1\r\nreplaceme=replaceme\r\ncontroller=syslogs\r\naction=enter\r\nimageiconmenu=/admin/img/icons/program/syslogs.png\r\ntitle=Системный журнал\nrating=15\nsettings_topmenu=1\n','2009-02-05 01:59:53'),
 	(129,'SEO','','seo','button','type_link=loadcontent\nmenu_settings=1\nreplaceme=replaceme\ncontroller=seo\naction=enter\nimageiconmenu=/admin/img/icons/program/seo.png\ntitle=SEO\nrating=9\nsettings_topmenu=1\n','2013-07-04 21:06:27'),
 	(130,'Файлменеджер','','filemanager','button','type_link=loadcontent\r\nmainrazdel_button=1\r\nreplaceme=replaceme\r\ncontroller=filemanager\r\naction=mainpage\r\nimageiconmenu=/admin/img/icons/program/filemanager.png\ntitle=Файлменеджер\r\nrating=99\nfilemanager_topmenu=1\n','2009-02-05 02:00:58'),
-	(131,'Дата редактирования','','updated_at','lkey','type=datetime\ntemplate_w=field_input_read\ngroup=1\nrating=199','0000-00-00 00:00:00'),
-	(132,'Дата создания','','created_at','lkey','type=datetime\r\ntemplate_w=field_input_read\ngroup=1\nrating=200','2009-02-05 02:01:30'),
+	(131,'Дата редактирования','','updated_at','lkey','type=datetime\ntemplate_w=field_datetime_read\ngroup=1\nrating=199\nqview=1\n','0000-00-00 00:00:00'),
+	(132,'Дата создания','','created_at','lkey','type=datetime\r\ntemplate_w=field_datetime_read\ngroup=1\nrating=200\nqview=1\n','2009-02-05 02:01:30'),
 	(133,'301 Redirect','','redirects','button','type_link=loadcontent\nmenu_settings=1\nreplaceme=replaceme\ncontroller=redirects\naction=enter\nimageiconmenu=/admin/img/icons/program/redirects.png\ntitle=301 Redirects\nrating=10\nsettings_topmenu=1\n','2013-07-04 21:06:27'),
 	(134,'Отзывы','','recall','button','type_link=loadcontent\nmenu_center=1\nrecall_topmenu=1\nreplaceme=replaceme\ncontroller=recall\ndo=enter\nimageiconmenu=/admin/img/icons/program/links.png\nrating=15\ntitle=Отзывы',NULL);
 
@@ -2772,7 +2772,8 @@ VALUES
 	(40,'Модуль','','id_program','lkey','type=tlist\nlist=sys_program\nrating=6\nprint=1\nqview=1\nfilter=1\ntable_list=2\ntable_list_width=150\ntemplate_w=field_list_read\n','0000-00-00 00:00:00'),
 	(44,'Тип события','','eventtype','lkey','type=list\nlist=1|Добавление~2|Удаление~3|Редактирование~4|Восстановление~5|Авторизация~6|Ошибка\nlist_type=radio\nfilter=1\nrating=30\nfileview=1\ntable_list=8\ntable_list_width=70\nqview=1\nprint=1\ntemplate_w=field_list_read\n','0000-00-00 00:00:00'),
 	(43,'Группа','','id_sysusergroup','lkey','type=tlist\nlist=lst_group_user\nrating=6\nprint=1\nqview=1\nfilter=1\ntable_list=6\ntable_list_width=150\ntemplate_w=field_list_read\n','0000-00-00 00:00:00'),
-	(39,'Пользователь','','id_sysuser','lkey','type=tlist\nlist=sys_users\nrating=5\nprint=1\nqview=1\nfilter=1\ntable_list=5\ntable_list_width=150\ntemplate_w=field_list_read\n','2014-04-04 12:53:36');
+	(39,'Пользователь','','id_sysuser','lkey','type=tlist\nlist=sys_users\nrating=5\nprint=1\nqview=1\nfilter=1\ntable_list=5\ntable_list_width=150\ntemplate_w=field_list_read\n','2014-04-04 12:53:36'),
+	(46,'Параметры','','parameters','lkey','type=code\nrating=100\nqview=1\n',NULL);
 
 /*!40000 ALTER TABLE `keys_syslogs` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -2802,10 +2803,10 @@ INSERT INTO `keys_sysusers` (`ID`, `name`, `tbl`, `lkey`, `object`, `settings`, 
 VALUES
 	(1,'Имя пользователя','','name','lkey','type=s\nrating=1\ntable_list=1\nrequired=1\nqview=1\nqedit=1','2010-03-11 11:34:30'),
 	(2,'Логин','','login','lkey','type=s\r\nrating=1\r\nrequired=1\r\nqview=1\r\nqedit=1\r\ntable_list=2\r\n','2010-03-11 11:34:30'),
-	(3,'E-mail','','email','lkey','type=email\r\nrating=3\r\nmask=email\r\n','2010-03-11 11:34:30'),
+	(3,'E-mail','','email','lkey','type=email\r\nrating=3\r\nmask=email\r\ntable_list=5\ntable_list_width=150\nqview=1\nqedit=1\n','2010-03-11 11:34:30'),
 	(4,'Пароль','','password_digest','lkey','type=password\r\nrating=5\r\nrequired=1','2010-03-11 11:34:30'),
-	(5,'Группа пользователей','','id_group_user','lkey','type=tlist\nlist=lst_group_user\ntable_list=3\nrating=5\nrequired=1\nqview=1\nfilter=1\nmult=7\nshablon_w=field_multselect\nnotnull=1','2010-03-11 11:34:30'),
-	(6,'Дата последней авторизации','','vdate','lkey','type=datetime\r\nrating=10\r\n','2010-03-10 20:25:26'),
+	(5,'Группа пользователей','','id_group_user','lkey','type=tlist\nlist=lst_group_user\ntable_list=3\nrating=5\nrequired=1\nqview=1\nfilter=1\nmult=7\n#shablon_w=field_multselect\nnotnull=1','2010-03-11 11:34:30'),
+	(6,'Дата последней авторизации','','vdate','lkey','type=datetime\r\nrating=132\r\ntemplate_w=field_datetime_read\n\n','2010-03-10 20:25:26'),
 	(7,'Управление доступом. Фильтр','','filter','button','type_link=modullink\r\ntable_list=1\r\ncontroller=sysusers\r\naction=filter\r\nimageiconmenu=/admin/img/icons/menu/icon_filter.png\r\ntitle=Настроить фильтр\r\nwidth=690\r\nheight=510\r\nlevel=3\r\nrating=2\r\nparams=replaceme','0000-00-00 00:00:00'),
 	(8,'Управление доступом. Очистка фильтра','','filter_clear','button','type_link=loadcontent\r\ntable_list=1\r\ncontroller=sysusers\r\nimageiconmenu=/admin/img/icons/menu/icon_nofilter.png\r\naction=filter_clear\r\ntitle=Снять фильтры\r\nrating=3\r\nparams=replaceme','0000-00-00 00:00:00'),
 	(9,'Удалить запись','','del_link','button','type_link=loadcontent\r\ncontroller=sysusers\r\naction=delete\r\nimageiconmenu=/admin/img/icons/menu/icon_delete.png\r\nconfirm=Действительно удалить запись?\r\ntitle=Удалить запись\r\nprint_info=1\r\nrating=1\r\nparams=replaceme,index','0000-00-00 00:00:00'),
@@ -2815,7 +2816,7 @@ VALUES
 	(15,'Добавить запись','','add_link','button','type_link=openpage\nposition=center\nid=newentry\r\ntable_list=1\r\ncontroller=sysusers\r\nimageiconmenu=/admin/img/icons/menu/icon_add.png\r\naction=add\r\ntitle=Добавить запись\r\nrating=1\r\nparams=replaceme','0000-00-00 00:00:00'),
 	(19,'Заблокирован до','','btime','lkey','type=datetime\r\nrating=21','2010-03-10 20:25:26'),
 	(20,'Количество попыток авторизации','','count','lkey','type=d\r\nrating=22','2010-03-10 20:25:26'),
-	(21,'Настройки','','settings','lkey','type=code\r\ntemplate_w=field_settings_read\r\nrating=30\r\nfilter=1\r\nshablon_r=field_settings_read\r\n','2010-03-10 20:25:26'),
+	(21,'Настройки','','settings','lkey','type=code\r\ntemplate_w=field_settings_read\r\nrating=300\r\nfilter=1\r\nshablon_r=field_settings_read\r\n','2010-03-10 20:25:26'),
 	(22,'Последний заход с IP','','ip','lkey','type=s\r\ntemplate_w=field_input_read\r\nrating=22','2010-03-10 20:25:26'),
 	(23,'Заблокирован IP','','bip','lkey','type=s\r\ntemplate_w=field_input_read\r\nrating=23','2010-03-10 20:25:26'),
 	(29,'Доступно для пользователей','','users_list','lkey','type=tlist\r\nlist=sys_users\r\ngroup=1\r\nrating=128\r\nmult=5\r\nshablon_w=field_multselect\r\nnotnull=1','2010-03-11 11:34:30'),
@@ -2824,7 +2825,7 @@ VALUES
 	(34,'Супер пользователь','','sys','lkey','type=chb\r\ngroup=1\r\nrating=130\r\nyes=Супер пользователь\r\nno=Пользователь','2010-03-10 20:25:26'),
 	(35,'Доступно для групп','','groups_list','lkey','type=tlist\r\nlist=lst_group_user\r\ngroup=1\r\nrating=129\r\ndefault=6\r\nshablon_w=field_multselect\r\nnotnull=1','0000-00-00 00:00:00'),
 	(37,'Права доступа','','access','lkey','type=code\r\nsys=1\r\n','0000-00-00 00:00:00'),
-	(38,'Visual Front-end Editor','','vfe','lkey','type=chb\r\ngroup=1\r\nrating=131\r\nyes=Включен\r\nno=Выключен','0000-00-00 00:00:00'),
+	(38,'Visual Front-end Editor','','vfe','lkey','type=chb\r\ngroup=1\r\nrating=131\r\nyes=Включен\r\nno=Выключен\ntable_list=9\ntable_list_name=vfe\ntable_list_width=70','0000-00-00 00:00:00'),
 	(39,'Копировать запись','','copy','button','type_link=loadcontent\nprint_info=1\nedit_info=1\ncontroller=sysusers\naction=copy\nloading_msg=1\nimageiconmenu=/admin/img/icons/menu/icon_copy.png\ntitle=Копировать запись\nrating=5\nparams=replaceme,index,list_table','0000-00-00 00:00:00');
 
 /*!40000 ALTER TABLE `keys_sysusers` ENABLE KEYS */;
@@ -3209,7 +3210,8 @@ LOCK TABLES `lst_layouts` WRITE;
 INSERT INTO `lst_layouts` (`ID`, `name`, `layout`)
 VALUES
 	(1,'Основной шаблон страницы','default'),
-	(2,'Основной шаблон главной страницы','main');
+	(2,'Основной шаблон главной страницы','main'),
+	(3,'Основной шаблон письма','mail');
 
 /*!40000 ALTER TABLE `lst_layouts` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -3370,6 +3372,7 @@ CREATE TABLE `sys_datalogs` (
   `id_sysusergroup` int(6) unsigned DEFAULT NULL,
   `ip` varchar(15) NOT NULL DEFAULT '',
   `comment` varchar(255) NOT NULL DEFAULT '',
+  `parameters` text,
   `eventtype` smallint(5) unsigned NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),
@@ -3380,37 +3383,37 @@ CREATE TABLE `sys_datalogs` (
 LOCK TABLES `sys_datalogs` WRITE;
 /*!40000 ALTER TABLE `sys_datalogs` DISABLE KEYS */;
 
-INSERT INTO `sys_datalogs` (`ID`, `name`, `id_sysuser`, `id_program`, `id_sysusergroup`, `ip`, `comment`, `eventtype`, `created_at`)
+INSERT INTO `sys_datalogs` (`ID`, `name`, `id_sysuser`, `id_program`, `id_sysusergroup`, `ip`, `comment`, `parameters`, `eventtype`, `created_at`)
 VALUES
-	(31,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-23 22:28:44'),
-	(30,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',5,'2015-10-23 22:18:54'),
-	(29,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-23 22:11:32'),
-	(28,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-23 22:01:33'),
-	(25,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 21:10:26'),
-	(26,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 21:13:54'),
-	(27,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',5,'2015-10-23 21:57:19'),
-	(24,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 20:47:45'),
-	(21,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 20:35:20'),
-	(22,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 20:36:07'),
-	(23,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 20:38:27'),
-	(19,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 19:55:37'),
-	(20,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 20:29:15'),
-	(17,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 19:46:18'),
-	(18,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 19:46:54'),
-	(16,'Добавление запись в Ключи',1,6,6,'127.0.0.1','Добавление запись [189] «Карта». Ключи [keys_texts]',1,'2015-10-23 19:45:01'),
-	(14,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 19:37:45'),
-	(15,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-23 19:41:28'),
-	(32,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-23 22:34:41'),
-	(33,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 12:51:06'),
-	(34,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',5,'2015-10-26 13:41:35'),
-	(35,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 13:46:39'),
-	(36,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 13:59:03'),
-	(37,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-26 14:05:27'),
-	(38,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 14:06:06'),
-	(39,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',3,'2015-10-26 14:07:33'),
-	(40,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 15:39:15'),
-	(41,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-10-26 18:26:07'),
-	(42,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',5,'2015-11-05 15:38:26');
+	(31,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-23 22:28:44'),
+	(30,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',NULL,5,'2015-10-23 22:18:54'),
+	(29,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-23 22:11:32'),
+	(28,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-23 22:01:33'),
+	(25,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 21:10:26'),
+	(26,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 21:13:54'),
+	(27,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',NULL,5,'2015-10-23 21:57:19'),
+	(24,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 20:47:45'),
+	(21,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 20:35:20'),
+	(22,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 20:36:07'),
+	(23,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 20:38:27'),
+	(19,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 19:55:37'),
+	(20,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 20:29:15'),
+	(17,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 19:46:18'),
+	(18,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 19:46:54'),
+	(16,'Добавление запись в Ключи',1,6,6,'127.0.0.1','Добавление запись [189] «Карта». Ключи [keys_texts]',NULL,1,'2015-10-23 19:45:01'),
+	(14,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 19:37:45'),
+	(15,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-23 19:41:28'),
+	(32,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-23 22:34:41'),
+	(33,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 12:51:06'),
+	(34,'Авторизация прошла успешно',1,61,6,'127.0.0.1','',NULL,5,'2015-10-26 13:41:35'),
+	(35,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 13:46:39'),
+	(36,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 13:59:03'),
+	(37,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-26 14:05:27'),
+	(38,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 14:06:06'),
+	(39,'Обновление запись в Основные тексты » Тексты',1,61,6,'127.0.0.1','Обновление запись [1] «Главная страница123». Основные тексты » Тексты [texts_main_ru]',NULL,3,'2015-10-26 14:07:33'),
+	(40,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 15:39:15'),
+	(41,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-10-26 18:26:07'),
+	(42,'Авторизация прошла успешно',1,0,6,'127.0.0.1','',NULL,5,'2015-11-05 15:38:26');
 
 /*!40000 ALTER TABLE `sys_datalogs` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -3798,7 +3801,7 @@ CREATE TABLE `sys_users` (
   `login` varchar(32) NOT NULL DEFAULT '',
   `password_digest` varchar(255) NOT NULL DEFAULT '',
   `email` varchar(128) NOT NULL DEFAULT '',
-  `id_group_user` varchar(255) NOT NULL DEFAULT '1',
+  `id_group_user` smallint(5) unsigned NOT NULL DEFAULT '1',
   `vdate` datetime DEFAULT NULL,
   `count` tinyint(3) unsigned DEFAULT NULL,
   `btime` datetime DEFAULT NULL,
@@ -3820,8 +3823,8 @@ LOCK TABLES `sys_users` WRITE;
 
 INSERT INTO `sys_users` (`ID`, `name`, `login`, `password_digest`, `email`, `id_group_user`, `vdate`, `count`, `btime`, `bip`, `settings`, `users_list`, `groups_list`, `sys`, `access`, `vfe`, `updated_at`, `created_at`)
 VALUES
-	(1,'Системный администратор','root','$2a$06$LUDXRF/MXxDLKRXNcUqzKOiX106yfsAExsnieDocZo8mJaPeuzaDu','dev@ifrog.ru,rn.dev@ifrog.ru','6',NULL,0,NULL,'10.0.2.2','catalog_data_catalog_categorys_page=1\nkeys_keys_catalog_page=1\nsysusers_sys_users_pcol=25\nimages_page_doptable=1\nlists_lst_group_user_page=1\ntexts_texts_floating_ru_page=1\nbanners_qedit=1\nstat_page_doptable=3\nlang=ru\ncatalog_data_catalog_items_asc=asc\ncatalog_data_catalog_items_page=1\ntexts_texts_main_ru_pcol=25\nvars_sys_vars_pcol=50\nbanners_data_banner_page=1\nfaq_data_faq_page=1\nusers_data_users_page=1\ntexts_sfield=ID\nstat_pcol_doptable=25\nsyslogs_sys_datalogs_page=1\nimages_sfield=ID\nkeys_keys_texts_page=1\nkeys_keys_keys_page=1\nredirects_data_redirects_page=1\ntexts_texts_news_ru_page=1\n_texts_floating_ru_sfield=ID\naccess_sys_access_page=1\ncatalog_data_catalog_items_sfield=name\nkeys_keys_catalog_filter_take=1\nkeys_keys_styles_page=1\ntexts_pcol=25\nkeys_keys_faq_page=1\ntexts_razdel=1\n_page=1\nkeys_keys_vars_page=1\nrightwin_hidden=1\nlists_lst_advert_users_page=1\nvars_sys_vars_page=1\nimages_images_gallery_page=1\ntexts_filter_tdatepref=>\nsyslogs_sys_datalogs_pcol=25\nimages_page=1\nsyslogs_sys_datalogs_filter_rdate=2014-02-20 00:00:00\nredirects_data_redirects_pcol=25\nkeys_keys_auth_page=1\nsubscribe_dtbl_subscribe_users_page=1\nimages_images_gallery_pcol=25\nsyslogs_sys_datalogs_filter_rdatepref=>\ntexts_texts_main_ru_sfield=ID\ntexts_texts_floating_ru_sfield=ID\nlists_lst_advert_block_page=1\n_sfield=ID\nkeys_keys_mainconfig_pcol=25\nbanners_data_banner_advert_block_page=1\nkeys_keys_lists_page=1\ntexts_qedit=1\ntexts_texts_news_ru_sfield=ID\nseo_data_seo_meta_page=1\ntexts_texts_main_ru_page=1\ncatalog_qedit=1\ncatalog_data_catalog_brands_page=1\n_texts_floating_ru_page=1\nimages_razdel=1\ntexts_page=1\nsubscribe_data_subscribe_page=1\nbanners_data_banner_advert_users_page=1\nsysusers_sys_users_page=1\nkeys_keys_access_page=1\ncatalog_data_catalog_items_pcol=25\nkeys_keys_banners_page=1\nkeys_keys_mainconfig_page=1','1','0',1,X'65794A746232523162434936657949324F4349364D5377694E6A59694F6A4573496A55694F6A4573496A5978496A6F784C4349324E7949364D5377694E6A4D694F6A4573496A5930496A6F784C434935496A6F784C4349784D6949364D5377694D5349364D5377694D5445694F6A4573496A5977496A6F784C4349324F5349364D5377694D7A49694F6A4573496A6378496A6F784C43497A496A6F784C434932496A6F784C4349334D4349364D5377694E4349364D5377694E6A49694F6A463966512D3D',1,'2011-11-16 22:28:16','2009-01-31 16:23:35'),
-	(3,'Администратор','user','$2a$06$Jy7yYkrAQ1bPLB/qOSH/Yu8wuhLzpJt9BlAPk1OyOUcwpWu.qg4Su','ifrogseo@gmail.com','6',NULL,0,NULL,'10.0.2.2','lang=ru\ntexts_sfield=ID\ntexts_pcol=25\ncatalog_data_catalog_items_page=1\ntexts_razdel=1\nvars_sys_vars_page=1\ntexts_page=1\nlists_lst_group_user_page=1\n_sfield=ID','3','',0,X'65794A746232523162434936657949784D6949364D5377694E4349364D5377694E6A6B694F6A4573496A5978496A6F784C43497A4D6949364D5377694E6A63694F6A4573496A5934496A6F784C4349324D4349364D5377694D7949364D5377694E6A49694F6A463966512D3D',1,'0000-00-00 00:00:00','2011-05-07 19:14:35');
+	(1,'Системный администратор','root','$2a$06$LUDXRF/MXxDLKRXNcUqzKOiX106yfsAExsnieDocZo8mJaPeuzaDu','dev@ifrog.ru,rn.dev@ifrog.ru',6,NULL,0,NULL,'10.0.2.2','catalog_data_catalog_categorys_page=1\nkeys_keys_catalog_page=1\nsysusers_sys_users_pcol=25\nimages_page_doptable=1\nlists_lst_group_user_page=1\ntexts_texts_floating_ru_page=1\nbanners_qedit=1\nstat_page_doptable=3\nlang=ru\ncatalog_data_catalog_items_asc=asc\ncatalog_data_catalog_items_page=1\ntexts_texts_main_ru_pcol=25\nvars_sys_vars_pcol=50\nbanners_data_banner_page=1\nfaq_data_faq_page=1\nusers_data_users_page=1\ntexts_sfield=ID\nstat_pcol_doptable=25\nsyslogs_sys_datalogs_page=1\nimages_sfield=ID\nkeys_keys_texts_page=1\nkeys_keys_keys_page=1\nredirects_data_redirects_page=1\ntexts_texts_news_ru_page=1\n_texts_floating_ru_sfield=ID\naccess_sys_access_page=1\ncatalog_data_catalog_items_sfield=name\nkeys_keys_catalog_filter_take=1\nkeys_keys_styles_page=1\ntexts_pcol=25\nkeys_keys_faq_page=1\ntexts_razdel=1\n_page=1\nkeys_keys_vars_page=1\nrightwin_hidden=1\nlists_lst_advert_users_page=1\nvars_sys_vars_page=1\nimages_images_gallery_page=1\ntexts_filter_tdatepref=>\nsyslogs_sys_datalogs_pcol=25\nimages_page=1\nsyslogs_sys_datalogs_filter_rdate=2014-02-20 00:00:00\nredirects_data_redirects_pcol=25\nkeys_keys_auth_page=1\nsubscribe_dtbl_subscribe_users_page=1\nimages_images_gallery_pcol=25\nsyslogs_sys_datalogs_filter_rdatepref=>\ntexts_texts_main_ru_sfield=ID\ntexts_texts_floating_ru_sfield=ID\nlists_lst_advert_block_page=1\n_sfield=ID\nkeys_keys_mainconfig_pcol=25\nbanners_data_banner_advert_block_page=1\nkeys_keys_lists_page=1\ntexts_qedit=1\ntexts_texts_news_ru_sfield=ID\nseo_data_seo_meta_page=1\ntexts_texts_main_ru_page=1\ncatalog_qedit=1\ncatalog_data_catalog_brands_page=1\n_texts_floating_ru_page=1\nimages_razdel=1\ntexts_page=1\nsubscribe_data_subscribe_page=1\nbanners_data_banner_advert_users_page=1\nsysusers_sys_users_page=1\nkeys_keys_access_page=1\ncatalog_data_catalog_items_pcol=25\nkeys_keys_banners_page=1\nkeys_keys_mainconfig_page=1','1','0',1,X'65794A746232523162434936657949324F4349364D5377694E6A59694F6A4573496A55694F6A4573496A5978496A6F784C4349324E7949364D5377694E6A4D694F6A4573496A5930496A6F784C434935496A6F784C4349784D6949364D5377694D5349364D5377694D5445694F6A4573496A5977496A6F784C4349324F5349364D5377694D7A49694F6A4573496A6378496A6F784C43497A496A6F784C434932496A6F784C4349334D4349364D5377694E4349364D5377694E6A49694F6A463966512D3D',1,'2011-11-16 22:28:16','2009-01-31 16:23:35'),
+	(3,'Администратор','user','$2a$06$Jy7yYkrAQ1bPLB/qOSH/Yu8wuhLzpJt9BlAPk1OyOUcwpWu.qg4Su','ifrogseo@gmail.com',6,NULL,0,NULL,'10.0.2.2','lang=ru\ntexts_sfield=ID\ntexts_pcol=25\ncatalog_data_catalog_items_page=1\ntexts_razdel=1\nvars_sys_vars_page=1\ntexts_page=1\nlists_lst_group_user_page=1\n_sfield=ID','3','',0,X'65794A746232523162434936657949784D6949364D5377694E4349364D5377694E6A6B694F6A4573496A5978496A6F784C43497A4D6949364D5377694E6A63694F6A4573496A5934496A6F784C4349324D4349364D5377694D7949364D5377694E6A49694F6A463966512D3D',1,'0000-00-00 00:00:00','2011-05-07 19:14:35');
 
 /*!40000 ALTER TABLE `sys_users` ENABLE KEYS */;
 UNLOCK TABLES;
