@@ -258,11 +258,11 @@ sub register {
         = (file => '', width => '', height => '', quality => $QUALITY, @_);
 
       my $image = Image::Magick->new();
-      my $x     = $image->Read($params{file});    # открываем файл
+      my $x     = $image->Read($params{file});
       $image->set(quality => $params{quality});
-      my ($ox, $oy)
-        = $image->Get('width', 'height')
-        ;    # определяем ширину и высоту
+
+      # определяем ширину и высоту
+      my ($ox, $oy) = $image->Get('width', 'height');
 
       if ((!$params{width}) || (!$params{height})) {
         $params{width}  = $ox;
@@ -270,11 +270,12 @@ sub register {
       }
 
       if (($ox != $params{width}) || ($oy != $params{height})) {
+        # Делаем resize
         $image->Resize(
           geometry => "geometry",
           width    => $params{width},
           height   => $params{height}
-        );    # Делаем resize
+        );
         $x = $image->Write($params{file});
       }
 
@@ -299,7 +300,6 @@ sub register {
           warn "Error reading $file: $status" if $status;
 
           #  Write file as JPEG to STDOUT
-
           $file = $filename . '.jpg';
 
           # Convert CMYK to RGB
@@ -355,25 +355,25 @@ sub register {
           "Функция image_crop. Отсутствует параметр FILE";
       }
 
-      my ($image, $image_new, $x, $H, $W);    # переменные
+      my ($image, $image_new, $x, $H, $W);
 
       $H = delete $params{height};
       $W = delete $params{width};
 
-      $image = Image::Magick->new;             # новый проект
-      $x     = $image->Read($params{file});    # открываем файл
+      $image = Image::Magick->new;
+      $x     = $image->Read($params{file});
       $image->set(quality => $params{quality});
 
-      my ($ox, $oy)
-        = $image->Get('width', 'height')
-        ; # определяем ширину и высоту изображения
+       # определяем ширину и высоту изображения
+      my ($ox, $oy) = $image->Get('width', 'height');
 
+      return unless ($ox or $oy);
       unless ($ox == $W and $oy == $H) {
 
-        my $nx = int(($ox / $oy) * $H)
-          ; # вычисляем ширину, если высоту сделать $H
-        my $ny = int(($oy / $ox) * $W)
-          ; # вычисляем высоту, если ширину сделать $W
+        # вычисляем ширину, если высоту сделать $H
+        my $nx = int(($ox / $oy) * $H);
+        # вычисляем высоту, если ширину сделать $W
+        my $ny = int(($oy / $ox) * $W);
 
         # Режем по высоте или по ширине
         if ($nx > $ny) {
@@ -417,27 +417,27 @@ sub register {
           "Функция pictures::defWatermark. Отсутствует параметр FILE или watermark";
       }
 
-      $params{'x'}
-        ||= 10;    # Позиция логотипа на картинке
+      # Позиция логотипа на картинке
+      $params{'x'} ||= 10;
       $params{'y'} ||= 10;
-      $params{'compose'} ||= 'Dissolve'
-        ;   # Эффект трансформации - расстворение
-      $params{'gravity'} ||= 'SouthEast';    # позиция (left, top, …)
-      $params{'opacity'} ||= 25000;          # Прозрачность лого
+      # Эффект трансформации - расстворение
+      $params{'compose'} ||= 'Dissolve';
+      # позиция (left, top, …)
+      $params{'gravity'} ||= 'SouthEast';
+      # Прозрачность лого
+      $params{'opacity'} ||= 25000;
 
 
-      my $image = Image::Magick->new;              # новый проект
+      my $image = Image::Magick->new;
       my $water = Image::Magick->new;
       my $x     = $image->Read($params{file});     # открываем файл
       my $xx    = $water->Read($params{watermark});
       $image->Set(quality => $params{quality});
       $water->Set(quality => $params{quality});
-      my ($image_w, $image_h)
-        = $image->Get('width', 'height')
-        ;    # определяем ширину и высоту
-      my ($water_w, $water_h)
-        = $water->Get('width', 'height')
-        ;    # определяем ширину и высоту
+      # определяем ширину и высоту
+      my ($image_w, $image_h) = $image->Get('width', 'height');
+      # определяем ширину и высоту
+      my ($water_w, $water_h) = $water->Get('width', 'height');
 
       if ($water_w > $image_w * 0.2) {
         my $new_water_w = $image_w * 0.2;
@@ -452,17 +452,19 @@ sub register {
       }
 
       $image->Composite(
-        image   => $water,              # имидж для лого
+        # имидж для лого
+        image   => $water,
         x       => $params{'x'},
         y       => $params{'y'},
-        compose => $params{'compose'}
-        ,    # растворить - opasity в Photoshop?
-        gravity => $params{'gravity'}, # позиция (left, top, …)
-        opacity => $params{'opacity'}  # степень прозрачности
+        # растворить - opasity в Photoshop?
+        compose => $params{'compose'},
+        # позиция (left, top, …)
+        gravity => $params{'gravity'},
+        # степень прозрачности
+        opacity => $params{'opacity'}
       );
 
-      return $image->Write($params{file})
-        ;    # Сохраняем изображение
+      return $image->Write($params{file});
     }
   );
 }
@@ -473,16 +475,18 @@ sub _resize_x {
   my ($W, $H, $nx, $ny) = @_;
 
   # Делаем resize
-
-  if ($nx >= $W) {  # Если ширина получилась больше $W
+  # Если ширина получилась больше $W
+  if ($nx >= $W) {
     $image->Resize(
       geometry => qq{$W x $H},
       width    => $nx,
       height   => $H,
       blur     => 1,
     );
-    my $nnx = int(($nx - $W) / 2)
-      ;             # Вычисляем откуда нам резать
+    # Вычисляем откуда нам резать
+    my $nnx = int(($nx - $W) / 2);
+
+    # Задаем откуда будем резать, c того места вырезаем $Wx$H
     $image->Crop(
       x => $nnx,
       y => 0,
@@ -490,8 +494,7 @@ sub _resize_x {
       # geometry => qq{$W x $H},
       width  => $W,
       height => $H
-      )
-      ; # Задаем откуда будем резать, c того места вырезаем $Wx$H
+    );
   }
   else {
     _resize_y(\$image, $W, $H, $nx, $ny);
@@ -502,8 +505,8 @@ sub _resize_y {
   my $image = ${+shift};
   my ($W, $H, $nx, $ny) = @_;
 
-
-  if ($ny >= $H) {  # Если ширина получилась больше $W
+  # Если ширина получилась больше $W
+  if ($ny >= $H) {
     $image->Resize(
       geometry => qq{$W x $H},
       width    => $W,
