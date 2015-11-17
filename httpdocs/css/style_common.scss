@@ -1,0 +1,11 @@
+$errorColor: "#ff0000";
+$successColor: "#00ff00";
+.message {
+  font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif;
+}
+.message-errors {
+  color: $errorColor;
+}
+.message-success {
+  color: $successColor;
+}

@@ -20,7 +20,7 @@
 
 %= stylesheet cdn.'/css/core.css'
 
-% asset('app.css' => '/css/style.css');
+% asset('app.css' => '/css/style.css', '/css/style_common.scss');
 % asset('app.js' => '/js/common.js');
 
 %= asset('app.css')
