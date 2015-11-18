@@ -40,7 +40,7 @@ function forms_set_calendars($form){
       var picker = new Pikaday({
         field: document.getElementById( inputId ),
         trigger: document.getElementById( _this.attr('id') ),
-        format: 'YYYY-MM-DD',
+        format: 'YYYY-MM-DD HH:MM',
         showTime: true,
         use24hour: true,
         bound: true,
