@@ -338,13 +338,18 @@ sub item_copy {
 sub zipimport {
   my $self = shift;
 
-  $self->param_default('lfield' => 'pict');
+  my $send_params = $self->send_params;
+  my $lfield      = $send_params->{lfield};
+  my $lkey        = $self->lkey(name => $lfield);
+
+  my $svf_field = $lkey->{settings}->{table_svf};
 
   my @keys = qw(zip);
   push @keys, $self->stash->{dir_field};
 
-  $self->param_default('list_table' => 'dtbl_catalog_items_images');
-  $self->param_default('id_item'    => $self->send_params->{id_item});
+  $self->param_default('lfield'     => $lfield);
+  $self->param_default('list_table' => $send_params->{dop_table});
+  $self->param_default($svf_field   => $send_params->{$svf_field});
 
   $self->define_anket_form(
     template    => 'anketa_zipimport',
@@ -371,33 +376,49 @@ sub zipimport_save {
 sub zipimport_save_pict {
   my $self = shift;
 
-  my $lfield = $self->send_params->{lfield};
+  my $send_params = $self->send_params;
+  my $lfield      = $send_params->{lfield};
+  my $list_table  = $self->stash->{list_table};
+  my $lkey        = $self->lkey(name => $lfield);
 
+  my $svf_field       = $lkey->{settings}->{table_svf};
+  my $pict_field      = $lkey->{settings}->{pict_field} || 'pict';
+  my $svf_field_value = $send_params->{$svf_field};
   if (
-    $self->file_save_pict(
-      filename => $self->send_params->{filename},
-      lfield   => $lfield,
+    my $pict_saved = $self->file_save_pict(
+      filename => $self->param('filename'),
+      lfield   => $pict_field,
+      table    => $list_table,
+      fields   => {$svf_field => $svf_field_value},
     )
     ) {
-    my $vals
-      = {name => $self->send_params->{filename}, rating => 99, id_item =>};
 
     $self->save_info(
-      table        => $self->stash->{list_table},
-      field_values => $vals
+      table        => $list_table,
+      field_values => {name => $pict_saved, rating => 99,}
     );
   }
+  my $index = $self->stash->{index};
 
-  my $item = $self->dbi->query("
-      SELECT `pict` FROM `"
-      . $self->stash->{list_table}
-      . "` WHERE `ID`='"
-      . $self->stash->{index}
-      . "'")->hash;
+  my $json = {};
 
-  my $folder = $self->lfield_folder(lfield => $lfield) || $item->{folder};
-  $self->render(
-    json => {filename => $item->{pict}, src => $folder . $item->{pict}});
+  if (
+    my $item = $self->dbi->query(
+      qq/
+      select $pict_field
+      from $list_table
+      where id='$index'
+    /
+    )->hash
+    ) {
+    my $folder = $self->lfield_folder(lfield => $pict_field);
+    $json->{src}      = $folder . $item->{$pict_field};
+    $json->{filename} = $item->{$pict_field};
+
+    warn $self->dumper($json);
+  }
+
+  $self->render(json => $json);
 }
 
 
