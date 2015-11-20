@@ -15,13 +15,24 @@ sub register {
 
   $app->hook(
     before_dispatch => sub {
-      my ($self) = @_;
-      $self->stash->{vfe} = 1 if $self->cookie('vfe');
-      $self->stash->{admin_login}
-        = $self->cookie('admin_login')
-        ? $self->cookie('admin_login')
-        : '%undefined%';
-      $self->stash->{vfe_salt} = 'gordonfreeman';
+      my $self = shift;
+      if($self->cookie('vfe')){
+        my $stash = $self->stash;
+
+        $stash->{vfe} = 1;
+        $stash->{admin_login}
+          = $self->cookie('admin_login')
+          ? $self->cookie('admin_login')
+          : '%undefined%';
+
+        $stash->{vfe_salt} = 'gordonfreeman';
+      }
+    }
+  );
+
+  $app->helper(
+    vfe_enabled => sub {
+      shift->stash->{vfe};
     }
   );
 
@@ -42,7 +53,7 @@ sub register {
         . Digest::MD5::md5_hex(
         'blocks' . $block->{ID} . $self->stash->{vfe_salt});
 
-      if ($self->cookie('vfe')) {
+      if ($self->vfe_enabled) {
         my $lang = $self->lang;
         return qq~
         <div id="$$block{ID}-$$block{alias}" data-lang="$lang" class="vfe-editablecontent">
@@ -73,7 +84,7 @@ sub register {
       my $sha_id = $params{id} . '-'
         . Digest::MD5::md5_hex($params{id} . $self->stash->{vfe_salt});
 
-      if ($self->cookie('vfe')) {
+      if ($self->vfe_enabled) {
         my $lang = $self->lang;
         return qq~
         <div id="editablecontent" data-lang="$lang" class="vfe-editablecontent">
@@ -104,7 +115,7 @@ sub register {
 
 # Есть ли предыдущии версии? (Для кнопки Undo). Только если администратор.
         my $revisions = 0;
-        if ($self->cookie('vfe')) {
+        if ($self->vfe_enabled) {
           if (opendir(DIR, $self->app->home->rel_dir("/templates/Vfe/backups")))
           {
             while (my $file = readdir(DIR)) {
@@ -119,7 +130,7 @@ sub register {
         my $template = $params{name} . '-'
           . Digest::MD5::md5_hex($params{name} . $self->stash->{vfe_salt});
 
-        if ($self->cookie('vfe')) {
+        if ($self->vfe_enabled) {
           return
               '<ins class="vfe-dummy" data-vfe-template="'
             . $template
