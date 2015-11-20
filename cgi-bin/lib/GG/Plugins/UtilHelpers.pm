@@ -14,6 +14,16 @@ sub register {
   $app->helper(alias_re => sub { return qr/[a-zA-Z0-9-_]+/ });
 
   $app->helper(
+    number_to_currency => sub {
+      my $self         = shift;
+      my $num          = shift;
+      my $country_code = shift || 'ru';
+
+      Mojo::ByteStream->new(sprintf "%.2f &#x20bd;", $num);
+    }
+  );
+
+  $app->helper(
     retina_src => sub {
       my $self = shift;
       my $src  = shift;
@@ -243,6 +253,19 @@ sub register {
         postfix  => $params{postfix},
         template => 'Texts/_' . $params{key_razdel} . '_year_nav',
       );
+    }
+  );
+
+  $app->helper(
+    text_page_field_by_alias => sub {
+      my $self = shift;
+      return unless my $alias = shift // $self->stash->{alias};
+      my $field = shift;
+
+      if (my $item = $self->text_page_by_alias($alias)) {
+        return $item->{$field};
+      }
+      return '';
     }
   );
 
