@@ -137,17 +137,12 @@ sub save {
   my $self   = shift;
   my %params = @_;
 
-  my $table = $self->stash->{list_table};
-
   $self->backup_doptable;
 
-  if ($self->save_info(%params, table => $self->stash->{list_table})) {
-
-    $self->file_save_pict(
-      filename => $self->send_params->{pict},
-      lfield   => 'pict',
-      fields   => {pict => 'pict'},
-    ) if $self->send_params->{pict};
+  delete $self->send_params->{password_digest}
+		unless $self->send_params->{password_digest};
+    
+  if ($self->save_info(%params, table => $table)) {
 
     if ($params{continue}) {
       $self->admin_msg_success("Данные сохранены");
