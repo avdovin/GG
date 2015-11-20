@@ -1379,11 +1379,11 @@ function set_route_alias(form) {
 
 			layout = $url_for.find('option:selected').data('layout');
 
-			$layout.find('option:contains("'+layout+'")').attr('selected', true);
+			$layout.find('option[value="'+layout+'"]').attr('selected', true);
 			$layout.attr('disabled', true);
 		} else {
 
-			$layout.find('option:contains("'+layout+'")').attr('selected', true);
+			$layout.find('option[value="'+layout+'"]').attr('selected', true);
 			$layout.attr('disabled', false);
 		}
 
