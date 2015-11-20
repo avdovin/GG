@@ -13,7 +13,7 @@
     );
   }
 </script>
-% js_files_cdn(file => '/js/gg.core-2.js', template => '_headers.html.ep');
+% js_files_cdn(file => '/js/gg.core-2.min.js', template => '_headers.html.ep');
 % js_files_cdn(file => '/js/bundled/html4andhtml5/jquery.history.js', template => '_headers.html.ep');
 % js_files_cdn(file => '/js/jquery/plugins/jquery.mask.min.js', template => '_headers.html.ep');
 %# js_files_cdn(file => '/js/jquery.quickSubmit.js', template => '_headers.html.ep');
