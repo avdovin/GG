@@ -23,7 +23,6 @@ sub startup {
   $r->namespaces(['GG::Content']);
 
   # значения по умолчанию
-  $self->defaults(layout           => 'default');
   $self->defaults(controller_class => 'GG::Controller');
   $self->defaults(handler          => 'ep');
 
