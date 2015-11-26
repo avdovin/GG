@@ -9,7 +9,7 @@
 	</td>
 	<td width="10px" id="_<%= $key %>"></td>
 	<td class="read">
-		<div id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>">
+		<div id="multisearchblock<%= $self->stash->{replaceme} %><%= $key %>" class="multselect__field_container">
 			<table style="width:95%;padding:3px">
 				<tr>
 					<td width="250px" align=left>
@@ -21,15 +21,15 @@
 				</tr>
 				<tr>
 					<td colspan=2>
-						<div>
 							% $lkey->{settings}->{notnull} = 1;
 							<select multiple id="fromselect<%= $key %><%= $index %>" name="fromselect<%= $key %>" style="border:solid 1px navy;font-size:9px">
 								%== LIST name => $key, value => $value, option => 1, onlyindex => -1
 							</select>
-							<select multiple id="<%= $key %><%= $index %>" name="<%= $key %>" <% if($lkey->{settings}->{required}){%>required<% } %> style="border:solid 1px navy;font-size:9px">
-								%== LIST name => $key, value => $value, option => 1, onlyindex => 1
-							</select>
-						</div>
+							<div>
+								<select class="multiselect__field" multiple id="<%= $key %><%= $index %>" name="<%= $key %>" <% if($lkey->{settings}->{required}){%>required<% } %> style="border:solid 1px navy;font-size:9px">
+									%== LIST name => $key, value => $value, option => 1, onlyindex => 1
+								</select>
+							</div>
 					</td>
 				</tr>
 			</table>
