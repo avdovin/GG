@@ -111,7 +111,7 @@ sub _init {
   #Groupname
   my $kr         = $self->stash->{key_razdel};
   my $list_table = $self->stash->{list_table};
-  if ($list_table && $program->{settings}->{'groupname_' . $list_table}) {
+  if ($list_table && $self->app->program->{settings}->{'groupname_' . $list_table}) {
     $self->app->program->{groupname} = $self->app->program->{settings}->{'groupname_' . $list_table};
   }
   elsif ($kr && $self->app->program->{settings}->{'groupname_' . $kr}) {
