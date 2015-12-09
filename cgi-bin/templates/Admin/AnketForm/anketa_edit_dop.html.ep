@@ -59,45 +59,14 @@
 </form>
 <% unless($self->stash->{flag_win}){ %>
 <script>
-enableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = false;}
-disableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = true;}
-id_block_submit['dop<%= $replaceme %><%= $index %>'] = "submit_dop<%= $replaceme %><%= $index %>";
-formValObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.formValidator({ formRef:'form_dop<%= $replaceme %><%= $index %>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<%= $replaceme %><%= $index %>',callbackOnFormInvalid:'disableSubmitwin<%= $replaceme %><%= $index %>',indicateWithBars:false });
-formObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.form({ formRef:'form_dop<%= $replaceme %><%= $index %>',action:'<%= $self->stash->{controller_url} %>',responseEl:'formResponsedop'});
-multilist_init("form_dop<%= $replaceme %><%= $index %>");
-editor_init('form_dop<%= $replaceme %><%= $index %>');
+  setTimeout(function(){ modalFormInit();}, 1000);
+  enableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = false;}
+  disableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = true;}
+  id_block_submit['dop<%= $replaceme %><%= $index %>'] = "submit_dop<%= $replaceme %><%= $index %>";
+  formValObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.formValidator({ formRef:'form_dop<%= $replaceme %><%= $index %>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<%= $replaceme %><%= $index %>',callbackOnFormInvalid:'disableSubmitwin<%= $replaceme %><%= $index %>',indicateWithBars:false });
+  formObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.form({ formRef:'form_dop<%= $replaceme %><%= $index %>',action:'<%= $self->stash->{controller_url} %>',responseEl:'formResponsedop'});
+  multilist_init("form_dop<%= $replaceme %><%= $index %>");
+  editor_init('form_dop<%= $replaceme %><%= $index %>');
 </script>
 <% } %>
 </div>
-<% if($self->stash->{flag_win}){ %>
-</parts>
-<parts>
-<item>
-  <evalfunc>enableSubmitwin<VALUES name="key_program"/><VALUES name="index"/> = function () {document.getElementById(id_block_submit['dop<VALUES name="key_program"/><VALUES name="index"/>']).disabled = false;}</evalfunc>
-</item>
-<item>
-  <evalfunc>disableSubmitwin<VALUES name="key_program"/><VALUES name="index"/> = function () {document.getElementById(id_block_submit['dop<VALUES name="key_program"/><VALUES name="index"/>']).disabled = true;}</evalfunc>
-</item>
-<item>
-  <evalfunc>id_block_submit['dop<VALUES name="key_program"/><VALUES name="index"/>'] = "submit_dop<VALUES name="key_program"/><VALUES name="index"/>";</evalfunc>
-</item>
-<item>
-  <evalfunc>formValObj['dop<VALUES name="key_program"/><VALUES name="index"/>'] = new DHTMLSuite.formValidator({ formRef:'form_dop<VALUES name="key_program"/><VALUES name="index"/>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<VALUES name="key_program"/><VALUES name="index"/>',callbackOnFormInvalid:'disableSubmitwin<VALUES name="key_program"/><VALUES name="index"/>',indicateWithBars:false });</evalfunc>
-</item>
-<item>
-  <evalfunc>formObj['dop<VALUES name="key_program"/><VALUES name="index"/>'] = new DHTMLSuite.form({ formRef:'form_dop<VALUES name="key_program"/><VALUES name="index"/>',action:'<VALUES name="program_link"/>',responseEl:'formResponsedop'});</evalfunc>
-</item>
-<item>
-  <evalfunc>multilist_init("form_dop<VALUES name="key_program"/><VALUES name="index"/>");</evalfunc>
-</item>
-<item>
-  <evalfunc>panel_editor_type = "<VALUES name="panel_editor_type"/>";</evalfunc>
-</item>
-<item>
-  <evalfunc>if (!panel_editor_type) {editor_init("form_dop<VALUES name="key_program"/><VALUES name="index"/>", "fieldHTML");} else {editor_init("form_dop<VALUES name="key_program"/><VALUES name="index"/>", panel_editor_type);}</evalfunc>
-</item>
-<item>
-  <evalfunc>function closethiswin() { delete id_block_submit['dop<VALUES name="key_program"/><VALUES name="index"/>']; delete formValObj['dop<VALUES name="key_program"/><VALUES name="index"/>']; delete formObj['dop<VALUES name="key_program"/><VALUES name="index"/>']; setOuterHTML('replaceme_dop<VALUES name="key_program"/><VALUES name="index"/>',''); closeMessage(4);}</evalfunc>
-</item>
-</parts>
-<% } %>

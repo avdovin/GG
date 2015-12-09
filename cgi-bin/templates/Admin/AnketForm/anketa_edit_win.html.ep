@@ -56,16 +56,17 @@
 </form>
 
 <script>
-    enableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
-        document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = false;
-    }
+  setTimeout(function(){ modalFormInit();}, 1000);
+  enableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
+      document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = false;
+  }
 
-    disableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
-        document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = true;
-    }
-    id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>'] = "submit_win<%= $replaceme %><%= $self->stash->{index} %>";
-    formValObj['win<%= $replaceme %><%= $self->stash->{index} %>'] = new DHTMLSuite.formValidator({ formRef:'form_win<%= $replaceme %><%= $self->stash->{index} %>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<%= $replaceme %><%= $self->stash->{index} %>',callbackOnFormInvalid:'disableSubmitwin<%= $replaceme %><%= $self->stash->{index} %>',indicateWithBars:true });
-    formObj['win<%= $replaceme %><%= $self->stash->{index} %>'] = new DHTMLSuite.form({ formRef:'form_win<%= $replaceme %><%= $self->stash->{index} %>',action:'<%= $self->stash->{controller_url} %>',responseEl:'formResponsewin'});
+  disableSubmitwin<%= $replaceme %><%= $self->stash->{index} %> = function () {
+      document.getElementById(id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>']).disabled = true;
+  }
+  id_block_submit['win<%= $replaceme %><%= $self->stash->{index} %>'] = "submit_win<%= $replaceme %><%= $self->stash->{index} %>";
+  formValObj['win<%= $replaceme %><%= $self->stash->{index} %>'] = new DHTMLSuite.formValidator({ formRef:'form_win<%= $replaceme %><%= $self->stash->{index} %>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<%= $replaceme %><%= $self->stash->{index} %>',callbackOnFormInvalid:'disableSubmitwin<%= $replaceme %><%= $self->stash->{index} %>',indicateWithBars:true });
+  formObj['win<%= $replaceme %><%= $self->stash->{index} %>'] = new DHTMLSuite.form({ formRef:'form_win<%= $replaceme %><%= $self->stash->{index} %>',action:'<%= $self->stash->{controller_url} %>',responseEl:'formResponsewin'});
 </script>
 
 </div>
