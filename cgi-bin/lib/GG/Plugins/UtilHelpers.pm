@@ -9,17 +9,50 @@ use Mojo::ByteStream;
 sub register {
   my ($self, $app) = @_;
 
+  $app->helper(
+    escape_javascript => sub {
+      my $self = shift;
+      my $js   = shift;
+
+      my %JS_ESCAPE_MAP = (
+        '\\'   => '\\\\',
+        '</'   => '<\/',
+        "\r\n" => '\n',
+        "\n"   => '\n',
+        "\r"   => '\n',
+        '"'    => '\\"',
+        "'"    => "\\'"
+      );
+
+      $js
+        =~ s/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/$JS_ESCAPE_MAP{$1}/ug;
+
+      $js;
+    }
+  );
+
   $app->helper(vu => sub { shift->tx->req->url->path->parts->[+shift] || '' });
 
   $app->helper(alias_re => sub { return qr/[a-zA-Z0-9-_]+/ });
 
   $app->helper(
     number_to_currency => sub {
-      my $self         = shift;
-      my $num          = shift;
-      my $country_code = shift || 'ru';
+      my $self   = shift;
+      my $num    = shift;
+      my %params = (code => '', sep => '.', @_);
 
-      Mojo::ByteStream->new(sprintf "%.2f &#x20bd;", $num);
+      my $sep = delete $params{sep};
+      my $country_code_entite = {ru => '&#x20bd;',};
+
+      my ($number, $ap) = split(/\./, $num);
+
+      $number = $self->numberformat($number);
+
+      $ap = sprintf("%.2u", $ap || 0);
+
+      my $country_code_entite_str = $country_code_entite->{$params{code}} || '';
+
+      Mojo::ByteStream->new("${number}${sep}${ap} $country_code_entite_str");
     }
   );
 
@@ -135,8 +168,7 @@ sub register {
       $ip =~ s/\,/\./g;
       if ($ip
         =~ /^((([01]?\d{1,2})|(2([0-4]\d|5[0-5])))\.){3}(([01]?\d{1,2})|(2([0-4]\d|5[0-5])))$/
-        )
-      {
+        ) {
         my @bits = split /\./, $ip;
         my $ADDRESS
           = $bits[0] * 256 * 256 * 256
@@ -277,8 +309,7 @@ sub register {
       return $self->stash->{'_page_' . $alias}
         if defined $self->stash->{'_page_' . $alias};
 
-      my $item
-        = $self->dbi->query("
+      my $item = $self->dbi->query("
         SELECT * FROM texts_main_" . $self->lang . "
         WHERE `viewtext`='1' AND `alias`='$alias'")->hash;
 
@@ -290,7 +321,7 @@ sub register {
     text_by_alias => sub {
       my $self = shift;
 
-      if( my $page = $self->text_page_by_alias(@_) ){
+      if (my $page = $self->text_page_by_alias(@_)) {
         return $page->{'text'};
       }
     }
@@ -328,7 +359,7 @@ sub register {
       $controller = lc $controller;
       my $static_path = $self->static_path;
 
-      my @js_files = ();
+      my @js_files  = ();
       my @css_files = ();
       if (-e $static_path . '/js/controllers/' . $controller . '.js') {
 
@@ -342,11 +373,11 @@ sub register {
 
           my $ext = ($file =~ m/([^.]+)$/)[0];
 
-          if($ext eq 'js'){
-            push @js_files, '/js/controllers/' . $controller . '/' . $file
+          if ($ext eq 'js') {
+            push @js_files, '/js/controllers/' . $controller . '/' . $file;
           }
-          elsif($ext eq 'css'){
-            push @css_files, '/js/controllers/' . $controller . '/' . $file
+          elsif ($ext eq 'css') {
+            push @css_files, '/js/controllers/' . $controller . '/' . $file;
           }
         }
         closedir(DIR);
@@ -354,11 +385,13 @@ sub register {
       my $out = '';
       if (scalar(@js_files)) {
         $self->asset($controller . '.js' => @js_files);
-        $out .= $self->render_to_string(inline => "%= asset '$controller.js'; ");
+        $out
+          .= $self->render_to_string(inline => "%= asset '$controller.js'; ");
       }
       if (scalar(@css_files)) {
         $self->asset($controller . '.css' => @css_files);
-        $out .= $self->render_to_string(inline => "%= asset '$controller.css'; ");
+        $out
+          .= $self->render_to_string(inline => "%= asset '$controller.css'; ");
       }
       return Mojo::ByteStream->new($out);
     }
@@ -783,7 +816,7 @@ sub register {
   $app->helper(
     numberformat => sub {
       my $self = shift;
-      my $d    = shift;
+      my $d    = int shift;
       my $sep  = shift || ' ';
 
       return unless defined $d;
