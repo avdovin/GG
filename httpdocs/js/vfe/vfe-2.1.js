@@ -1,6 +1,6 @@
   // Название:      Visual Front-end Editor
-// Версия:        2.0
-// Дата:          19.07.2012
+// Версия:        2.2
+// Дата:          21.12.2015
 // Кодинг:        Nikita Korobochkin
 // Зависимости:   jQuery 1.7.2
 
@@ -163,6 +163,10 @@ var vfe = (function() {
       // Плавающая панель
       $.Float = jQuery("<div/>", {id: $.Float}).appendTo("body");
 
+      $.Float.click(function(e){
+        e.stopPropagation();
+      });
+
       // Добавляем кнопки в панель
       $.floatButtons = {};
       for (var i = 0, k = $.float.length; i < k; i++) {
@@ -276,13 +280,15 @@ var vfe = (function() {
             }
               if (getCookie("vfe-panel-editable") != 1) setCookie("vfe-panel-editable",1,365);
           } else {
-              $.editOff();
-              $.editableBlocks.removeAttr("contenteditable");
-              $.contentEditableBlocks.removeAttr("contenteditable");
-              if (typeof CKEDITOR != 'undefined') {
-                for(k in CKEDITOR.instances){
-                  var instance = CKEDITOR.instances[k];
-                  instance.destroy();
+              if ($.float.cancel.click()) {
+                $.editOff();
+                $.editableBlocks.removeAttr("contenteditable");
+                $.contentEditableBlocks.removeAttr("contenteditable");
+                if (typeof CKEDITOR != 'undefined') {
+                  for(k in CKEDITOR.instances){
+                    var instance = CKEDITOR.instances[k];
+                    instance.destroy();
+                }
               }
             }
               if (typeof $.Content_source != "undefined") $.Content_source.html($.Content);
@@ -355,7 +361,9 @@ var vfe = (function() {
       });
 
       // Редактируемый блок и плавающая панель
-      $.editableBlocks.mousedown(function(){
+      $.editableBlocks.mousedown(function(e){
+        e.stopPropagation();
+
           if (!jQuery(this).attr("contenteditable")) return false;
 
           if (typeof $.Content_source == 'undefined') {
@@ -385,10 +393,16 @@ var vfe = (function() {
             $.float.save.removeClass("disabled");
             $.float.cancel.removeClass("disabled");
           }
-      }).mouseup(function(){
+
+          if (e.keyCode != 27) jQuery(this).addClass('iamdirty');
+      }).mouseup(function(e){
+        e.stopPropagation();
+
         if (!jQuery(this).attr("contenteditable")) return false;
 
         $.blockMouseClick();
+      }).click(function(e){
+        e.stopPropagation();
       });
 
       // Кнопка сохранить
@@ -404,16 +418,17 @@ var vfe = (function() {
               $.beforeCancel();
           },
             success: function(data){
-                toggleLoading();
-            if(data.error){
-                        $.showMessage("Ошибка", data.error, true);
-            } else{
-                $.Content = $.Content_source.html();
-                $.Content_source.data("vfe-revisions", parseInt(data.revisions)).data("vfe-revision", (parseInt(data.revisions)+1));
-                        updateAllInstances();         // Обновление контента одинаковых шаблонов на одной странице
-                $.float.cancel.trigger("click");  // Имитация нажатия кнопки "Отмена" (для скрытия плавающей панели)
-                $.showMessage("Сохранение", "Информация успешно сохранена.");
-            }
+              toggleLoading();
+              if(data.error){
+                $.showMessage("Ошибка", data.error, true);
+              } else{
+                  $.Content = $.Content_source.html();
+                  $.Content_source.data("vfe-revisions", parseInt(data.revisions)).data("vfe-revision", (parseInt(data.revisions)+1));
+                  $.Content_source.removeClass("iamdirty");
+                  updateAllInstances();         // Обновление контента одинаковых шаблонов на одной странице
+                  $.float.cancel.trigger("click");  // Имитация нажатия кнопки "Отмена" (для скрытия плавающей панели)
+                  $.showMessage("Сохранение", "Информация успешно сохранена.");
+              }
             },
             error: function(data){
               $.showMessage("Ошибка", "Невозможно выполнить запрос. Ошибка на стороне сервера.", true);
@@ -422,7 +437,8 @@ var vfe = (function() {
           },
             data: {
                   template: $.Content_source.data("vfe-template"),
-                  content:  $.Content_source.html()
+                  content:  $.Content_source.html(),
+                  lang:     $.Content_source.data("lang")
               }
         });
 
@@ -459,6 +475,8 @@ var vfe = (function() {
                       }
                       if (data.revision < parseInt($.Content_source.data("vfe-revisions"))) $.float.redo.removeClass("disabled");
                       $.showMessage("Ревизия", "Состояние на <b>"+data.datetime+"</b> ("+data.revision+"/"+$.Content_source.data("vfe-revisions")+") загружено успешно.");
+
+                      $.Content_source.addClass('iamdirty');
           }
           },
             error: function(data){
@@ -468,7 +486,8 @@ var vfe = (function() {
           },
             data: {
                   template: $.Content_source.data("vfe-template"),
-                  revision: $.Content_source.data("vfe-revision")
+                  revision: $.Content_source.data("vfe-revision"),
+                  lang:     $.Content_source.data("lang")
               }
         });
 
@@ -507,6 +526,8 @@ var vfe = (function() {
                           $.float.redo.removeClass("disabled");
                       }
                       $.showMessage("Ревизия", "Состояние на <b>"+data.datetime+"</b> ("+data.revision+"/"+$.Content_source.data("vfe-revisions")+") загружено успешно.");
+
+                      $.Content_source.addClass('iamdirty');
           }
           if (data.revision > 1) $.float.undo.removeClass("disabled");
           },
@@ -517,7 +538,8 @@ var vfe = (function() {
           },
             data: {
                   template: $.Content_source.data("vfe-template"),
-                  revision: $.Content_source.data("vfe-revision")
+                  revision: $.Content_source.data("vfe-revision"),
+                  lang:     $.Content_source.data("lang")
               }
         });
 
@@ -527,14 +549,31 @@ var vfe = (function() {
 
 
       // Кнопка отменить
-      $.float.cancel.click(function(){
+      $.float.cancel.click(function(e){
+          var returnFlag = false;
+
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
-          $.Wrapper.removeClass("vfe-hideoutlines");
-          $.Content_source.html($.Content).removeClass("vfe-editing").blur();
-          $.Content = undefined;
-          $.Content_source = undefined;
-          $.Float.hide();
-          return false;
+
+          if ($.Content_source.is(".iamdirty")) {
+            if (confirm('Содержимое было изменено. Сохранить?')) {
+              $.float.save.click();
+              returnFlag = true;
+            } else {
+              returnFlag = false;
+            }
+          }
+
+          if (!returnFlag) {
+            $.Wrapper.removeClass("vfe-hideoutlines");
+            $.Content_source.html($.Content).removeClass("vfe-editing").blur();
+            $.Content = undefined;
+            $.Content_source = undefined;
+            $.Float.hide();
+          }
+
+          e.preventDefault();
+
+          return returnFlag;
       });
 
       jQuery(document).keyup(function(e){
@@ -542,6 +581,13 @@ var vfe = (function() {
               $.float.cancel.trigger("click");
               return false;
           }
+      });
+
+      jQuery("body").click(function(e){
+        if (jQuery(".vfe-editing").length > 0) {
+            $.float.cancel.trigger("click");
+            return false;
+        }
       });
 
 
