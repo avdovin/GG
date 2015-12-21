@@ -622,12 +622,17 @@ sub register {
 
           }
           elsif ($type eq "tlist") {
+
+            my $list_field_as_id = $lkeys->{$key}->{settings}->{list_field_as_id} || 'ID';
+            my $list_field_as_name = $lkeys->{$key}->{settings}->{list_field_as_name} || 'name';
+
             push(@filter,
                   "`"
                 . $self->stash->{tables}->{$lkeys->{$key}->{settings}->{list}}
-                . "`.`name` LIKE '%$v%'")
+                . "`.`$list_field_as_name` LIKE '%$v%'")
               unless
               exists $filter{$lkeys->{$key}->{settings}->{list} . ".name"};
+
             $filter{$lkeys->{$key}->{settings}->{list} . ".name"} = 1;
 
           }
@@ -829,14 +834,17 @@ sub register {
               }
             }
             if ($lkey->{settings}->{type} eq "tlist") {
+              my $list_field_as_id = $lkey->{settings}->{list_field_as_id} || 'ID';
+              my $list_field_as_name = $lkey->{settings}->{list_field_as_name} || 'name';
+
               my $list = $lkey->{settings}->{list};
               $self->stash->{table_from}
                 .= " LEFT JOIN `$list` AS `tb"
                 . $sch
                 . "` ON `$params{table}`.`$k` = tb"
-                . $sch . ".`ID`";
+                . $sch . ".`$list_field_as_id`";
               push(@table_list_keys,
-                "tb" . $sch . ".`name` AS `" . $k . "_name`");
+                "tb" . $sch . ".`$list_field_as_name` AS `" . $k . "_name`");
               $tables{$list} = "tb" . $sch;
               $sch++;
             }

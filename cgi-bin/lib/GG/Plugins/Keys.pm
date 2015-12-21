@@ -291,10 +291,13 @@ sub register {
         my $where = $lkey->{settings}->{where} || '';
         $where = $self->render_to_string(inline => $where) if $where;
 
+        my $list_field_as_id = $lkey->{settings}->{list_field_as_id} || 'ID';
+        my $list_field_as_name = $lkey->{settings}->{list_field_as_name} || 'name';
+
         eval {
           $list_vals = $self->app->dbi->query(
             qq/
-            SELECT `ID`,`name`
+            SELECT $list_field_as_id as `ID`,$list_field_as_name as `name`
             FROM `$list`
             WHERE 1 $where
           /

@@ -427,6 +427,7 @@ sub register {
 
       $self->get_keys(type => ['lkey'], controller => $controller);
 
+      my $stash = $self->stash;
       my $replaceme = $self->param('replaceme') || '';
 
       if (my $rules = $self->param('rules')) {
@@ -439,8 +440,6 @@ sub register {
         my $menu
           = "lstobj[out].options[lstobj[out].options.length] = new Option('----', '');\n";
 
-        my $where  = " 1 ";
-        my $select = "`ID`,`name`";
 
         #my $from   = $list_table;
         my (@rules, $field_rules_f1, $field_rules_f2);
@@ -455,52 +454,50 @@ sub register {
         my ($from, $field_rules) = split(/\./, $rules[0]);
         ($field_rules_f1, $field_rules_f2) = split(/=/, $field_rules);
 
+        my $lkey_field_rules_f1 = $self->lkey(
+          name       => $field_rules_f1,
+          controller => $controller
+        );
+
+        my $lkey_field_rules_f2 = $self->lkey(
+          name       => $field_rules_f2,
+          controller => $controller
+        );
+
+        my $list_f1_as_id = $lkey_field_rules_f1->{settings}->{list_field_as_id} || 'ID';
+        my $list_f1_as_name = $lkey_field_rules_f1->{settings}->{list_field_as_name} || 'name';
+
+        my $where  = " 1 ";
+        my $select = " $list_f1_as_id as `ID`, $list_f1_as_name as `name`";
+
         if ($field_rules_f2 eq "index") {
-          $where .= " "
-            . $self->lkey(
-            name       => $field_rules_f1,
-            setting    => 'rules_where',
-            controller => $controller
-            );
-          $where .= " AND `$field_rules_f1`='"
-            . $self->stash->{$field_rules_f2} . "' ";
+          my $rules_where = $lkey_field_rules_f1->{settings}->{rules_where};
+          $where .= " ".$rules_where if $rules_where;
+
+          $where .= " and `$field_rules_f1`='"
+            . $stash->{$field_rules_f2} . "' ";
 
         }
         else {
 
-          $select = "`"
-            . $self->lkey(
-            name       => $field_rules_f2,
-            setting    => 'list',
-            controller => $controller
-            )
-            . "`.`ID`,`"
-            . $self->lkey(
-            name       => $field_rules_f2,
-            setting    => 'list',
-            controller => $controller
-            ) . "`.`name`";
+          my $list_f2_as_id = $lkey_field_rules_f2->{settings}->{list_field_as_id} || 'ID';
+          my $list_f2_as_name = $lkey_field_rules_f2->{settings}->{list_field_as_name} || 'name';
+          my $list_f2_list = $lkey_field_rules_f2->{settings}->{list};
+
+          $select = "`$list_f2_list`.`$list_f2_as_id` AS ID,"
+            . "`$list_f2_list`.`$list_f2_as_name` AS name";
           $where
             = "`$from`.`ID`='"
             . $self->stash->{$field_rules_f2}
             . "' GROUP BY `$field_rules_f2`";
           $from = "`$from` INNER JOIN "
-            . $self->lkey(
-            name       => $field_rules_f2,
-            setting    => 'list',
-            controller => $controller
-            )
+            . $list_f2_list
             . " ON `$from`.`$field_rules_f2`=`"
-            . $self->lkey(
-            name       => $field_rules_f2,
-            setting    => 'list',
-            controller => $controller
-            ) . "`.`ID`";
+            . $list_f2_list . "`.`$list_f2_as_id`";
         }
 
 
         my $flag_sel = 0;
-
 
         if (my $items
           = $self->dbi->query("SELECT $select FROM `$from` WHERE $where")
@@ -563,20 +560,23 @@ sub register {
         my $lkey = $self->lkey(name => $lfield, controller => $controller);
 
         if ($lkey) {
-          my $table = $lkey->{settings}->{list};
-          my $where = " 1 ";
-          $where .= $lkey->{settings}->{where} . " "
-            if $lkey->{settings}->{where};
+          my $list_as_id = $lkey->{settings}->{list_field_as_id} || 'ID';
+          my $list_as_name = $lkey->{settings}->{list_field_as_name} || 'name';
+          my $list_table = $lkey->{settings}->{list};
+          my $list_where = $lkey->{settings}->{where};
 
-          $where .= " AND `ID` NOT IN ($selected_vals) "
+          my $where = " 1 ";
+          $where .= $list_where . " " if $list_where;
+
+          $where .= " AND `$list_as_id` NOT IN ($selected_vals) "
             if ($selected_vals
             && ($self->param('multi') or $self->param('mult')))
             ;    # Исключаем ИД если мультисписок
           $where
-            .= " AND `name` LIKE '%$keystring%' ORDER BY `name` LIMIT 0,50";
+            .= " AND `$list_as_name` LIKE '%$keystring%' ORDER BY `$list_as_name` LIMIT 0,50";
 
           for my $item (
-            $self->dbi->query("SELECT `ID`,`name` FROM `$table` WHERE $where")
+            $self->dbi->query("SELECT $list_as_id as `ID`,$list_as_name as `name` FROM `$list_table`` WHERE $where")
             ->hashes)
           {
             my $name = _def_name_list_select($item->{name});
