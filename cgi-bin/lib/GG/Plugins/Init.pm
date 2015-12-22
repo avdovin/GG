@@ -60,7 +60,8 @@ sub register {
   $app->plugin('http_cache');
   $app->plugin('crypt');
   $app->plugin('dbi', $conf);
-
+  $app->plugin('vfe') if $conf->{'vfe_enabled'};
+  
   if ( $conf->{robokassa}
     && ref $conf->{robokassa}
     && scalar keys %{$conf->{robokassa}} == 3)
@@ -73,7 +74,6 @@ sub register {
     $app->plugin($_, $conf);
   }
 
-  $app->plugin('vfe') if $conf->{'vfe_enabled'};
 
   if ($conf->{'mail_type'} eq 'smtp') {
     $app->plugin(

@@ -153,7 +153,7 @@ var vfe = (function() {
 
       // Генерируем редактируемые блоки
       $.Dummies.each(function(){
-          if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").attr("data-vfe-template", jQuery(this).data("vfe-template")).attr("data-vfe-revisions", jQuery(this).data("vfe-revisions")).attr("data-vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).end().remove();
+          if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").attr("data-vfe-template", jQuery(this).data("vfe-template")).attr("data-vfe-revisions", jQuery(this).data("vfe-revisions")).attr("data-vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).attr("data-vfe-lang", jQuery(this).data("lang")).end().remove();
           if (jQuery(this).data("vfe-textid")) jQuery(this).parent().addClass("ck").attr("data-vfe-textid", jQuery(this).data("vfe-textid")).end().remove();
       });
 
@@ -248,7 +248,7 @@ var vfe = (function() {
                           blur: function(event) {
                             if (confirm("Сохранить изменения?")) {
                       var request = jQuery.ajax({
-                        url: "/admin/vfe-text-save",
+                        url: "/admin/vfe/text-save",
                         type: "POST",
                         data: {
                           content : event.editor.getData(),
@@ -411,7 +411,7 @@ var vfe = (function() {
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
 
           jQuery.ajax({
-          url: "/admin/vfe-save",
+          url: "/admin/vfe/save",
           type: 'post',
             beforeSend: function(){
               toggleLoading();
@@ -438,7 +438,7 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   content:  $.Content_source.html(),
-                  lang:     $.Content_source.data("lang")
+                  lang:     $.Content_source.data("vfe-lang")
               }
         });
 
@@ -452,7 +452,7 @@ var vfe = (function() {
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
 
           jQuery.ajax({
-          url: "/admin/vfe-undo",
+          url: "/admin/vfe/undo",
           type: 'post',
             beforeSend: function(){
               toggleLoading();
@@ -473,7 +473,7 @@ var vfe = (function() {
                       } else {
                           $.float.undo.removeClass("disabled");
                       }
-                      if (data.revision < parseInt($.Content_source.data("vfe-revisions"))) $.float.redo.removeClass("disabled");
+                      if (data.revision <= parseInt($.Content_source.data("vfe-revisions"))) $.float.redo.removeClass("disabled");
                       $.showMessage("Ревизия", "Состояние на <b>"+data.datetime+"</b> ("+data.revision+"/"+$.Content_source.data("vfe-revisions")+") загружено успешно.");
 
                       $.Content_source.addClass('iamdirty');
@@ -487,7 +487,7 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   revision: $.Content_source.data("vfe-revision"),
-                  lang:     $.Content_source.data("lang")
+                  lang:     $.Content_source.data("vfe-lang")
               }
         });
 
@@ -500,8 +500,18 @@ var vfe = (function() {
 
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
 
+          // Попытка вернуть исходное состояние 
+          if ($.Content_source.data("vfe-revision") == parseInt($.Content_source.data("vfe-revisions"))) {
+          	$.Content_source.html($.Content);
+          	$.float.redo.addClass("disabled");
+          	$.Content_source.data("vfe-revision", parseInt($.Content_source.data("vfe-revisions"))+1);
+          	$.showMessage("Ревизия", "Возврат к актуальному состоянию.");
+          	$.Content_source.removeClass('iamdirty');
+          	return false;
+          }
+
           jQuery.ajax({
-          url: "/admin/vfe-redo",
+          url: "/admin/vfe/redo",
           type: 'post',
             beforeSend: function(){
               toggleLoading();
@@ -520,11 +530,11 @@ var vfe = (function() {
             $.float.save.removeClass("disabled");
             $.float.cancel.removeClass("disabled");
 
-                      if (data.revision == data.revisions) {
-                          $.float.redo.addClass("disabled");
-                      } else {
-                          $.float.redo.removeClass("disabled");
-                      }
+                      // if (data.revision == data.revisions) {
+                      //     $.float.redo.addClass("disabled");
+                      // } else {
+                      //     $.float.redo.removeClass("disabled");
+                      // }
                       $.showMessage("Ревизия", "Состояние на <b>"+data.datetime+"</b> ("+data.revision+"/"+$.Content_source.data("vfe-revisions")+") загружено успешно.");
 
                       $.Content_source.addClass('iamdirty');
@@ -539,7 +549,7 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   revision: $.Content_source.data("vfe-revision"),
-                  lang:     $.Content_source.data("lang")
+                  lang:     $.Content_source.data("vfe-lang")
               }
         });
 
@@ -554,7 +564,7 @@ var vfe = (function() {
 
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
 
-          if ($.Content_source.is(".iamdirty")) {
+          if ($.Content_source && $.Content_source.is(".iamdirty")) {
             if (confirm('Содержимое было изменено. Сохранить?')) {
               $.float.save.click();
               returnFlag = true;
@@ -565,7 +575,7 @@ var vfe = (function() {
 
           if (!returnFlag) {
             $.Wrapper.removeClass("vfe-hideoutlines");
-            $.Content_source.html($.Content).removeClass("vfe-editing").blur();
+            if ($.Content_source) $.Content_source.html($.Content).removeClass("vfe-editing").blur();
             $.Content = undefined;
             $.Content_source = undefined;
             $.Float.hide();

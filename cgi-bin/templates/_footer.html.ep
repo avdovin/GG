@@ -8,7 +8,7 @@
 <!-- end content_for js_files -->
 
 % if( $self->stash->{'vfe'} && $self->config->{'vfe_enabled'}){
-  %= include 'Vfe/vfe';
+  %= include 'vfe/vfe';
 % }
 <!-- end _footer.html.ep -->
 
