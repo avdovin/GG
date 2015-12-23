@@ -6,7 +6,7 @@ use Mojo::Base 'Mojolicious';
 #use experimental 'signatures';
 
 use utf8;
-our $VERSION = '9.3.2.1';
+our $VERSION = '9.3.2';
 
 # This method will run once at server start
 sub startup {
