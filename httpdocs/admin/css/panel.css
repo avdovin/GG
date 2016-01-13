@@ -307,4 +307,4 @@ dd {
     }
 
 #auth_raptor {width: 20%; position: absolute; bottom: 0px; right:0px;}
-.multselect__field_container .DHTMLSuite_validationBarValid,.DHTMLSuite_validationBarInvalid {margin-top: 14px !important;}
+.multselect__field_container .DHTMLSuite_validationBarValid,.multselect__field_container .DHTMLSuite_validationBarInvalid {margin-top: 14px !important;}
