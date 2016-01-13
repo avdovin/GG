@@ -576,7 +576,7 @@ sub register {
             .= " AND `$list_as_name` LIKE '%$keystring%' ORDER BY `$list_as_name` LIMIT 0,50";
 
           for my $item (
-            $self->dbi->query("SELECT $list_as_id as `ID`,$list_as_name as `name` FROM `$list_table`` WHERE $where")
+            $self->dbi->query("SELECT $list_as_id as `ID`,$list_as_name as `name` FROM `$list_table` WHERE $where")
             ->hashes)
           {
             my $name = _def_name_list_select($item->{name});
