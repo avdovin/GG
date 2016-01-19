@@ -214,7 +214,7 @@ sub item_copy {
 
     }
     elsif ($f eq 'alias') {
-      $self->send_params->{$f} = $anketa->{$f} . '_copy';
+      $self->send_params->{$f} = $anketa->{$f} . '-copy';
       $self->send_params->{$f} = $self->check_unique_field(
         field => $f,
         value => $self->send_params->{$f},
