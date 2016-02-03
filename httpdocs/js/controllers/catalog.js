@@ -3,6 +3,32 @@ var $popupIteminfo = $("#popup-kartochka");
 
 $(function(){
 
+	// для навигации по всплывающим карточкам через History
+  window.addEventListener('popstate', function(e) {
+      if (e.state && e.state.item_id && _popup_history_index) {
+          if (e.state.historyIndex < _popup_history_index) {
+              _popup_history_index--;
+          } else {
+              _popup_history_index++;
+          }
+
+          get_iteminfo(e.state.item_id);
+      } else {
+          if ($("#popup-kartochka:visible").length) {
+              _popup_history_index = 0;
+              GG.togglePopup('popup-kartochka');
+          }
+          GG.historyRestoreUrl();
+      }
+  }, false);
+
+  // для навигации по всплывающим карточкам через History
+	GG.callback('popupClosed', function(popup){
+	    var saveIndex = parseInt(_popup_history_index || 0, 10);
+	    _popup_history_index = 0;
+	    if (saveIndex) window.history.go(-saveIndex);
+	});
+
 	$(".catalog__wrapper").on('click', '.catalog__filters a', function(){
 		var curDir = $(this).data('direction');
 		if(curDir == 'asc'){
@@ -17,7 +43,7 @@ $(function(){
 	});
 
 	$("#catalog-list-inner").on('click', '.list__entry a', function(){
-		get_iteminfo( $(this).closest('.list__entry').data('item-id') );
+		get_iteminfo( $(this).closest('.list__entry').data('item-id'), {historyIncrement: true} );
 
 		return false;
 	});
@@ -155,14 +181,17 @@ function get_filter(){
 	return filter;
 }
 
-function get_iteminfo(item_id){
+function get_iteminfo(item_id, params){
 	var itemName = $(".list__entry[data-item-id='"+item_id+"'] .info__title").text();
 	var itemUrl = $(".list__entry[data-item-id='"+item_id+"'] .entry__link").attr('href');
 
 	$.ajax({
 		url: itemUrl+'/body',
 		beforeSend: function(){
-			GG.togglePopup("popup-kartochka");
+			if ( $popupIteminfo.css('display') != 'block'){
+          GG.historyBackupUrl();
+          GG.togglePopup("popup-kartochka");
+      }
 			$popupIteminfo.find('.kartochka__loading').show();
 		},
 
@@ -179,8 +208,12 @@ function get_iteminfo(item_id){
 
 			refreshCloudzoom();
 
-			GG.historyBackupUrl();
-			History.pushState({}, itemName, location.protocol + '//' + location.host + itemUrl);
+		  if (params && params.historyIncrement) {
+	    	typeof _popup_history_index != 'undefined' ? _popup_history_index+1 : _popup_history_index = 1;
+	    	window.history.pushState({item_id : item_id, historyIndex: _popup_history_index}, itemName, location.protocol + '//' + location.host + itemUrl);
+	    }
+
+      document.title = itemName;
 		},
 
 		error: function(data){
