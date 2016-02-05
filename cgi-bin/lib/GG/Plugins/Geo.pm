@@ -1,83 +1,71 @@
 package GG::Plugins::Geo;
-
+# based on http://sypexgeo.net/
 use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Geo::Sypex qw/SXGEO_BATCH/;
 use Socket;
-our $VERSION = '1';
 
-# !!!IMPORT GEO BASE FIRST!!!
+our $VERSION = '0.1';
 
 sub register {
   my ($self, $app, $opts) = @_;
 
   $opts ||= {};
+  # check db exists
+  my $db = $ENV{MOJO_HOME}.'/geo/';
+  unless( -e $db.'SxGeoCity.dat' || -e $db.'SxGeo.dat'  ){
+    die "GG::Plugins::Geo database files not found";
+  }else{
+    $db .= 'SxGeoCity.dat';
+  }
 
+  my $include_cities = [];
+  if( $opts->{geo} and $opts->{geo}->{include} ){
+    $include_cities = $opts->{geo}->{include};
+  }
 
-  $app->helper(
-    geo__chech_ip => sub {
+  $app->log->debug("register GG::Plugins::Geo");
+
+  $app->routes->route("/ajax/set_city")->to(
+    cb => sub {
       my $self = shift;
-      return unless my $ip = shift || $self->ip;
+      $self->current_user_data->{city} = $self->param('city');
+      $self->save_userdata;
+      return $self->render(status => 204, text => '', layout => undef);
+  })->name('ajax_set_city');
 
-      my $ip_int = ip2long($ip);
-      $ip_int =~ s{\D+}{}gi;
 
-      my $result
-        = {country_id => 0, city_id => 0, city_name => '', country_name => '',};
+  $app->helper('geo.cities_list' => sub {
+   return $include_cities;
+  });
 
-     # Ищем по российским и украинским городам
-      my $sql
-        = "select * from (select * from net_ru where begin_ip<=$ip_int order by begin_ip desc limit 1) as t where end_ip>=$ip_int";
-      if (my $row = $self->dbi->query($sql)->hash) {
-        my $result->{'city_id'} = $row->{'city_id'};
-        $sql = "select * from net_city where id='$$result{city_id}'";
-        if (my $row = $self->dbi->query($sql)->hash) {
-          $result->{'city_name'}  = $row->{'name_ru'};
-          $result->{'country_id'} = $row->{'country_id'};
-        }
+  $app->helper('geo.get_city' => sub {
+    my $self = shift;
+    my $city = $self->current_user_data->{city} || undef;
+    return $city if $city;
+
+    if( my $ip = $self->ip ){
+      my $sxgeo = Geo::Sypex->new( $db, SXGEO_BATCH );
+      my $geodata = $sxgeo->get( $ip, 'city_ru' );
+
+      if( $geodata and $geodata->{city_ru} ){
+       unless( scalar @$include_cities ){
+         $city = $geodata->{city_ru};
+       }elsif( grep { $_ eq $geodata->{city_ru} } @$include_cities ){
+         $city = $geodata->{city_ru};
+       }
       }
-
-# Если не нашли - ищем страну и город по всему миру
-      unless ($result->{'city_id'}) {
-        $sql
-          = "select * from (select * from net_euro where begin_ip<=$ip_int order by begin_ip desc limit 1) as t where end_ip>=$ip_int";
-        if (my $row = $self->dbi->query($sql)->hash) {
-          $result->{'country_id'} = $row->{'country_id'};
-        }
-        else {
-          # Ищем страну в мире
-          $sql
-            = "select * from (select * from net_country_ip where begin_ip<=$ip_int order by begin_ip desc limit 1) as t where end_ip>=$ip_int";
-          if (my $row = $self->dbi->query($sql)->hash) {
-            $result->{'country_id'} = $row->{'country_id'};
-          }
-        }
-
-        # Ищем город в глобальной базе
-        $sql
-          = "select * from (select * from net_city_ip where begin_ip<=$ip_int order by begin_ip desc limit 1) as t where end_ip>=$ip_int";
-        if (my $row = $self->dbi->query($sql)->hash) {
-          $result->{'city_id'} = $row->{'city_id'};
-          $sql = "select * from net_city where id='$$result{city_id}'";
-          if (my $row = $self->dbi->query($sql)->hash) {
-            $result->{'city_name'}  = $row->{'name_ru'};
-            $result->{'country_id'} = $row->{'country_id'};
-          }
-        }
-      }
-
-      return $result;
     }
-  );
-}
 
-sub ip2long {
-  return unpack("N", inet_aton(shift));
-}
+    if( $city ){
+      $self->current_user_data->{city} = $city;
+      $self->save_userdata;
+    }
 
-sub long2ip {
-  return inet_ntoa(pack("N*", shift));
+    return $city;
+  });
 }
 
 1;
