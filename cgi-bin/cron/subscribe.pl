@@ -1,24 +1,12 @@
 #!/usr/bin/perl
 
-# Mac os lib path
-use lib '/opt/local/lib/perl5/vendor_perl/5.12.4/darwin-thread-multi-2level/';
-use lib '/opt/local/lib/perl5/site_perl/5.12.4/darwin-thread-multi-2level';
-
 $ENV{TZ} = 'Europe/Moscow';
 
-use MojoX::Loader;
+use Mojo::Server;
 
-$ENV{DOCUMENT_ROOT} = '/home/roman/www/demo.local/httpdocs';
+# Load application with mock server
+my $server = Mojo::Server->new;
+my $app    = $server->load_app('../script/dispatch.cgi');
 
-my $subscribe = MojoX::Loader->load(
-  app        => 'GG',
-  controller => 'GG::Content::Subscribe',
-  prefix     => ''
-);
-
-
-# Устанавливаем соединение с базой
-$subscribe->dbi_connect;
-
-# проверяем и делаем рассылку по новостям и новинкам
-$subscribe->cron_send_refs;
+# Access fully initialized application
+print for @{$app->static->paths};
