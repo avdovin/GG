@@ -14,7 +14,7 @@ has capture_end   => 'end';
 has capture_start => 'begin';
 has comment_mark  => '#';
 has encoding      => 'UTF-8';
-has escape        => sub { \&Mojo::Util::xss_escape };
+has escape        => sub { \&Mojo::Util::xml_escape };
 has [qw(escape_mark expression_mark trim_mark)] => '=';
 has [qw(line_start replace_mark)] => '%';
 has name      => 'template';
@@ -40,10 +40,10 @@ sub build {
     if ($op eq 'text') {
       $value = join "\n", map { quotemeta $_ } split("\n", $value, -1);
       $value .= '\n' if $newline;
-      $blocks[-1] .= "\$_O .= \"" . $value . "\";" if $value ne '';
+      $blocks[-1] .= "\$_O .= \"" . $value . "\";" if length $value;
     }
 
-    # Code or multiline expression
+    # Code or multi-line expression
     elsif ($op eq 'code' || $multi) { $blocks[-1] .= $value }
 
     # Capture end
@@ -65,7 +65,7 @@ sub build {
       # Raw
       elsif (!$multi) { $blocks[-1] .= "\$_O .= scalar + $value" }
 
-      # Multiline
+      # Multi-line
       $multi = !$next || $next->[0] ne 'text';
 
       # Append semicolon
@@ -91,25 +91,24 @@ sub compile {
   my $compiled = eval $self->_wrap($code);
   $self->compiled($compiled) and return undef unless $@;
 
-  # Use local stacktrace for compile exceptions
-  return Mojo::Exception->new($@, [$self->unparsed, $code])->trace->verbose(1);
+  # Use local stack trace for compile exceptions
+  return Mojo::Exception->new($@)->inspect($self->unparsed, $code)
+    ->trace->verbose(1);
 }
 
 sub interpret {
   my $self = shift;
 
-  # Stacktrace
+  # Stack trace
   local $SIG{__DIE__} = sub {
-    CORE::die($_[0]) if ref $_[0];
-    Mojo::Exception->throw(shift, [$self->unparsed, $self->code]);
+    CORE::die $_[0] if ref $_[0];
+    CORE::die Mojo::Exception->new(shift)
+      ->trace->inspect($self->unparsed, $self->code)->verbose(1);
   };
 
   return undef unless my $compiled = $self->compiled;
   my $output;
-  return $output if eval { $output = $compiled->(@_); 1 };
-
-  # Exception with template context
-  return Mojo::Exception->new($@, [$self->unparsed])->verbose(1);
+  return eval { $output = $compiled->(@_); 1 } ? $output : $@;
 }
 
 sub parse {
@@ -335,8 +334,8 @@ content with the L<Mojolicious> renderer.
 
 =head1 SYNTAX
 
-For all templates L<strict>, L<warnings>, L<utf8> and Perl 5.10 features are
-automatically enabled.
+For all templates L<strict>, L<warnings>, L<utf8> and Perl 5.10
+L<features|feature> are automatically enabled.
 
   <% Perl code %>
   <%= Perl expression, replaced with result %>
@@ -350,7 +349,7 @@ automatically enabled.
   %% Replaced with "%", useful for generating templates
 
 Escaping behavior can be reversed with the L</"auto_escape"> attribute, this is
-the default in L<Mojolicious> C<.ep> templates for example.
+the default in L<Mojolicious> C<.ep> templates, for example.
 
   <%= Perl expression, replaced with XML escaped result %>
   <%== Perl expression, replaced with result %>
@@ -495,7 +494,7 @@ Encoding used for template files.
   $mt    = $mt->escape(sub {...});
 
 A callback used to escape the results of escaped expressions, defaults to
-L<Mojo::Util/"xss_escape">.
+L<Mojo::Util/"xml_escape">.
 
   $mt->escape(sub {
     my $str = shift;
@@ -619,16 +618,18 @@ Build Perl L</"code"> from L</"tree">.
 
 =head2 compile
 
-  my $exception = $mt->compile;
+  my $e = $mt->compile;
 
-Compile Perl L</"code"> for template.
+Compile Perl L</"code"> for template and return a L<Mojo::Exception> object, or
+C<undef> if there was no exception.
 
 =head2 interpret
 
   my $output = $mt->interpret;
   my $output = $mt->interpret(@args);
 
-Interpret L</"compiled"> template code.
+Interpret L</"compiled"> template code and return the result, or a
+L<Mojo::Exception> object if rendering failed.
 
   # Reuse template
   say $mt->render('Hello <%= $_[0] %>!', 'Bender');
@@ -646,7 +647,8 @@ Parse template into L</"tree">.
   my $output = $mt->render('<%= 1 + 1 %>');
   my $output = $mt->render('<%= shift() + shift() %>', @args);
 
-Render template.
+Render template and return the result, or a L<Mojo::Exception> object if
+rendering failed.
 
   say $mt->render('Hello <%= $_[0] %>!', 'Bender');
 
@@ -655,7 +657,8 @@ Render template.
   my $output = $mt->render_file('/tmp/foo.mt');
   my $output = $mt->render_file('/tmp/foo.mt', @args);
 
-Render template file.
+Render template file and return the result, or a L<Mojo::Exception> object if
+rendering failed.
 
 =head1 DEBUGGING
 
@@ -666,6 +669,6 @@ advanced diagnostics information printed to C<STDERR>.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

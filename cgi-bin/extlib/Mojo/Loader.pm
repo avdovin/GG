@@ -53,7 +53,7 @@ sub load_class {
   return 1 if $@ =~ /^Can't locate \Q@{[class_to_path $class]}\E in \@INC/;
 
   # Real error
-  return Mojo::Exception->new($@);
+  return Mojo::Exception->new($@)->inspect;
 }
 
 sub _all {
@@ -172,8 +172,10 @@ Search for modules in a namespace non-recursively.
 
   my $e = load_class 'Foo::Bar';
 
-Load a class and catch exceptions. Note that classes are checked for a C<new>
-method to see if they are already loaded.
+Load a class and catch exceptions, returns a false value if loading was
+successful, a true value if the class has already been loaded, or a
+L<Mojo::Exception> object if loading failed. Note that classes are checked for a
+C<new> method to see if they are already loaded.
 
   # Handle exceptions
   if (my $e = load_class 'Foo::Bar') {
@@ -182,6 +184,6 @@ method to see if they are already loaded.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

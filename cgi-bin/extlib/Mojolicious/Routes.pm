@@ -53,13 +53,7 @@ sub is_hidden {
   return !!($h->{$method} || index($method, '_') == 0 || $method !~ /[a-z]/);
 }
 
-sub lookup {
-  my ($self, $name) = @_;
-  my $reverse = $self->{reverse} ||= {};
-  return $reverse->{$name} if exists $reverse->{$name};
-  return undef unless my $route = $self->find($name);
-  return $reverse->{$name} = $route;
-}
+sub lookup { ($_[0]{reverse} //= $_[0]->_index)->{$_[1]} }
 
 sub match {
   my ($self, $c) = @_;
@@ -257,7 +251,7 @@ Contains all available conditions.
 =head2 hidden
 
   my $hidden = $r->hidden;
-  $r         = $r->hidden([qw(attr has new)]);
+  $r         = $r->hidden(['attr', 'has', 'new']);
 
 Controller attributes and methods that are hidden from router, defaults to
 C<attr>, C<has>, C<new> and C<tap>.
@@ -288,13 +282,24 @@ and implements the following new ones.
 
   $r = $r->add_condition(foo => sub {...});
 
-Add a new condition.
+Register a condition.
+
+  $r->add_condition(foo => sub {
+    my ($route, $c, $captures, $arg) = @_;
+    ...
+    return 1;
+  });
 
 =head2 add_shortcut
 
   $r = $r->add_shortcut(foo => sub {...});
 
-Add a new shortcut.
+Register a shortcut.
+
+  $r->add_shortcut(foo => sub {
+    my ($route, @args) = @_;
+    ...
+  });
 
 =head2 continue
 
@@ -311,7 +316,7 @@ Match routes with L</"match"> and dispatch with L</"continue">.
 
 =head2 hide
 
-  $r = $r->hide(qw(foo bar));
+  $r = $r->hide('foo', 'bar');
 
 Hide controller attributes and methods from router.
 
@@ -336,6 +341,6 @@ Match routes with L<Mojolicious::Routes::Match>.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

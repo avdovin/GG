@@ -23,9 +23,7 @@ sub run {
   my $res  = $tx->res->fix_headers;
   my $hash = $res->headers->to_hash(1);
   my @headers;
-  for my $name (keys %$hash) {
-    push @headers, map { $name => $_ } @{$hash->{$name}};
-  }
+  for my $name (keys %$hash) { push @headers, $name, $_ for @{$hash->{$name}} }
 
   # PSGI response
   my $io = Mojo::Server::PSGI::_IO->new(tx => $tx, empty => $tx->is_empty);
@@ -44,7 +42,7 @@ package Mojo::Server::PSGI::_IO;
 use Mojo::Base -base;
 
 # Finish transaction
-sub close { shift->{tx}->server_close }
+sub close { shift->{tx}->closed }
 
 sub getline {
   my $self = shift;
@@ -57,7 +55,7 @@ sub getline {
   return '' unless defined $chunk;
 
   # End of content
-  return undef if $chunk eq '';
+  return undef unless length $chunk;
 
   $self->{offset} += length $chunk;
   return $chunk;
@@ -76,8 +74,7 @@ Mojo::Server::PSGI - PSGI server
   use Mojo::Server::PSGI;
 
   my $psgi = Mojo::Server::PSGI->new;
-  $psgi->unsubscribe('request');
-  $psgi->on(request => sub {
+  $psgi->unsubscribe('request')->on(request => sub {
     my ($psgi, $tx) = @_;
 
     # Request
@@ -128,6 +125,6 @@ Turn L<Mojo> application into L<PSGI> application.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

@@ -81,7 +81,7 @@ sub write {
 
   $self->{buffer} .= $chunk;
   if ($cb) { $self->once(drain => $cb) }
-  elsif ($self->{buffer} eq '') { return $self }
+  elsif (!length $self->{buffer}) { return $self }
   $self->reactor->watch($self->{handle}, !$self->{paused}, 1)
     if $self->{handle};
 
@@ -109,14 +109,14 @@ sub _write {
 
   # Handle errors only when reading (to avoid timing problems)
   my $handle = $self->{handle};
-  if ($self->{buffer} ne '') {
+  if (length $self->{buffer}) {
     return unless defined(my $written = $handle->syswrite($self->{buffer}));
     $self->emit(write => substr($self->{buffer}, 0, $written, ''))->_again;
   }
 
-  $self->emit('drain') if $self->{buffer} eq '';
-  return               if $self->is_writing;
-  return $self->close  if $self->{graceful};
+  $self->emit('drain') unless length $self->{buffer};
+  return if $self->is_writing;
+  return $self->close if $self->{graceful};
   $self->reactor->watch($handle, !$self->{paused}, 0) if $self->{handle};
 }
 
@@ -276,7 +276,7 @@ Construct a new L<Mojo::IOLoop::Stream> object.
 
   $stream->start;
 
-Start watching for new data on the stream.
+Start or resume watching for new data on the stream.
 
 =head2 steal_handle
 
@@ -304,11 +304,11 @@ stream to be inactive indefinitely.
   $stream = $stream->write($bytes);
   $stream = $stream->write($bytes => sub {...});
 
-Write data to stream, the optional drain callback will be invoked once all data
+Write data to stream, the optional drain callback will be executed once all data
 has been written.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

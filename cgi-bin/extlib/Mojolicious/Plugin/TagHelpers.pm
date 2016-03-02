@@ -9,10 +9,11 @@ sub register {
   my ($self, $app) = @_;
 
   # Text field variations
-  my @time = qw(date datetime month time week);
+  my @time = qw(date month time week);
   for my $name (@time, qw(color email number range search tel text url)) {
     $app->helper("${name}_field" => sub { _input(@_, type => $name) });
   }
+  $app->helper(datetime_field => sub { _input(@_, type => 'datetime-local') });
 
   my @helpers = (
     qw(csrf_field form_for hidden_field javascript label_for link_to),
@@ -20,14 +21,12 @@ sub register {
   );
   $app->helper($_ => __PACKAGE__->can("_$_")) for @helpers;
 
-  $app->helper(check_box =>
-      sub { _input(shift, shift, value => shift, @_, type => 'checkbox') });
+  $app->helper(check_box => sub { _input(@_, type => 'checkbox') });
   $app->helper(file_field => sub { _empty_field('file', @_) });
   $app->helper(image => sub { _tag('img', src => shift->url_for(shift), @_) });
-  $app->helper(input_tag => sub { _input(@_) });
+  $app->helper(input_tag      => sub { _input(@_) });
   $app->helper(password_field => sub { _empty_field('password', @_) });
-  $app->helper(radio_button =>
-      sub { _input(shift, shift, value => shift, @_, type => 'radio') });
+  $app->helper(radio_button   => sub { _input(@_, type => 'radio') });
 
   # "t" is just a shortcut for the "tag" helper
   $app->helper($_ => sub { shift; _tag(@_) }) for qw(t tag);
@@ -58,8 +57,8 @@ sub _form_for {
 }
 
 sub _hidden_field {
-  my $c = shift;
-  return _tag('input', name => shift, value => shift, @_, type => 'hidden');
+  my ($c, $name, $value) = (shift, shift, shift);
+  return _tag('input', name => $name, value => $value, @_, type => 'hidden');
 }
 
 sub _input {
@@ -72,10 +71,9 @@ sub _input {
   if (@values && $type ne 'submit') {
 
     # Checkbox or radiobutton
-    my $value = $attrs{value} // '';
     if ($type eq 'checkbox' || $type eq 'radio') {
-      $attrs{value} = $value;
       delete $attrs{checked} if @values;
+      my $value = $attrs{value} // 'on';
       $attrs{checked} = undef if grep { $_ eq $value } @values;
     }
 
@@ -158,8 +156,8 @@ sub _stylesheet {
 }
 
 sub _submit_button {
-  my $c = shift;
-  return _tag('input', value => shift // 'Ok', @_, type => 'submit');
+  my ($c, $value) = (shift, shift // 'Ok');
+  return _tag('input', value => $value, @_, type => 'submit');
 }
 
 sub _tag {
@@ -171,12 +169,8 @@ sub _tag {
 
   # Attributes
   my $attrs = $tree->[2] = {@_};
-  if ($attrs->{data} && ref $attrs->{data} eq 'HASH') {
-    while (my ($key, $value) = each %{$attrs->{data}}) {
-      $key =~ y/_/-/;
-      $attrs->{lc "data-$key"} = $value;
-    }
-    delete $attrs->{data};
+  if (ref $attrs->{data} eq 'HASH' && (my $data = delete $attrs->{data})) {
+    @$attrs{map { y/_/-/; lc "data-$_" } keys %$data} = values %$data;
   }
 
   return Mojo::ByteStream->new(Mojo::DOM::HTML::_render($tree));
@@ -224,7 +218,8 @@ Mojolicious::Plugin::TagHelpers - Tag helpers plugin
 =head1 DESCRIPTION
 
 L<Mojolicious::Plugin::TagHelpers> is a collection of HTML tag helpers for
-L<Mojolicious>.
+L<Mojolicious>, based on the
+L<HTML Living Standard|https://html.spec.whatwg.org>.
 
 Most form helpers can automatically pick up previous input values and will show
 them as default. You can also use
@@ -254,12 +249,14 @@ L<Mojolicious::Plugin::TagHelpers> implements the following helpers.
 
 =head2 check_box
 
+  %= check_box 'employed'
   %= check_box employed => 1
   %= check_box employed => 1, checked => undef, id => 'foo'
 
 Generate C<input> tag of type C<checkbox>. Previous input values will
 automatically get picked up and shown as default.
 
+  <input name="employed" type="checkbox">
   <input name="employed" type="checkbox" value="1">
   <input checked id="foo" name="employed" type="checkbox" value="1">
 
@@ -301,15 +298,15 @@ get picked up and shown as default.
 =head2 datetime_field
 
   %= datetime_field 'end'
-  %= datetime_field end => '2012-12-21T23:59:59Z'
-  %= datetime_field end => '2012-12-21T23:59:59Z', id => 'foo'
+  %= datetime_field end => '2012-12-21T23:59:59'
+  %= datetime_field end => '2012-12-21T23:59:59', id => 'foo'
 
-Generate C<input> tag of type C<datetime>. Previous input values will
+Generate C<input> tag of type C<datetime-local>. Previous input values will
 automatically get picked up and shown as default.
 
-  <input name="end" type="datetime">
-  <input name="end" type="datetime" value="2012-12-21T23:59:59Z">
-  <input id="foo" name="end" type="datetime" value="2012-12-21T23:59:59Z">
+  <input name="end" type="datetime-local">
+  <input name="end" type="datetime-local" value="2012-12-21T23:59:59">
+  <input id="foo" name="end" type="datetime-local" value="2012-12-21T23:59:59">
 
 =head2 email_field
 
@@ -460,7 +457,7 @@ Generate C<label> tag.
   %= link_to Contact => 'mailto:sri@example.com'
   <%= link_to index => begin %>Home<% end %>
   <%= link_to '/file.txt' => begin %>File<% end %>
-  <%= link_to 'http://mojolicio.us' => begin %>Mojolicious<% end %>
+  <%= link_to 'http://mojolicious.org' => begin %>Mojolicious<% end %>
   <%= link_to url_for->query(foo => 'bar')->to_abs => begin %>Retry<% end %>
 
 Generate portable C<a> tag with L<Mojolicious::Controller/"url_for">, defaults
@@ -474,7 +471,7 @@ to using the capitalized link target as content.
   <a href="mailto:sri@example.com">Contact</a>
   <a href="/path/to/index">Home</a>
   <a href="/path/to/file.txt">File</a>
-  <a href="http://mojolicio.us">Mojolicious</a>
+  <a href="http://mojolicious.org">Mojolicious</a>
   <a href="http://127.0.0.1:3000/current/path?foo=bar">Retry</a>
 
 =head2 month_field
@@ -515,12 +512,14 @@ Generate C<input> tag of type C<password>.
 
 =head2 radio_button
 
+  %= radio_button 'test'
   %= radio_button country => 'germany'
   %= radio_button country => 'germany', checked => undef, id => 'foo'
 
 Generate C<input> tag of type C<radio>. Previous input values will
 automatically get picked up and shown as default.
 
+  <input name="test" type="radio">
   <input name="country" type="radio" value="germany">
   <input checked id="foo" name="country" type="radio" value="germany">
 
@@ -552,11 +551,11 @@ automatically get picked up and shown as default.
 
 =head2 select_field
 
-  %= select_field country => [qw(de en)]
+  %= select_field country => ['de', 'en']
   %= select_field country => [[Germany => 'de'], 'en'], id => 'eu'
   %= select_field country => [[Germany => 'de', selected => 'selected'], 'en']
   %= select_field country => [c(EU => [[Germany => 'de'], 'en'], id => 'eu')]
-  %= select_field country => [c(EU => [qw(de en)]), c(Asia => [qw(cn jp)])]
+  %= select_field country => [c(EU => ['de', 'en']), c(Asia => ['cn', 'jp'])]
 
 Generate C<select> and C<option> tags from array references and C<optgroup>
 tags from L<Mojo::Collection> objects. Previous input values will automatically
@@ -729,15 +728,15 @@ get picked up and shown as default.
 =head2 url_field
 
   %= url_field 'address'
-  %= url_field address => 'http://mojolicio.us'
-  %= url_field address => 'http://mojolicio.us', id => 'foo'
+  %= url_field address => 'http://mojolicious.org'
+  %= url_field address => 'http://mojolicious.org', id => 'foo'
 
 Generate C<input> tag of type C<url>. Previous input values will automatically
 get picked up and shown as default.
 
   <input name="address" type="url">
-  <input name="address" type="url" value="http://mojolicio.us">
-  <input id="foo" name="address" type="url" value="http://mojolicio.us">
+  <input name="address" type="url" value="http://mojolicious.org">
+  <input id="foo" name="address" type="url" value="http://mojolicious.org">
 
 =head2 week_field
 
@@ -765,6 +764,6 @@ Register helpers in L<Mojolicious> application.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

@@ -15,7 +15,7 @@ sub canonicalize {
 
   my $parts = $self->parts;
   for (my $i = 0; $i <= $#$parts;) {
-    if ($parts->[$i] eq '' || $parts->[$i] eq '.' || $parts->[$i] eq '...') {
+    if (!length $parts->[$i] || $parts->[$i] eq '.' || $parts->[$i] eq '...') {
       splice @$parts, $i, 1;
     }
     elsif ($i < 1 || $parts->[$i] ne '..' || $parts->[$i - 1] eq '..') { $i++ }
@@ -145,7 +145,7 @@ Mojo::Path - Path
 
 =head1 DESCRIPTION
 
-L<Mojo::Path> is a container for paths used by L<Mojo::URL> and based on
+L<Mojo::Path> is a container for paths used by L<Mojo::URL>, based on
 L<RFC 3986|http://tools.ietf.org/html/rfc3986>.
 
 =head1 ATTRIBUTES
@@ -347,6 +347,6 @@ Alias for L</"to_string">.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

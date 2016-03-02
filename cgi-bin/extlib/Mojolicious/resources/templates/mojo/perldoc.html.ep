@@ -16,19 +16,31 @@
         line-height: 1.5em;
         margin: 0;
       }
+      dd {
+        margin: 0;
+        margin-left: 2em;
+      }
+      dt {
+        color: #2a2a2a;
+        font-weight: bold;
+        margin-left: 0.9em;
+      }
       :not(pre) > code {
         background-color: rgba(0, 0, 0, 0.04);
         border-radius: 3px;
         font: 0.9em Consolas, Menlo, Monaco, Courier, monospace;
         padding: 0.3em;
       }
-      h1, h2, h3 {
+      h1 { font-size: 1.5em }
+      h2 { font-size: 1.3em }
+      h3 { font-size: 1.1em }
+      h4 { font-size: 0.9em }
+      h1, h2, h3, h4 {
         color: #2a2a2a;
-        font-size: 1.5em;
         margin: 0;
         position: relative;
       }
-      h1 a, h2 a, h3 a { text-decoration: none }
+      h1 a, h2 a, h3 a, h4 a { text-decoration: none }
       li > p {
         margin-bottom: 0;
         margin-top: 0;
@@ -75,13 +87,14 @@
         position: absolute;
         padding-right: 0.25em;
       }
-      h1:hover .permalink, h2:hover .permalink, h3:hover .permalink {
+      h1:hover .permalink, h2:hover .permalink, h3:hover .permalink,
+      h4:hover .permalink {
         display: block;
       }
     </style>
   </head>
   <body>
-    %= include inline => app->renderer->_bundled('mojobar')
+    %= include 'mojo/menubar'
     <div id="wrapperlicious">
       <div id="perldoc">
         <div id="source">
@@ -112,7 +125,7 @@
       </div>
     </div>
     <div id="footer">
-      %= link_to 'http://mojolicio.us' => begin
+      %= link_to 'http://mojolicious.org' => begin
         %= image '/mojo/logo-black.png', alt => 'Mojolicious logo'
       % end
     </div>

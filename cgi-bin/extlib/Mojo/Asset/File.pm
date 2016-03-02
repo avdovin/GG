@@ -40,7 +40,7 @@ has tmpdir => sub { $ENV{MOJO_TMPDIR} || File::Spec::Functions::tmpdir };
 sub DESTROY {
   my $self = shift;
   return unless $self->cleanup && defined(my $path = $self->path);
-  close $self->handle;
+  if (my $handle = $self->handle) { close $handle }
   unlink $path if -w $path;
 }
 
@@ -177,15 +177,15 @@ Delete L</"path"> automatically once the file is not used anymore.
   my $handle = $file->handle;
   $file      = $file->handle(IO::File->new);
 
-Filehandle, created on demand.
+Filehandle, created on demand for L</"path">, which can be generated
+automatically and safely based on L</"tmpdir">.
 
 =head2 path
 
   my $path = $file->path;
   $file    = $file->path('/home/sri/foo.txt');
 
-File path used to create L</"handle">, can also be automatically generated if
-necessary.
+File path used to create L</"handle">.
 
 =head2 tmpdir
 
@@ -193,7 +193,7 @@ necessary.
   $file      = $file->tmpdir('/tmp');
 
 Temporary directory used to generate L</"path">, defaults to the value of the
-C<MOJO_TMPDIR> environment variable or auto detection.
+C<MOJO_TMPDIR> environment variable or auto-detection.
 
 =head1 METHODS
 
@@ -252,6 +252,6 @@ Read all asset data at once.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

@@ -18,8 +18,8 @@ use constant TLS_WRITE => TLS ? IO::Socket::SSL::SSL_WANT_WRITE() : 0;
 
 # To regenerate the certificate run this command (18.04.2012)
 # openssl req -new -x509 -keyout server.key -out server.crt -nodes -days 7300
-my $CERT = catfile dirname(__FILE__), 'certs', 'server.crt';
-my $KEY  = catfile dirname(__FILE__), 'certs', 'server.key';
+my $CERT = catfile dirname(__FILE__), 'resources', 'server.crt';
+my $KEY  = catfile dirname(__FILE__), 'resources', 'server.key';
 
 has multi_accept => 50;
 has reactor => sub { Mojo::IOLoop->singleton->reactor };
@@ -281,6 +281,7 @@ Path to TLS certificate authority file.
 =item tls_cert
 
   tls_cert => '/etc/tls/server.crt'
+  tls_cert => {'mojolicious.org' => '/etc/tls/mojo.crt'}
 
 Path to the TLS cert file, defaults to a built-in test certificate.
 
@@ -294,6 +295,7 @@ L<https://www.openssl.org/docs/manmaster/apps/ciphers.html#CIPHER-STRINGS>.
 =item tls_key
 
   tls_key => '/etc/tls/server.key'
+  tls_key => {'mojolicious.org' => '/etc/tls/mojo.key'}
 
 Path to the TLS key file, defaults to a built-in test key.
 
@@ -321,7 +323,7 @@ Get port this server is listening on.
 
   $server->start;
 
-Start accepting connections.
+Start or resume accepting connections.
 
 =head2 stop
 
@@ -331,6 +333,6 @@ Stop accepting connections.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

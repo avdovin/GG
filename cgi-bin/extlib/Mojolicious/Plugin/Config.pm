@@ -86,7 +86,7 @@ Mojolicious::Plugin::Config - Perl-ish configuration plugin
   # foo.html.ep
   %= $config->{foo}
 
-  # The configuration is available application wide
+  # The configuration is available application-wide
   my $config = app->config;
   say $config->{foo};
 
@@ -98,10 +98,11 @@ Mojolicious::Plugin::Config - Perl-ish configuration plugin
 L<Mojolicious::Plugin::Config> is a Perl-ish configuration plugin.
 
 The application object can be accessed via C<$app> or the C<app> function,
-L<strict>, L<warnings>, L<utf8> and Perl 5.10 features are automatically
-enabled. You can extend the normal configuration file C<$moniker.conf> with
-C<mode> specific ones like C<$moniker.$mode.conf>. A default configuration
-filename will be generated from the value of L<Mojolicious/"moniker">.
+L<strict>, L<warnings>, L<utf8> and Perl 5.10 L<features|feature> are
+automatically enabled. You can extend the normal configuration file
+C<$moniker.conf> with C<mode> specific ones like C<$moniker.$mode.conf>. A
+default configuration filename will be generated from the value of
+L<Mojolicious/"moniker">.
 
 The code of this plugin is a good example for learning to build new plugins,
 you're welcome to fork it.
@@ -175,6 +176,6 @@ Register plugin in L<Mojolicious> application and merge configuration.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

@@ -4,8 +4,8 @@ use Mojo::Base -base;
 # "Linda: With Haley's Comet out of ice, Earth is experiencing the devastating
 #         effects of sudden, intense global warming.
 #  Morbo: Morbo is pleased but sticky."
-use Mojo::Home;
 use Mojo::Server::Daemon;
+use Mojo::Util 'files';
 use POSIX 'WNOHANG';
 
 has daemon => sub { Mojo::Server::Daemon->new };
@@ -13,18 +13,8 @@ has watch  => sub { [qw(lib templates)] };
 
 sub check {
   my $self = shift;
-
-  # Discover files
-  my @files;
-  for my $watch (@{$self->watch}) {
-    if (-d $watch) {
-      my $home = Mojo::Home->new->parse($watch);
-      push @files, $home->rel_file($_) for @{$home->list_files};
-    }
-    elsif (-r $watch) { push @files, $watch }
-  }
-
-  $self->_check($_) and return $_ for @files;
+  $self->_check($_) and return $_
+    for map { -f $_ && -r _ ? $_ : files $_ } @{$self->watch};
   return undef;
 }
 
@@ -36,7 +26,7 @@ sub run {
     $self->{finished} = 1;
     kill 'TERM', $self->{worker} if $self->{worker};
   };
-  unshift @{$self->watch}, $app;
+  unshift @{$self->watch}, $0 = $app;
   $self->{modified} = 1;
 
   # Prepare and cache listen sockets for smooth restarting
@@ -110,8 +100,8 @@ Mojo::Server::Morbo - DOOOOOOOOOOOOOOOOOOM!
 
 L<Mojo::Server::Morbo> is a full featured, self-restart capable non-blocking
 I/O HTTP and WebSocket server, built around the very well tested and reliable
-L<Mojo::Server::Daemon>, with IPv6, TLS, Comet (long polling), keep-alive and
-multiple event loop support. Note that the server uses signals for process
+L<Mojo::Server::Daemon>, with IPv6, TLS, SNI, Comet (long polling), keep-alive
+and multiple event loop support. Note that the server uses signals for process
 management, so you should avoid modifying signal handlers in your applications.
 
 To start applications with it you can use the L<morbo> script.
@@ -167,16 +157,16 @@ the following new ones.
   my $file = $morbo->check;
 
 Check if file from L</"watch"> has been modified since last check and return
-its name or C<undef> if there have been no changes.
+its name, or C<undef> if there have been no changes.
 
 =head2 run
 
   $morbo->run('script/my_app');
 
-Run server for application.
+Run server for application and wait for L</"SIGNALS">.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

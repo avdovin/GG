@@ -2,11 +2,11 @@ package Mojolicious::Routes::Pattern;
 use Mojo::Base -base;
 
 has [qw(constraints defaults)] => sub { {} };
-has [qw(format_regex regex unparsed)];
 has placeholder_start => ':';
 has [qw(placeholders tree)] => sub { [] };
-has quote_end      => ')';
-has quote_start    => '(';
+has quote_end   => ')';
+has quote_start => '(';
+has [qw(regex unparsed)];
 has relaxed_start  => '#';
 has wildcard_start => '*';
 
@@ -20,24 +20,18 @@ sub match_partial {
   my ($self, $pathref, $detect) = @_;
 
   # Compile on demand
-  $self->_compile unless $self->{regex};
-  $self->_compile_format if $detect && !$self->{format_regex};
+  $self->_compile($detect) unless $self->{regex};
 
-  # Path
   return undef unless my @captures = $$pathref =~ $self->regex;
   $$pathref = ${^POSTMATCH};
+  @captures = () if $#+ == 0;
   my $captures = {%{$self->defaults}};
-  for my $placeholder (@{$self->placeholders}) {
+  for my $placeholder (@{$self->placeholders}, 'format') {
     last unless @captures;
     my $capture = shift @captures;
     $captures->{$placeholder} = $capture if defined $capture;
   }
 
-  # Format
-  return $captures unless $detect && (my $regex = $self->format_regex);
-  return undef unless $$pathref =~ $regex;
-  $captures->{format} = $1 if defined $1;
-  $$pathref = '';
   return $captures;
 }
 
@@ -49,8 +43,8 @@ sub parse {
   my $pattern = @_ % 2 ? (shift // '/') : '/';
   $pattern =~ s!^/*|/+!/!g;
   return $self->constraints({@_}) if $pattern eq '/';
-  $pattern =~ s!/$!!;
 
+  $pattern =~ s!/$!!;
   return $self->constraints({@_})->_tokenize($pattern);
 }
 
@@ -79,7 +73,7 @@ sub render {
       elsif ($optional) { $fragment = '' }
     }
 
-    $str = "$fragment$str";
+    $str = $fragment . $str;
   }
 
   # Format can be optional
@@ -87,7 +81,7 @@ sub render {
 }
 
 sub _compile {
-  my $self = shift;
+  my ($self, $detect) = @_;
 
   my $placeholders = $self->placeholders;
   my $constraints  = $self->constraints;
@@ -96,7 +90,7 @@ sub _compile {
   my $block = my $regex = '';
   my $optional = 1;
   for my $token (reverse @{$self->tree}) {
-    my ($op, $value) = @$token;
+    my ($op, $value, $type) = @$token;
     my $fragment = '';
 
     # Text
@@ -112,15 +106,7 @@ sub _compile {
     # Placeholder
     else {
       unshift @$placeholders, $value;
-
-      # Placeholder
-      if ($op eq 'placeholder') { $fragment = '([^/.]+)' }
-
-      # Relaxed
-      elsif ($op eq 'relaxed') { $fragment = '([^/]+)' }
-
-      # Wildcard
-      else { $fragment = '(.+)' }
+      $fragment = $type ? $type eq 'relaxed' ? '([^/]+)' : '(.+)' : '([^/.]+)';
 
       # Custom regex
       if (my $c = $constraints->{$value}) { $fragment = _compile_req($c) }
@@ -129,29 +115,31 @@ sub _compile {
       exists $defaults->{$value} ? ($fragment .= '?') : ($optional = 0);
     }
 
-    $block = "$fragment$block";
+    $block = $fragment . $block;
   }
 
   # Not rooted with a slash
-  $regex = "$block$regex" if $block;
+  $regex = $block . $regex if $block;
+
+  # Format
+  $regex .= _compile_format($constraints->{format}, $defaults->{format})
+    if $detect;
 
   $self->regex(qr/^$regex/ps);
 }
 
 sub _compile_format {
-  my $self = shift;
+  my ($format, $default) = @_;
 
   # Default regex
-  my $format = $self->constraints->{format};
-  return $self->format_regex(qr!^/?(?:\.([^/]+))?$!) unless defined $format;
+  return '/?(?:\.([^/]+))?$' unless defined $format;
 
   # No regex
-  return undef unless $format;
+  return '' unless $format;
 
   # Compile custom regex
   my $regex = '\.' . _compile_req($format);
-  $regex = "(?:$regex)?" if $self->defaults->{format};
-  $self->format_regex(qr!^/?$regex$!);
+  return $default ? "/?(?:$regex)?\$" : "/?$regex\$";
 }
 
 sub _compile_req {
@@ -165,42 +153,34 @@ sub _tokenize {
 
   my $quote_end   = $self->quote_end;
   my $quote_start = $self->quote_start;
-  my $placeholder = $self->placeholder_start;
+  my $start       = $self->placeholder_start;
   my $relaxed     = $self->relaxed_start;
   my $wildcard    = $self->wildcard_start;
 
-  my (@tree, $inside, $quoted);
+  my (@tree, $spec);
   for my $char (split '', $pattern) {
 
-    # Quote start
-    if ($char eq $quote_start) {
-      push @tree, ['placeholder', ''];
-      ($inside, $quoted) = (1, 1);
-    }
+    # Quoted
+    if ($char eq $quote_start) { push @tree, ['placeholder', ''] if ++$spec }
+    elsif ($char eq $quote_end) { $spec = 0 }
 
-    # Placeholder start
-    elsif ($char eq $placeholder) {
-      push @tree, ['placeholder', ''] unless $inside++;
-    }
+    # Placeholder
+    elsif ($char eq $start) { push @tree, ['placeholder', ''] unless $spec++ }
 
-    # Relaxed or wildcard start (upgrade when quoted)
+    # Relaxed or wildcard (upgrade when quoted)
     elsif ($char eq $relaxed || $char eq $wildcard) {
-      push @tree, ['placeholder', ''] unless $quoted;
-      $tree[-1][0] = $char eq $relaxed ? 'relaxed' : 'wildcard';
-      $inside = 1;
+      push @tree, ['placeholder', ''] unless $spec++;
+      $tree[-1][2] = $char eq $relaxed ? 'relaxed' : 'wildcard';
     }
-
-    # Quote end
-    elsif ($char eq $quote_end) { ($inside, $quoted) = (0, 0) }
 
     # Slash
     elsif ($char eq '/') {
       push @tree, ['slash'];
-      $inside = 0;
+      $spec = 0;
     }
 
-    # Placeholder, relaxed or wildcard
-    elsif ($inside) { $tree[-1][-1] .= $char }
+    # Placeholder
+    elsif ($spec) { $tree[-1][1] .= $char }
 
     # Text (optimize slash+text and *+text+slash+text)
     elsif ($tree[-1][0] eq 'text') { $tree[-1][-1] .= $char }
@@ -256,13 +236,6 @@ Regular expression constraints.
   $pattern     = $pattern->defaults({foo => 'bar'});
 
 Default parameters.
-
-=head2 format_regex
-
-  my $regex = $pattern->format_regex;
-  $pattern  = $pattern->format_regex($regex);
-
-Compiled regular expression for format matching.
 
 =head2 placeholder_start
 
@@ -377,6 +350,6 @@ default.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

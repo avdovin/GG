@@ -21,7 +21,7 @@ sub _epl {
   else {
     my $inline = $options->{inline};
     my $name = defined $inline ? md5_sum encode('UTF-8', $inline) : undef;
-    return undef unless defined($name //= $renderer->template_name($options));
+    return unless defined($name //= $renderer->template_name($options));
 
     # Inline
     if (defined $inline) {
@@ -40,19 +40,19 @@ sub _epl {
       }
 
       # Try DATA section
-      elsif (my $d = $renderer->get_data_template($options)) {
+      elsif (defined(my $d = $renderer->get_data_template($options))) {
         $log->debug(qq{Rendering template "$name" from DATA section});
         $$output
           = $mt->name(qq{template "$name" from DATA section})->render($d, $c);
       }
 
       # No template
-      else { $log->debug(qq{Template "$name" not found}) and return undef }
+      else { $log->debug(qq{Template "$name" not found}) }
     }
   }
 
-  # Exception or success
-  return ref $$output ? die $$output : 1;
+  # Exception
+  die $$output if ref $$output;
 }
 
 1;
@@ -95,6 +95,6 @@ Register renderer in L<Mojolicious> application.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

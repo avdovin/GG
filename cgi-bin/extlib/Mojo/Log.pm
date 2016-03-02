@@ -3,7 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
 use Fcntl ':flock';
-use Mojo::Util 'encode';
+use Mojo::Util qw(deprecated encode monkey_patch);
 
 has format => sub { \&_format };
 has handle => sub {
@@ -21,7 +21,15 @@ has max_history_size => 10;
 has 'path';
 
 # Supported log levels
-my $LEVEL = {debug => 1, info => 2, warn => 3, error => 4, fatal => 5};
+my %LEVEL = (debug => 1, info => 2, warn => 3, error => 4, fatal => 5);
+
+# DEPRECATED in Clinking Beer Mugs!
+for my $name (qw(debug error info warn)) {
+  monkey_patch __PACKAGE__, "is_$name", sub {
+    deprecated "Mojo::Log::$name is DEPRECATED in favor of Mojo::Log::is_level";
+    shift->is_level($name);
+  };
+}
 
 sub append {
   my ($self, $msg) = @_;
@@ -37,10 +45,7 @@ sub error { shift->_log(error => @_) }
 sub fatal { shift->_log(fatal => @_) }
 sub info  { shift->_log(info  => @_) }
 
-sub is_debug { shift->_now('debug') }
-sub is_error { shift->_now('error') }
-sub is_info  { shift->_now('info') }
-sub is_warn  { shift->_now('warn') }
+sub is_level { $LEVEL{pop()} >= $LEVEL{$ENV{MOJO_LOG_LEVEL} || shift->level} }
 
 sub new {
   my $self = shift->SUPER::new(@_);
@@ -59,7 +64,7 @@ sub _log { shift->emit('message', shift, @_) }
 sub _message {
   my ($self, $level) = (shift, shift);
 
-  return unless $self->_now($level);
+  return unless $self->is_level($level);
 
   my $max     = $self->max_history_size;
   my $history = $self->history;
@@ -68,8 +73,6 @@ sub _message {
 
   $self->append($self->format->(@$msg));
 }
-
-sub _now { $LEVEL->{pop()} >= $LEVEL->{$ENV{MOJO_LOG_LEVEL} || shift->level} }
 
 1;
 
@@ -114,8 +117,7 @@ following new ones.
 
 Emitted when a new message gets logged.
 
-  $log->unsubscribe('message');
-  $log->on(message => sub {
+  $log->unsubscribe('message')->on(message => sub {
     my ($log, $level, @lines) = @_;
     say "$level: ", @lines;
   });
@@ -190,52 +192,42 @@ Append message to L</"handle">.
   $log = $log->debug('You screwed up, but that is ok');
   $log = $log->debug('All', 'cool');
 
-Emit L</"message"> event and log debug message.
+Emit L</"message"> event and log C<debug> message.
 
 =head2 error
 
   $log = $log->error('You really screwed up this time');
   $log = $log->error('Wow', 'seriously');
 
-Emit L</"message"> event and log error message.
+Emit L</"message"> event and log C<error> message.
 
 =head2 fatal
 
   $log = $log->fatal('Its over...');
   $log = $log->fatal('Bye', 'bye');
 
-Emit L</"message"> event and log fatal message.
+Emit L</"message"> event and log C<fatal> message.
 
 =head2 info
 
   $log = $log->info('You are bad, but you prolly know already');
   $log = $log->info('Ok', 'then');
 
-Emit L</"message"> event and log info message.
+Emit L</"message"> event and log C<info> message.
 
-=head2 is_debug
+=head2 is_level
 
-  my $bool = $log->is_debug;
+  my $bool = $log->is_level('debug');
 
-Check for debug log level.
+Check active log L</"level">.
 
-=head2 is_error
+  # True
+  $log->level('debug')->is_level('debug');
+  $log->level('debug')->is_level('info');
 
-  my $bool = $log->is_error;
-
-Check for error log level.
-
-=head2 is_info
-
-  my $bool = $log->is_info;
-
-Check for info log level.
-
-=head2 is_warn
-
-  my $bool = $log->is_warn;
-
-Check for warn log level.
+  # False
+  $log->level('info')->is_level('debug');
+  $log->level('fatal')->is_level('warn');
 
 =head2 new
 
@@ -249,10 +241,10 @@ default logger.
   $log = $log->warn('Dont do that Dave...');
   $log = $log->warn('No', 'really');
 
-Emit L</"message"> event and log warn message.
+Emit L</"message"> event and log C<warn> message.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

@@ -43,7 +43,7 @@ has types     => sub { Mojolicious::Types->new };
 has validator => sub { Mojolicious::Validator->new };
 
 our $CODENAME = 'Clinking Beer Mugs';
-our $VERSION  = '6.20';
+our $VERSION  = '6.52';
 
 sub AUTOLOAD {
   my $self = shift;
@@ -65,7 +65,6 @@ sub build_controller {
   # Embedded application
   my $stash = {};
   if (my $sub = $tx->can('stash')) { ($stash, $tx) = ($tx->$sub, $tx->tx) }
-  $stash->{'mojo.secrets'} //= $self->secrets;
 
   # Build default controller
   my $defaults = $self->defaults;
@@ -128,16 +127,10 @@ sub handler {
 
   # Delayed response
   $self->log->debug('Nothing has been rendered, expecting delayed response')
-    unless $c->tx->is_writing;
+    unless $c->stash->{'mojo.rendered'};
 }
 
-sub helper {
-  my ($self, $name, $cb) = @_;
-  my $r = $self->renderer;
-  $self->log->debug(qq{Helper "$name" already exists, replacing})
-    if exists $r->helpers->{$name};
-  $r->add_helper($name => $cb);
-}
+sub helper { shift->renderer->add_helper(@_) }
 
 sub hook { shift->plugins->on(@_) }
 
@@ -184,7 +177,7 @@ sub plugin {
 
 sub start {
   my $self = shift;
-  $_->_warmup for $self->static, $self->renderer;
+  $_->warmup for $self->static, $self->renderer;
   return $self->commands->run(@_ ? @_ : @ARGV);
 }
 
@@ -193,7 +186,7 @@ sub startup { }
 sub _exception {
   my ($next, $c) = @_;
   local $SIG{__DIE__}
-    = sub { ref $_[0] ? CORE::die($_[0]) : Mojo::Exception->throw(@_) };
+    = sub { ref $_[0] ? CORE::die $_[0] : Mojo::Exception->throw(shift) };
   $c->helpers->reply->exception($@) unless eval { $next->(); 1 };
 }
 
@@ -250,6 +243,26 @@ rather advanced features such as upload progress bars possible. Note that this
 hook will not work for embedded applications, because only the host application
 gets to build transactions. (Passed the transaction and application object)
 
+=head2 around_dispatch
+
+Emitted right after a new request has been received and wraps around the whole
+dispatch process, so you have to manually forward to the next hook if you want
+to continue the chain. Default exception handling with
+L<Mojolicious::Plugin::DefaultHelpers/"reply-E<gt>exception"> is the first hook
+in the chain and a call to L</"dispatch"> the last, yours will be in between.
+
+  $app->hook(around_dispatch => sub {
+    my ($next, $c) = @_;
+    ...
+    $next->();
+    ...
+  });
+
+This is a very powerful hook and should not be used lightly, it allows you to,
+for example, customize application-wide exception handling, consider it the
+sledgehammer in your toolbox. (Passed a callback leading to the next hook and
+the default controller object)
+
 =head2 before_dispatch
 
 Emitted right before the static file server and router start their work.
@@ -290,7 +303,7 @@ controller object)
 
 =head2 around_action
 
-Emitted right before an action gets invoked and wraps around it, so you have to
+Emitted right before an action gets executed and wraps around it, so you have to
 manually forward to the next hook if you want to continue the chain. Default
 action dispatching is the last hook in the chain, yours will run before it.
 
@@ -337,9 +350,9 @@ current controller object, a reference to the content and the format)
 
 =head2 after_dispatch
 
-Emitted in reverse order after a response has been rendered. Note that this
+Emitted in reverse order after a response has been generated. Note that this
 hook can trigger out of order due to its dynamic nature, and with embedded
-applications will only work for the application that is rendering.
+applications will only work for the application that is generating the response.
 
   $app->hook(after_dispatch => sub {
     my $c = shift;
@@ -348,26 +361,6 @@ applications will only work for the application that is rendering.
 
 Useful for rewriting outgoing responses and other post-processing tasks.
 (Passed the current controller object)
-
-=head2 around_dispatch
-
-Emitted right before the L</"before_dispatch"> hook and wraps around the whole
-dispatch process, so you have to manually forward to the next hook if you want
-to continue the chain. Default exception handling with
-L<Mojolicious::Plugin::DefaultHelpers/"reply-E<gt>exception"> is the first hook
-in the chain and a call to L</"dispatch"> the last, yours will be in between.
-
-  $app->hook(around_dispatch => sub {
-    my ($next, $c) = @_;
-    ...
-    $next->();
-    ...
-  });
-
-This is a very powerful hook and should not be used lightly, it allows you for
-example to customize application wide exception handling, consider it the
-sledgehammer in your toolbox. (Passed a callback leading to the next hook and
-the default controller object)
 
 =head1 ATTRIBUTES
 
@@ -437,6 +430,9 @@ L<Mojolicious::Guides::Rendering>.
   # Add another "templates" directory
   push @{$app->renderer->paths}, '/home/sri/templates';
 
+  # Add another "templates" directory with higher precedence
+  unshift @{$app->renderer->paths}, '/home/sri/themes/blue/templates';
+
   # Add another class with templates in DATA section
   push @{$app->renderer->classes}, 'Mojolicious::Plugin::Fun';
 
@@ -497,6 +493,9 @@ L<Mojolicious::Static> object.
   # Add another "public" directory
   push @{$app->static->paths}, '/home/sri/public';
 
+  # Add another "public" directory with higher precedence
+  unshift @{$app->static->paths}, '/home/sri/themes/blue/public';
+
   # Add another class with static files in DATA section
   push @{$app->static->classes}, 'Mojolicious::Plugin::Fun';
 
@@ -522,6 +521,12 @@ Validate values, defaults to a L<Mojolicious::Validator> object.
   $app->validator->add_check(foo => sub {
     my ($validation, $name, $value) = @_;
     return $value ne 'foo';
+  });
+
+  # Add validation filter
+  $app->validator->add_filter(quotemeta => sub {
+    my ($validation, $name, $value) = @_;
+    return quotemeta $value;
   });
 
 =head1 METHODS
@@ -550,8 +555,8 @@ Build L<Mojo::Transaction::HTTP> object and emit L</"after_build_tx"> hook.
 
   my $hash = $app->defaults;
   my $foo  = $app->defaults('foo');
-  $app     = $app->defaults({foo => 'bar'});
-  $app     = $app->defaults(foo => 'bar');
+  $app     = $app->defaults({foo => 'bar', baz => 23});
+  $app     = $app->defaults(foo => 'bar', baz => 23);
 
 Default values for L<Mojolicious::Controller/"stash">, assigned for every new
 request.
@@ -582,8 +587,10 @@ every request.
 
   $app->helper(foo => sub {...});
 
-Add a new helper that will be available as a method of the controller object
-and the application object, as well as a function in C<ep> templates.
+Add or replace a helper that will be available as a method of the controller
+object and the application object, as well as a function in C<ep> templates. For
+a full list of helpers that are available by default see
+L<Mojolicious::Plugin::DefaultHelpers> and L<Mojolicious::Plugin::TagHelpers>.
 
   # Helper
   $app->helper(cache => sub { state $cache = {} });
@@ -646,9 +653,9 @@ L<Mojolicious> distribution see L<Mojolicious::Plugins/"PLUGINS">.
   $app->start;
   $app->start(@ARGV);
 
-Start the command line interface for your application, for a full list of
-commands available by default see L<Mojolicious::Commands/"COMMANDS">. Note
-that the options C<-h>/C<--help>, C<--home> and C<-m>/C<--mode>, which are
+Start the command line interface for your application. For a full list of
+commands that are available by default see L<Mojolicious::Commands/"COMMANDS">.
+Note that the options C<-h>/C<--help>, C<--home> and C<-m>/C<--mode>, which are
 shared by all commands, will be parsed from C<@ARGV> during compile time.
 
   # Always start daemon
@@ -688,20 +695,20 @@ that have been bundled for internal use.
 
 =head2 Mojolicious Artwork
 
-  Copyright (C) 2010-2015, Sebastian Riedel.
+  Copyright (C) 2010-2016, Sebastian Riedel.
 
 Licensed under the CC-SA License, Version 4.0
 L<http://creativecommons.org/licenses/by-sa/4.0>.
 
 =head2 jQuery
 
-  Copyright (C) 2005, 2014 jQuery Foundation, Inc.
+  Copyright (C) jQuery Foundation.
 
 Licensed under the MIT License, L<http://creativecommons.org/licenses/MIT>.
 
 =head2 prettify.js
 
-  Copyright (C) 2006, 2013 Google Inc.
+  Copyright (C) 2006, 2013 Google Inc..
 
 Licensed under the Apache License, Version 2.0
 L<http://www.apache.org/licenses/LICENSE-2.0>.
@@ -729,12 +736,6 @@ have been used in the past.
 
 1.0, C<Snowflake> (U+2744)
 
-0.999930, C<Hot Beverage> (U+2615)
-
-0.999927, C<Comet> (U+2604)
-
-0.999920, C<Snowman> (U+2603)
-
 =head1 SPONSORS
 
 Some of the work on this distribution has been sponsored by
@@ -751,8 +752,6 @@ Current members of the core team in alphabetical order:
 =over 2
 
 Abhijit Menon-Sen, C<ams@cpan.org>
-
-Dan Book, C<dbook@cpan.org>
 
 Glen Hinkle, C<tempire@cpan.org>
 
@@ -834,6 +833,8 @@ chromatic
 
 Curt Tilmes
 
+Dan Book
+
 Daniel Kimsey
 
 Danijel Tasov
@@ -855,6 +856,8 @@ Dominik Jarmulowicz
 Dominique Dumont
 
 Douglas Christopher Wilson
+
+Eugen Konkov
 
 Eugene Toropov
 
@@ -943,6 +946,8 @@ Nic Sandfield
 Nils Diewald
 
 Oleg Zhelo
+
+Olivier Mengue
 
 Pascal Gaudette
 
@@ -1034,7 +1039,7 @@ Zoffix Znet
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2008-2015, Sebastian Riedel.
+Copyright (C) 2008-2016, Sebastian Riedel.
 
 This program is free software, you can redistribute it and/or modify it under
 the terms of the Artistic License version 2.0.
@@ -1042,6 +1047,6 @@ the terms of the Artistic License version 2.0.
 =head1 SEE ALSO
 
 L<https://github.com/kraih/mojo>, L<Mojolicious::Guides>,
-L<http://mojolicio.us>.
+L<http://mojolicious.org>.
 
 =cut

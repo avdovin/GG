@@ -46,7 +46,6 @@ sub parse {
   # Invalid
   else { return $self->epoch(undef) }
 
-  # Prevent crash
   my $epoch = eval { timegm $s, $m, $h, $day, $month, $year };
   return $self->epoch(
     (defined $epoch && ($epoch += $offset) >= 0) ? $epoch : undef);
@@ -58,7 +57,7 @@ sub to_datetime {
   my ($s, $m, $h, $day, $month, $year) = gmtime(my $epoch = shift->epoch);
   my $str = sprintf '%04d-%02d-%02dT%02d:%02d:%02d', $year + 1900, $month + 1,
     $day, $h, $m, $s;
-  return $str . ($epoch =~ /(\.\d+)$/ ? "$1Z" : 'Z');
+  return $str . ($epoch =~ /(\.\d+)$/ ? $1 : '') . 'Z';
 }
 
 sub to_string {
@@ -91,7 +90,7 @@ Mojo::Date - HTTP date
 
 =head1 DESCRIPTION
 
-L<Mojo::Date> implements HTTP date and time functions based on
+L<Mojo::Date> implements HTTP date and time functions, based on
 L<RFC 7230|http://tools.ietf.org/html/rfc7230>,
 L<RFC 7231|http://tools.ietf.org/html/rfc7231> and
 L<RFC 3339|http://tools.ietf.org/html/rfc3339>.
@@ -184,6 +183,6 @@ Alias for L</"to_string">.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

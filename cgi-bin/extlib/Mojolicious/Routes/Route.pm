@@ -36,21 +36,7 @@ sub delete { shift->_generate_route(DELETE => @_) }
 
 sub detour { shift->partial(1)->to(@_) }
 
-sub find {
-  my ($self, $name) = @_;
-
-  my @children = (@{$self->children});
-  my $candidate;
-  while (my $child = shift @children) {
-
-    # Custom names have priority
-    $candidate = $child->has_custom_name ? return $child : $child
-      if $child->name eq $name;
-    push @children, @{$child->children};
-  }
-
-  return $candidate;
-}
+sub find { shift->_index->{shift()} }
 
 sub get { shift->_generate_route(GET => @_) }
 
@@ -72,8 +58,6 @@ sub name {
   @$self{qw(name custom)} = (shift, 1);
   return $self;
 }
-
-sub new { shift->SUPER::new->parse(@_) }
 
 sub options { shift->_generate_route(OPTIONS => @_) }
 
@@ -120,7 +104,7 @@ sub root { shift->_chain->[0] }
 
 sub route {
   my $self   = shift;
-  my $route  = $self->add_child(__PACKAGE__->new(@_))->children->[-1];
+  my $route  = $self->add_child(__PACKAGE__->new->parse(@_))->children->[-1];
   my $format = $self->pattern->constraints->{format};
   $route->pattern->constraints->{format} //= 0 if defined $format && !$format;
   return $route;
@@ -223,6 +207,20 @@ sub _generate_route {
   return defined $name ? $route->name($name) : $route;
 }
 
+sub _index {
+  my $self = shift;
+
+  my (%auto, %custom);
+  my @children = (@{$self->children});
+  while (my $child = shift @children) {
+    if   ($child->has_custom_name) { $custom{$child->name} ||= $child }
+    else                           { $auto{$child->name}   ||= $child }
+    push @children, @{$child->children};
+  }
+
+  return {%auto, %custom};
+}
+
 1;
 
 =encoding utf8
@@ -290,8 +288,8 @@ implements the following new ones.
 
   $r = $r->add_child(Mojolicious::Routes::Route->new);
 
-Add a new child to this route, it will be automatically removed from its
-current parent if necessary.
+Add a child to this route, it will be automatically removed from its current
+parent if necessary.
 
   # Reattach route
   $r->add_child($r->find('foo'));
@@ -302,13 +300,14 @@ current parent if necessary.
   my $route = $r->any('/:foo' => sub {...});
   my $route = $r->any('/:foo' => {foo => 'bar'} => sub {...});
   my $route = $r->any('/:foo' => [foo => qr/\w+/] => sub {...});
-  my $route = $r->any([qw(GET POST)] => '/:foo' => sub {...});
-  my $route = $r->any([qw(GET POST)] => '/:foo' => [foo => qr/\w+/]);
+  my $route = $r->any(['GET', 'POST'] => '/:foo' => sub {...});
+  my $route = $r->any(['GET', 'POST'] => '/:foo' => [foo => qr/\w+/]);
 
 Generate L<Mojolicious::Routes::Route> object matching any of the listed HTTP
 request methods or all. See also L<Mojolicious::Guides::Tutorial> for many more
 argument variations.
 
+  # Route with destination
   $r->any('/user')->to('user#whatever');
 
 =head2 delete
@@ -321,6 +320,7 @@ argument variations.
 Generate L<Mojolicious::Routes::Route> object matching only C<DELETE> requests.
 See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 
+  # Route with destination
   $r->delete('/user')->to('user#remove');
 
 =head2 detour
@@ -340,6 +340,7 @@ application embedding, takes the same arguments as L</"to">.
 Find child route by name, custom names have precedence over automatically
 generated ones.
 
+  # Change default parameters of a named route
   $r->find('show_user')->to(foo => 'bar');
 
 =head2 get
@@ -352,6 +353,7 @@ generated ones.
 Generate L<Mojolicious::Routes::Route> object matching only C<GET> requests.
 See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 
+  # Route with destination
   $r->get('/user')->to('user#show');
 
 =head2 has_custom_name
@@ -388,17 +390,8 @@ The name of this route, defaults to an automatically generated name based on
 the route pattern. Note that the name C<current> is reserved for referring to
 the current route.
 
+  # Route with destination and custom name
   $r->get('/user')->to('user#show')->name('show_user');
-
-=head2 new
-
-  my $r = Mojolicious::Routes::Route->new;
-  my $r = Mojolicious::Routes::Route->new('/:action');
-  my $r = Mojolicious::Routes::Route->new('/:action', action => qr/\w+/);
-  my $r = Mojolicious::Routes::Route->new(format => 0);
-
-Construct a new L<Mojolicious::Routes::Route> object and L</"parse"> pattern if
-necessary.
 
 =head2 options
 
@@ -411,6 +404,7 @@ Generate L<Mojolicious::Routes::Route> object matching only C<OPTIONS>
 requests. See also L<Mojolicious::Guides::Tutorial> for many more argument
 variations.
 
+  # Route with destination
   $r->options('/user')->to('user#overview');
 
 =head2 over
@@ -423,7 +417,8 @@ variations.
 Activate conditions for this route. Note that this automatically disables the
 routing cache, since conditions are too complex for caching.
 
-  $r->get('/foo')->over(host => qr/mojolicio\.us/)->to('foo#bar');
+  # Route with condition and destination
+  $r->get('/foo')->over(host => qr/mojolicious\.org/)->to('foo#bar');
 
 =head2 parse
 
@@ -443,6 +438,7 @@ Parse pattern.
 Generate L<Mojolicious::Routes::Route> object matching only C<PATCH> requests.
 See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 
+  # Route with destination
   $r->patch('/user')->to('user#update');
 
 =head2 post
@@ -455,6 +451,7 @@ See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 Generate L<Mojolicious::Routes::Route> object matching only C<POST> requests.
 See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 
+  # Route with destination
   $r->post('/user')->to('user#create');
 
 =head2 put
@@ -467,6 +464,7 @@ See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 Generate L<Mojolicious::Routes::Route> object matching only C<PUT> requests.
 See also L<Mojolicious::Guides::Tutorial> for many more argument variations.
 
+  # Route with destination
   $r->put('/user')->to('user#replace');
 
 =head2 remove
@@ -545,6 +543,7 @@ Generate L<Mojolicious::Routes::Route> object for a nested route with its own
 intermediate destination. See also L<Mojolicious::Guides::Tutorial> for many
 more argument variations.
 
+  # Intermediate destination and prefix shared between two routes
   my $auth = $r->under('/user')->to('user#auth');
   $auth->get('/show')->to('#show');
   $auth->post('/create')->to('#create');
@@ -553,13 +552,14 @@ more argument variations.
 
   my $methods = $r->via;
   $r          = $r->via('GET');
-  $r          = $r->via(qw(GET POST));
-  $r          = $r->via([qw(GET POST)]);
+  $r          = $r->via('GET', 'POST');
+  $r          = $r->via(['GET', 'POST']);
 
 Restrict HTTP methods this route is allowed to handle, defaults to no
 restrictions.
 
-  $r->route('/foo')->via(qw(GET POST))->to('foo#bar');
+  # Route with two methods and destination
+  $r->route('/foo')->via('GET', 'POST')->to('foo#bar');
 
 =head2 websocket
 
@@ -572,6 +572,7 @@ Generate L<Mojolicious::Routes::Route> object matching only WebSocket
 handshakes. See also L<Mojolicious::Guides::Tutorial> for many more argument
 variations.
 
+  # Route with destination
   $r->websocket('/echo')->to('example#echo');
 
 =head1 AUTOLOAD
@@ -591,6 +592,6 @@ shortcuts provided by L</"root"> on L<Mojolicious::Routes::Route> objects.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

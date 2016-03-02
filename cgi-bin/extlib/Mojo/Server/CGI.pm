@@ -38,7 +38,7 @@ sub run {
   return undef unless $tx->is_empty || _write($res, 'get_body_chunk');
 
   # Finish transaction
-  $tx->server_close;
+  $tx->closed;
 
   return $res->code;
 }
@@ -77,8 +77,7 @@ Mojo::Server::CGI - CGI server
   use Mojo::Server::CGI;
 
   my $cgi = Mojo::Server::CGI->new;
-  $cgi->unsubscribe('request');
-  $cgi->on(request => sub {
+  $cgi->unsubscribe('request')->on(request => sub {
     my ($cgi, $tx) = @_;
 
     # Request
@@ -131,6 +130,6 @@ Run CGI.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

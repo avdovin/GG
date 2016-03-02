@@ -4,10 +4,9 @@ use overload bool => sub {1}, '""' => sub { shift->to_string }, fallback => 1;
 
 use Cwd 'abs_path';
 use File::Basename 'dirname';
-use File::Find 'find';
 use File::Spec::Functions qw(abs2rel catdir catfile splitdir);
 use FindBin;
-use Mojo::Util 'class_to_path';
+use Mojo::Util qw(class_to_path files);
 
 has parts => sub { [] };
 
@@ -23,7 +22,7 @@ sub detect {
     my @home = splitdir $path;
 
     # Remove "lib" and "blib"
-    pop @home while @home && ($home[-1] =~ /^b?lib$/ || $home[-1] eq '');
+    pop @home while @home && ($home[-1] =~ /^b?lib$/ || !length $home[-1]);
 
     # Turn into absolute path
     return $self->parts([splitdir abs_path catdir(@home) || '.']);
@@ -39,20 +38,9 @@ sub lib_dir {
 }
 
 sub list_files {
-  my ($self, $dir) = @_;
-
-  $dir = catdir @{$self->parts}, split('/', $dir // '');
-  return [] unless -d $dir;
-  my @files;
-  find {
-    wanted => sub {
-      my @parts = splitdir abs2rel($File::Find::name, $dir);
-      push @files, join '/', @parts unless grep {/^\./} @parts;
-    },
-    no_chdir => 1
-  }, $dir;
-
-  return [sort @files];
+  my ($self, $dir) = (shift, shift // '');
+  $dir = catdir @{$self->parts}, split('/', $dir);
+  return [map { join '/', splitdir abs2rel($_, $dir) } files $dir];
 }
 
 sub mojo_lib_dir { catdir dirname(__FILE__), '..' }
@@ -96,7 +84,7 @@ L<Mojo::Home> implements the following attributes.
 =head2 parts
 
   my $parts = $home->parts;
-  $home     = $home->parts([]);
+  $home     = $home->parts(['home', 'sri', 'myapp']);
 
 Home directory parts.
 
@@ -124,10 +112,10 @@ Path to C<lib> directory of application.
   my $files = $home->list_files;
   my $files = $home->list_files('foo/bar');
 
-Portably list all files recursively in directory relative to the home
-directory.
+Portably list all files recursively in directory relative to the home directory.
 
-  say $home->rel_file($home->list_files('templates/layouts')->[1]);
+  # List layouts
+  say for @{$home->rel_file($home->list_files('templates/layouts')};
 
 =head2 mojo_lib_dir
 
@@ -186,6 +174,6 @@ Alias for L</"to_string">.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

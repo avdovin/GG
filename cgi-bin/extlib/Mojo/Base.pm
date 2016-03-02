@@ -36,7 +36,7 @@ sub attr {
   for my $attr (@{ref $attrs eq 'ARRAY' ? $attrs : [$attrs]}) {
     Carp::croak qq{Attribute "$attr" invalid} unless $attr =~ /^[a-zA-Z_]\w*$/;
 
-    # Very performance sensitive code with lots of micro-optimizations
+    # Very performance-sensitive code with lots of micro-optimizations
     if (ref $value) {
       _monkey_patch $class, $attr, sub {
         return
@@ -115,7 +115,7 @@ Mojo::Base - Minimal base class for Mojo projects
   use Mojo::Base -base;
 
   has name => 'Nyan';
-  has [qw(age weight)] => 4;
+  has ['age', 'weight'] => 4;
 
   package Tiger;
   use Mojo::Base 'Cat';
@@ -181,11 +181,11 @@ the C<-base> flag or by setting a base class.
 =head2 has
 
   has 'name';
-  has [qw(name1 name2 name3)];
+  has ['name1', 'name2', 'name3'];
   has name => 'foo';
   has name => sub {...};
-  has [qw(name1 name2 name3)] => 'foo';
-  has [qw(name1 name2 name3)] => sub {...};
+  has ['name1', 'name2', 'name3'] => 'foo';
+  has ['name1', 'name2', 'name3'] => sub {...};
 
 Create attributes for hash-based objects, just like the L</"attr"> method.
 
@@ -197,13 +197,13 @@ L<Mojo::Base> implements the following methods.
 
   $object->attr('name');
   SubClass->attr('name');
-  SubClass->attr([qw(name1 name2 name3)]);
+  SubClass->attr(['name1', 'name2', 'name3']);
   SubClass->attr(name => 'foo');
   SubClass->attr(name => sub {...});
-  SubClass->attr([qw(name1 name2 name3)] => 'foo');
-  SubClass->attr([qw(name1 name2 name3)] => sub {...});
+  SubClass->attr(['name1', 'name2', 'name3'] => 'foo');
+  SubClass->attr(['name1', 'name2', 'name3'] => sub {...});
 
-Create attribute accessor for hash-based objects, an array reference can be
+Create attribute accessors for hash-based objects, an array reference can be
 used to create more than one at a time. Pass an optional second argument to set
 a default value, it should be a constant or a callback. The callback will be
 executed at accessor read time if there's no set value. Accessors can be
@@ -225,9 +225,12 @@ pass it either a hash or a hash reference with attribute values.
   $object = $object->tap($method);
   $object = $object->tap($method, @args);
 
-K combinator, tap into a method chain to perform operations on an object within
-the chain. The object will be the first argument passed to the callback and is
-also available as C<$_>.
+Tap into a method chain to perform operations on an object within the chain
+(also known as a K combinator or Kestrel). The object will be the first argument
+passed to the callback, and is also available as C<$_>. The callback's return
+value will be ignored; instead, the object (the callback's first argument) will
+be the return value. In this way, arbitrary code can be used within (i.e.,
+spliced or tapped into) a chained set of object method calls.
 
   # Longer version
   $object = $object->tap(sub { $_->$method(@args) });
@@ -237,6 +240,6 @@ also available as C<$_>.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut

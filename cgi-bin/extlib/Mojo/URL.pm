@@ -21,7 +21,7 @@ sub authority {
     $self->userinfo(_decode(url_unescape $1)) if $authority =~ s/^([^\@]+)\@//;
 
     # Port
-    $authority =~ s/:(\d+)$// and $self->port($1);
+    $self->port($1) if $authority =~ s/:(\d+)$//;
 
     # Host
     my $host = url_unescape $authority;
@@ -54,7 +54,7 @@ sub ihost {
 
   # Decode
   return $self->host(join '.',
-    map { /^xn--(.+)$/ ? punycode_decode($_) : $_ } split /\./, shift)
+    map { /^xn--(.+)$/ ? punycode_decode $1 : $_ } split(/\./, shift, -1))
     if @_;
 
   # Check if host needs to be encoded
@@ -63,8 +63,8 @@ sub ihost {
 
   # Encode
   return lc join '.',
-    map { /[^\x00-\x7f]/ ? ('xn--' . punycode_encode $_) : $_ } split /\./,
-    $host;
+    map { /[^\x00-\x7f]/ ? ('xn--' . punycode_encode $_) : $_ }
+    split(/\./, $host, -1);
 }
 
 sub is_abs { !!shift->scheme }
@@ -101,7 +101,7 @@ sub path {
 sub path_query {
   my $self  = shift;
   my $query = $self->query->to_string;
-  return $self->path->to_string . ($query eq '' ? '' : "?$query");
+  return $self->path->to_string . (length $query ? "?$query" : '');
 }
 
 sub protocol { lc(shift->scheme // '') }
@@ -153,7 +153,7 @@ sub to_abs {
       = $abs->path($base_path->clone)->path->trailing_slash(0)->canonicalize;
 
     # Query
-    return $abs if $abs->query->to_string ne '';
+    return $abs if length $abs->query->to_string;
     $abs->query($base->query->clone);
   }
 
@@ -176,7 +176,7 @@ sub to_string {
 
   # Path and query
   my $path = $self->path_query;
-  $url .= !$authority || $path eq '' || $path =~ m!^[/?]! ? $path : "/$path";
+  $url .= !$authority || !length $path || $path =~ m!^[/?]! ? $path : "/$path";
 
   # Fragment
   return $url unless defined(my $fragment = $self->fragment);
@@ -239,12 +239,18 @@ L<Mojo::URL> implements the following attributes.
 
 Base of this URL, defaults to a L<Mojo::URL> object.
 
+  "http://example.com/a/b?c"
+  Mojo::URL->new("/a/b?c")->base(Mojo::URL->new("http://example.com"))->to_abs;
+
 =head2 fragment
 
   my $fragment = $url->fragment;
   $url         = $url->fragment('♥mojolicious♥');
 
 Fragment part of this URL.
+
+  # "yada"
+  Mojo::URL->new('http://example.com/foo?bar=baz#yada')->fragment;
 
 =head2 host
 
@@ -253,12 +259,18 @@ Fragment part of this URL.
 
 Host part of this URL.
 
+  # "example.com"
+  Mojo::URL->new('http://sri:t3st@example.com:8080/foo')->host;
+
 =head2 port
 
   my $port = $url->port;
   $url     = $url->port(8080);
 
 Port part of this URL.
+
+  # "8080"
+  Mojo::URL->new('http://sri:t3st@example.com:8080/foo')->port;
 
 =head2 scheme
 
@@ -267,12 +279,18 @@ Port part of this URL.
 
 Scheme part of this URL.
 
+  # "http"
+  Mojo::URL->new('http://example.com/foo')->scheme;
+
 =head2 userinfo
 
   my $info = $url->userinfo;
   $url     = $url->userinfo('root:♥');
 
 Userinfo part of this URL.
+
+  # "sri:t3st"
+  Mojo::URL->new('https://sri:t3st@example.com/foo')->userinfo;
 
 =head1 METHODS
 
@@ -467,6 +485,9 @@ provided base URL.
 
 Turn URL into a string.
 
+  # "http://mojolicious.org"
+  Mojo::URL->new->scheme('http')->host('mojolicious.org')->to_string;
+
 =head1 OPERATORS
 
 L<Mojo::URL> overloads the following operators.
@@ -485,6 +506,6 @@ Alias for L</"to_string">.
 
 =head1 SEE ALSO
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>.
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
 =cut
