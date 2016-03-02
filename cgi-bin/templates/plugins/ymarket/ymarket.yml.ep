@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE yml_catalog SYSTEM "shops.dtd">
+<yml_catalog date="<%= $now  %>">
+	<shop>
+	    <name><%= $config->{name}  %></name>
+	    <company><%= $config->{company}  %></company>
+	    <url><%= $config->{url}  %></url>
+	    <platform><%= $config->{cms}  %></platform>
+	    <version><%= $config->{cms_version}  %></version>
+	    <agency><%= $config->{agency}  %></agency>
+	    <email><%= $config->{email}  %></email>
+	    <currencies>
+	    	% foreach (keys %$currencies){
+	    		<currency id="<%= $_  %>" rate="<%= $currencies->{$_}->{rate} %>" <% if ($currencies->{$_}->{plus}){ %>plus="<%= $currencies->{$_}->{plus}  %>"<% } %>/>
+	    	% }
+	    </currencies>
+	    <categories>
+	    	% foreach (@$categories){
+	    		<category id="<%= $_->{ID}  %>" <% if ($_->{id_group}){  %>parentId="<%= $_->{id_group}  %>"<% } %>><%= $_->{name}  %></category>
+	    	% }
+	    </categories>
+	    <cpa><%= $config->{cpa}  %></cpa>
+	    <offers>
+	    	% foreach (@$items){
+	    		<offer id="<%= $_->{ID}  %>" available="true">
+	    			<url><%= $_->{url} %></url>
+	    			<price><%= $_->{price}  %></price>
+	    			<currencyId>RUR</currencyId>
+	    			<categoryId><%= $_->{categoryId} %></categoryId>
+	    			<picture><%= $_->{picture}  %></picture>
+	    			<pickup><%= $_->{pickup}  %></pickup>
+	    			<delivery><%= $_->{delivery}  %></delivery>
+	    			<name><%= $_->{name}  %></name>
+	    			<vendor><%= $_->{vendor}  %></vendor>
+	    			<description><%== $_->{description}  %></description>
+	    			<manufacturer_warranty><%= $_->{manufacturer_warranty}  %></manufacturer_warranty>
+	    			<country_of_origin><%= $_->{country_of_origin}  %></country_of_origin>
+	    			<cpa><%= $_->{cpa}  %></cpa>
+	    			%# foreach my $p (keys %{$_->{params}}){
+	    			%#	<param name="<%= $p  %>" <% if($_->{params}->{$p}->{unit}){ %>unit="<%= $_->{params}->{$p}->{unit} %>"<% } %>><%= $_->{params}->{$p}->{value}  %></param>
+	    			%# }
+	    		</offer>
+	    	% }
+	    </offers>
+    </shop>
+</yml_catalog>

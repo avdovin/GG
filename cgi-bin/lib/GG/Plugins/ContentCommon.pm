@@ -50,7 +50,7 @@ sub register {
 
       return $self->render_to_string(
         items    => $items,
-        template => 'Texts/_news_list_items',
+        template => 'texts/_news_list_items',
       );
     }
   );
@@ -68,7 +68,7 @@ sub register {
 
       return $self->render_to_string(
         items    => $items,
-        template => 'Texts/news_anons',
+        template => 'texts/news_anons',
       );
     }
   );

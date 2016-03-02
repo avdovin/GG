@@ -46,7 +46,7 @@ sub register {
 
       $self->admin_getUser;
 
-      $self->render(template => "Admin/page_start");
+      $self->render(template => 'admin/page_start');
     }
   )->name('login_form');
 
@@ -67,10 +67,10 @@ sub register {
         # Просчитываем права
         $self->app->sessions->cookie_path('/admin/');
 
-        $self->render(template => "Admin/quick_auth_reload");
+        $self->render(template => 'admin/quick_auth_reload');
       }
       else {
-        $self->render(template => "Admin/form_auth");
+        $self->render(template => 'admin/form_auth');
       }
     }
   );
@@ -130,7 +130,7 @@ sub register {
     }
   );
   $admin_route->route('/auth')
-    ->to(cb => sub { shift->render(template => "Admin/form_auth") });
+    ->to(cb => sub { shift->render(template => 'admin/form_auth') });
 
   $admin_route->route('/:controller/body')->to(action => 'body')
     ->name('admin_routes_to_body');

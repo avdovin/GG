@@ -1,0 +1,14 @@
+<div class="col col_left block_padding">
+	<div class="faq content">
+		<a href="<%= url_for('faq') %>" class="button button_red button_chat faq__all">Задать вопрос</a>
+		<h2 class="faq__title">Помощь</h2>
+		<ul class="faq__list">
+			% foreach (@$items){
+				<li class="list__entry">
+					<p class="entry__question"><%= $_->{author_name} %></p>
+					<p class="entry__answer"><%= $_->{name} %></p>
+				</li>
+			% }
+		</ul>
+	</div>
+</div>

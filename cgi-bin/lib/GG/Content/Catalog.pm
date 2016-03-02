@@ -12,7 +12,7 @@ sub brands {
     "SELECT * FROM `data_catalog_brands` WHERE `active`=1 ORDER BY rating,name")
     ->hashes;
 
-  $self->render(items => $items, template => 'Catalog/brands');
+  $self->render(items => $items, template => 'catalog/brands');
 }
 
 sub order_checkout {
@@ -208,7 +208,7 @@ sub order_checkout {
     $json->{success} = 1;
 
 #		$json->{success} = $self->render(
-#			template 	=> "Catalog/_checkout_success_msg",
+#			template 	=> "catalog/_checkout_success_msg",
 #			partial		=> 1
 #		);
 
@@ -216,7 +216,7 @@ sub order_checkout {
       items        => $items,
       totalPrice   => $totalPrice,
       orderComment => $orderComment,
-      template     => "Catalog/_checkout",
+      template     => "catalog/_checkout",
     );
 
 # $self->mail(
@@ -273,7 +273,7 @@ sub basket {
   $self->render(
     basket   => $basket,
     items    => $items,
-    template => "Catalog/basket"
+    template => "catalog/basket"
   );
 }
 
@@ -337,7 +337,7 @@ sub update_basket_items {
 
 #($json->{price_formated}, $json->{count_formated}) = ($self->numberformat($json->{price}), $self->numberformat($json->{count}));
 # $json->{basket_header} = $self->render(
-# 	template	=> 'Catalog/_basket_header',
+# 	template	=> 'catalog/_basket_header',
 # 	partial 	=> 1
 # );
 
@@ -403,7 +403,7 @@ sub iteminfo {
       #colors 		=> $colors,
       itemImages     => $itemImages,
       recommendItems => $recommendItems,
-      template       => 'Catalog/_iteminfo_inner',
+      template       => 'catalog/_iteminfo_inner',
     );
 
     return $self->render(text => $out);
@@ -438,7 +438,7 @@ sub iteminfo {
     subcategory    => $subcategory,
     itemImages     => $itemImages,
     recommendItems => $recommendItems,
-    template       => 'Catalog/iteminfo',
+    template       => 'catalog/iteminfo',
   );
 }
 
@@ -479,7 +479,7 @@ sub list {
   $self->render(
     category    => $category,
     subcategory => $subcategory,
-    template    => 'Catalog/list'
+    template    => 'catalog/list'
   );
 }
 
@@ -549,7 +549,7 @@ sub list_items {
     delete $self->stash->{layout};
     return $self->render(
       items    => $items,
-      template => 'Catalog/_iteminfo_list_items',
+      template => 'catalog/_iteminfo_list_items',
       )
 
 #		return $self->render( json =>  {
@@ -561,7 +561,7 @@ sub list_items {
 
   my $out = $self->render_to_string(
     items    => $items,
-    template => 'Catalog/_list_items',
+    template => 'catalog/_list_items',
   );
 
   my $html_nav = $self->page_navigator();

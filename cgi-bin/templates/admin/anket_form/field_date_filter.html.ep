@@ -1,0 +1,13 @@
+%	my $pref = $self->sysuser->settings->{$self->stash->{replaceme}.'_filter_'.$key.'pref'};
+%	$value = substr($value, 0, 10) if(length($value) > 10);
+%	$value = '' if ($value eq '0000-00-00' or $value =~ /[\d]{4}-00-00/ );
+<tr>
+  <td valign=top class=edit width="150px"><%= $lkey->{name} =%>:</td>
+  <td>
+    <input class=menu type="text" name='<%= $key %>' id='<%= $key %>' value='<%= $value %>' style="width:130px;margin-right:10px">
+    <a href="#" title="выбрать дату" id="button_<%= $key %>" data-input-id="<%= $key %>" class="calendar calendar-date"><img border=0 src="/admin/img/icons/calendar.gif"></a>
+    <label><input type=radio value="=" name="<%= $key %>pref" <% if($pref eq '=' or !$pref){ %>checked<% } %>> строго</label>
+    <label><input type=radio value="<" name="<%= $key %>pref" <% if($pref eq '<'){ %>checked<% } %>> раньше</label>
+    <label><input type=radio value=">" name="<%= $key %>pref" <% if($pref eq '>'){ %>checked<% } %>> позже</label>
+  </td>
+</tr>

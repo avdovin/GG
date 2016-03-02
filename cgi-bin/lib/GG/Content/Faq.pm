@@ -105,7 +105,7 @@ sub list {
           active      => 0,
         }
       );
-      my $email_body = $self->render_mail(template => "Faq/_admin");
+      my $email_body = $self->render_mail(template => 'faq/_admin');
 
       eval {
         $self->mail(
@@ -122,7 +122,7 @@ sub list {
       };
 
       $JSON->{message_success}
-        = $self->render_to_string(template => 'Faq/_message_success');
+        = $self->render_to_string(template => 'faq/_message_success');
       return $self->render(json => $JSON,);
     }
     else {
@@ -131,7 +131,7 @@ sub list {
     }
   }
 
-  $self->render(items => $items, item => $item, template => 'Faq/list',);
+  $self->render(items => $items, item => $item, template => 'faq/list',);
 }
 
 1;

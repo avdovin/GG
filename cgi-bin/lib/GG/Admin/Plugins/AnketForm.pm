@@ -185,7 +185,7 @@ sub register {
       $params{template} ||= $template_blocks{$access};
 
       $self->stash->{template_dir}
-        = $params{template_dir} ? $params{template_dir} : 'Admin/AnketForm/';
+        = $params{template_dir} ? $params{template_dir} : 'admin/anket_form/';
       $self->stash->{key_shablon}
         = $params{key_shablon} ? $params{key_shablon} : $params{access};
       $self->stash->{access_flag} = $params{access};

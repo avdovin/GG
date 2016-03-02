@@ -1,0 +1,20 @@
+<tr>
+	<td class=edit width="150px">
+		<%= $lkey->{name} %>
+	</td>
+	<td class=edit width="10px" valign=top>
+	% if($lkey->{settings}->{help}){
+		<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+	% }
+	</td>
+	<td width="10px" id="_<%= $key %>"></td>
+	<td>
+		<input class="menu"
+		<% if($lkey->{settings}->{required}){%>required<% } %>
+		type="text" name='<%= $key %>'
+		id='<%= $self->stash->{replaceme} %>_<%= $key %>'
+		value='<% if( (!$value or $value eq '0000-00-00') and $lkey->{settings}->{default}){ %><%= $lkey->{settings}->{default} %><% } elsif($value && $value ne '0000-00-00') { %><%= $value %><% } %>'
+		style="width:90px;margin-right:10px">
+		<a href="#" title="выбрать дату" id="calendar-<%= $self->stash->{replaceme} %>_<%= $key %>" data-input-id="<%= $self->stash->{replaceme} %>_<%= $key %>" class="calendar calendar-date"><img border=0 src="/admin/img/icons/calendar.gif"></a>
+		</td>
+</tr>

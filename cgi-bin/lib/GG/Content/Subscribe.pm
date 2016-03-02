@@ -33,7 +33,7 @@ sub unsubscribe {
 
   $self->render(
     message  => $message,
-    template => 'Subscribe/unsubscribe_result'
+    template => 'subscribe/unsubscribe_result'
   );
 }
 
@@ -155,7 +155,7 @@ sub _send_letter {
   $self->loadVars();
   $self->stash->{sitename} = $self->site_name;
 
-  my $email_body = $self->render_mail(template => 'Subscribe/subscribe_mail',);
+  my $email_body = $self->render_mail(template => 'subscribe/subscribe_mail',);
 
   $self->mail(to => $email, subject => $subj, data => $email_body,);
 

@@ -1,0 +1,28 @@
+<!-- start Video/_video_list.html.ep -->
+<div class="block block_padding block_background block_shadowed video content">
+	<h1>ВИДЕО</h1>
+	%== breadcrumbs
+	%== content__journal_categorys
+
+	<div class="video__list">
+		<% foreach (@$items){ %>
+			<div class="list__entry">
+				<h2 class="entry__title"><%= $_->{name}  %> <% if ($_->{edate} ne '0000-00-00 00:00:00'){ %>(<%= date_format(date => $_->{edate}, format => 'dd month, yyyy')  %>)<% } %></h2>
+				% if($_->{youtubelink}){
+					<iframe width="547" height="294" src="//www.youtube.com/embed/<%= $_->{youtubelink}  %>" frameborder="0" allowfullscreen></iframe>
+				%
+				% } elsif($_->{vimeolink}) {
+					<iframe src="//player.vimeo.com/video/<%= $_->{vimeolink} %>" width="547" height="294" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+				% }
+				<% if ($_->{description}) { %>
+				<blockquote>
+					<%= $_->{description}  %>
+				</blockquote>
+				<% } %>
+			</div>
+		<% } %>
+	</div>
+	% my $prefix = $self->stash('category') ? "/video/".$self->stash('category') : "/video";
+	%== page_navigator prefix => $prefix
+</div>
+<!-- end Video/_video_list.html.ep -->

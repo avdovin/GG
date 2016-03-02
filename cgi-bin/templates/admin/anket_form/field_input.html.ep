@@ -1,0 +1,49 @@
+% if($lkey eq 'alias' && !$value  && $self->stash->{anketa}->{name}){
+	% $value = $self->transliteration($self->stash->{anketa}->{name});
+% }
+% my $input_type = 'text';
+% my $lkey_type = $lkey->{settings}->{type};
+
+% if($lkey_type eq 'decimal' or $lkey_type eq 'float'){
+	% $lkey->{settings}->{default} ||= '0000.00';
+	% $lkey->{settings}->{regexpPattern} ||=  $lkey->{settings}->{signed} ? '^-?([0-9]*\.?[0-9]*)$' : '^[0-9]*\.?[0-9]*$';
+	% $value = sprintf("%.".($lkey->{settings}->{round} || 2)."f", $value);
+% }
+<tr>
+	<td class="edit" width="150px">
+		%= $lkey ? $lkey->{name} : $key
+	</td>
+	<td class="edit" width="10px" valign=top>
+		% if($lkey->{settings}->{help}){
+			<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+		% }
+	</td>
+	<td width="10px" id="_<%= $key %>"></td>
+	<td class="edit">
+		% $input_type = 'email' if($lkey_type eq 'email');
+		% $lkey->{settings}->{mask} = 'email' if($lkey_type eq 'email' and !$lkey->{settings}->{mask});
+		% $lkey->{settings}->{mask} = 'numeric' if($lkey_type eq 'd' and !$lkey->{settings}->{mask});
+		%
+		<input
+			<% if($lkey_type eq 'd'){ %>pattern="[0­9]*"<% } %>
+			<% if($key eq 'name' && defined $self->stash->{anketa}->{alias}){ %>onKeyUp="build_alias(this);"<% } %>
+			<% if($lkey->{settings}->{regexpPattern}){ %>regexpPattern="<%= $lkey->{settings}->{regexpPattern} %>"<% } %>
+			<% if($lkey_type eq 'email' && $lkey->{settings}->{multiple}){ %>placeholder="Можно указать 1 или несколько адресов через ','"<% } %>
+			id="<%= $self->stash->{replaceme}.'_'.$key %>"
+			class=menu
+			<% if($lkey->{settings}->{required}){%>required<% } %>
+			<% if($lkey->{settings}->{mask}){%>mask="<%== $lkey->{settings}->{mask} %>" <% } %>
+			type="<%= $input_type %>"
+			name='<%= $key %>'
+			maxlength='<%= $lkey->{settings}->{maxlength} || 255 %>'
+			%== $lkey->{settings}->{minlength} ? "minlength='".$lkey->{settings}->{minlength}."' " : "";
+			value='<% if($value){ %><%= $value =%><% }else{ %><%== $lkey->{settings}->{default} ? $lkey->{settings}->{default} : '' %><% } =%>'
+		>
+	</td>
+</tr>
+% if($key eq 'alias'){
+	%	init_items({
+	%		type		=> 'eval',
+	%		value		=> "uniqueAlias('${replaceme}_name');"
+	%	});
+% }

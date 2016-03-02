@@ -58,7 +58,7 @@ sub register {
 
         unless (keys %{$json->{errors}}) {
           my $templates_mail
-            = $args->{'templates_mail'} || 'Plugins/Callback/_admin';
+            = $args->{'templates_mail'} || 'plugins/callback/_admin';
 
           my $email_body = $self->render_mail(template => $templates_mail);
 
@@ -79,7 +79,7 @@ sub register {
           );
 
           my $templates_msg_success = $args->{'templates_msg_success'}
-            || 'Plugins/Callback/_message_success';
+            || 'plugins/callback/_message_success';
           $json->{message_success}
             = $self->render_to_string(template => $templates_msg_success);
         }
@@ -91,7 +91,7 @@ sub register {
 
   $app->helper(
     'callback.form' => sub {
-      return shift->render_to_string(template => 'Plugins/Callback/_form');
+      return shift->render_to_string(template => 'plugins/callback/_form');
     }
   );
 }

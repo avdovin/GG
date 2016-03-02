@@ -11,7 +11,7 @@
 	<div class="wrapper">
 		<div class="body">
 			<div class="block">
-				%== include 'Elements/_header'
+				%== include 'elements/_header'
 
 				% content wrapper => begin
 					<div class="content">
@@ -24,7 +24,7 @@
 		</div>
 	</div>
 
-	%== include 'Elements/_footer'
+	%== include 'elements/_footer'
 %== render_footer
 </body>
 </html>

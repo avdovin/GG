@@ -37,7 +37,7 @@ sub activate {
     my $rdate = $self->setLocalTime(1);
     my $xml   = $self->render_partial(
       user     => $user,
-      template => 'Users/register',
+      template => 'users/register',
       format   => 'xml',
     );
 
@@ -58,7 +58,7 @@ sub activate {
 
 
     my $email_body = $self->render_partial(
-      template => "Users/register_success_mail_activate",
+      template => 'users/register_success_mail_activate',
       format   => 'html'
     );
     eval {
@@ -84,7 +84,7 @@ sub activate {
 
   $self->render(
     success  => $success,
-    template => 'Users/register_success_activated'
+    template => 'users/register_success_activated'
   );
 }
 
@@ -180,7 +180,7 @@ sub register {
       my $email_body = $self->render_mail(
         user_id  => $user_id,
         partial  => 1,
-        template => "Users/_register",
+        template => 'users/_register',
       );
 
 
@@ -274,7 +274,7 @@ sub remember {
     my $email_body = $self->render_mail(
       new_password => $new_password,
       partial      => 1,
-      template     => "Users/_remember",
+      template     => 'users/_remember',
     );
 
     $self->mail(

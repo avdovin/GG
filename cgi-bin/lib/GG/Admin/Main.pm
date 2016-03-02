@@ -280,7 +280,7 @@ sub user_block {
       "UPDATE `sys_users` SET `vdate`=NOW() WHERE `login`='$login'");
   }
 
-  $self->render(template => "Admin/Main/user_block");
+  $self->render(template => 'admin/Main/user_block');
 }
 
 sub menu_button {

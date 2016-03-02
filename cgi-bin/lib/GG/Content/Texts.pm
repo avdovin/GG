@@ -174,7 +174,7 @@ sub texts_list {
 	/
   )->hashes;
 
-  $self->render(template => "Texts/$template", items => $items);
+  $self->render(template => "texts/$template", items => $items);
 
 }
 
@@ -209,7 +209,7 @@ sub text_main_item {
 #$self->res->headers->last_modified( $text->{updated_at_rfc822}.' GMT' )
 #  if ($text->{'updated_at'} && $text->{'updated_at'} ne '0000-00-00 00:00:00'  && !(scalar keys %{$self->userdata}));
 
-  my $template = $self->stash->{template} ||= "Texts/_body_default";
+  my $template = $self->stash->{template} ||= 'texts/_body_default';
   $self->render(
     item     => $text,
     template => $template,
@@ -225,7 +225,7 @@ sub text_list_item {
   my $ring ||= 0;
   my $alias      = $self->stash('list_item_alias');
   my $key_razdel = $self->stash('key_razdel');
-  my $template   = "Texts/" . $key_razdel . "_item";
+  my $template   = "texts/" . $key_razdel . "_item";
   my $table      = "texts_" . $key_razdel . "_" . $self->lang;
 
   my $where = " ";

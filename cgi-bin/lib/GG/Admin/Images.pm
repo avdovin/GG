@@ -167,7 +167,7 @@ sub zipimport_save {
 
   my $files = $self->file_extract_zip(path => $self->file_tmpdir . $self->send_params->{zip});
 
-  my $html = $self->render_to_string(files => $files, template => 'Admin/Plugins/File/zipimport_img_node');
+  my $html = $self->render_to_string(files => $files, template => 'admin/plugins/file/zipimport_img_node');
 
   $self->render(json => {html => $html, count => scalar(@$files)});
 }

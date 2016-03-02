@@ -40,7 +40,7 @@ sub register {
           return $self->render_to_string(
             temp     => $dataVals[1],
             icon     => $dataVals[2],
-            template => 'Plugins/Weather/_weather_by_city',
+            template => 'plugins/weather/_weather_by_city',
           );
         }
       }
@@ -65,7 +65,7 @@ sub register {
       return $self->render(
         temp     => $temp,
         icon     => $icon,
-        template => 'Plugins/Weather/_weather_by_city',
+        template => 'plugins/weather/_weather_by_city',
         partial  => 1,
       );
 

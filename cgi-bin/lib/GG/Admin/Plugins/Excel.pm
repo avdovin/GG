@@ -107,7 +107,7 @@ sub register {
 
       }
       elsif ($group == 1) {
-        $self->render(template => "Admin/Plugins/Excel/export_config_window");
+        $self->render(template => 'admin/Plugins/Excel/export_config_window');
       }
       return 0;
     }

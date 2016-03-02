@@ -78,7 +78,7 @@ sub list {
         }
       );
       $self->flash->{recall_success} = 1;
-      my $email_body = $self->render_mail(template => "Recall/_admin");
+      my $email_body = $self->render_mail(template => 'recall/_admin');
 
       eval {
         $self->mail(
@@ -97,7 +97,7 @@ sub list {
     }
   }
 
-  $self->render(items => $items, item => $item, template => 'Recall/list',);
+  $self->render(items => $items, item => $item, template => 'recall/list',);
 }
 
 1;

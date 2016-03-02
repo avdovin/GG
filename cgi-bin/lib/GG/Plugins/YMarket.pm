@@ -135,7 +135,7 @@ sub register {
         items      => $release_items,
         now        => $now,
         categories => $categories,
-        template   => 'Plugins/YMarket/ymarket',
+        template   => 'plugins/ymarket/ymarket',
         format     => 'yml',
       );
 

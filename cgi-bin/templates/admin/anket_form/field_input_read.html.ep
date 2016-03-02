@@ -1,0 +1,20 @@
+<tr id="tr<%= $key %>" class="<%= $class %>">
+  <td class=edit valign=top width="150px" colspan=3><%= $lkey ? $lkey->{name} : $key %>:</td>
+  <td class=read valign=top>
+    % my $lkey_type = $lkey->{settings}->{type};
+    % if($key ne 'ID' and $lkey->{settings}->{qedit} and !$self->sysuser->settings->{$controller.'_qedit_off'} and ($self->sysuser->access->{lkey}->{$lkey}->{w} or $self->sysuser->sys)){
+      <div id="<%= $index %>__<%= $key %>_print"><%= $value =%></div>
+      <label id="label<%= $index %>__<%= $key %>_print"></label>
+    % } else {
+      % if($lkey_type eq 'filesize'){
+        %= file_nice_size $value
+      % } elsif($lkey_type eq 'site'){
+        %= link_to $value => $value => (target => '_blank')
+      % } elsif($lkey_type eq 'decimal' or $lkey_type eq 'float'){
+        %= sprintf("%.".($lkey->{settings}->{minimum} || 2)."f", $value);
+      % } else {
+        %= $value
+      % }
+    % }
+  </td>
+</tr>

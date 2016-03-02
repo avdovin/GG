@@ -367,7 +367,7 @@ sub zipimport_save {
 
   my $html = $self->render_to_string(
     files    => $files,
-    template => 'Admin/Plugins/File/zipimport_img_node'
+    template => 'admin/plugins/file/zipimport_img_node'
   );
 
   $self->render(json => {html => $html, count => scalar(@$files)});

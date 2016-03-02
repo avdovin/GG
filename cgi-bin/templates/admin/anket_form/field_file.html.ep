@@ -1,0 +1,47 @@
+% my $rand = $self->stash->{rndval};
+<tr>
+  <td class=edit width="150px" valign=top>
+    %= $lkey->{name}
+  </td>
+  <td class=edit width="10px" valign=top>
+    % if($lkey->{settings}->{help}){
+	   <a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+    % }
+  </td>
+  <td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
+  <td class=read><div id="reload<%= $self->stash->{replaceme} %>_<%= $key %>">
+% my $folder = $lkey->{settings}->{folder} || $self->stash->{folder};
+% $folder .= '/' if ($folder !~ /\/$/ );
+% if(!$value){
+	%== include '/admin/anket_form/reload/field_file_reload', lkey => $lkey, key => $key
+% } else {
+
+    % my $type_file = ($value =~ m/([^.]+)$/)[0] || '';
+    % if($type_file){
+        % my $img_ext = [qw(jpg jpeg gif png)];
+        % if(grep(/$type_file/, @$img_ext) ){
+            <img src="<%= $folder %><%= $value %>?<%= $rand %>" width="200"  /><br />
+
+        % } elsif($type_file eq 'swf'){
+            <object id="flash_banner<%= $index %>" width="<% if($self->stash->{anketa}->{width}){ %><%= $self->stash->{anketa}->{width} %><% } else { %>150<% } %>" height="<% if($self->stash->{anketa}->{height}){ %><%= $self->stash->{anketa}->{height} %><% } else { %>150<% } %>" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000">
+                <param value="sameDomain" name="allowScriptAccess"/>
+                <param value="<%= $folder %><%= $value %>?<%= $rand %>" name="movie"/>
+                <param value="high" name="quality"/>
+                <param name="wmode" value="opaque"/>
+                <param value="#ffffff" name="bgcolor"/>
+                <embed wmode="opaque" width="<% if($self->stash->{anketa}->{width}){ %><%= $self->stash->{anketa}->{width} %><% } else { %>150<% } %>" height="<% if($self->stash->{anketa}->{height}){ %><%= $self->stash->{anketa}->{height} %><% } else { %>150<% } %>"  pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" allowscriptaccess="sameDomain" name="flash_banner<%= $index %>" bgcolor="#ffffff" quality="high" src="<%= $folder %><%= $value %>?<%= $rand %>"/>
+            </object>
+            <br />
+        % } else {
+            % if(-e static_path."/admin/img/icons/file/".$type_file.".png"){
+                <img align="absMiddle" src="/admin/img/icons/file/<%= $type_file %>.png" />
+            % }
+            <br />
+        % }
+    % }
+    файл: <%= $folder %><%= $value %><% if($self->stash->{anketa}->{$key.'_size'}){ %>, <%= file_nice_size($self->stash->{anketa}->{$key.'_size'}) %> <% } %> <br />
+    <img border="0" src="/admin/img/icons/menu/button.upload.gif" align="absMiddle"/> <a href="<%= $self->stash->{controller_url} %>?do=download&index=<%= $self->stash->{index} %>&dfield=<%= $key %>&<%= $self->stash->{param_default} %>" target=_blank>скачать</a>  | <img border="0" src="/admin/img/icons/menu/icon_reload.gif" align="absMiddle"/> <a href="#" onClick="if (confirm('Загрузить файл заново?')) ld_content('reload<%= $self->stash->{replaceme} %>_<%= $key %>', '<%= $self->stash->{controller_url} %>?do=delete_file&index=<%= $self->stash->{index} %>&<%= $self->stash->{param_default} %>&lfield=<%= $key %>', 1, 1);">загрузить заново</a>
+<% } %>
+</div>
+</td>
+</tr>

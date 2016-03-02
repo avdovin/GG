@@ -12,7 +12,7 @@ sub catalog_category_menu {
 
   return $self->render_partial(
     categorys => \@categorys,
-    template  => "Catalog/category_menu"
+    template  => 'catalog/category_menu'
   );
 }
 

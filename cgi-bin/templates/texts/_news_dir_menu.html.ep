@@ -1,0 +1,6 @@
+<div class="content">
+    <h1>Новости <a href="<%= url_for('news_list') %>" <% unless($self->stash->{group_alias}){ %>class="current"<% } %>>Все новости</a> 
+    <% foreach (@$items){ %>
+    	<a href="<%= url_for('news_list_by_group', group_alias => $_->{alias}) %>" <% if($self->stash->{group_alias} eq $_->{alias}){ %>class="current"<% } %>><%= $_->{name} %></a>
+    <% } %>
+</div>

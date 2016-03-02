@@ -1,4 +1,0 @@
-<tr id="tr<%= $lkey %>" class="<%= $class %>">
-  <td class=edit valign=top width="150px" colspan=3><%= $lkey->{name} =%>:</td>
-  <td class=read valign=top><%== $value =%> </td>
-</tr>

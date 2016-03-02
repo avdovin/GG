@@ -1,11 +1,11 @@
 % content_for popup => begin
-	%== include 'Catalog/_popup_iteminfo';
+	%== include 'catalog/_popup_iteminfo';
 % end
 
 % content wrapper => begin
 <div class="catalog clearfix">
   %== catalog__filters
-  
+
 	<div class="col_right col clearfix pagenav_block">
 		<div class="top_filters__block">
 			<span class="filter__all">Всего <b id="total-items-count-string"></b></span>
@@ -21,7 +21,7 @@
 				</li>
 			</ul>
 			<div class="filter__price">
-			    <a class="price__link asc" href="#">Цена</a> 
+			    <a class="price__link asc" href="#">Цена</a>
 			</div>
 		</div>
 <!-- Класс new добавляется к товарам из новинок, класс sale из распродажи -->
@@ -33,4 +33,3 @@
 	</div>
 </div>
 % end
-

@@ -1,0 +1,72 @@
+%	my $index = $self->stash->{index} || "";
+<div id="replaceme_dop<%= $replaceme %><%= $index %>">
+<table width="95%" align=center>
+  <tr><td valign=top>
+      <h1><%= $controller_name %></h1>
+      <h2><% if ($self->stash->{ page_name }){ %><%== $self->stash->{ page_name } %><% }else{ %>Режим редактирования<% } %></h2>
+    </td><td>
+  <p style="text-align:right;margin-right:10px"><img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="#" onClick="close_modal_win('dop','<%= $replaceme %><%= $self->stash->{index} %>');">закрыть</a></p>
+    </td>
+  </tr>
+  <tr><td colspan=2><h3><%== admin_msg %></h3></td></tr>
+</table>
+<hr>
+<form name="form_dop<%= $replaceme %><%= $index %>" id="form_dop<%= $replaceme %><%= $index %>" method="post" enctype="multipart/form-data">
+<% if($self->stash->{flag_win}){ %><input type=hidden name=flag_win value=1><% } %>
+<div class="miniNav">
+<p style="text-align:left;margin-left:25px">
+%	my $group_index = 1;
+%	foreach (@{$self->app->program->{groupname}}){
+	<% if($index){ %><a href="#" onClick="ld_content('replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>?index=<%= $index %>&<%= $self->stash->{param_default} %>&do=edit&group=<%= $group_index %>')"><%= $_ %></a><% } %>
+	<% $group_index++; %>
+%	}
+</p>
+</div>
+<% if($index){ %><input type=hidden name=index value="<%= $index %>"><% } %>
+<input type="hidden" name="do" value="save">
+<!--<input type="hidden" name="dop_table" value="<%= $self->stash->{dop_table} %>"> -->
+%	foreach (keys %$param_default_keys){
+		<input type="hidden" name="<%= $_ %>" value="<%= $param_default_keys->{$_} %>">
+%	}
+<div id="formResponsedop" style="overflow:scroll;width:98%;height:430px;">
+<table id="anketka_dop<%= $replaceme %><%= $self->stash->{index} %>" width="95%" align="center" style="border:solid 1px #ccc">
+%# <FOR name="for_i" type="foreach" array="listfield_dop"/>
+%# <BLOCK name="field_<name=for_i>" type="block" shablon="<name={for_i},type=lkey,param=shablon_w>" from="<name={for_i},type=lkey,param=table_w>"/>
+%# </FOR>
+
+%	my $class = 'even';
+%	foreach (@{$self->stash->{listfield}}){
+%		if( my $lk = $self->lkey(name => $_) ){
+%			$class = $class eq 'odd' ? 'even' : 'odd';
+%			$self->stash->{anketa_ok} = 1;
+			<%== include $lk->{settings}->{template_dir_w}.$lk->{settings}->{template_w}, key => $_, class => $class, lkey => $lk, value => $self->stash->{anketa}->{$_}, index => $self->stash->{index} || '' =%>
+%		}
+%	}
+	<% unless($self->stash->{anketa_ok}){ %><h3>В данной группе полей для редактирования нет</h3><% } %>
+</table>
+</div>
+
+<table width=95% align=center>
+<tr>
+  <td align=left width=150>
+  <% if($group>1 and $group<=$group_index){ %>
+  <p style="text-align:right"><img src="/admin/img/icons/menu/icon_prev.gif" align="absMiddle"> <a href="#" onClick="ld_content('replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>?<%= $self->stash->{param_default} %>&index=<%= $index %>&do=edit&group=<%= $group - 1 %>&dop_table=<%= $self->stash->{dop_table} %>&lfield=<%= $self->stash->{lfield} %>')">предыдущая</a></p><% } %></td>
+  <td align=center><br /><% if($self->stash->{anketa_ok}){ %><input id="submit_dop<%= $replaceme %><%= $self->stash->{index} %>" type=submit onClick="do_submit(this.form, 'replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>'); return false;" value="Сохранить данные" class="btn btn-block btn-lg btn-info" style="width:90%"><% } %></td>
+  <td align=right width=150><% if($group<$group_index-1 and $index){ %>
+  <p style="text-align:left"><a href="#" onClick="ld_content('replaceme_dop<%= $replaceme %><%= $index %>', '<%= $self->stash->{controller_url} %>?<%= $self->stash->{param_default} %>&index=<%= $index %>&do=edit&group=<%= $group+1 %>&dop_table=<%= $self->stash->{dop_table} %>&lfield=<%= $self->stash->{lfield} %>')">следующая</a> <img src="/admin/img/icons/menu/icon_next.gif" align="absMiddle"></p><% } %></td>
+</tr>
+</table>
+</form>
+<% unless($self->stash->{flag_win}){ %>
+<script>
+  setTimeout(function(){ modalFormInit();}, 1000);
+  enableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = false;}
+  disableSubmitwin<%= $replaceme %><%= $index %> = function () {document.getElementById(id_block_submit['dop<%= $replaceme %><%= $index %>']).disabled = true;}
+  id_block_submit['dop<%= $replaceme %><%= $index %>'] = "submit_dop<%= $replaceme %><%= $index %>";
+  formValObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.formValidator({ formRef:'form_dop<%= $replaceme %><%= $index %>',keyValidation:true,callbackOnFormValid:'enableSubmitwin<%= $replaceme %><%= $index %>',callbackOnFormInvalid:'disableSubmitwin<%= $replaceme %><%= $index %>',indicateWithBars:false });
+  formObj['dop<%= $replaceme %><%= $index %>'] = new DHTMLSuite.form({ formRef:'form_dop<%= $replaceme %><%= $index %>',action:'<%= $self->stash->{controller_url} %>',responseEl:'formResponsedop'});
+  multilist_init("form_dop<%= $replaceme %><%= $index %>");
+  editor_init('form_dop<%= $replaceme %><%= $index %>');
+</script>
+<% } %>
+</div>

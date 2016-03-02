@@ -1,0 +1,20 @@
+% if($toplevel <= $level && $botomlevel >= $level){
+	%= tag ul => (class => $level == 1 ? 'menu__list' : '') => begin
+		% my $alias = stash 'alias' || '';
+		% foreach my $id (sort { ($$items{$a}{rating}||0 ) <=> ($$items{$b}{rating}||0 ) } keys %$items){
+			% my $menuitem = $items->{$id};
+			% if($menuitem->{level}==$level && $menuitem->{texts_main}==$parent_id){
+				% my $li_class  = 'list__entry';
+				% $li_class .= ' current' if($alias eq $menuitem->{alias} or $menuitem->{menu_active_parent});
+				% $li_class .= ' noempty' if($menuitem->{noempty} && $level==1);
+				%= tag li => (class => $li_class) => begin
+					% my $href = menu_item $menuitem;
+					%= link_to $menuitem->{name} => $href => (class => 'entry__link', title => $menuitem->{name});
+					% if($level==1 && $menuitem->{noempty}){
+						%== menu_track ( template => $_template, toplevel => $toplevel, botomlevel => $botomlevel, parent_id => $id, level => $level+1 );
+					% }
+				% end
+			% }
+		% }
+	% end
+% }

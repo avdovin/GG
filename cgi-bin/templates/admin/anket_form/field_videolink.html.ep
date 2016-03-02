@@ -1,0 +1,19 @@
+<tr>
+	<td class=edit width="150px">
+		%= $lkey->{name}
+	</td>
+	<td class=edit width="10px" valign=top>
+		% if($lkey->{settings}->{help}){
+			<a href="#" onmousemove="show_help(event,'<%= $lkey->{settings}->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+    %	}
+	</td>
+	<td width="10px" id="_<%= $key %>"></td>
+	<td>
+		<input name="<%= $key %>" value="<%= $value || '' =%>" style="width:112px;" />
+		% if($value){
+			<a href="https://www.youtube.com/watch?v=<%= $value %>" target="_blank">
+				<img src="http://img.youtube.com/vi/<%= $value %>/hqdefault.jpg" style="display:block; width:116px; margin-top:10px;" alt="<%= $value %>" />
+			</a>
+		% }
+	</td>
+</tr>

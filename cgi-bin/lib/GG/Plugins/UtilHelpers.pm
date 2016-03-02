@@ -283,7 +283,7 @@ sub register {
         items    => $items,
         prefix   => $params{prefix},
         postfix  => $params{postfix},
-        template => 'Texts/_' . $params{key_razdel} . '_year_nav',
+        template => 'texts/_' . $params{key_razdel} . '_year_nav',
       );
     }
   );
@@ -922,7 +922,7 @@ sub register {
       my %params = (
         prefix   => '',
         postfix  => '',
-        template => 'Elements/_nav_container',
+        template => 'elements/_nav_container',
         page     => $self->stash->{page} || $self->param('page') || 1,
         @_
       );

@@ -115,7 +115,7 @@ sub register {
         }
 
         my $body = $self->render_to_string(
-          template => 'Admin/TableList/tablelist_container');
+          template => 'admin/table_list/tablelist_container');
 
         $self->res->headers->content_type('application/json');
         return $self->render(
@@ -382,13 +382,13 @@ sub register {
         $self->render(
           json => {
             content =>
-              $self->render_to_string(template => "Admin/TableList/defcol"),
+              $self->render_to_string(template => 'admin/table_list/defcol'),
             items => $self->get_init_items(),
           }
         );
       }
       else {
-        $self->render(template => "Admin/TableList/defcol");
+        $self->render(template => 'admin/table_list/defcol');
       }
 
     }
@@ -936,7 +936,7 @@ sub register {
         }
       }
 
-      $self->render(template => 'Admin/TableList/quick_view');
+      $self->render(template => 'Admin/table_list/quick_view');
     }
   );
 

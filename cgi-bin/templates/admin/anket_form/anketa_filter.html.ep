@@ -1,0 +1,54 @@
+<div id="filter" style="padding:5px">
+<table cellpadding=3 width=100%>
+  <tr>
+    <td><h1>Настройка фильтров</h1></td>
+    <td width=100 align=right rowspan=2 height=30><br>
+      <p style="text-align:right;margin-right:10px">
+        <img src="/admin/img/icons/menu/icon_close_win.gif" align="absMiddle"> <a href="#" onClick="closeMessage(3);">закрыть</a>
+      </p>
+    </td>
+  </tr>
+</table>
+<hr>
+<form name="filter" id="filter" method="post">
+	<input type=hidden name=do value="filter_save">
+
+%	foreach (keys %$param_default_keys){
+		<input type="hidden" name="<%= $_ %>" value="<%= $param_default_keys->{$_} %>">
+%	}
+
+	<div style="overflow:scroll;width:670px;height:335px">
+    	<table width="95%" cellpadding=2 align=center>
+        	<tr>
+          		<td width="150px" height="20px" style="width:20%"> </td>
+          		<td height="20px"> </td>
+        	</tr>
+%			if(scalar(@$listfield)){ $self->stash->{anketa_ok} = 'ok'; }
+%			foreach (@{$listfield}){
+%				if( my $lk = $self->lkey(name => $_) ){
+					<%== include $lk->{settings}->{template_dir_f}.$lk->{settings}->{template_f}, lkey => $lk, key => $_, replaceme => $replaceme, value => $self->sysuser->settings->{$replaceme.'_filter_'.$_} || ''  =%>
+%				}
+%			}
+
+			<% if($self->stash->{anketa_ok} ne 'ok'){ %><tr><td colspan=2><h3>В данной группе полей нет</h3></td></tr><% } =%>
+      </table>
+    </div>
+    <table id="anketa_filter" width="95%" align=center>
+    <tr>
+      <td width=100> </td>
+      <td align=right>
+        <br><br>
+        <input type=submit onClick="do_submit(this.form, 'filter', '<%== $script_link %>'); return false;" value="Сохранить" style="width:200px;" class="btn btn-block btn-lg btn-info">
+      </td>
+    </tr>
+    </table>
+  </form>
+
+<script>
+  setTimeout(function(){ modalFormInit();}, 1000);
+% if($self->stash->{flag_select_dir}){
+	setTimeout(function(){ init_select_dir('<%== $self->stash->{flag_select_dir} %>');}, 1000);
+% }
+</script>
+
+</div>

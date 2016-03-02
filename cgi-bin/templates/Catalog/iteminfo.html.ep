@@ -1,3 +1,3 @@
 % content wrapper => begin
-  %== include 'Catalog/_iteminfo_inner'
+  %== include 'catalog/_iteminfo_inner'
 % end

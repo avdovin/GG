@@ -1,0 +1,28 @@
+<div class="brands__menu clearfix">
+  % my $col_count = 4;
+  % my $count = scalar(@$brands);
+  % my $row_count = int($count / $col_count + 0.99 ); 
+	% my $letters = {};
+  % my $sch = 1;
+	% for(my $i = 0; $i < $count; $i++){
+    % my $brand = $brands->[$i];
+    % if($sch == 1){
+      %== $i > 0 ? '</ul>' : '';
+      <ul class="brands__column">
+    % }    
+    % if( $i == $row_count ){
+      % $sch = 1;
+    % }
+    % my $let = substr($brand->{name}, 0, 1);
+		% unless($letters->{$let}){
+      <li class="letter"><%= $let %></li>
+			% $letters->{$let} = 1;
+		% }
+		<li><a class="column__link" <% if($brand->{pict_logo}){ %>data-pict="/image/catalog/brands/logo/269x269_<%= $brand->{pict_logo} %>"<% } %> href="/catalog?brand=<%= $brand->{ID} %>" data-brand-id="<%= $brand->{ID} %>"><%= $brand->{name} %></a></li>
+  % } 
+  </ul>
+	<div class="brands__image">
+		<div class="brands__loading"></div>
+		<img class="pic" src="" alt="" />
+	</div>
+</div>

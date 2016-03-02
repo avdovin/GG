@@ -84,7 +84,7 @@ sub register {
       my %params = (
         count => 1,    # кол-во показываемых баннеров
         place => 0,    # баннерное место
-        template    => 'Banners/manywithdelimiter',
+        template    => 'banners/manywithdelimiter',
         delimiter   => '',
         before_html => '',
         after_html  => '',

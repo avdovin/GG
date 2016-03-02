@@ -29,7 +29,7 @@ sub breadcrumbs {
   navipoint($self, @_);
 
   my $content
-    = $self->render_to_string(template => 'Plugins/Menu/breadcrumbs',);
+    = $self->render_to_string(template => 'plugins/menu/breadcrumbs',);
 
   return Mojo::ByteStream->new($content);
 }
@@ -160,7 +160,7 @@ sub menu_track {
   my $html = $self->render_to_string(
     levels     => $levels,
     order_ids  => $menu_order_ids,
-    template   => 'Plugins/Menu/' . $params{template},
+    template   => 'plugins/menu/' . $params{template},
     _template  => $params{template},
     parent_id  => $params{parent_id},
     level      => $params{level},

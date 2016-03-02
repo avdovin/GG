@@ -72,7 +72,7 @@ sub register {
         brands    => $brands,
         sizes     => $sizes,
         colors    => $colors,
-        template  => 'Catalog/_filters'
+        template  => 'catalog/_filters'
       );
     }
   );
@@ -101,7 +101,7 @@ sub register {
         brands    => $brands,
         sizes     => $sizes,
         colors    => $colors,
-        template  => 'Catalog/_filters'
+        template  => 'catalog/_filters'
       );
     }
   );
@@ -116,7 +116,7 @@ sub register {
         )->hashes;
       return $self->render_to_string(
         brands   => $brands,
-        template => 'Catalog/_filters_top_brands'
+        template => 'catalog/_filters_top_brands'
       );
     }
   );
@@ -132,7 +132,7 @@ sub register {
 
       return $self->render_to_string(
         brands   => $brands,
-        template => 'Catalog/_brands_mainpage'
+        template => 'catalog/_brands_mainpage'
       );
     }
   );

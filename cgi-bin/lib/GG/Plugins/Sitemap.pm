@@ -122,7 +122,7 @@ sub register {
             url        => $url,
             priority   => $priority,
             changefreq => $changefreq,
-            template   => '/Plugins/Sitemap/node',
+            template   => '/plugins/sitemap/node',
 
             format => 'xml',
           );
@@ -132,7 +132,7 @@ sub register {
 
       $self->render(
         nodes    => $nodes,
-        template => '/Plugins/Sitemap/sitemap',
+        template => '/plugins/sitemap/sitemap',
         format   => 'xml'
       );
     }

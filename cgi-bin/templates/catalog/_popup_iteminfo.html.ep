@@ -1,0 +1,9 @@
+<div id="popup-kartochka" class="popup">
+	<div class="popup-container">
+		<div class="popup__loading"></div>
+		<a class="popup-close" href="#"></a>
+		<a class="kartochka__prev disabled" href="#"></a>
+		<a class="kartochka__next disabled" href="#"></a>
+    <div class="iteminfo-inner"></div>
+	</div>
+</div>

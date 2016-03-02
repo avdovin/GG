@@ -35,7 +35,7 @@ sub register {
   $app->helper(
     'feedback.form' => sub {
       my $self = shift;
-      my %params = (submit => 0, template => "Plugins/Feedback/form", @_);
+      my %params = (submit => 0, template => 'plugins/feedback/form', @_);
 
       my $alias = $self->stash->{'alias'};
       my $page
@@ -98,7 +98,7 @@ sub register {
 
         unless (keys %{$json->{errors}}) {
           my $email_body
-            = $self->render_mail(template => "Plugins/Feedback/_admin");
+            = $self->render_mail(template => 'plugins/feedback/_admin');
 
           $self->mail(
             to => $self->get_var(
@@ -116,7 +116,7 @@ sub register {
           );
 
           $json->{message_success} = $self->render_to_string(
-            template => 'Plugins/Feedback/_message_success',);
+            template => 'plugins/feedback/_message_success',);
         }
 
         return $self->render(json => $json);

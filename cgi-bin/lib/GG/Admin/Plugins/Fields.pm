@@ -198,7 +198,7 @@ sub register {
       my $html = $self->render_to_string(
         lfield   => $params{lfield},
         items    => $items,
-        template => "Admin/AnketForm/tree_elements_select",
+        template => 'admin/anket_form/tree_elements_select',
       );
 
       $self->render(
@@ -227,7 +227,7 @@ sub register {
         @_);
 
       my $html
-        = $self->render(%params, template => "Admin/AnketForm/pict_uploader");
+        = $self->render(%params, template => 'admin/anket_form/pict_uploader');
 
     }
   );
@@ -287,7 +287,7 @@ sub register {
       my $content = $self->render_to_string(
         key      => $lfield,
         lkey     => $self->lkey(name => $lfield),
-        template => '/Admin/AnketForm/Reload/field_pict_reload',
+        template => '/admin/anket_form/reload/field_pict_reload',
       );
       $self->render(
         json => {content => $content, items => $self->get_init_items(),});
@@ -354,7 +354,7 @@ sub register {
       my $content = $self->render_to_string(
         key      => $lfield,
         lkey     => $self->lkey(name => $lfield),
-        template => '/Admin/AnketForm/Reload/field_file_reload'
+        template => '/admin/anket_form/reload/field_file_reload'
       );
       $self->render(
         json => {content => $content, items => $self->get_init_items(),});
@@ -410,8 +410,8 @@ sub register {
 
       $self->define_anket_form(
         access       => $self->stash->{access_flag},
-        template_dir => "/Admin/AnketForm/",
-        template     => "field_table"
+        template_dir => '/admin/anket_form/',
+        template     => 'field_table'
       );
     }
   );

@@ -1,11 +1,11 @@
 %= content_for popup => begin
-	%= include 'Catalog/_popup_basket_order'
+	%= include 'catalog/_popup_basket_order'
 % end
 
 %= content wrapper => begin
 <div class="korzina">
 	<h1>Корзина</h1>
-  
+
   %== $self->breadcrumbs( 'Каталог' => '/catalog', 'Корзина' => '' );
 
 	<div class="korzina__block">
@@ -18,7 +18,7 @@
 			% }
 			% else {
         % foreach (@$items){
-				  % my $url = $self->url_for('catalog_iteminfo', item_alias => $_->{alias});      
+				  % my $url = $self->url_for('catalog_iteminfo', item_alias => $_->{alias});
       		<div class="korzina__entry" data-amountControl='{"price":"<%= $_->{price} %>","amount":"<%= $basket->{ $_->{ID}}->{count} =%>","total":"<%= $basket->{ $_->{ID}}->{count} * $_->{price} =%>"}'>
       			<div class="entry__loading"></div>
       			<div class="entry__thumb-container">
@@ -72,7 +72,7 @@
       % }
 		</div>
 <!-- Блок, который должен появляться для пустой корзины-->
-    
+
     % if(scalar(@$items)){
     <div class="korzina__zakaz">
         <div class="zakaz__total">

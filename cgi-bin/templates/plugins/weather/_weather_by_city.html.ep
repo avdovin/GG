@@ -1,0 +1,2 @@
+<p>Погода в Санкт-Петербурге<br/><span>Яндекс</span></p>
+<span class="weather__temp" style="background-image:url(http://yandex.st/weather/1.1.78/i/icons/32x32/<%= $icon %>.png);"><%= $temp %>°</span>

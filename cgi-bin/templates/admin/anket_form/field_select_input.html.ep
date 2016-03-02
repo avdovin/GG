@@ -1,0 +1,26 @@
+% my $settings = $lkey->{settings};
+<tr>
+	<td class=edit width="150px">
+		%= $lkey->{name}
+	</td>
+	<td class=edit width="10px" valign=top>
+% 	if($settings->{help}){
+		<a href="#" onmousemove="show_help(event,'<%= $settings->{help} %>');return false" onmouseout="hide_help()" class=help>?</a>
+%	}
+	</td>
+	<td width="10px" id="_<%= $self->stash->{replaceme} %>_<%= $key %>"></td>
+	<td class="edit">
+		<select id="<%= $self->stash->{replaceme} %><%= $key %>" name="<%= $key %>" style="width:300px;">
+			%== LIST name => $key, value => $value, type => 'select', option => 1
+		</select>
+
+		<input size=10 class="menu search" type=text onkeyup="this.focus(); getList(this, '<%= $self->stash->{replaceme} %><%= $key %>', '<% if($settings->{controller}){ %><%= $settings->{controller} %><% } else { %><%= $self->stash->{controller} %><% } %>', '<%= $self->{stash}->{razdel} %>:<%= $self->{stash}->{index} %>', '<%= $key %>')" style="width:200px" onClick="this.focus();"> <span id='ok_<%= $key %>'></span>
+
+		% if($settings->{add_to_list} && $self->sysuser->access->{table}->{ $settings->{list} }->{r}){
+			<img src="/admin/img/icons/menu/icon_add.gif" align="absMiddle"> <a href="#" onclick="displayMessage('<%= $self->stash->{controller_url} %>?do=add&flag_win=1&replaceme=&dop_table=<%= $settings->{list} %>&lfield=<%= $key %>', <%= $settings->{width} || 700 %>, <%= $settings->{height} || 300 %>, 4); return false">добавить</a>
+			<span id='ok_<%= $key %>'></span>
+		% }
+
+		<span id='ok_<%= $self->stash->{replaceme} %><%= $key %>'></span>
+	</td>
+</tr>

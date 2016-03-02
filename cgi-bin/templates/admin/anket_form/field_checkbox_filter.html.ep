@@ -1,0 +1,8 @@
+<tr>
+  <td valign=top class=edit width="150px"> <%= $lkey->{name} =%>:</td>
+  <td>
+  	<label><input type=radio value="1" name="<%= $key %>" <% if($value == 1){ %>checked<% } %>> <%== $lkey->{settings}->{yes} =%></label>
+  	<label><input type=radio value="" name="<%= $key %>" <% if($value == 0){ %>checked<% } %>> снять фильтр<br /></label>
+  	<label><input type=radio value="-1" name="<%= $key %>" <% if($value == -1){ %>checked<% } %>> <%== $lkey->{settings}->{no} =%><br /></label>
+  </td>
+</tr>

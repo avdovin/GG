@@ -1,0 +1,38 @@
+<table width="95%" style="padding:2px">
+%	$self->stash->{current_filter} = [] unless $self->stash->{current_filter};
+
+%	foreach my $f (@{$self->stash->{current_filter}}){
+	<% my $lkey = $self->lkey(name => $f); %>
+  	<tr class="odd">
+    	<td width="50px" class=edit valign=top><b><%= $lkey->{name} =%>:</b></td>
+		<td width="*" class="edit" align="left" valign="top">
+%		if($lkey->{settings}->{type} eq 's' or $lkey->{settings}->{type} eq 'site' or $lkey->{settings}->{type} eq 'text'){
+			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
+
+%		} elsif($lkey->{settings}->{type} eq 'chb'){
+			<% if($self->sysuser->settings->{$replaceme.'_filter_'.$f}==1){ %><%== $lkey->{settings}->{yes}%><% }else{ %><%== $lkey->{settings}->{no}%><% } =%>
+
+%		} elsif($lkey->{settings}->{type} eq 'date' or $lkey->{settings}->{type} eq 'datetime' or $lkey->{settings}->{type} eq 'time'){
+			% my $v = $self->sysuser->settings->{$replaceme.'_filter_'.$f};
+			% $v = substr($v, 0, 10) if(length($v)>10 && substr($v, 11) eq '00:00:00' );
+      % my $prev = $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'};
+      % my $prev_title = '';
+      % $prev_title = 'раньше' if ($prev eq '<');
+      % $prev_title = 'позже' if ($prev eq '>');
+			<%== $prev_title ? $prev_title."&nbsp;" : '' %><%= date_format date => $v =%>
+
+%		} elsif($lkey->{settings}->{type} eq 'd'){
+			% my $v = $self->sysuser->settings->{$replaceme.'_filter_'.$f};
+			<%= $self->sysuser->settings->{$replaceme.'_filter_'.$f.'pref'} %>&nbsp;<%= $v =%>
+
+%		} elsif($lkey->{settings}->{type} eq 'tlist' or $lkey->{settings}->{type} eq 'list'){
+			<%= VALUES name=> $f, value => $self->sysuser->settings->{$replaceme.'_filter_'.$f} =%>
+
+%		}
+		</td>
+    	<td width="25px" class=edit valign=top>
+		<a href ="#" title="Удалить фильтр" onClick="ld_content('<%= $self->stash->{replaceme} %>', '<%= $self->stash->{script_link} %>?do=filter_clear&lfield=<%= $f %><%= $self->stash->{param_default} %>')"> <img src="/admin/img/icons/menu/icon_close_win.gif" border=0 alt="Удалить фильтр"> </a>
+    	</td>
+    </tr>
+%	}
+</table>

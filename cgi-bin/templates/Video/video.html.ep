@@ -4,13 +4,13 @@
 <div class="body clearfix">
 	<div class="block">
 		<div class="col col_left" style="width: 612px;">
-			%== include 'Video/_video_list'
+			%== include 'video/_video_list'
 		</div>
 		<div class="col content col_right">
 			%== content__request
 
-			%== include 'Texts/_social_vk'
-			%== include 'Texts/_social_fb'
+			%== include 'texts/_social_vk'
+			%== include 'texts/_social_fb'
 		</div>
 	</div>
 </div>

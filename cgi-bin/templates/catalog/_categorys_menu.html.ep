@@ -1,0 +1,26 @@
+<div class="catalog__menu">
+	<ul class="menu__list">
+		% foreach my $cat (@$items){
+			% next if $cat->{id_parent_category};
+
+			<li class="list__entry <% if($self->stash->{category_alias} eq $cat->{alias}){ %>current<% } %>">
+				<div class="entry__info">
+					% if($cat->{pict}){
+						<div class="entry__thumb">
+							<img src="/image/catalog/categorys/317x103_<%= $cat->{pict} %>" alt="<%= $cat->{name} %>"/>
+						</div>
+					% }
+					<h3 class="entry__title"><ins></ins><%= $cat->{name} %></h3>
+				</div>
+				<ul class="entry__submenu">
+					% foreach my $subcat (@$items){
+						% next if ($subcat->{id_parent_category} != $cat->{ID});
+
+						<li class="submenu__entry <% if($self->stash->{subcategory_alias} eq $subcat->{alias}){ %>current<% } %>"><a data-category-id="<%= $subcat->{ID} %>" href="<%= url_for('catalog_list_by_sub_category', category_alias => $cat->{alias}, subcategory_alias => $subcat->{alias} ) %>" class="submenu__link"><%= $subcat->{name} %></a></li>
+					% }
+				</ul>
+				<a data-category-id="<%= $cat->{ID} %>" href="<%= url_for('catalog_list_by_category', category_alias => $cat->{alias}) %>" class="entry__link"></a>
+			</li>
+		% }
+	</ul>
+</div>

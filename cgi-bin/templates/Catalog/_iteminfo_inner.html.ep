@@ -11,13 +11,13 @@
 	<div class="kartochka__body clearfix">
 <!-- класс new и sale для новинок и распродаж -->
 		<div class="kartochka__left sale">
-			<img id="kartochka-main-pict" class="kartochka__left_img" alt="<%= $item->{name} %>" src="/image/catalog/items/550x733_<%= $item->{pict} %>" />					
+			<img id="kartochka-main-pict" class="kartochka__left_img" alt="<%= $item->{name} %>" src="/image/catalog/items/550x733_<%= $item->{pict} %>" />
 			<div class="small__thumbs">
-        
+
       % if(scalar(@$itemImages)){
   			<div class="scroll__wrapper_hor">
-  				<div class="scroll__block">	
-  					<div class="scroll__infinity">		
+  				<div class="scroll__block">
+  					<div class="scroll__infinity">
   						<ul class="pic__list scroll__content">
   							<li class="list__entry">
   								<a class="entry__link entry__link_current" href="/image/catalog/items/550x733_<%= $item->{pict} %>"></a>
@@ -117,12 +117,12 @@
 				</div>
 				<div class="kartochka__right_delivery">
 					<div class="content">
-            %== include 'Catalog/_iteminfo_delivery'
+            %== include 'catalog/_iteminfo_delivery'
 					</div>
 				</div>
 				<div class="kartochka__right_pay">
 					<div class="content">
-            %== include 'Catalog/_iteminfo_payments'
+            %== include 'catalog/_iteminfo_payments'
 					</div>
 				</div>
 			</div>

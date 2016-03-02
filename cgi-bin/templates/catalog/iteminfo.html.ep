@@ -1,0 +1,3 @@
+% content wrapper => begin
+  %== include 'catalog/_iteminfo_inner'
+% end

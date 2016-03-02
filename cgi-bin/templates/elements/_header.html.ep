@@ -1,0 +1,61 @@
+<div class="header">
+	<a class="header__logo" href="/"></a>
+	<div class="menu">
+		%== menu_track template => 'top'
+		<ul class="menu__list">
+			<li class="list__entry">
+				<a class="entry__link" href="#">Заказ</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">О нас</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Гарантия</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Блог</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Контакты</a>
+			</li>
+		</ul>
+	</div>
+	<div class="header__cart">
+		<a class="cart__link" href="#">Корзина</a><span class="cart__goods"> (<a class="goods__link" href="#">2 товара на 5 400 руб.</a>)</span>
+	</div>
+	<div class="header__contacts">
+		<ul class="contacts__list">
+			<li class="list__entry">
+				<span class="work__time">c 12:00 до 21:00</span>
+			</li>
+			<li class="list__entry">
+				<a class="adress__link" href="#">Банковский переулок, д. 3</a>
+			</li>
+			<li class="list__entry">
+				<span class="phone__number">8 812 448-83-06</span>
+			</li>
+		</ul>
+	</div>
+	<div class="catalog__menu">
+		<ul class="menu__list">
+			<li class="list__entry">
+				<a class="entry__link" href="#">Каталог</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Мужское</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Женское</a>
+			</li>
+			<li class="list__entry">
+				<a class="entry__link" href="#">Бренды</a>
+			</li>
+		</ul>
+		<div class="header__search">
+			<form>
+				<input type="text" placeholder="Поиск" class="search__input">
+				<a href="#" class="search__button"></a>
+			</form>
+		</div>
+	</div>
+</div>

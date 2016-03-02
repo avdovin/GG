@@ -320,7 +320,7 @@ sub print_search_result {
   $self->render(
     %params,
     items    => $result_items,
-    template => "Plugins/Search/list"
+    template => 'plugins/search/list'
   );
 
 }

@@ -27,7 +27,7 @@
 <div class="col col_right col_small">
 	<div class="reviews__form">
 		<h2 class="form__title">Оставь свой отзыв</h2>
-		
+
 		<div class="form__wrapper">
 		% unless(flash->{recall_success}){
 			<div class="form__loading"></div>
@@ -40,16 +40,16 @@
 				<label class="label_icon label_icon_mail <%= $form_errors->{email} ? 'error' : ''  %>">
 					<input class="field__input field__input_text" value="<%= param('email')  %>" name='email' type="email" placeholder="Электронная почта*"/>
 				</label>
-				<label class="label__textarea <%= $form_errors->{recall} ? 'error' : ''  %>">	
+				<label class="label__textarea <%= $form_errors->{recall} ? 'error' : ''  %>">
 					<textarea class="field__input field__input_textarea" value="<%= param('recall')  %>" name='recall' placeholder="Оставить отзыв*"></textarea>
 				</label>
 				<a class="button button_blue form__send" href="#">Отправить вопрос</a>
 				<p class="required__text"><span class="redstar">*</span> - поля, обязательные для заполнения</p>
 			% end
 		% }else{
-			%== include 'Recall/_message_success';
+			%== include 'recall/_message_success';
 		% }
 		</div>
-		
+
 	</div>
 </div>

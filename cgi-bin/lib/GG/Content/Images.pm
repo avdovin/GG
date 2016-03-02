@@ -42,7 +42,7 @@ sub images_list {
   $self->render(
     gallery  => $gallery,
     items    => $items,
-    template => 'Images/' . $template
+    template => 'images/' . $template
   );
 }
 
@@ -52,7 +52,7 @@ sub images_item {
   my $ID         = $self->stash('ID');
   my $key_razdel = $self->stash('key_razdel');
   my $table      = "images_$key_razdel";
-  my $template   = "Images/${key_razdel}_item";
+  my $template   = "images/${key_razdel}_item";
   my $subID      = $self->stash('sub_ID') || 0;
   my $ring ||= 0;
 

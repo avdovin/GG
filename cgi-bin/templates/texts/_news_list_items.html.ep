@@ -1,0 +1,8 @@
+% my $year_qs = $self->param('year') ? '?year='.$self->param('year') : '';
+% foreach (@$items){
+	<li class="list__entry clearfix <% if($self->stash->{list_item_alias} eq $_->{alias}){ %>current<% } %>">
+		<% if($_->{pict}){ %><img class="entry__thumb" src="/image/texts/75x75_<%= $_->{pict} %>" alt="<%= $_->{name} %>"/><% } %>
+		<p class="entry__text"><%= $_->{name} %></p>
+		<a class="entry__link" href="<%= url_for('news_item', list_item_alias => $_->{alias}) %><%= $year_qs %>"></a>
+	</li>
+% }
