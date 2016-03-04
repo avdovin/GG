@@ -9,6 +9,7 @@ use utf8;
 use Mojo::Base 'Mojolicious::Plugin';
 use Digest::MD5 qw();
 use Mojo::ByteStream;
+use File::Copy ();
 
 sub register {
   my ($self, $app, $conf) = @_;
@@ -118,15 +119,84 @@ sub register {
   );
 
   $app->helper(
-    vfe_template => sub {
+    vfe_template_remove_variants => sub {
+      my $self    = shift;
+      my $variant = shift;
 
+      my $home = $self->app->home;
+      my $lang = $self->lang;
+
+      if (-d $home->rel_dir('/templates/vfe/templates/' . $lang)
+        && opendir(DIR, $home->rel_dir('/templates/vfe/templates/' . $lang))) {
+
+        my $dir = $home->rel_dir('/templates/vfe/templates/' . $lang);
+        while (my $file = readdir(DIR)) {
+
+          unlink $dir . '/' . $file if $file =~ /\.$variant\.html$/;
+        }
+        closedir(DIR);
+      }
+
+      if (-d $home->rel_dir('/templates/vfe/backups/' . $lang)
+        && opendir(DIR, $home->rel_dir('/templates/vfe/backups/' . $lang))) {
+
+        my $dir = $home->rel_dir('/templates/vfe/backups/' . $lang);
+        while (my $file = readdir(DIR)) {
+          unlink $dir . '/' . $file if $file =~ /\.$variant\.(\d+)\.txt/;
+        }
+        closedir(DIR);
+      }
+
+    }
+  );
+
+  $app->helper(
+    vfe_template_fullname => sub {
+      my $self = shift;
+      my ($template, $variant) = @_;
+
+      my $template_variant = $template;
+      $template_variant .= '.' . $variant if $variant;
+
+      $template_variant;
+    }
+  );
+
+  $app->helper(
+    vfe_template => sub {
       my $self   = shift;
       my %params = @_;
 
       return "Указанный шаблон не существует."
-        unless my $template = delete $params{name};
+        unless my $template_basename = delete $params{name};
 
       my $lang = $params{lang} || $self->lang;
+      my $home = $self->app->home;
+
+      my $templates_path = $home->rel_dir('/templates/vfe/templates/' . $lang);
+
+# для исопльзование вариантов нужно добавить
+# variant => <variant_name>, обычно $self->stash->{alias}
+# в ключе lkey=alias указать параметр
+# vfe_variant=1 для их корректного удаления при удалении страницы
+
+      my $variant = delete $params{variant} || '';
+      my $template = $self->vfe_template_fullname($template_basename, $variant);
+
+      if ($variant) {
+        unless (-e $templates_path . '/' . $template . '.html') {
+
+          #eval {
+          File::Copy::copy(
+            $templates_path . '/' . $template_basename . '.html',
+            $templates_path . '/' . $template . '.html'
+          ) or die $!;
+
+          #};
+        }
+      }
+
+
       my $vals = {};
 
       unless ($lang) {
@@ -134,9 +204,8 @@ sub register {
         return $self->render(json => $vals);
       }
 
-      my $home          = $self->app->home;
-      my $template_path = $home->rel_dir(
-        "/templates/vfe/templates/$lang/" . $template . '.html');
+
+      my $template_path = $templates_path . '/' . $template . '.html';
 
       if (my $data = $self->file_read_data(path => $template_path)) {
 
@@ -147,7 +216,7 @@ sub register {
           if (-d $home->rel_dir("/templates/vfe/backups/$lang")
             && opendir(DIR, $home->rel_dir("/templates/vfe/backups/$lang"))) {
             while (my $file = readdir(DIR)) {
-              $revisions++ if $file =~ /$template\__/;
+              $revisions++ if $file =~ /$template\.(\d+)\.txt/;
             }
             closedir(DIR);
           }
@@ -159,22 +228,22 @@ sub register {
           . Digest::MD5::md5_hex($template . $self->stash->{vfe_salt});
 
         if ($self->vfe_enabled) {
-          return Mojo::ByteStream->new(
-              '<div>'
-            . '<ins class="vfe-dummy" data-vfe-template="'
-            . $template_digest
-            . '" data-vfe-revisions="'
-            . $revisions
-            . '" data-vfe-revision="'
-            . ($revisions + 1)
-            . '" data-lang="'
-            . $lang
-            . '" data-vfe-plugins="'
-            . $plugins
-            . '" style="display:none;"></ins>'
-            . $data
-            . '</div>'
-            );
+          return Mojo::ByteStream->new('<div>'
+              . '<ins class="vfe-dummy" data-vfe-template="'
+              . $template_digest
+              . '" data-vfe-revisions="'
+              . $revisions
+              . '" data-vfe-revision="'
+              . ($revisions + 1)
+              . '" data-lang="'
+              . $lang
+              . '" data-vfe-variant="'
+              . $variant
+              . '" data-vfe-plugins="'
+              . $plugins
+              . '" style="display:none;"></ins>'
+              . $data
+              . '</div>');
         }
         else {
           return Mojo::ByteStream->new($data);
@@ -241,7 +310,7 @@ sub register {
     }
   )->name('vfe-text-save');
 
-  $vfe_routes->post("/undo")->to(
+  $vfe_routes->post('/undo')->to(
     cb => sub {
 
       my $self   = shift;
@@ -249,12 +318,15 @@ sub register {
 
       my $vals = {error => '',};
 
-      my $template = $self->param('template');
-      my $revision = $self->param('revision');
+      my $template_basename = $self->param('template');
+      my $revision          = $self->param('revision');
+      my $variant           = $self->param('variant');
+      my $template = $self->vfe_template_fullname($template_basename, $variant);
+      my $home     = $self->app->home;
 
       # Проверка соли
       unless ($template
-        = vfe_checkTemplate($template, $self->stash->{vfe_salt})) {
+        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
         $vals->{error} = "Ай-ай-ай! :)";
         return $self->render(json => $vals);
       }
@@ -266,8 +338,7 @@ sub register {
       }
 
 
-      unless (opendir(DIR, $self->app->home->rel_dir("/templates/vfe/backups")))
-      {
+      unless (opendir(DIR, $home->rel_dir('/templates/vfe/backups'))) {
         $vals->{error}
           = "Невозможно открыть папку ревизий. Ошибка: "
           . $!;
@@ -275,7 +346,7 @@ sub register {
       }
       my $revct = 0;
       while (my $file = readdir(DIR)) {
-        $revct++ if $file =~ /$template\__/;
+        $revct++ if $file =~ /$template\.(\d+)\.txt/;
       }
       closedir(DIR);
 
@@ -283,8 +354,8 @@ sub register {
 
       if ($revision > 0) {
         if (my $backup_dir = check_backup_folder($self, $lang)) {
-          my $path = $self->app->home->rel_dir(
-            $backup_dir . $template . "__" . $revision . ".txt");
+          my $path = $home->rel_dir(
+            $backup_dir . $template . '.' . $revision . '.txt');
           if (my $data = $self->file_read_data(path => $path)) {
             $data =~ s/\r\n/\n/g;
             $vals->{content}  = $data;
@@ -336,12 +407,15 @@ sub register {
 
       my $vals = {error => '',};
 
-      my $template = $self->param('template');
-      my $revision = $self->param('revision');
+      my $template_basename = $self->param('template');
+      my $revision          = $self->param('revision');
+      my $variant           = $self->param('variant');
+      my $home              = $self->app->home;
+      my $template = $self->vfe_template_fullname($template_basename, $variant);
 
       # Проверка соли
       unless ($template
-        = vfe_checkTemplate($template, $self->stash->{vfe_salt})) {
+        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
         $vals->{error} = "Ай-ай-ай! :)";
         return $self->render(json => $vals);
       }
@@ -354,9 +428,9 @@ sub register {
 
       my $revct = 0;
       if (my $backup_dir = check_backup_folder($self, $lang)) {
-        opendir(DIR, $self->app->home->rel_dir($backup_dir));
+        opendir(DIR, $home->rel_dir($backup_dir));
         while (my $file = readdir(DIR)) {
-          $revct++ if $file =~ /$template\__/;
+          $revct++ if $file =~ /$template\.(\d+)\.txt/;
         }
         closedir(DIR);
       }
@@ -372,8 +446,8 @@ sub register {
       if ($revision && $revision <= $revct) {
 
         if (my $backup_dir = check_backup_folder($self, $lang)) {
-          my $path = $self->app->home->rel_dir(
-            $backup_dir . $template . "__" . $revision . ".txt");
+          my $path = $home->rel_dir(
+            $backup_dir . $template . '.' . $revision . '.txt');
 
           if (my $data = $self->file_read_data(path => $path)) {
             $data =~ s/\r\n/\n/g;
@@ -415,7 +489,7 @@ sub register {
   )->name('vfe-redo');
 
 
-  $vfe_routes->post("/save")->to(
+  $vfe_routes->post('/save')->to(
     cb => sub {
 
       my $self   = shift;
@@ -423,16 +497,21 @@ sub register {
 
       my $vals = {error => ''};
 
-      my $template = $self->param('template');
-      my $content  = $self->param('content');
+      my $template_basename = $self->param('template');
+      my $content           = $self->param('content');
+      my $variant           = $self->param('variant');
+      my $template = $self->vfe_template_fullname($template_basename, $variant);
+      my $home     = $self->app->home;
+
       # Проверка соли
       unless ($template
-        = vfe_checkTemplate($template, $self->stash->{vfe_salt})) {
-        $vals->{error} = "Ай-ай-ай! :)";
+        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
+        $vals->{error} = 'Ай-ай-ай! :)';
         return $self->render(json => $vals);
       }
 
       my $lang = $self->param('lang');
+
       unless ($lang) {
         $vals->{error} = 'Не указана языковая версия.';
         return $self->render(json => $vals);
@@ -440,7 +519,7 @@ sub register {
 
       #my $template_name = $lang.'__'.$template;
 
-      my $path = $self->app->home->rel_dir(
+      my $path = $home->rel_dir(
         "/templates/vfe/templates/" . $lang . "/" . $template . ".html");
 
       if (my $data = $self->file_read_data(path => $path)) {
@@ -456,20 +535,20 @@ sub register {
         # Ревизии
 
         if (my $backup_dir = check_backup_folder($self, $lang)) {
-          unless (opendir(DIR, $self->app->home->rel_dir($backup_dir))) {
+          unless (opendir(DIR, $home->rel_dir($backup_dir))) {
             $vals->{error}
               = "Невозможно открыть папку ревизий. Ошибка: "
               . $!;
             return $self->render(json => $vals);
           }
           while (my $file = readdir(DIR)) {
-            $revisions++ if $file =~ /$template\__/;
+            $revisions++ if $file =~ /$template\.(\d+)\.txt/;
           }
           closedir(DIR);
           my $ok = $self->file_save_data(
             data => $data,
-            path => $self->app->home->rel_dir(
-              $backup_dir . $template . "__" . $revisions . ".txt"
+            path => $home->rel_dir(
+              $backup_dir . $template . '.' . $revisions . '.txt'
             )
           );
 

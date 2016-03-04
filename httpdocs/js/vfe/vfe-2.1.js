@@ -153,7 +153,7 @@ var vfe = (function() {
 
       // Генерируем редактируемые блоки
       $.Dummies.each(function(){
-          if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").attr("data-vfe-template", jQuery(this).data("vfe-template")).attr("data-vfe-revisions", jQuery(this).data("vfe-revisions")).attr("data-vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).attr("data-vfe-lang", jQuery(this).data("lang")).end().remove();
+          if (jQuery(this).data("vfe-template")) jQuery(this).parent().addClass("vfe").attr("data-vfe-template", jQuery(this).data("vfe-template")).attr("data-vfe-revisions", jQuery(this).data("vfe-revisions")).attr("data-vfe-revision", jQuery(this).data("vfe-revision")).attr("data-vfe-plugins", jQuery(this).data("vfe-plugins")).attr("data-vfe-lang", jQuery(this).data("lang")).attr("data-vfe-variant", jQuery(this).data("vfe-variant")).end().remove();
           if (jQuery(this).data("vfe-textid")) jQuery(this).parent().addClass("ck").attr("data-vfe-textid", jQuery(this).data("vfe-textid")).end().remove();
       });
 
@@ -226,7 +226,7 @@ var vfe = (function() {
       });
 
       // Вкл/выкл режима редактирования
-      $.buttons.vfe.click(function(){
+      $.buttons.vfe.click(function(e){
           if (!jQuery(this).is(".current")) {
               $.editOn();
               $.editableBlocks.attr("contenteditable", "true");
@@ -438,7 +438,8 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   content:  $.Content_source.html(),
-                  lang:     $.Content_source.data("vfe-lang")
+                  lang:     $.Content_source.data("vfe-lang"),
+                  variant:  $.Content_source.data("vfe-variant")
               }
         });
 
@@ -487,7 +488,8 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   revision: $.Content_source.data("vfe-revision"),
-                  lang:     $.Content_source.data("vfe-lang")
+                  lang:     $.Content_source.data("vfe-lang"),
+                  variant:  $.Content_source.data("vfe-variant")
               }
         });
 
@@ -549,7 +551,8 @@ var vfe = (function() {
             data: {
                   template: $.Content_source.data("vfe-template"),
                   revision: $.Content_source.data("vfe-revision"),
-                  lang:     $.Content_source.data("vfe-lang")
+                  lang:     $.Content_source.data("vfe-lang"),
+                  variant:  $.Content_source.data("vfe-variant")
               }
         });
 
@@ -564,18 +567,18 @@ var vfe = (function() {
 
           if (jQuery(this).is(".disabled") || $.Float.is(".disabled")) return false;
 
-          if ($.Content_source && $.Content_source.is(".iamdirty")) {
-            if (confirm('Содержимое было изменено. Сохранить?')) {
-              $.float.save.click();
-              returnFlag = true;
-            } else {
-              returnFlag = false;
-            }
-          }
+          // if ($.Content_source && $.Content_source.is(".iamdirty")) {
+          //   if (confirm('Содержимое было изменено. Сохранить?')) {
+          //     $.float.save.click();
+          //     returnFlag = true;
+          //   } else {
+          //     returnFlag = false;
+          //   }
+          // }
 
           if (!returnFlag) {
             $.Wrapper.removeClass("vfe-hideoutlines");
-            if ($.Content_source) $.Content_source.html($.Content).removeClass("vfe-editing").blur();
+            if ($.Content_source) $.Content_source.html($.Content).removeClass("vfe-editing").removeClass("iamdirty").blur();
             $.Content = undefined;
             $.Content_source = undefined;
             $.Float.hide();

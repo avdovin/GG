@@ -956,6 +956,16 @@ sub delete_info {
     $self->admin_msg_errors("delArraySQL - " . $sth->errstr());
     return;
   }
+
+  my $lkey_alias = $self->lkey(name => 'alias');
+
+  if ( $self->vfe_enabled
+    && $lkey_alias
+    && $lkey_alias->{settings}->{vfe_variant}
+    && $self->stash->{anketa}->{alias}) {
+    $self->vfe_template_remove_variants($self->stash->{anketa}->{alias});
+  }
+
   return $res;
 }
 
@@ -1151,9 +1161,9 @@ sub save_info {
     if ($self->update_hash($table, $field_values, $where, %params)) {
       if ($params{'add_to_log'}) {
         my $log_name = '';
-        if($params{restore}){
-          $log_name
-            = "Восстановлена запись [" . $self->stash->{index} . "]";
+        if ($params{restore}) {
+          $log_name = "Восстановлена запись ["
+            . $self->stash->{index} . "]";
         }
         else {
           $log_name
