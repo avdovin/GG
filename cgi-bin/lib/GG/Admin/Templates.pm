@@ -256,7 +256,7 @@ sub mainpage {
     );
 
     $body .= $self->render_to_string(
-      template => 'Admin/icon',
+      template => 'admin/icon',
       button   => \%button_conf
     );
   }
@@ -265,7 +265,7 @@ sub mainpage {
 
   my $win_name = $self->stash->{win_name}
     = $dir ? 'Папка: ' . $self->cut(string => $dir, size => 100) : '';
-  my $content = $self->render_to_string(template => 'Admin/page_admin_main',
+  my $content = $self->render_to_string(template => 'admin/page_admin_main',
     body => $body);
 
   my $items = [];

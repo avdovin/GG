@@ -158,7 +158,7 @@ sub body {
 
     # Доп действия для texts
     when ('text') { $self->stash->{group} = 2; $self->edit; }
-    when ('link') { $self->render('/Admin/getlink'); }
+    when ('link') { $self->render('/admin/getlink'); }
     when (/list(s)?_select/) { $self->lists_select; }
 
     when ('upload') {
@@ -323,7 +323,7 @@ sub tree {
 
   }
 
-  $self->render(folders => \@tmp, items => [], template => 'Admin/tree_block');
+  $self->render(folders => \@tmp, items => [], template => 'admin/tree_block');
 }
 
 sub tree_block {
@@ -614,7 +614,7 @@ sub tree_block {
     json => {
       content => $self->render_to_string(
         items    => $items,
-        template => 'Admin/tree_elements'
+        template => 'admin/tree_elements'
       ),
       items => [
         {type => 'eval', value => "treeObj['" . $controller . "'].initTree();"}

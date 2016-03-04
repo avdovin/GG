@@ -71,13 +71,13 @@ sub body {
 sub elfinder {
   my $self = shift;
 
-  $self->render(template => 'Admin/Filemanager/elfinder');
+  $self->render(template => 'admin/filemanager/elfinder');
 }
 
 sub elfinder_popup {
   my $self = shift;
 
-  $self->render(template => 'Admin/Filemanager/elfinder_popup');
+  $self->render(template => 'admin/filemanager/elfinder_popup');
 }
 
 sub mainpage {
@@ -86,10 +86,10 @@ sub mainpage {
   $self->_init;
 
   my $body = <<HEAD;
-		<iframe src="/admin/filemanager/body?do=elfinder" style="border:0px;" width="100%" height="100%;"></iframe>
+		<iframe src="/admin/filemanager/body?do=elfinder" class="filemanager_iframe"></iframe>
 HEAD
 
-  my $content = $self->render_to_string(template => 'Admin/page_admin_main',
+  my $content = $self->render_to_string(template => 'admin/page_admin_main',
     body => $body);
 
   my $items = [

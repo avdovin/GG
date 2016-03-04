@@ -69,7 +69,7 @@ sub hot_link {
 		WHERE `id_user`='$id_user' ORDER BY `created_at` DESC LIMIT 20/
   )->hashes;
 
-  $self->render(items => $items, template => 'Admin/Main/hot_link');
+  $self->render(items => $items, template => 'admin/main/hot_link');
 }
 
 sub restart_fcgi {
@@ -219,7 +219,7 @@ sub mainpage {
               script    => $script
             };
             $main_menu{$$row{prgroup}} .= $self->render_to_string(
-              template => 'Admin/icon',
+              template => 'admin/icon',
               button   => $text_button_conf
             );
           }
@@ -227,7 +227,7 @@ sub mainpage {
       }
       else {
         $main_menu{$$row{prgroup}} .= $self->render_to_string(
-          template => 'Admin/icon',
+          template => 'admin/icon',
           button   => \%button_conf
         );
       }
@@ -252,7 +252,7 @@ sub mainpage {
   my $result = {
     content => $self->render_to_string(
       body     => $body,
-      template => 'Admin/block_admin_main'
+      template => 'admin/block_admin_main'
     ),
     items => $self->init_main,
   };
@@ -280,7 +280,7 @@ sub user_block {
       "UPDATE `sys_users` SET `vdate`=NOW() WHERE `login`='$login'");
   }
 
-  $self->render(template => 'admin/Main/user_block');
+  $self->render(template => 'admin/main/user_block');
 }
 
 sub menu_button {

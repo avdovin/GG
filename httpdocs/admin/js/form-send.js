@@ -172,8 +172,9 @@ function isValidJSON(src) {
 var Content_scripts = new Array();
 
 function get_content_scripts(_source) {
+	if(!_source) return '';
+
 	var source = _source;
-	if(typeof source == 'undefined') return '';
 	// Strip out tags
 	while(source.indexOf("<script") > -1 || source.indexOf("</script") > -1) {
 		var s = source.indexOf("<script");
@@ -223,26 +224,8 @@ function FromServer(ajaxIndex, replaceme, outer) {
 	}
 
 	if(response['content'] != 'ERROR') {
-		var value_text = '';
-		if(response) value_text = get_content_scripts(response['content']);
+		FromServerContent( response['content'], ajaxIndex, replaceme, outer);
 
-		if(!value_text) return '';
-
-		if(document.getElementById(replaceme) && (value_text.indexOf("<div id='" + replaceme + "'") != -1 || value_text.indexOf("<div id=\"" + replaceme + "\"") != -1)) {
-			outer = 1;
-		}
-		delete ajaxform[ajaxIndex];
-		delete ajaxrezerv[replaceme];
-
-		if(outer) {
-			setOuterHTML(replaceme, value_text);
-		} else {
-			if(document.getElementById(replaceme)) {
-				document.getElementById(replaceme).innerHTML = value_text;
-			} else {
-				return false;
-			}
-		}
 	} else {
 		if(document.getElementById(replaceme)) {
 			document.getElementById(replaceme).innerHTML = ajaxrezerv[replaceme];
@@ -255,12 +238,36 @@ function FromServer(ajaxIndex, replaceme, outer) {
 
 	var items = response['items'];
 	var length = items.length;
+
 	for(var i = 0; i < length; i++) {
 		parse_json(items[i]);
 	}
 
 	// Запускаем скрипты из принятого ответа
 	run_content_scripts();
+}
+
+function FromServerContent(content, ajaxIndex, replaceme, outer){
+	var value_text = '';
+	value_text = get_content_scripts(content);
+
+	if(!value_text) return '';
+
+	if(document.getElementById(replaceme) && (value_text.indexOf("<div id='" + replaceme + "'") != -1 || value_text.indexOf("<div id=\"" + replaceme + "\"") != -1)) {
+		outer = 1;
+	}
+	delete ajaxform[ajaxIndex];
+	delete ajaxrezerv[replaceme];
+
+	if(outer) {
+		setOuterHTML(replaceme, value_text);
+	} else {
+		if(document.getElementById(replaceme)) {
+			document.getElementById(replaceme).innerHTML = value_text;
+		} else {
+			return false;
+		}
+	}
 }
 
 var topMenuLoaded = 0;

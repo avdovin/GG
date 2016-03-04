@@ -1,6 +1,6 @@
 package GG::Plugins::Vfe;
 
-# Visual Front-end Editor v. 4.1.0
+# Visual Front-end Editor v. 4.1.1
 # Code: Nikita Korobochkin, Aleksey Vdovin
 # Date: 22.12.2015
 
@@ -8,6 +8,7 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 use Digest::MD5 qw();
+use Mojo::ByteStream;
 
 sub register {
   my ($self, $app, $conf) = @_;
@@ -158,8 +159,9 @@ sub register {
           . Digest::MD5::md5_hex($template . $self->stash->{vfe_salt});
 
         if ($self->vfe_enabled) {
-          return
-              '<ins class="vfe-dummy" data-vfe-template="'
+          return Mojo::ByteStream->new(
+              '<div>'
+            . '<ins class="vfe-dummy" data-vfe-template="'
             . $template_digest
             . '" data-vfe-revisions="'
             . $revisions
@@ -170,10 +172,12 @@ sub register {
             . '" data-vfe-plugins="'
             . $plugins
             . '" style="display:none;"></ins>'
-            . $data;
+            . $data
+            . '</div>'
+            );
         }
         else {
-          return $data;
+          return Mojo::ByteStream->new($data);
         }
       }
       else {

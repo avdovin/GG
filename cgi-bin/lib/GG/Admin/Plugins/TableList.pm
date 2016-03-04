@@ -936,7 +936,7 @@ sub register {
         }
       }
 
-      $self->render(template => 'Admin/table_list/quick_view');
+      $self->render(template => 'admin/table_list/quick_view');
     }
   );
 

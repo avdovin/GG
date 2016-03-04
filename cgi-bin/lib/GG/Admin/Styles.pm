@@ -219,12 +219,12 @@ sub mainpage {
     );
 
     $body .= $self->render_to_string(
-      template => 'Admin/icon',
+      template => 'admin/icon',
       button   => \%button_conf
     );
   }
 
-  my $content = $self->render_to_string(template => 'Admin/page_admin_main',
+  my $content = $self->render_to_string(template => 'admin/page_admin_main',
     body => $body);
 
   my $win_name = $self->cut(string => $dir, size => 15);

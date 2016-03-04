@@ -81,7 +81,7 @@ sub tree {
     }
   }
 
-  $self->render(folders => $folders, template => 'Admin/tree_block');
+  $self->render(folders => $folders, template => 'admin/tree_block');
 }
 
 sub tree_block {
@@ -113,7 +113,7 @@ sub tree_block {
     json => {
       content => $self->render_to_string(
         items    => $items,
-        template => 'Admin/tree_elements'
+        template => 'admin/tree_elements'
       ),
       items => [
         {
@@ -263,12 +263,12 @@ sub mainpage {
       );
 
       $body .= $self->render_to_string(
-        template => 'Admin/icon',
+        template => 'admin/icon',
         button   => \%button_conf
       );
     }
   }
-  my $content = $self->render_to_string(template => 'Admin/page_admin_main',
+  my $content = $self->render_to_string(template => 'admin/page_admin_main',
     body => $body);
 
   $self->stash->{enter} = 1;

@@ -225,9 +225,9 @@ sub _check_float {
   $value =~ s/,/./;
   $value =~ s/б/./;
   $value =~ s/ю/./;
-  $settings{minimum} ||= 2;
+  my $round = $settings{round} || $settings{minimum} || 2;
 
-  return sprintf("%." . $settings{minimum} . "f", $value);
+  return sprintf("%." . $round . "f", $value);
 }
 
 sub _check_email {

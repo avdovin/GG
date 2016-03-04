@@ -419,7 +419,7 @@ sub tree {
       if $self->sysuser->access->{table}->{$table}->{r};
   }
 
-  $self->render(folders => \@tmp, items => [], template => 'Admin/tree_block');
+  $self->render(folders => \@tmp, items => [], template => 'admin/tree_block');
 }
 
 sub tree_block {
@@ -469,7 +469,7 @@ sub tree_block {
 
   $self->render(
     json => {
-      content => $self->render_to_string(items => $items, template => 'Admin/tree_elements'),
+      content => $self->render_to_string(items => $items, template => 'admin/tree_elements'),
       items => [{type => 'eval', value => "treeObj['" . $self->stash->{controller} . "'].initTree();"},]
     }
   );

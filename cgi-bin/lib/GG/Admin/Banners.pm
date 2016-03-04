@@ -189,7 +189,7 @@ sub tree {
   $self->render(
     folders  => $folders,
     items    => $items,
-    template => 'Admin/tree_block'
+    template => 'admin/tree_block'
   );
 }
 
@@ -224,7 +224,7 @@ sub tree_block {
     json => {
       content => $self->render_to_string(
         items    => $items,
-        template => 'Admin/tree_elements'
+        template => 'admin/tree_elements'
       ),
       items => [
         {

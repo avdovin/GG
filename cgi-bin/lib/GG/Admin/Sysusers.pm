@@ -76,7 +76,7 @@ sub tree {
     $folders->[$i]->{replaceme} = $table . $folders->[$i]->{ID};
   }
 
-  $self->render(folders => $folders, template => 'Admin/tree_block');
+  $self->render(folders => $folders, template => 'admin/tree_block');
 }
 
 sub tree_block {
@@ -108,7 +108,7 @@ sub tree_block {
     json => {
       content => $self->render_to_string(
         items    => $items,
-        template => 'Admin/tree_elements'
+        template => 'admin/tree_elements'
       ),
       items => [
         {

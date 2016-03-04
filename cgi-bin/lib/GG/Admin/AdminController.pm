@@ -474,7 +474,7 @@ sub print_choose {
       $self->stash->{pdf_flag} = 1;
     }
 
-    $self->render(template => '/Admin/print_block');
+    $self->render(template => 'admin/print_block');
   }
 
 }
@@ -606,7 +606,7 @@ HEAD
 sub block_null {
   my $self = shift;
 
-  my $body = $self->render_to_string(template => 'Admin/block_null');
+  my $body = $self->render_to_string(template => '/admin/block_null');
 
   $self->render(json => {content => $body, items => $self->init_modul,});
 }
@@ -1519,7 +1519,7 @@ sub def_context_menu {
     $button->def_script_button($stash);
 
     $context_menu .= $self->render_to_string(
-      template => 'Admin/anchor_html',
+      template => 'admin/anchor_html',
       button   => $button
     );
 
