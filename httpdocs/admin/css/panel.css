@@ -113,9 +113,11 @@ a.help:hover{font-weight:700;background-color:red;}
 .help_view_div{width:250px;background-color:#ffa;color:#000;border:1px solid navy;position:absolute;z-index:9000001;padding:10px;}
 .ddf_tree{text-indent:-40px;padding-left:37px;margin-bottom:5px;}
 .ddf_tree2{text-indent:-37px;padding-left:16px;margin-bottom:5px;}
-#replaceme{height:96%;}
+/*#replaceme{height:96%;}*/
+#replaceme{height: 100%;}
 /*.mp-authForm{height:100%;background:url("/admin/img/gglogo.gif") no-repeat scroll right bottom transparent;}*/
-.DHTMLSuite_paneContentInner{height:96%;margin:0 !important;}
+/*.DHTMLSuite_paneContentInner{height:96%;margin:0 !important;}*/
+.DHTMLSuite_paneContentInner{height:100%;margin:0 !important;box-sizing: border-box;}
 a.href_icons:link,a.href_icons:hover,.hotlink a{text-decoration:none;}
 table.tablelist tr.select td,table.tablelist tr.selectmarked td{background-color:#CCE4D0;padding:5px;}
 .multipleSelectBoxDiv,.multipleButtonBox{float:left;}
@@ -308,3 +310,11 @@ dd {
 
 #auth_raptor {width: 20%; position: absolute; bottom: 0px; right:0px;}
 .multselect__field_container .DHTMLSuite_validationBarValid,.multselect__field_container .DHTMLSuite_validationBarInvalid {margin-top: 14px !important;}
+
+.filemanager_iframe {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    margin: -10px;
+    border: 0;
+    
+}

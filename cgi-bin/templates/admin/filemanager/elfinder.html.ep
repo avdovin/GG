@@ -1,55 +1,34 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="utf-8">
-	<title>elFinder 2.x</title>
-	<!--
-	<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>
-	-->
+	<title>elFinder 2.1.x</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2" />
 
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script type="text/javascript">
-	if (typeof jQuery == 'undefined') {
-		document.write(unescape("%3Cscript src='/js/jquery.min.js' type='text/javascript'%3E%3C/script%3E"));
-	}
-	</script>
+	<!-- jQuery and jQuery UI (REQUIRED) -->
+	<link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-	<link rel="stylesheet" href="jquery/ui-themes/smoothness/jquery-ui-1.10.1.custom.css" type="text/css" media="screen" title="no title" charset="utf-8">
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.js"></script>
-	<script type="text/javascript">
-	if (typeof jQuery.ui == 'undefined') {
-	    document.write(unescape("%3Cscript src='/admin/filemanager/jquery/jquery-ui-1.10.1.custom.min.js' type='text/javascript'%3E%3C/script%3E"));
-	}
-	</script>
+	<!-- elFinder CSS (REQUIRED) -->
+	<link rel="stylesheet" type="text/css" href="css/elfinder.min.css">
+	<link rel="stylesheet" type="text/css" href="css/theme.css">
 
-	<link rel="stylesheet" href="css/elfinder.min.css" type="text/css">
+	<!-- elFinder JS (REQUIRED) -->
 	<script src="js/elfinder.min.js"></script>
 
-	<!-- elfinder languages -->
+	<!-- elFinder translation (OPTIONAL) -->
 	<script src="js/i18n/elfinder.ru.js"></script>
 
-
 	<style type="text/css">
-		body { font-family:arial, verdana, sans-serif;}
-		.button {
-			width: 100px;
-			position:relative;
-			display: -moz-inline-stack;
-			display: inline-block;
-			vertical-align: top;
-			zoom: 1;
-			*display: inline;
-			margin:0 3px 3px 0;
-			padding:1px 0;
-			text-align:center;
-			border:1px solid #ccc;
-			background-color:#eee;
-			margin:1em .5em;
-			padding:.3em .7em;
-			border-radius:5px;
-			-moz-border-radius:5px;
-			-webkit-border-radius:5px;
-			cursor:pointer;
+		body { margin: 0; }
+		#finder {
+			border: 0 !important;
+		}
+
+		.ui-corner-all, .ui-corner-top, .ui-corner-bottom, .ui-corner-right, .ui-corner-left {
+			border-radius: 0 !important;
 		}
 /*
 		#dialog {
@@ -61,27 +40,26 @@
 	</style>
 
 	<script>
-		$(function(){
+		$(function() {
 			var $window = $(window);
 
-			$('#finder').elfinder({
+			$('#elfinder').elfinder({
 				// requestType : 'post',
 
-				url : '/admin/filemanager/body',
-				getfile : {
-					onlyURL : true,
-					multiple : false
+				url: '/admin/filemanager/body',
+				getfile: {
+					onlyURL: true,
+					multiple: false
 				},
 				lang: 'ru',
-				validName: /^[^\s]$/,
 				resizable: false,
-				height:  $window.height() - 15
+				height:  $window.height()
 			});
 
 		});
 	</script>
 </head>
 <body>
-	<div id="finder">finder <span>here</span></div>
+	<div id="elfinder"></div>
 </body>
 </html>
