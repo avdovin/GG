@@ -18,7 +18,7 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 		dateFormat : 'd.m.Y H:i', // Mar 13, 2012 05:27 PM
 		fancyDateFormat : '$1 H:i', // will produce smth like: Today 12:25 PM
 		messages   : {
-			
+
 			/********************************** errors **********************************/
 			'error'                : 'Error',
 			'errUnknown'           : 'Unknown error.',
@@ -139,7 +139,7 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 			'cmdplaces'    : 'To Places', // added 28.12.2014
 			'cmdchmod'     : 'Change mode', // from v2.1 added 20.6.2015
 			'cmdopendir'   : 'Open a folder', // from v2.1 added 13.1.2016
-			
+
 			/*********************************** buttons ***********************************/
 			'btnClose'  : 'Close',
 			'btnSave'   : 'Save',
@@ -159,7 +159,7 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 			'btnFileName':'Filename',  // from v2.1 added 22.5.2015
 			'btnSaveClose': 'Save & Close', // from v2.1 added 12.6.2015
 			'btnBackup' : 'Backup', // fromv2.1 added 28.11.2015
-			
+
 			/******************************** notifications ********************************/
 			'ntfopen'     : 'Open folder',
 			'ntffile'     : 'Open file',
@@ -188,7 +188,7 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 			'ntfchmod'    : 'Changing file mode', // from v2.1 added 20.6.2015
 			'ntfpreupload': 'Verifying upload file name', // from v2.1 added 31.11.2015
 			'ntfzipdl'    : 'Creating a file for download', // from v2.1.7 added 23.1.2016
-			
+
 			/************************************ dates **********************************/
 			'dateUnknown' : 'unknown',
 			'Today'       : 'Today',
@@ -427,4 +427,3 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 		}
 	};
 }
-
