@@ -1,11 +1,12 @@
-% if($lkey eq 'alias' && !$value  && $self->stash->{anketa}->{name}){
+% if($key eq 'alias' && !$value  && $self->stash->{anketa}->{name}){
 	% $value = $self->transliteration($self->stash->{anketa}->{name});
 % }
+
 % my $input_type = 'text';
 % my $lkey_type = $lkey->{settings}->{type};
 
 % if($lkey_type eq 'decimal' or $lkey_type eq 'float'){
-	% $lkey->{settings}->{default} ||= '0000.00';
+	% $lkey->{settings}->{default} ||= sprintf("%." . ($lkey->{settings}->{round} || 2) . "f", 0);
 	% $lkey->{settings}->{regexpPattern} ||=  $lkey->{settings}->{signed} ? '^-?([0-9]*\.?[0-9]*)$' : '^[0-9]*\.?[0-9]*$';
 	% $value = sprintf("%.".($lkey->{settings}->{round} || 2)."f", $value);
 % }

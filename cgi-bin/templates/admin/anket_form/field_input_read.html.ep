@@ -11,7 +11,7 @@
       % } elsif($lkey_type eq 'site'){
         %= link_to $value => $value => (target => '_blank')
       % } elsif($lkey_type eq 'decimal' or $lkey_type eq 'float'){
-        %= sprintf("%.".($lkey->{settings}->{minimum} || 2)."f", $value);
+        %= sprintf("%.".($lkey->{settings}->{round} || 2)."f", $value);
       % } else {
         %= $value
       % }
