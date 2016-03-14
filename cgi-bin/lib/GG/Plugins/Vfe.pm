@@ -157,7 +157,6 @@ sub register {
 
       my $template_variant = $template;
       $template_variant .= '.' . $variant if $variant;
-
       $template_variant;
     }
   );
@@ -224,8 +223,8 @@ sub register {
 
         my $plugins = $params{plugins} ? $params{plugins} : '';
 
-        my $template_digest = $template . '-'
-          . Digest::MD5::md5_hex($template . $self->stash->{vfe_salt});
+        my $template_digest = $template_basename . '-'
+          . Digest::MD5::md5_hex($template_basename . $self->stash->{vfe_salt});
 
         if ($self->vfe_enabled) {
           return Mojo::ByteStream->new('<div>'
@@ -318,15 +317,15 @@ sub register {
 
       my $vals = {error => '',};
 
-      my $template_basename = $self->param('template');
+      my $template_digest = $self->param('template');
+      my ($template_basename, undef) = split(/-/, $template_digest);
       my $revision          = $self->param('revision');
       my $variant           = $self->param('variant');
       my $template = $self->vfe_template_fullname($template_basename, $variant);
       my $home     = $self->app->home;
 
       # Проверка соли
-      unless ($template
-        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
+      unless (vfe_checkTemplate($template_digest, $self->stash->{vfe_salt})) {
         $vals->{error} = "Ай-ай-ай! :)";
         return $self->render(json => $vals);
       }
@@ -407,15 +406,15 @@ sub register {
 
       my $vals = {error => '',};
 
-      my $template_basename = $self->param('template');
+      my $template_digest = $self->param('template');
+      my ($template_basename, undef) = split(/-/, $template_digest);
       my $revision          = $self->param('revision');
       my $variant           = $self->param('variant');
       my $home              = $self->app->home;
       my $template = $self->vfe_template_fullname($template_basename, $variant);
 
       # Проверка соли
-      unless ($template
-        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
+      unless (vfe_checkTemplate($template_digest, $self->stash->{vfe_salt})) {
         $vals->{error} = "Ай-ай-ай! :)";
         return $self->render(json => $vals);
       }
@@ -497,15 +496,15 @@ sub register {
 
       my $vals = {error => ''};
 
-      my $template_basename = $self->param('template');
+      my $template_digest = $self->param('template');
+      my ($template_basename, undef) = split(/-/, $template_digest);
       my $content           = $self->param('content');
       my $variant           = $self->param('variant');
       my $template = $self->vfe_template_fullname($template_basename, $variant);
       my $home     = $self->app->home;
 
       # Проверка соли
-      unless ($template
-        = vfe_checkTemplate($template_basename, $self->stash->{vfe_salt})) {
+      unless (vfe_checkTemplate($template_digest, $self->stash->{vfe_salt})) {
         $vals->{error} = 'Ай-ай-ай! :)';
         return $self->render(json => $vals);
       }
@@ -521,6 +520,7 @@ sub register {
 
       my $path = $home->rel_dir(
         "/templates/vfe/templates/" . $lang . "/" . $template . ".html");
+
 
       if (my $data = $self->file_read_data(path => $path)) {
 
