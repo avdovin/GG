@@ -645,7 +645,7 @@ sub register {
         my $filename_without_ext = substr($filename, 0, $filename_length);
 
         $filename_without_ext = $self->transliteration($filename_without_ext);
-        $filename             = $filename_without_ext . '.' . $ext;
+        $filename             = $filename_without_ext . '.' . lc $ext;
       }
 
       return $filename;
