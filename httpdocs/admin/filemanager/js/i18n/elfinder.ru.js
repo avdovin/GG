@@ -265,6 +265,8 @@ if (elFinder && elFinder.prototype && typeof(elFinder.prototype.i18) == 'object'
 			'dontforget'      : 'и не забудьте взять своё полотенце',
 			'shortcutsof'     : 'Горячие клавиши отключены',
 			'dropFiles'       : 'Бросить файлы',
+			'dropFilesBrowser': 'Перетащите файлы из браузера сюда', // from v2.1 added 30.05.2012
+			'dropPasteFiles'  : 'Перетащите файлы и ссылки сюда', // from v2.1 added 07.04.2014
 			'or'              : 'или',
 			'selectForUpload' : 'Выбрать файлы для загрузки',
 			'moveFiles'       : 'Перемещение файлов',
