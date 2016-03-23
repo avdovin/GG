@@ -1,7 +1,0 @@
-<div id="replaceme">OK</div>
-
-% if($self->param('authpassword')){
-	<script type="text/javascript">
-	  ld_content("replaceme", "/admin/main/mainpage");
-	</script>
-% }
