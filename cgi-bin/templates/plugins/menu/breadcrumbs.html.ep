@@ -2,21 +2,16 @@
 	% my $link = shift;
 	% my $e = ' breadcrumbs__entry';
 	% my $l = ' breadcrumbs__link';
-	<li class="<%= $e.($link->{url} ? '' : $e.'_current') %>">
+	%= t 'li' => ( class =>  $e.($link->{url} ? '' : ' current') ) => begin
 		% if($link->{url}){
-			<a href="<%= $link->{url} =%>" class="<%= $l %>">
-				<%= $link->{name} =%>
-			</a>
+			%= link_to $link->{name} => $link->{url}, class => $l;
 		% } else {
-			<span class="<%= $l.$l.'_current' %>"><%= $link->{name} =%></span>
+			%= $link->{name};
 		% }
-	</li>
+	% end
 % end
-<ul class="breadcrumbs clearfix">
-	%== $nav->( {name => 'Главная', url => '/'} );
-
-	% my $lastEntry = pop @{$self->stash('_navipoints')};
-
-	%== join "\n", map $nav->($_), @{$self->stash('_navipoints')};
-	%== $nav->( {name => $lastEntry->{name}, url => ''} );
+<ul class="breadcrumbs">
+	% unshift @{ $self->stash('_navipoints') }, {name => 'Главная', url => '/'};
+	% $self->stash('_navipoints')->[ scalar(@{ $self->stash('_navipoints') }) - 1 ]->{url} = '';
+	%== join "\n/", map $nav->($_), @{$self->stash('_navipoints')};
 </ul>
