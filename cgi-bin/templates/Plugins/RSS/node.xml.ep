@@ -1,6 +1,0 @@
-<item>
-	<title><%= $node->{name} %></title>
-	<link><%= $url  %></link>
-	<description><%= $node->{description}  %></description>
-	<pubDate><%= $node->{tdate}  %></pubDate>
-</item>
