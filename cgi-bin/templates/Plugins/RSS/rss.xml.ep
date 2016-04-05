@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0">
-<channel>
-	<title><%= get_var(name => 'site_name', controller => 'global')  %></title>
-	<description><%= get_var(name => 'site_name', controller => 'global')  %></description>
-	<link><%== protocol %>://<%== host  %></link>
-	<%== $nodes %>
-</channel>
-</rss>

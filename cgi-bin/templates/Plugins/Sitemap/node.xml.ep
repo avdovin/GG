@@ -1,6 +1,0 @@
-<url>
-  <loc><%= $url %></loc>
-  <% if($node->{updated_at} && $node->{updated_at} ne '0000-00-00 00:00:00'){ %><lastmod><%= date_format ( date => $node->{updated_at}, format => 'yyyy-mm-DDThh:min:sec+00:00') %></lastmod><% } %>
-  <changefreq><%= $changefreq  %></changefreq>
-  <priority><%= $priority %></priority>
-</url>
