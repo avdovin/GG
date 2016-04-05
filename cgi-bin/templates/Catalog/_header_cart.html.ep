@@ -1,8 +1,0 @@
-% my ($price, $count) = $self->catalog_calc_resultprice;
-<div class="header__cart">
-  % if($count == 0){
-    <a class="cart__link" href="#">Корзина</a><span class="cart__goods"> ПУСТА</span>
-  % } else {
-    <a class="cart__link" href="#">Корзина</a><span class="cart__goods"> (<a class="goods__link" href="/catalog/basket"><%= $count %> <%= declension ($count, [qw(товар товара товаров)]) %> на <%= numberformat $price %> руб.</a>)</span>    
-  % }
-</div>
