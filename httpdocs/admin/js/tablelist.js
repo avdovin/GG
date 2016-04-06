@@ -340,10 +340,10 @@ function init_qedit_info(id) {
 
       if($label.hasClass("list")){
         var lkey = div_id.split('__')[1]
-        if (!listModel[lkey]) {
+        // if (!listModel[lkey]) {
           listModel[lkey] = new DHTMLSuite.listModel();
           listModel[lkey].createFromMarkupSelect('datasource_' + lkey);
-        }
+        // }
         textEditObj[id].addElement( { labelId: label_id, elementId: div_id, listModel: listModel[lkey] } );
       } else{
         textEditObj[id].addElement( { labelId: label_id, elementId: div_id } );
@@ -424,10 +424,10 @@ function parse_data_to_table(id, ajaxIndex) {
 
             if (lkey_type=='list' || lkey_type=='tlist' || lkey_type=='chb') {
               jQuery(label).addClass("list");
-              if (!listModel[lkey_name]) {
+              // if (!listModel[lkey_name]) {
                 listModel[lkey_name] = new DHTMLSuite.listModel();
                 listModel[lkey_name].createFromMarkupSelect('datasource_'+lkey_name);
-              }
+              // }
             }
 
             jQuery(td).append(label);

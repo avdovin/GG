@@ -566,7 +566,7 @@ sub register {
             type     => $args->{type} || $args->{settings}->{type} || 's',
             group    => 1,
             access   => {r => 1, w => 0, d => 0,}
-          }
+          }, $self->app
         );
 
       }
@@ -651,6 +651,39 @@ sub register {
 
     }
   );
+
+  $app->helper(
+    reload_tlist => sub {
+      my $self = shift;
+      our $table = shift;
+      my $lkeys = $self->app->lkeys;
+
+      foreach my $controller ( keys %$lkeys ){
+        my $controller_lkeys = $lkeys->{ $controller };
+
+        if( $controller_lkeys and ref $controller_lkeys ){
+          if( $controller_lkeys->{_tbl} and ref $controller_lkeys->{_tbl} ){
+            foreach my $tbl ( keys %{ $controller_lkeys->{_tbl} } ){
+              _check_reload( $controller_lkeys->{_tbl}->{$tbl} );
+            }
+          }
+          _check_reload( $controller_lkeys );
+        }
+      }
+
+      sub _check_reload {
+        my $lkeys = shift;
+        foreach my $key ( keys %$lkeys ){
+          next if $key eq '_tbl';
+          my $lkey = $lkeys->{ $key };
+          next unless ref $lkey;
+          if( $lkey->{type} eq 'tlist' and $lkey->{settings}->{list} eq $table ){
+            $lkey->reload();
+          }
+        }
+      }
+    }
+  )
 }
 
 sub _parseLkeys{
@@ -673,7 +706,7 @@ sub _parseLkeys{
 
     my $lkey = _parseLkeySettings($dbKey);
 
-    my $object = $lkey->{object} eq 'lkey' ? Lkey->new( $lkey ) : Button->new( $lkey );
+    my $object = $lkey->{object} eq 'lkey' ? Lkey->new( $lkey, $app ) : Button->new( $lkey );
 
     $object->access->{r} = 1;
     my $storage = $lkey->{object} eq 'lkey' ? $app->lkeys : $app->buttons;
@@ -739,8 +772,21 @@ sub new {
     access   => {d => 0, r => 0, w => 0},
     %{$args}
   };
+
+  if( $self->{type} eq 'tlist' ){
+    $self->{app} = shift;
+  }
+
   bless($self, $class);
   return $self;
+}
+
+sub reload{
+  my $self = shift;
+  return if $self->{type} ne 'tlist';
+  delete $self->{list};
+
+  $self->{app}->def_list;
 }
 
 1;

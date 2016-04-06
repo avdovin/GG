@@ -966,6 +966,8 @@ sub delete_info {
     $self->vfe_template_remove_variants($self->stash->{anketa}->{alias});
   }
 
+  $self->reload_tlist( $table );
+
   return $res;
 }
 
@@ -1229,6 +1231,8 @@ sub save_info {
       }
     }
   }
+
+  $self->reload_tlist( $table );
 
   return $self->stash->{'index'};
 }
