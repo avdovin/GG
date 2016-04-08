@@ -111,9 +111,9 @@ sub register {
       $user->{data} = $user->{session_data};
       my @values = qw(data cck user_id time host ip is_anonymous);
 
-      foreach (keys %$user){
-        next if $_ ~~ @values;
-        delete $user->{$_};
+      foreach my $k (keys %$user){
+        next if grep {$k eq $_} @values;
+        delete $user->{$k};
       }
     }
 
