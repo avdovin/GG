@@ -253,11 +253,8 @@ sub register {
       }
 
       if (!$params{cck}) {
-        $self->admin_msg_errors('Отсутствует ключ сессии')
-          && return;
-
-      }
-      else {
+        return;
+      } else {
         $params{where} = "`login`='$params{login}'";
       }
 
