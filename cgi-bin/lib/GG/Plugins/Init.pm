@@ -60,8 +60,9 @@ sub register {
   $app->plugin('http_cache');
   $app->plugin('crypt');
   $app->plugin('dbi', $conf);
+  $app->plugin('loadmodels' => { namespace => 'GG::Model' });
   $app->plugin('vfe') if $conf->{'vfe_enabled'};
-  
+
   if ( $conf->{robokassa}
     && ref $conf->{robokassa}
     && scalar keys %{$conf->{robokassa}} == 3)
