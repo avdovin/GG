@@ -23,7 +23,7 @@ sub register {
   $app->hook(
     before_dispatch => sub {
       my $self = shift;
-      return if $self->res->code;    # skip static request
+      #return if $self->res->code;    # skip static request
       $self->dbi_connect(@_);
     }
   );
