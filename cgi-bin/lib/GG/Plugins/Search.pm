@@ -91,14 +91,14 @@ sub register {
         foreach my $k (split(/ /, $search)) {
           next if (length($k) <= 1);
 
-          push @ksearch_splited, "%$k%";
+          push @ksearch_splited, $k;
         }
 
         foreach my $f (@{$hash_table->{$table}->{searchfields}}) {
 
           my @search_str_field = ();
           foreach (@ksearch_splited) {
-            push @search_str_field, " `$f` LIKE '$_'";
+            push @search_str_field, " `$f` LIKE ".$dbi->dbh->quote('%'. $_ .'%');
 
           }
           push @search_str, " ( " . join(' AND ', @search_str_field) . " ) ";
@@ -194,7 +194,7 @@ sub print_search_result {
 
   my $qsearch = $params{qsearch};
 
-  my $where = " `qsearch`='$qsearch' ORDER BY `idx` ";
+  my $where = " `qsearch`=". $self->dbi->dbh->quote( $qsearch ) ." ORDER BY `idx`";
 
   $params{count} = $self->stash->{total_count}
     = $self->dbi->getCountCol(from => 'dtbl_search_results', where => $where);

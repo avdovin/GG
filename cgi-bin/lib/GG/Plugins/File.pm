@@ -19,7 +19,7 @@ use Unicode::Normalize;
 use Lingua::Translit;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
-my $MAX_IMAGE_SIZE = 1000
+my $MAX_IMAGE_SIZE = 3000
   ; # Максимальный размер картинки по большей стороне, px
 
 sub register {

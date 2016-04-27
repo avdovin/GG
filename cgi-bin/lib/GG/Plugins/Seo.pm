@@ -14,7 +14,7 @@ sub register {
   $app->hook(
     before_render => sub {
       my $self = shift;
-      if ($self->stash->{seo}) {
+      if (delete $self->stash->{seo}) {
         $self->seo_custom_tags;
       }
     }

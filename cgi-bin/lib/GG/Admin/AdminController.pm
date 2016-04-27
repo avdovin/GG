@@ -89,7 +89,7 @@ sub default_actions {
   elsif ($do eq 'save_qedit_i') { $self->save_qedit; }
 
   elsif ($do eq 'delete_file') {
-    $self->field_delete_file(lfield => 'docfile');
+    $self->field_delete_file(lfield => $self->stash('lfield'));
   }
   elsif ($do eq 'delete_pict')      { $self->field_delete_pict; }
   elsif ($do eq 'field_upload_swf') { $self->field_upload_swf; }

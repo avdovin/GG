@@ -311,7 +311,7 @@ sub load_items {
             my $pict_sync_size = -s $sync_img_dir . $p;
             my $pict_size      = -s $self->static_path . $folder . $filename;
 
-            if ($pict_sync_size == $pict_size) {
+            if ($pict_sync_size != $pict_size) {
               $data->{pict_waiting_update} = 1;
               next;
             }

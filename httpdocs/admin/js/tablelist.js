@@ -496,7 +496,7 @@ function parse_data_to_table(id, ajaxIndex) {
             jQuery(td).append(swf);
             jQuery(td).css("text-align", 'center');
           }
-          else if(ext && valid_ext.indexOf(ext[0].toLowerCase()) != -1) {
+          else if(ext && valid_ext.indexOf(ext[0].toLowerCase()) != -1 && lkey_type == 'pict') {
             var img = new Image();
             img.src =  td_str[lkey_name] == '/admin/img/no_img.png' ? td_str[lkey_name] : td_str[lkey_name]+"?"+Math.random();
             jQuery(img).css('width', '64px');
