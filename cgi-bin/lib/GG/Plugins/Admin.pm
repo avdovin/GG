@@ -252,7 +252,7 @@ sub register {
         }
       }
 
-      if (!$params{cck}) {
+      if (!$params{cck} or (!$params{login} and !$self->param('auth'))) {
         return;
       } else {
         $params{where} = "`login`='$params{login}'";
