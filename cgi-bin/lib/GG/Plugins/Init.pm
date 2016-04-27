@@ -36,10 +36,11 @@ sub register {
         $self->req->url->path->trailing_slash(0);
         $self->res->code(301);
 
-        return $self->redirect_to($self->req->url->path->to_string);
+        $self->redirect_to($self->req->url->path->to_string);
+        return;
       }
     }
-  ) if $app->mode eq 'production';
+  );
 
   $app->plugin(charset => {charset => 'UTF-8'});
 
