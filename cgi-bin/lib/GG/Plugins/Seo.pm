@@ -122,20 +122,6 @@ sub register {
       # Собираем все где есть *
       my $seo_meta = {};
       my $found    = 0;
-      for my $node (
-        $self->dbi->query(
-          qq{SELECT *, `name` AS `title` FROM `$DataTable` WHERE `url` REGEXP "[*]$\" }
-        )->hashes
-        )
-      {
-        $node->{name} =~ s{\*$}{}gi;
-
-        if ($reqUrl =~ /$$node{name}.*/gi) {
-          $seo_meta = $node;
-          $found    = 1;
-          last;
-        }
-      }
 
       unless ($found) {
         if (
