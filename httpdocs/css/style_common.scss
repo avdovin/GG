@@ -9,3 +9,6 @@ $successColor: "#00ff00";
 .message-success {
   color: $successColor;
 }
+.field-with-error {
+  border-color: $errorColor !important;
+}
