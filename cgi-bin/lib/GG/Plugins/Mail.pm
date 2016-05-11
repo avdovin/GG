@@ -1,4 +1,4 @@
-package Mojolicious::Plugin::Mail;
+package GG::Plugin::Mail;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use MIME::Lite;
@@ -52,9 +52,38 @@ sub register {
 
       my $msg  = $plugin->build( %$args );
       my $test = $args->{test} || TEST;
-      $msg->send( $conf->{'how'}, @{$conf->{'howargs'}||[]} ) unless $test;
 
-      $msg->as_string;
+      if( $conf->{how} eq 'smtp' ){
+        my ($smtp_server, %howargs)   = map{ @{ $conf->{howargs} } } @{ $conf->{howargs} };
+
+        foreach my $email (split (',', delete $args->{mail}->{To}) ){
+          $msg->replace('To'  => $email);
+          my $smtp = Net::SMTP->new($smtp_server,
+                                    Debug  => TEST,
+                                    SSL => 1,
+                                    Port => $howargs{Port},
+                                    Timeout => 30)
+                                    or
+                                    ( $self->app->log->fatal( $@ ) and return);
+
+          $smtp->auth($howargs{AuthUser}, $howargs{AuthPass});
+          $smtp -> data();
+
+          $smtp->mail($conf->{from}) or die "Error:".$smtp->message();
+          $smtp->to($email) or die "Error:".$smtp->message();
+          $smtp->data() or die "Error:".$smtp->message();
+          $smtp->datasend($msg->as_string) or die "Error:".$smtp->message();
+          $smtp->dataend() or die "Error:".$smtp->message();
+          $smtp->quit() or die "Error:".$smtp->message();
+
+        }
+
+        return $msg->as_string;
+      }else{
+        $msg->send( $conf->{'how'}, @{$conf->{'howargs'}||[]} ) unless $test;
+
+        return $msg->as_string;
+      }
     },
   );
 
