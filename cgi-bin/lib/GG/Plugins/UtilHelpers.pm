@@ -193,7 +193,7 @@ sub register {
         && $for !~ /^192\.168\./
         && $for !~ /unknown/i ? $for : undef    # hack
         || $self->req->headers->header('X-Real-IP')
-        || $self->tx->{remote_address};
+        || $self->tx->remote_address;
     }
   );
 
