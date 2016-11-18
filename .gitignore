@@ -27,6 +27,8 @@ Thumbs.db
 
 # deploy
 /config/database.yml # доступ к базе данным
+/cgi-bin/app.development.conf
+/cgi-bin/app.production.conf
 /Procfile
 #/cgi-bin/t/tconf.json # логин пасс для тестов
 /config/deploy/ # файлы Capistrano
