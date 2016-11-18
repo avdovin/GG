@@ -1,4 +1,4 @@
-package GG::Plugin::Mail;
+package GG::Plugins::Mail;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use MIME::Lite;
