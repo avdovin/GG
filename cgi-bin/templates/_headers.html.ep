@@ -23,5 +23,5 @@
 % asset('app.css' => '/css/common.scss');
 % asset('app.js' => '/js/common.js');
 
-% asset('app.css')
+% asset('app.css');
 %= content_for 'headers'

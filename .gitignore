@@ -30,7 +30,7 @@ Thumbs.db
 /cgi-bin/app.development.conf
 /cgi-bin/app.production.conf
 /Procfile
-#/cgi-bin/t/tconf.json # логин пасс для тестов
+/cgi-bin/t/tconf.json # логин пасс для тестов
 /config/deploy/ # файлы Capistrano
 /shared/ # файлы, которых нет в репозитории, но они будут скопированы на сервер при первом деплое приложения
 /public/system/ # если установлен Paperclip

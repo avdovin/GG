@@ -37,7 +37,7 @@ $t->post_ok('/admin/form_auth' =>
 	->status_is(200)
 	->content_like(qr/Пожалуйста, введите верные логин и пароль./);
 
-# # check true auth
+# check true auth
 $t->post_ok('/admin/form_auth' =>
 			form =>
 				{
