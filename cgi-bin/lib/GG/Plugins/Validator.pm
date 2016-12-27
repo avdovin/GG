@@ -72,6 +72,15 @@ sub register {
     return 1 unless defined(my $other = $validation->input->{$to});
     return int($value) < int($other);
   });
+  $validator = $validator->add_check(password_digest_eq => sub {
+    my ($validation, $name, $value, $to) = @_;
+    return !$validation->app->check_password($value, $to);
+  });
+  $validator = $validator->add_check(not_equal_to => sub {
+    my ($validation, $name, $value, $to) = @_;
+    return 1 unless defined(my $other = $validation->input->{$to});
+    return $value eq $other;
+  });
 
   $app->helper(
     validate => sub {
