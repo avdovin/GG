@@ -301,7 +301,13 @@ function parse_json(item) {
 	if(type == 'showpane') paneSplitter.showPane(item['position']);
 	if(type == 'hidepane') paneSplitter.hidePane(item['position']);
 	if(type == 'deletecontent') paneSplitter.deleteContentById(item['id']);
-	if(type == 'showcontent') paneSplitter.showContent(item['id']);
+	if(type == 'showcontent') {
+		if (window.doNotShowContentFor && window.doNotShowContentFor.length && window.doNotShowContentFor.indexOf(item['id']) >= 0) {
+			window.doNotShowContentFor.splice(window.doNotShowContentFor.indexOf(item['id']), 1);
+		} else {
+			paneSplitter.showContent(item['id']);
+		}
+	}
 	if(type == 'topmenu') def_top_menu(item['display']);
 	if(type == 'loadcontent') ld_content(item['divid'], item['url']);
 	if(type == 'loadjson') load_json(item['divid'], item['url']);
@@ -347,8 +353,12 @@ function parse_json(item) {
 		paneSplitter.showContent(item['id']);
 	}
 	if(type == 'settabtitle') {
-		paneSplitter.setContentTabTitle(item['id'], item['title']);
-		paneSplitter.showContent(item['id']);
+		if (window.doNotSetTabTitleFor && window.doNotSetTabTitleFor.length && window.doNotSetTabTitleFor.indexOf(item['id']) >= 0) {
+			window.doNotSetTabTitleFor.splice(window.doNotSetTabTitleFor.indexOf(item['id']), 1);
+		} else {
+			paneSplitter.setContentTabTitle(item['id'], item['title']);
+			paneSplitter.showContent(item['id']);
+		}
 	}
 }
 
@@ -419,7 +429,7 @@ function ld_content(divId, url, outer, loading_msg) {
 			}
 		}
 		ajaxform[ajaxIndex].onCompletion = function() {
-			FromServer(ajaxIndex, divId, outer)
+			FromServer(ajaxIndex, divId, outer);
 		};
 		ajaxform[ajaxIndex].runAJAX(); // Execute AJAX function
 	}
@@ -615,6 +625,16 @@ function do_submit(form, ajaxIndex, program, msg) {
 	ajaxform[ajaxIndex].onCompletion = function() {
 		FromServer(ajaxIndex, ajaxIndex, 0);
 		loading_layout_hide();
+
+		var divId    = ajaxIndex.replace(/\d/g, ''),
+		$refreshList = $("#"+divId+" .table_list_refresh_button");
+
+		if ($refreshList.length) {
+			window.doNotShowContentFor = ['center'];
+			window.doNotSetTabTitleFor = ['center'];
+
+			$("#"+divId+" .table_list_refresh_button").click();
+		}
 	};
 	ajaxform[ajaxIndex].runAJAX();
 

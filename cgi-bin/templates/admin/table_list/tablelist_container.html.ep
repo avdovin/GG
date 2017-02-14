@@ -59,7 +59,7 @@
 	<a href="javascript:void(0);" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= $self->stash->{param_default} %>&pcol=10000000')">Все</a>
 	<% if(10000000==$pcol){ %></b><% } =%> |
 
-				<img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif"/> <a href="javascript:void(0);" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= stash->{param_default} %>')">Обновить</a>
+				<img align="absmiddle" src="/admin/img/icons/menu/icon_reload.gif"/> <a href="javascript:void(0);" class="table_list_refresh_button" onClick="ld_content('<%= $replaceme %>', '/admin/<%= $controller %>/body?do=list_container&<%= stash->{param_default} %>')">Обновить</a>
 				</td>
 			</tr>
 			<tr>
