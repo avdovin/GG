@@ -103,7 +103,7 @@ sub register {
 
         #my $filename = $self -> exportExcel(%params);
         #$self -> out_html( html => $filename );
-        $self->export_excel_get_items();
+        $self->export_excel_get_items(controller => $controller);
 
       }
       elsif ($group == 1) {
@@ -137,8 +137,11 @@ sub register {
       $self->def_listfield(table => $table, lkey => $self->stash->{replaceme});
       $self->filter_take(lkey => $self->stash->{replaceme});
 
-      my $where_filtered
-        = $self->set_filter(lkey => $self->stash->{replaceme}, table => $table);
+      my $where_filtered = $self->set_filter(
+        lkey => $self->stash->{replaceme},
+        table => $table,
+        controller => $params{'controller'}
+      );
 
       my $items = [];
       if ($self->sysuser->access->{table}->{$table}->{r} || $self->sysuser->sys)

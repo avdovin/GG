@@ -590,7 +590,7 @@ sub register {
       my %params = @_;
 
       my $setting_key = $params{lkey} . '_filter';
-      my $lkeys       = $self->lkey;
+      my $lkeys       = $self->lkey(controller => $params{'controller'});
 
       my $filter_string    = "";
       my $filter_string_qs = "";
@@ -652,7 +652,7 @@ sub register {
         ) {
 
         foreach my $key (%$lkeys) {
-          my $lkey = $self->lkey(name => $key);
+          my $lkey = $self->lkey(name => $key, controller => $params{'controller'});
           my $keyf = "`$params{table}`.`$key`";
 
           if ($user_settings->{$setting_key . "_" . $key}
