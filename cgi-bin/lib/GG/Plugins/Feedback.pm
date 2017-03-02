@@ -3,6 +3,7 @@ package GG::Plugins::Feedback;
 use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
+use Captcha::reCAPTCHA;
 
 sub register {
   my ($self, $app, $conf) = @_;
