@@ -12,8 +12,8 @@
 
 /subdomains
 *.tar.gz
-gg.sublime-project
-gg.sublime-workspace
+*.sublime-*
+*.sublime-*
 *.chproj
 httpdocs/userfiles/*
 httpdocs/packed/*

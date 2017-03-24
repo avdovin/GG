@@ -42,6 +42,9 @@
           }, {
             searchControlProvider: 'yandex#search'
         });
+
+      <%= $map_name  %>.controls.add('zoomControl');
+      
       // Слушаем клик на карте
       if (mark){
         var c = mark.split(',');
