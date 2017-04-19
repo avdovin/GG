@@ -372,8 +372,6 @@ sub register {
       my @js_files  = ();
       my @css_files = ();
       if (-e $static_path . '/js/controllers/' . $controller . '.js') {
-
-        #$self->js_files( '/js/controllers/'.$controller.'.js' );
         push @js_files, '/js/controllers/' . $controller . '.js';
       }
       if (-d $static_path . '/js/controllers/' . $controller) {

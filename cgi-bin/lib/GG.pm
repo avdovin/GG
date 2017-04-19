@@ -89,16 +89,7 @@ sub startup {
 
   $routes->any('/')->to("Texts#text_main_item", alias => 'main')->name('main');
 
-  $routes->any('/news/list')->to(
-    "Texts#texts_list",
-    alias      => 'news',
-    key_razdel => "news",
-    admin_name => 'Новости'
-  )->name('news_list');
-
-  $routes->any('/news/:list_item_alias', [list_item_alias => $self->alias_re])
-    ->to("Texts#text_list_item", alias => 'news', key_razdel => "news")
-    ->name('news_item');
+  $routes->texts('news', 'Новости и акции');
 
   $routes->any("/images")->to(
     "Images#images_list",
