@@ -5,6 +5,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use File::stat;
 use Mojo::ByteStream;
+use Mojo::Util qw(decamelize);
 
 sub register {
   my ($self, $app) = @_;
@@ -30,6 +31,15 @@ sub register {
       $js;
     }
   );
+
+  $app->helper(controller_path => sub {
+    my $self = shift;
+    my $controller = shift // $self->stash('controller');
+    $controller = decamelize $controller;
+    $controller =~ s/-/\//gi;
+
+    return $controller;
+  });
 
   $app->helper(vu => sub { shift->tx->req->url->path->parts->[+shift] || '' });
 
@@ -356,14 +366,12 @@ sub register {
       my $self = shift;
       return unless my $controller = shift || $self->stash->{controller};
 
-      $controller = lc $controller;
+      $controller = $self->controller_path($controller);
       my $static_path = $self->static_path;
 
       my @js_files  = ();
       my @css_files = ();
       if (-e $static_path . '/js/controllers/' . $controller . '.js') {
-
-        #$self->js_files( '/js/controllers/'.$controller.'.js' );
         push @js_files, '/js/controllers/' . $controller . '.js';
       }
       if (-d $static_path . '/js/controllers/' . $controller) {

@@ -63,6 +63,7 @@ sub register {
   $app->plugin('dbi', $conf);
   $app->plugin('loadmodels' => { namespace => 'GG::Model' });
   $app->plugin('vfe') if $conf->{'vfe_enabled'};
+  $app->plugin('shortcuts');
 
   if ( $conf->{robokassa}
     && ref $conf->{robokassa}
