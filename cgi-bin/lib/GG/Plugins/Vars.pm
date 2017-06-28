@@ -21,6 +21,13 @@ sub register {
   );
 
   $app->helper(
+    email_admin => sub {
+      return
+        shift->get_var(name => 'email_admin', controller => 'global', raw => 1);
+    }
+  );
+
+  $app->helper(
     global => sub {
       return shift->get_var(@_);
     }
