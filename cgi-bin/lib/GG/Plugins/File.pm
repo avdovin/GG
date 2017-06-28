@@ -27,7 +27,7 @@ sub register {
 
   $opts ||= {};
 
-  $app->log->debug("register GG::Admin::Plugins::File");
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->helper(
     file_delete_pict => sub {

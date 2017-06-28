@@ -50,9 +50,6 @@ sub startup {
       $self->stash->{catalog} = 1;
       $self->stash->{alias}   = 'catalog';
 
-      #$self->res->headers->header('Pragma' => 'no-cache');
-      #$self->res->headers->header('Cache-Control' => 'no-cache');
-
       return 1;
     }
   );

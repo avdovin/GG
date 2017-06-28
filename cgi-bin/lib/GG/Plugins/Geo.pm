@@ -26,7 +26,7 @@ sub register {
     $include_cities = $opts->{geo}->{include};
   }
 
-  $app->log->debug("register GG::Plugins::Geo");
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->routes->route("/ajax/set_city")->to(
     cb => sub {

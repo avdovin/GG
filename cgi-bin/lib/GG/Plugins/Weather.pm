@@ -15,7 +15,7 @@ my $TmpFilename = '__weaher.csv';
 sub register {
   my ($self, $app) = @_;
 
-  $app->log->debug("register GG::Plugin::Weather");
+  $app->log->debug("register ".__PACKAGE__);
 
   my $ua = Mojo::UserAgent->new;
 

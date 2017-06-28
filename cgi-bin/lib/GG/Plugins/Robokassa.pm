@@ -20,7 +20,7 @@ sub register {
 
   my $DEBUG     = $conf->{test} ? 1 : undef;
 
-  $app->log->debug("register GG::Plugins::Robokassa");
+  $app->log->debug("register ".__PACKAGE__);
 
   my $routes = $app->routes;
 

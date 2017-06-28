@@ -11,6 +11,7 @@ my $BITRIX_COMPANY  = 'ifrog';
 
 sub register {
   my ($self, $app, $conf) = @_;
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->helper(
     'bitrix.crm_add_lead' => sub {

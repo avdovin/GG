@@ -7,6 +7,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app, $conf) = @_;
 
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->routes->route("rss.xml")->to(
     cb => sub {

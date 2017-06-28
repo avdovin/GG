@@ -46,6 +46,8 @@ sub _config {
 sub register {
   my ($self, $app, $conf) = @_;
 
+  $app->log->debug("register ".__PACKAGE__);
+
   $app->routes->get('search/result')->to(
     seo_title_sitename => 1,
     cb                 => sub {

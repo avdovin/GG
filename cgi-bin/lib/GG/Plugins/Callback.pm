@@ -9,7 +9,7 @@ sub register {
 
   $opts ||= {};
 
-  $app->log->debug("register GG::Plugin::Callback");
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->routes->post('/callback')->to(
     cb => sub {

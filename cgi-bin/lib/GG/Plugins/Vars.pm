@@ -7,7 +7,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app) = @_;
 
-  $app->log->debug("register GG::Plugins::Vars");
+  $app->log->debug("register ".__PACKAGE__);
 
   unless (ref($app)->can('vars')) {
     ref($app)->attr('vars');
