@@ -35,8 +35,9 @@ fi
 
 mkdir -p $TOP
 cd "$TOP"
-wget -c http://www.imagemagick.org/download/ImageMagick.tar.gz
-tar xzvf ImageMagick.tar.gz
+
+wget -c https://www.imagemagick.org/download/releases/ImageMagick-6.8.8-10.tar.xz
+tar xf ImageMagick-6.8.8-10.tar.xz
 cd ImageMagick* # this isn't exactly clean
 
 
