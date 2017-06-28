@@ -16,7 +16,7 @@ sub register {
 
   return $app->log->fatal('Shop Logistics plugin tried to register, but no api key defined') unless $API_KEY;
 
-  $app->log->debug("register GG::Plugins::SL");
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->helper('sl.request'       => sub {
     my $self = shift;

@@ -54,6 +54,19 @@ sub register {
     my ($validation, $name, $value) = @_;
     return $value =~ /$RE{URI}{HTTP}/ ? undef : 1;
   });
+  $validator = $validator->add_check(is_email => sub {
+    my ($validation, $name, $value) = @_;
+    !($value =~ /.+@.+/);
+  });
+  # check for existing lst value
+  $validator = $validator->add_check(is_lst_value => sub {
+    my ($validation, $name, $value, $lst) = @_;
+    my $sth = $app->dbh->prepare("select ID from $lst where ID like ? limit 1");
+    my $valid = 0;
+    $valid = 1 if($sth->execute($value) eq '0E0');
+    $sth->finish();
+    return $valid;
+  });
   $validator = $validator->add_check(is_user_email_exist => sub {
     my ($validation, $name, $value) = @_;
 

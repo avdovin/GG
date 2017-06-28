@@ -8,7 +8,7 @@ use Captcha::reCAPTCHA;
 sub register {
   my ($self, $app, $conf) = @_;
 
-  $app->log->debug("register GG::Plugin::Feedback");
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->routes->get("/feedback")->to(
     seo_title_sitename => $app->{seo_title_sitename},

@@ -20,6 +20,8 @@ my $captcha_conf = {};
 sub register {
   my ($self, $app, $conf) = @_;
 
+  $app->log->debug("register ".__PACKAGE__);
+
   $captcha_conf = {
     'width'        => 88,    #ширина изображения
     'height'       => 31,    #высота изображения

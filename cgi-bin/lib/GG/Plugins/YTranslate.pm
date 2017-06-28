@@ -7,6 +7,8 @@ use Mojo::Base 'Mojolicious::Plugin';
 sub register {
   my ($self, $app, $conf) = @_;
 
+  $app->log->debug("register ".__PACKAGE__);
+
   my $API_KEY = "trnsl.1.1.20150921T114400Z.967fa3a0261faece.c0c4f9746acfa6f4309442c7f271ec6834a4f778";
 
   use Mojo::UserAgent;

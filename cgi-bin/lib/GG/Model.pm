@@ -71,17 +71,6 @@ sub select {
     return ( $params{limit} and $params{limit} == 1 ) ? $list->hash || {} : $list->hashes || [];
 }
 
-# sub update {
-#     my ($self, $where, $data_hashref) = @_;
-#     my $result = $self->dbi->query( 'UPDATE', $self->table, 'SET', $data_hashref, 'WHERE', $where );
-#     return $result;
-# }
-
-# sub delete {
-#     my ($self, $where) = @_;
-#     my $result = $self->db->iquery( 'DELETE FROM', $self->table, 'WHERE', $where );
-#     return $result;
-# }
 
 sub _where_to_string{
   my $where = shift;

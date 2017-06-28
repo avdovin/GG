@@ -4,9 +4,10 @@ use utf8;
 
 use Mojo::Base 'Mojolicious::Plugin';
 
-
 sub register {
   my ($self, $app, $conf) = @_;
+
+  $app->log->debug("register ".__PACKAGE__);
 
   $app->routes->route("bb/:id_banner", id_banner => qr/\d+/)->to(
     cb => sub {
