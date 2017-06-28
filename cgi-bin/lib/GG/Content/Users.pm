@@ -6,196 +6,252 @@ use Mojo::Base 'GG::Content::Controller';
 
 my $UserTable = 'data_users';
 
-sub profile {
+has required_fields_registration => sub {[qw(firstname lastname middlename email city street house agree_with_conditions password password_confirm)]};
+has required_fields_profile      => sub {[qw(firstname lastname middlename email city street house)]};
+has optional_fields              => sub {[qw(housing phone flat postcode)]};
+has virtual_fields               => sub {[qw(agree_with_conditions password password_confirm)]};
+
+sub update_reminded_password{
   my $self = shift;
 
-  $self->stash->{profile} = 1;
-  return $self->register;
-}
+  my $json = {};
+  my $send_params = $self->req->params->to_hash;
+  my $validation  = $self->validation->input($send_params);
 
-sub activate {
-  my $self = shift;
-
-  # check activate
-
-  my $user_id = $self->stash->{user_id};
-  my $cck     = $self->stash->{cck};
-
-  my $success = 0;
-  if (
-    my $user = $self->dbi->query(
-      "SELECT * FROM `data_users` WHERE `ID`='$user_id' AND `cck`='$cck' AND `active`='0' "
-    )->hash
-    )
-  {
-    $success = 1;
-
-    $self->dbi->dbh->do(
-      "UPDATE `data_users` SET `active`=1, `cck`='' WHERE `ID`=?",
-      undef, $user_id);
-
-    my $rdate = $self->setLocalTime(1);
-    my $xml   = $self->render_partial(
-      user     => $user,
-      template => 'users/register',
-      format   => 'xml',
-    );
-
-    eval {
-      $rdate =~ s{:}{_}gi;
-      open(FILE, '>',
-            $ENV{DOCUMENT_ROOT}
-          . '/import/out/'
-          . $self->stash->{index} . '_'
-          . $rdate . '.xml')
-        or die $!;
-      print FILE $xml;
-      close FILE;
-    };
-    if ($@) {
-      warn $@ if $@;
-    }
-
-
-    my $email_body = $self->render_partial(
-      template => 'users/register_success_mail_activate',
-      format   => 'html'
-    );
-    eval {
-      $self->mail(
-        to => $self->get_var('email_admin'),
-        subject =>
-          'Новый пользователь зарегистрировался на сайте '
-          . $self->get_var(name => 'site_name', controller => 'global'),
-        data => $email_body,
-      );
-
-      $self->mail(
-        to => $self->stash->{email},
-        subject =>
-          'Ваша учетная запись активирована на сайте '
-          . $self->get_var(name => 'site_name', controller => 'global'),
-        data => $email_body,
-      );
-    };
-
+  if( $validation->required('cck')->is_cck_valid ){
+    $validation->required('password_confirm')->equal_to('password')
+     if $validation->required('password')->size(1, 255)->is_valid;
   }
 
+  if ($validation->has_error) {
+    $json->{'errors'} = {};
+    foreach my $f (@{$validation->failed}) {
+      my $error_label = $validation->error($f)->[0];
+      my $error_label_human
+        = $self->_user_human_labels($f, $error_label);
+
+      $json->{'errors'}->{$f} = $error_label_human;
+    }
+  }
+
+  my $values = $validation->output;
+
+  my $user = $self->dbi->select( $UserTable, '*', { cck => delete $values->{cck} } )->hash;
+  $values->{'password_digest'} = $self->encrypt_password( delete $values->{'password_confirm'} ) if delete $values->{'password'};
+
+  if( $self->dbi->update_hash( $UserTable, { %$values, cck => '' }, " ID=".$user->{ID} ) ){
+    $json->{success} = 1;
+  }else{
+    $json->{errors} = {
+      global => 'Системная ошибка',
+    }
+  }
+
+  $self->render( json => $json );
+}
+
+sub redirect_to_password_remind{
+  my $self = shift;
+
+  my $cck = $self->param('cck');
+
+  return $self->render_not_found if ( !$self->dbi->select($UserTable, 'ID', { cck => $cck })->list or $self->is_auth );
+
+  $self->flash('cck', $cck);
+  $self->redirect_to( $self->url_for('main').'#remind_password' );
+}
+
+sub remind_password{
+  my $self = shift;
+
+  my $json = {};
+  my $validation = $self->validation;
+
+  $validation->required('email')->is_user_email_valid;
+
+  if ($validation->has_error) {
+    $json->{'errors'} = {};
+    foreach my $f (@{$validation->failed}) {
+      my $error_label = $validation->error($f)->[0];
+      my $error_label_human
+        = $self->_user_human_labels($f, $error_label);
+
+      $json->{'errors'}->{$f} = $error_label_human;
+    }
+  }
+
+  return $self->render( json => $json ) if keys %$json;
+
+  my $user = $self->dbi->select($UserTable, '*', { email => $validation->output->{email} })->hash;
+
+  my $cck = $self->defCCK();
+
+  if( $self->dbi->update_hash( $UserTable, { cck => $cck }, " ID=".$user->{ID} ) ){
+    $user->{cck} = $cck;
+
+    my $email_body = $self->render_mail(
+      user     => $user,
+      template => "users/_remind_password",
+    );
+
+    $self->mail(
+      to      => $user->{email},
+      subject => 'Вы заказали восстановление пароля на сайте '
+        . $self->get_var(name => 'site_name', controller => 'global',
+        raw => 1),
+      data => $email_body,
+    );
+
+    return $self->render( json => { success => 1 } );
+  }
 
   $self->render(
-    success  => $success,
-    template => 'users/register_success_activated'
+    json => {
+      errors => {
+        global => 'Системная ошибка',
+      }
+    }
   );
 }
 
-sub register {
+sub update_password{
   my $self = shift;
 
-  my $is_profile = $self->stash->{profile} || 0;
+  $self->stash->{update_password} = 1;
+  return $self->sign_up;
+}
 
-  $self->get_keys(type => ['lkey'], no_global => 1, controller => 'users');
+sub profile {
+  my $self = shift;
+  $self->meta_title('Профиль пользователя');
+}
 
-  #my $lkeys = $self->app->lkeys->{users};
-  my $send_params = $self->send_params;
+sub update {
+  my $self = shift;
 
-  my $json = {};
+  $self->stash->{profile} = 1;
+  return $self->sign_up;
+}
 
-  my $fields = {
-    name => {
-      label      => 'Ваше имя',
-      required   => 1,
-      error_text => 'Укажите Ваше имя',
-    },
-    phone => {
-      label    => 'Номер телефона',
-      required => 1,
-      error_text =>
-        'Укажите контактный номер телефона',
-    },
-    email => {
-      label      => 'Электронная почта',
-      required   => 1,
-      error_text => 'Укажите электронную почту',
-    },
-    city => {
-      label      => 'Город',
-      required   => 1,
-      error_text => 'Укажите город',
-    },
-    password => {
-      label      => 'Пароль',
-      required   => 1,
-      error_text => 'Укажите пароль',
+sub sign_up {
+  my $self = shift;
+
+  my $is_profile = $self->stash('profile') || undef;
+  my $is_password_update = $self->stash('update_password') || undef;
+
+  my $json        = {};
+  my $send_params = $self->req->params->to_hash;
+  my $validation  = $self->validation->input($send_params);
+
+  unless( $is_password_update ){
+    my $fields = $is_profile ? $self->required_fields_profile : $self->required_fields_registration;
+
+    foreach ( @$fields ){
+      $validation->required($_)->size(1, 255);
     }
-  };
 
-
-  # unless($is_profile){
-  # 	unless($self->check_captcha($self->param('code'))){
-  # 		$outFields->{code} = 'Код не верен';
-  # 	}
-  # } else {
-  # 	$lkeys->{password}->{settings}->{obligatory} = 0;
-  # }
-
-  foreach my $f (keys %$fields) {
-    if ($send_params->{$f}) {
-      $self->stash->{$f} = $send_params->{$f}
-
-    }
-    elsif ($fields->{$f}->{required}) {
-      $json->{errors}->{$f} = $fields->{$f}->{error_text};
-
+    foreach ( @{ $self->optional_fields } ){
+      $validation->optional($_)->size(1, 255);
     }
   }
 
-  if ( $self->stash->{password}
-    && $self->stash->{password} ne $self->param('confpassword'))
-  {
-    $json->{errors}->{confpassword} = 'Пароли не совпадают';
+  if ( $is_password_update ){
+    $validation->required('password_confirm')->equal_to('password')
+
+      if ($validation->required('old_password')
+          ->password_digest_eq( $self->current_user->{password_digest} )
+          ->is_valid
+            and
+          $validation->required('password')
+          ->size(1, 255)
+          ->not_equal_to('old_password')
+          ->is_valid);
+
+  }elsif(!$is_profile){
+    $validation->required('email')->size(1, 255)->is_user_email_exist;
+    $validation->required('password')->size(1, 255);
+    $validation->required('password_confirm')->equal_to('password')
+      if $validation->required('password')->size(1, 255)->is_valid;
   }
 
-  unless (keys %{$json->{errors}}) {
+  if ($validation->has_error) {
+    $json->{'errors'} = {};
+    foreach my $f (@{$validation->failed}) {
+      my $error_label = $validation->error($f)->[0];
+      my $error_label_human
+        = $self->_user_human_labels($f, $error_label);
 
-    if (
-      $self->dbi->query(
-            "SELECT `email` FROM `data_users` WHERE `email`='"
-          . $self->stash->{email}
-          . "' LIMIT 0,1"
-      )->hash
-      )
-    {
-      $json->{errors}->{email}
-        = 'Данный E-mail уже зарегистрирован';
+      $json->{'errors'}->{$f} = $error_label_human;
     }
   }
 
   unless (keys %{$json->{errors}}) {
 
-    $self->send_params->{active} = 1;
+    my $values = $validation->output;
 
-    if (my $user_id = $self->save_info(table => 'data_users')) {
-      $json->{user_id} = $user_id;
+    $values->{'active'} = 1;
+    $values->{'password_digest'} = $self->encrypt_password( delete $values->{'password_confirm'} ) if delete $values->{'password'};
+    $values->{'name'} = join(' ', map{ $values->{ $_ } } qw(firstname middlename lastname)) if ( $values->{ firstname } and $values->{ middlename } and $values->{ lastname } );
 
-      my $email_body = $self->render_mail(
-        user_id  => $user_id,
-        partial  => 1,
-        template => 'users/_register',
-      );
+    map{ delete $values->{$_} } @{ $self->virtual_fields };
+
+    my $has_errors = undef;
+
+    if ( $is_profile || $is_password_update ){
+      map { delete $values->{$_} } qw(email active old_password);
+      if ( $self->dbi->update_hash($UserTable, $values, " ID=".$self->current_user->{ID}) ){
+        $self->reload_current_user;
+
+        $json->{message_success} = 'Информация обновлена';
+      }else{
+        $has_errors = 1;
+      }
+    }else{
+      if (my $user_id = $self->dbi->insert_hash($UserTable, $values)) {
+        $values->{id} = $user_id;
+
+        my $email_body = $self->render_mail(
+          user     => $values,
+          user_id  => $user_id,
+          template => "users/_signup",
+          is_admin => undef,
+        );
+
+        my $email_body_admin = $self->render_mail(
+          user     => $values,
+          user_id  => $user_id,
+          template => "users/_signup",
+          is_admin => 1,
+        );
+
+        $self->mail(
+          to      => $values->{email},
+          subject => 'Вы зарегистрировались на сайте '
+            . $self->get_var(name => 'site_name', controller => 'global',
+            raw => 1),
+          data => $email_body,
+        );
+
+        $self->mail(
+          to      => $self->get_var(name => 'email_admin', controller => 'global', raw => 1),
+          subject => 'Новый пользователь зарегистрировался на сайте '
+            . $self->get_var(name => 'site_name', controller => 'global',
+            raw => 1),
+          data => $email_body_admin,
+        );
 
 
-      $self->mail(
-        to      => $self->stash->{email},
-        subject => 'Вы зарегистрировались на сайте '
-          . $self->get_var(name => 'site_name', controller => 'global',
-          raw => 1),
-        data => $email_body,
-      );
+        $json->{message_success} = $self->render_to_string(
+          template => 'users/_signup_submit_success_msg');
 
-      $self->_do_auth($user_id);
-      $json->{user_id} = $user_id;
+        $self->authenticate( $values->{email}, $self->param('password') );
+        $json->{success} = $self->url_for('main');
+      }else {
+        $has_errors = 1;
+      }
     }
-    else {
+
+    if ( $has_errors ){
       $json->{errors}->{global}
         = 'Системная ошибка, повторите попытку позже';
     }
@@ -204,127 +260,167 @@ sub register {
   $self->render(json => $json);
 }
 
-sub auth {
-  my $self = shift;
-
-  my $email    = $self->param('email');
-  my $password = $self->param('password');
-
-  my $json = {errors => {},};
-
-  if (!$email) {
-    $json->{errors}->{email} = 'Укажите E-mail';
-
-  }
-  elsif (!$password) {
-    $json->{errors}->{password} = 'Укажите Пароль';
-
-  }
-  elsif (
-    my $user = $self->app->dbi->query(
-      qq/
-		SELECT `ID`,`active`
-		FROM `data_users`
-		WHERE `email`='$email' AND `password`='$password'
-		/
-    )->hash
-    )
-  {
-
-    if ($user->{active}) {
-      $self->_do_auth($user->{ID});
-      $json->{user_id} = $user->{ID};
-    }
-    else {
-      $json->{errors}->{global}
-        = 'Учетная запись заблокирована';
-    }
-
-  }
-  else {
-    $json->{errors}->{global} = 'Ошибка E-mail и/или Пароля';
-
-  }
-
-  $self->render(json => $json);
-}
-
-sub remember {
+sub password_recovery {
   my $self = shift;
 
   my $email = $self->param('email');
 
-  my $json = {errors => {},};
+  my $json = {};
 
-  if (
-    my $user = $self->app->dbi->query(
-      qq/
-			SELECT `ID`,`active`
-			FROM `data_users`
-			WHERE `email`='$email'
-			/
-    )->hash
-    )
+  if (my $user = $self->dbi->select('data_users', '*', {email => $email})->hash)
   {
 
     my $new_password = substr($self->defCCK(), 0, 10);
-    $self->app->dbi->update("data_users", {password => $new_password},
-      "`ID`='$$user{ID}'");
+    my $new_password_encrypted = $self->encrypt_password($new_password);
+
+    $self->dbi->update(
+      'data_users',
+      {password_digest => $new_password_encrypted},
+      {ID       => $user->{ID}}
+    );
 
     my $email_body = $self->render_mail(
       new_password => $new_password,
-      partial      => 1,
-      template     => 'users/_remember',
+      user         => $user,
+      template     => "users/_password_recovery",
     );
 
     $self->mail(
       to      => $user->{email},
       subject => 'Восстановление пароля на сайте '
         . $self->get_var(name => 'site_name', controller => 'global', raw => 1),
-      data => $email_body,
+      data    => $email_body,
     );
-
+    $json->{success} = 'Пароль успешно выслан на указанный адрес';
   }
   else {
-    $json->{errors}->{global} = 'Адрес не найден';
+    $json->{errors} = 'Адрес не найден';
+    $json->{error_fields} = ['email'];
   }
 
   $self->render(json => $json);
 }
 
-sub logout {
+sub sign_out {
   my $self = shift;
 
-  if ($self->is_auth) {
-    my $user_id = $self->app->user->{ID};
-    $self->dbi->update_hash('data_users', {cck => ''}, "`ID`='$user_id'");
-    $self->app->user->{auth} = 0;
-
-    # Скидываем корзину
-    # if(keys %{$self->userdata->{basket}}){
-    # 	$self->userdata->{basket} = {};
-    # 	$self->save_userdata;
-    # }
-  }
-
-  $self->cookie('user_id', '', {path => '/', expires => time - 1000});
-
-  $self->redirect_to($self->tx->req->content->headers->header('referer')
-      || '/');
+  $self->logout;
+  my $redirect_url = $self->tx->req->content->headers->header('referer') || '/';
+  $redirect_url = '/' if $redirect_url =~ /(users)/;
+  return $self->redirect_to($redirect_url);
 }
 
-sub _do_auth {
-  my $self    = shift;
-  my $user_id = shift;
+sub sign_in {
+  my $self = shift;
 
-  $self->app->dbi->update("data_users",
-    {cck => $self->app->user->{cck}, vdate => $self->setLocalTime(1)},
-    "`ID`='$user_id'");
+  my $user_email    = $self->param('email');
+  my $user_password = $self->param('password');
 
- # $self->cookie('user_id', $user_id, {
- # 	path 	=> '/',
- # 	expires	=> $self->app->sysuser->userinfo->{cck} ? time+360000000 : time-1000
- # });
+  my $json = {};
+  if ($self->authenticate($user_email, $user_password)) {
+    $json = {
+      success   => '/',
+      result    => $self->render_to_string('users/_signin_popup_result'),
+    };
+  }
+  else {
+    my $stash = $self->stash;
+    my $message = $stash->{'session.msg.err'};
+    my ($error_text, $error_fields) = (undef, [qw(global)]);
+    if($message eq 'user_not_found'){
+      $error_text = 'пользователь не найден';
+      $error_fields = [qw(email password)];
+    }
+    elsif($message eq 'user_password_not_set'){
+      $error_text = 'у пользователя не установлен пароль';
+      $error_fields = [qw(password)];
+    }
+    elsif($message eq 'user_disabled'){
+      $error_text = 'пользователь заблокирован';
+    }
+    elsif($message eq 'user_password_wrong'){
+      $error_text = 'не правильный логин и/или пароль';
+      $error_fields = [qw(email password)];
+    }
+    else {
+      $error_text = 'системная ошибка';
+      $error_fields = [qw(email password)];
+    }
+    $json->{errors} = {};
+    foreach( @$error_fields){
+      $json->{errors}->{ $_ } = '';
+    }
+    $json->{errors}->{ (keys %{ $json->{errors} })[0] } = $error_text;
+  }
+
+  return $self->render(json => $json);
+}
+
+sub _user_human_labels {
+  my $self  = shift;
+  my $field = shift;
+  my $label = shift;
+
+  my $MSG = {
+    lastname => {
+      required => 'Укажите фамилию',
+      size =>
+        'Длина фамилии должна быть менее 255 сивмолов'
+    },
+    firstname => {
+      required => 'Укажите имя',
+      size =>
+        'Длина имени должна быть менее 255 сивмолов'
+    },
+    middlename => {
+      required => 'Укажите отчество',
+      size =>
+        'Длина отчества должна быть менее 255 сивмолов'
+    },
+    phone => {
+      size =>
+        'Длина телефона должна быть менее 255 сивмолов'
+    },
+    email => {
+      required => 'Укажите электронную почту',
+      size =>
+        'Длина электронной почты должна быть менее 255 сивмолов',
+      is_user_email_exist =>
+        'Такая электронная почта уже зарегистрирована',
+      is_user_email_valid =>
+        'Пользователь с такой электронной почтой не найден',
+    },
+    password => {
+      required => 'Укажите пароль',
+      size =>
+        'Длина пароля должна быть менее 255 сивмолов',
+      not_equal_to       => 'Новый пароль должен быть отличен от старого',
+    },
+    password_confirm => {
+      required => 'Введите подтверждение пароля',
+      equal_to => 'Пароли не совпадают'
+    },
+    company_name => {
+      required => 'Укажите название компании или ИП',
+    },
+    inn          => {
+      required => 'Укажите ИНН',
+    },
+    city         => {
+      required => 'Укажите город',
+    },
+    old_password => {
+      password_digest_eq => 'Старый пароль не верен',
+      required           => 'Введите старый пароль',
+    },
+    cck          => {
+      required      => 'Ошибка при восстановлении пароля, попробуйте еще раз',
+      is_cck_valid  => 'Ошибка при восстановлении пароля, попробуйте еще раз',
+    },
+  };
+
+  return $MSG->{$field}
+    && $MSG->{$field}->{$label} ? $MSG->{$field}->{$label} : $label;
 }
 
 1;
